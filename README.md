@@ -1,6 +1,6 @@
 # gitlab-docs
 
-
+Automatically documents gitlab-ci yml files that are based schema properties defined here: https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/assets/javascripts/editor/schema/ci.json
 
 ## Getting started
 

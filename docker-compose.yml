@@ -1,0 +1,12 @@
+services:
+  gitlab-docs:
+    build:
+      dockerfile: dockerfile
+      context: .
+    container_name: gitlab-docs
+    environment:
+      - MOUNT_PATH=/gitlab-project/
+    volumes:
+      - ${PWD}/sample-files:/gitlab-project
+      - ${PWD}/src:/gitlab-docs
+      - /etc/ssl/certs/ca-certs.pem:/etc/ssl/certs/ca-certs.pem
