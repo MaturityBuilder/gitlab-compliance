@@ -1,0 +1,15 @@
+include:
+  - project: 'charlieasmith/a-generic-fragment'
+    ref: main
+    file: 'a-fragment-file.yml'
+gitleaks:
+  stage: code-quality
+  extends:
+    - .gitleaks-template
+
+shell-check:
+  stage: code-quality
+  extends:
+    - .shell-check-template
+  allow_failure: true
+

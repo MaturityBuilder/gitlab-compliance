@@ -1,10 +1,23 @@
 include:
-  - local: "gitlab-ci/includes.yml"
-  - "gitlab-ci/includes.yml"
+  - "gitlab-ci/includes_without_keys.yml"
+
+  - local: "gitlab-ci/includes_with_keys.yml"
+    variables:
+      MY_VARIABLE: "true"
+    rules:
+      - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   - component: https://gitlab.com/charlieasmith/gitlab-docs@main
+    inputs:
+      MY_INPUTS: "true"
+    rules:
+      - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   - project: 'charlieasmith/a-generic-fragment'
     ref: main
     file: 'a-fragment-file.yml'
+    variables:
+      MY_VARIABLE: "true"
+    rules:
+      - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 default:
   tags:
     - ${DEV_IAM_RUNNER}
