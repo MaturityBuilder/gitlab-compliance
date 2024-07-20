@@ -89,7 +89,7 @@ def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
         print("")
 
         GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
-        f = open("GITLAB_CONFIGURATION.md", "a")
+        f = open("/gitlab-project/GITLAB_CONFIGURATION.md", "a")
         f.write("\n\n")
         f.write(GLDOCS_CONFIG_FILE_HEADING)
         f.write(str(includes_table))
