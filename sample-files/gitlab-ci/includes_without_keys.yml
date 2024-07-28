@@ -3,7 +3,9 @@ include:
   - project: 'charlieasmith/a-generic-fragment'
     ref: main
     file: 'a-fragment-file.yml'
-
+  - project: 'charlieasmith/a-generic-fragment-with-sem-version'
+    ref: 1.0.0
+    file: 'a-fragment-file.yml'
 todo-check:
   stage: code-quality
   extends:

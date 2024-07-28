@@ -1,0 +1,78 @@
+import logging, os
+LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("GITLAB DOCS|VARIABLES WRAPPER")
+logger.setLevel(LOG_LEVEL)
+
+def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
+    print("Generating Documentation for Variables")
+    import yaml
+    from pytablewriter import MarkdownTableWriter
+    from prettytable import MARKDOWN
+    with open(GLDOCS_CONFIG_FILE, 'r') as file:
+        try:
+            data = yaml.load(file, Loader=yaml.SafeLoader)
+            variables = data["variables"]
+            # print(gldocs.generate_markdown_table(variables))
+            from prettytable import PrettyTable
+
+            variables_table = PrettyTable()
+            variables_table.set_style(MARKDOWN)
+            variables_table.field_names = ["Key", "Value", "Description", "Options", "Expand"]
+            # variables_table.add_rows([variables])
+            # print(variables)
+
+            for v in variables:
+                description = "&#x274c;"
+                options = "&#x274c;"
+                expand = "true"
+                result = {}
+                if type(variables[v]) == str:
+                    print("Simple variable found: " + variables[v])
+                    result["value"] = variables[v]
+                    # print(v)
+                    # print(type(result))
+                    VAR_TYPE="BASIC"
+
+                    # variables_table.add_row([v, variables[v], " "&#x274c; (not properly formed)", ""])
+                else:
+                    if "description" in variables[v]:
+                        description = variables[v]["description"]
+                    else:
+                        print("Description for: " + v + " isn't set, variable should have description set, gitlab-docs considers this malformed :(")
+                        description = "&#x274c;"
+
+                    if "options" in variables[v]:
+                        options = variables[v]["options"]
+                    else:
+                        print("options key: " + v + " isn't set, but will improve code hygiene if you set where possible, gitlab-docs  - https://docs.gitlab.com/ee/ci/yaml/#variablesoptions ")
+                        options = "&#x274c;"
+                    if "expand" in variables[v]:
+                        expand = variables[v]["expand"]
+                    else:
+                        print("expand key: " + v + " isn't set, default value will recored as 'true' - https://docs.gitlab.com/ee/ci/yaml/#variablesexpand")
+                        expand = "true"
+
+            variables_table.add_row([v, variables[v], description, options, expand])
+
+                # for key in result:
+                #     # value = ariables[key]
+
+                #     print(key)
+                #     # description = variables["description"]
+
+
+
+
+        except yaml.YAMLError as exc:
+            print(exc)
+        print("")
+        print(str(variables_table))
+        print("")
+
+        GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
+        f = open("/gitlab-project/GITLAB_CONFIGURATION.md", "a")
+        f.write("\n\n")
+        f.write(GLDOCS_CONFIG_FILE_HEADING)
+        f.write(str(variables_table))
+        f.close()

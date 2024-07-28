@@ -1,6 +1,11 @@
-import modules.yaml_md_table as gldocs
-def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
 
+import modules.yaml_md_table as gldocs
+import logging, os
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("GITLAB DOCS|INCLUDES WRAPPER")
+logger.setLevel(LOG_LEVEL)
+def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
     print("Generating Documentation for Includes")
     import yaml
     from pytablewriter import MarkdownTableWriter
@@ -14,52 +19,61 @@ def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
 
             includes_table = PrettyTable()
             includes_table.set_style(MARKDOWN)
-            includes_table.field_names = ["Include Type", "Project", "Version", "File", "Variables", "Rules"]
+            includes_table.field_names = ["Include Type", "Project", "Version", "Valid Version", "File", "Variables", "Rules"]
             # includes_table.add_rows([includes])
-            print(includes)
+            logger.debug(includes)
 
             for i in includes:
 
                 if isinstance(i, (str)):
-                    print(i)
+                    logger.debug(i)
                     i = {"local": i}
-                print(i)
+                logger.debug(i)
                 for key in i.keys():
                     type = key
-                    print("Type is: " + key)
+                    logger.debug("Type is: " + key)
                     if type == "project":
-                        # print("Type is: " + key)
+                        logger.debug("Type is: " + key)
                         version = i["ref"]
                         value   = i["project"]
                         file   = i["file"]
+                        if check_include_version_is_sema_version(version, file=file, include=value) == True:
+                            valid_version = "&#9989;"
+                        else:
+                            valid_version = "&#x274c;"
                         inc_vars = ""
                         try:
                             inc_vars = i["variables"]
                         except:
-                            print("No Inputs found")
+                            logger.warning("No Inputs found for: %s", value)
                         inc_rules = ""
                         try:
                             inc_rules = i["rules"]
                         except:
-                            print("No rules found")
-                        includes_table.add_row([type, value, version, file, inc_vars, inc_rules])
+                            logger.debug("No rules found for: %s", value)
+                        includes_table.add_row([type, value, version, valid_version, file, inc_vars, inc_rules])
 
                     elif type == "component":
-                        # print("Type is: " + key)
+
                         version = i["component"].split("@")[1]
                         value   = i["component"].split("@")[0]
+                        if check_include_version_is_sema_version(version, file="component", include=value) == True:
+                            valid_version = "&#9989;"
+                        else:
+                            valid_version = "&#x274c;"
+
                         inc_vars = ""
                         try:
                             inc_vars = i["inputs"]
                         except:
-                            print("No Inputs found")
+                            logger.warning("No Inputs found for: %s", value)
 
                         inc_rules = ""
                         try:
                             inc_rules = i["rules"]
                         except:
-                            print("No rules found")
-                        includes_table.add_row([type, value, version, "", inc_vars, inc_rules])
+                            logger.debug("No rules found for: %s", value)
+                        includes_table.add_row([type, value, version, valid_version ,"", inc_vars, inc_rules])
                     elif type == "local":
                         version = "n/a"
                         value = i[key]
@@ -67,26 +81,28 @@ def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
                         try:
                             inc_vars = i["variables"]
                         except:
-                            print("No Variables found")
+                            logger.debug("No Variables found for: %s", value)
 
                         inc_rules = ""
                         try:
                             inc_rules = i["rules"]
                         except:
-                            print("No rules found")
-                        includes_table.add_row([type, value, version, "", inc_vars, inc_rules])
+                            logger.debug("No rules found for: %s", value)
+                        includes_table.add_row([type, value, version, "&#9989;",  "", inc_vars, inc_rules])
                         if type == "local" :
                             SUB_GLDOCS_CONFIG_FILE = "/gitlab-project/" + i[key]
                             try:
                                 document_includes(GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,WRITE_MODE="a")
+                                import modules.jobs as jobs
+                                jobs.get_jobs(GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,WRITE_MODE="a")
                             except:
-                                print("include don't exist in " + GLDOCS_CONFIG_FILE)
+                                logger.debug("include don't exist in " + GLDOCS_CONFIG_FILE)
 
         except yaml.YAMLError as exc:
             print(exc)
-        print("")
-        print(str(includes_table))
-        print("")
+        logger.debug("")
+        logger.debug(str(includes_table))
+        logger.debug("")
 
         GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
         f = open("/gitlab-project/GITLAB_CONFIGURATION.md", "a")
@@ -94,10 +110,9 @@ def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
         f.write(GLDOCS_CONFIG_FILE_HEADING)
         f.write(str(includes_table))
         f.close()
-#open and read the file after the appending:
-
-
-
-
-# def get_include_type(include_entry):
-
+def check_include_version_is_sema_version(version, file, include):
+    import semver
+    logger.debug("Is Version Sem Ver:" + str(semver.Version.is_valid(version)))
+    if semver.Version.is_valid(version) == False:
+        logger.warning("Is Version Sem Ver: %s | File: %s | Include: %s", str(semver.Version.is_valid(version)), file, include)
+    return semver.Version.is_valid(version)

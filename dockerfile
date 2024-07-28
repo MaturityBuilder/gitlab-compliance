@@ -14,8 +14,9 @@ RUN cat /usr/local/share/ca-certificates/my-cert.crt >> /etc/ssl/certs/ca-certif
 RUN pip install pyyaml \
     pytablewriter \
     oyaml \
-    prettytable loremipsum
-
+    prettytable loremipsum \
+    markdown-analysis \
+    semver
 RUN mkdir -p /gitlab-docs
 WORKDIR /gitlab-docs
 COPY src/ .
