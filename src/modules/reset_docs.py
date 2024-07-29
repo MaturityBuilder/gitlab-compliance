@@ -3,6 +3,7 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|MARKDOWN WRAPPER")
 logger.setLevel(LOG_LEVEL)
+OUTPUT_FILE=os.getenv("OUTPUT_FILE", "/gitlab-project/README.md")
 def replaceTextBetween(originalText, delimeterA, delimeterB, replacementText=""):
     leadingText = originalText.split(delimeterA)[0]
     trailingText = originalText.split(delimeterB)[1]
@@ -17,6 +18,7 @@ def gitlab_docs_reset_writer(OUTPUT_FILE,MODE,GLDOCS_TITLE="Gitlab Docs"):
     # import frontmatter
     # gldocs_opening = "[comment]: <> (gitlab-docs-opening-auto-generated)"
     gldocs_closing = "[comment]: <> (gitlab-docs-closing-auto-generated)"
+    OUTPUT_FILE=os.getenv("OUTPUT_FILE", "/gitlab-project/README.md")
     if MODE == "STARTING":
         print("Do we have a header in in markdown file already: " + str(gitlab_docs_check_header(OUTPUT_FILE,GLDOCS_TITLE=GLDOCS_TITLE)))
         if gitlab_docs_check_header(OUTPUT_FILE,GLDOCS_TITLE):
@@ -68,11 +70,11 @@ def gitlab_docs_remove_docs(OUTPUT_FILE,GLDOCS_TITLE,GLDOCS_END):
         contents = f.read()
         to_replace = contents[contents.find(GLDOCS_TITLE)+len(GLDOCS_TITLE):contents.rfind(GLDOCS_END)]
         contents = contents.replace(to_replace, "")
-        with open(OUTPUT_FILE, 'w') as f:
-            f.write(contents)
+    with open(OUTPUT_FILE, 'w') as f:
+        f.write(contents)
     with open(OUTPUT_FILE, 'r') as f:
         contents = f.read()
         contents = contents.replace(GLDOCS_END, "")
-        with open(OUTPUT_FILE, 'w') as f:
-            f.write(contents)
+    with open(OUTPUT_FILE, 'w') as f:
+        f.write(contents)
 

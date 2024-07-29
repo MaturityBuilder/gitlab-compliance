@@ -3,9 +3,11 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|JOBS WRAPPER")
 logger.setLevel(LOG_LEVEL)
+OUTPUT_FILE=os.getenv("OUTPUT_FILE", "/gitlab-project/README.md")
 def get_jobs(GLDOCS_CONFIG_FILE,WRITE_MODE):
     exclude_keywords = ["default", "include", "stages","variables", "workflow"]
     print("Generating Documentation for Jobs")
+    OUTPUT_FILE=os.getenv("OUTPUT_FILE", "/gitlab-project/README.md")
     import yaml
     from pytablewriter import MarkdownTableWriter
     from prettytable import MARKDOWN
@@ -19,6 +21,7 @@ def get_jobs(GLDOCS_CONFIG_FILE,WRITE_MODE):
             data = yaml.load(file, Loader=yaml.SafeLoader)
             jobs = data
             cleaned_jobs = data
+            print(jobs)
             for j in jobs.keys():
                 if j in exclude_keywords:
                     logger.debug("Key is reserved for gitlab: " + j)
@@ -27,7 +30,6 @@ def get_jobs(GLDOCS_CONFIG_FILE,WRITE_MODE):
                     print(jobs[j])
                     config=jobs[j]
                     job_name=j
-
                     jobs_table.add_row([job_name, config])
 
     logger.debug("")
@@ -35,7 +37,7 @@ def get_jobs(GLDOCS_CONFIG_FILE,WRITE_MODE):
     logger.debug("")
 
     GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
-    f = open("/gitlab-project/GITLAB_CONFIGURATION.md", "a")
+    f = open(OUTPUT_FILE, "a")
     f.write("\n\n")
     f.write(GLDOCS_CONFIG_FILE_HEADING)
     f.write(str(jobs_table))
