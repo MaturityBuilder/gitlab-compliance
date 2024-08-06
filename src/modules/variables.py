@@ -57,12 +57,6 @@ def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
 
                 variables_table.add_row([v, variables[v], description, options, expand])
 
-                    # for key in result:
-                    #     # value = ariables[key]
-
-                    #     print(key)
-                    #     # description = variables["description"]
-
                 print("")
                 print(str(variables_table))
                 print("")

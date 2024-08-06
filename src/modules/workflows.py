@@ -1,0 +1,48 @@
+
+import modules.yaml_md_table as gldocs
+import logging, os
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("GITLAB DOCS|INCLUDES WRAPPER")
+logger.setLevel(LOG_LEVEL)
+OUTPUT_FILE=os.getenv("OUTPUT_FILE", "/gitlab-project/README.md")
+def document_workflows(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
+    print("Generating Documentation for Workflows")
+    OUTPUT_FILE=os.getenv("OUTPUT_FILE", "/gitlab-project/README.md")
+    import yaml
+    from pytablewriter import MarkdownTableWriter
+    from prettytable import MARKDOWN
+    with open(GLDOCS_CONFIG_FILE, 'r') as file:
+        try:
+            data = yaml.load(file, Loader=yaml.SafeLoader)
+            if 'workflow' in data:
+                workflow = data["workflow"]
+
+                # print(gldocs.generate_markdown_table(includes))
+                from prettytable import PrettyTable
+
+                workflow_table = PrettyTable()
+                workflow_table.set_style(MARKDOWN)
+                workflow_table.field_names = ["Rules #", "Workflow Rules"]
+                # workflow_table.add_rows([includes])
+                logger.debug(workflow)
+                count = 0
+                for w in workflow:
+                    count = count + 1
+                    print("count: "+ str(count))
+                    # if isinstance(w, (str)):
+                    value = str(w).replace('{', '').replace('}', '')
+                    print(value)
+                    workflow_table.add_row([count, str(value)])
+
+                GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
+                f = open(OUTPUT_FILE, "a")
+                f.write("\n")
+                f.write(GLDOCS_CONFIG_FILE_HEADING)
+                f.write(str(workflow_table))
+                f.close()
+                logger.debug("")
+                logger.debug(str(workflow_table))
+                logger.debug("")
+        except yaml.YAMLError as exc:
+            print(exc)
