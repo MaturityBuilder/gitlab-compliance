@@ -1,0 +1,51 @@
+{
+    // Version of the setting file.  Always 0.2
+    "version": "0.2",
+    // language - current active spelling language
+    "language": "en",
+    // words - list of words to be always considered correct
+    "words": [
+        "mkdirp",
+        "tsmerge",
+        "githubusercontent",
+        "streetsidesoftware",
+        "vsmarketplacebadge",
+        "visualstudio",
+        "gitlab-docs",
+        "gitlab",
+        "gldocs",
+        "BUILDKIT",
+        "GLDOCS",
+        "Occured",
+        "Thirdparty",
+        "argparse",
+        "charlieasmith",
+        "dind",
+        "gldocs",
+        "loremipsum",
+        "oyaml",
+        "pathlib",
+        "prettytable",
+        "pycache",
+        "pypi",
+        "pytablewriter",
+        "pyyaml",
+        "recored",
+        "sema"
+    ],
+    "ignorePaths": [
+        "**/node_modules/**",
+        "**/vscode-extension/**",
+        "**/.git/**",
+        "**/.pnpm-lock.json",
+        ".vscode",
+        "package-lock.json",
+        "megalinter-reports"
+    ],
+    // flagWords - list of words to be always considered incorrect
+    // This is useful for offensive words and common spelling errors.
+    // For example "hte" should be "the"
+    "flagWords": [
+        "hte"
+    ]
+}
