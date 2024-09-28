@@ -5,11 +5,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|MARKDOWN WRAPPER")
 logger.setLevel(LOG_LEVEL)
 OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
-def replaceTextBetween(originalText, delimeterA, delimeterB="", replacementText=""):
-    leadingText = originalText.split(delimeterA)[0]
-    trailingText = originalText.split(delimeterB)[1]
+def replaceTextBetween(originalText, delimiterA, delimiterB="", replacementText=""):
+    leadingText = originalText.split(delimiterA)[0]
+    trailingText = originalText.split(delimiterB)[1]
 
-    return leadingText + delimeterA + replacementText + delimterB + trailingText
+    return leadingText + delimiterA + replacementText + delimterB + trailingText
 def gitlab_docs_reset_writer(OUTPUT_FILE,MODE,GLDOCS_TITLE="Gitlab Docs"):
 
     '''
