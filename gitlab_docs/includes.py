@@ -1,14 +1,14 @@
 
-import modules.yaml_md_table as gldocs
+import gitlab_docs.yaml_md_table as gldocs
 import logging, os
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|INCLUDES WRAPPER")
 logger.setLevel(LOG_LEVEL)
-OUTPUT_FILE=os.getenv("OUTPUT_FILE", "/gitlab-project/README.md")
+OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
 def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
     print("Generating Documentation for Includes")
-    OUTPUT_FILE=os.getenv("OUTPUT_FILE", "/gitlab-project/README.md")
+    OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
     import yaml
     from pytablewriter import MarkdownTableWriter
     from prettytable import MARKDOWN
@@ -94,10 +94,10 @@ def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
                                 logger.debug("No rules found for: %s", value)
                             includes_table.add_row([type, value, version, "&#9989;",  "", inc_vars, inc_rules])
                             if type == "local" :
-                                SUB_GLDOCS_CONFIG_FILE = "/gitlab-project/" + i[key]
+                                SUB_GLDOCS_CONFIG_FILE = "" + i[key]
                                 try:
                                     document_includes(GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,WRITE_MODE="a")
-                                    import modules.jobs as jobs
+                                    import jobs as jobs
                                     jobs.get_jobs(GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,WRITE_MODE="a")
                                 except:
                                     logger.debug("include don't exist in " + GLDOCS_CONFIG_FILE)

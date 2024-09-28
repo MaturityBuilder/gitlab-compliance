@@ -5,7 +5,7 @@ services:
       context: .
     container_name: gitlab-docs
     environment:
-      - MOUNT_PATH=/gitlab-project/
+      - MOUNT_PATH=
     volumes:
       - ${PWD}/sample-files:/gitlab-project
       - ${PWD}/src:/gitlab-docs

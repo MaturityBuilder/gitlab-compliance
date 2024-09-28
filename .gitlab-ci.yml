@@ -1,0 +1,38 @@
+---
+
+stages:
+  - code-quality
+  - build
+  - test
+  - publish
+
+variables:
+  APPLICATION: gitlab-docs
+image: python:3.12
+default:
+  tags:
+    - docker
+megalinter:
+  stage: code-quality
+  image: oxsecurity/megalinter-python:v8.0.0
+  script: [ "true" ] # if script: ["true"] doesn't work, you may try ->  script: [ "/bin/bash /entrypoint.sh" ]
+  variables:
+    # All available variables are described in documentation
+    # https://megalinter.io/configuration/
+    DEFAULT_WORKSPACE: $CI_PROJECT_DIR
+    # ADD YOUR CUSTOM ENV VARIABLES HERE TO OVERRIDE VALUES OF .mega-linter.yml AT THE ROOT OF YOUR REPOSITORY
+  artifacts:
+    when: always
+    paths:
+      - megalinter-reports
+    expire_in: 1 week
+
+build:
+  script:
+    # install poetry for managing application
+    - make init
+    - make build
+
+
+
+

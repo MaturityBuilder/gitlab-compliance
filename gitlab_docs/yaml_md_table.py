@@ -2,7 +2,6 @@ import sys
 from pathlib import Path
 import oyaml as yaml
 from prettytable import PrettyTable
-from loremipsum import get_sentences
 import argparse
 
 def generate_markdown_table(data):

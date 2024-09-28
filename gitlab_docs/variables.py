@@ -3,10 +3,10 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|VARIABLES WRAPPER")
 logger.setLevel(LOG_LEVEL)
-OUTPUT_FILE=os.getenv("OUTPUT_FILE", "/gitlab-project/README.md")
+OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
 def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
     print("Generating Documentation for Variables")
-    OUTPUT_FILE=os.getenv("OUTPUT_FILE", "/gitlab-project/README.md")
+    OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
     import yaml
     from pytablewriter import MarkdownTableWriter
     from prettytable import MARKDOWN
