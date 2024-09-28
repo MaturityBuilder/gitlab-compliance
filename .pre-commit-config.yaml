@@ -42,7 +42,7 @@ repos:
       stages:
         - commit-msg
   # - repo: https://gitlab.com/charlieasmith/gitlab-docs
-  #   id: gitlab-docs
+  #   # id: gitlab-docs
   #   hooks:
   #     - id: gitlab-docs
   #   rev: f-code-for-includes-docs
