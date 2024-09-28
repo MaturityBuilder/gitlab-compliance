@@ -1,4 +1,6 @@
-import logging, os
+import logging
+import os
+import yaml
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|VARIABLES WRAPPER")
@@ -7,8 +9,8 @@ OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
 def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
     print("Generating Documentation for Variables")
     OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
-    import yaml
-    from pytablewriter import MarkdownTableWriter
+
+    # from pytablewriter import MarkdownTableWriter
     from prettytable import MARKDOWN
     with open(GLDOCS_CONFIG_FILE, 'r') as file:
         try:
@@ -29,12 +31,12 @@ def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
                     options = "&#x274c;"
                     expand = "true"
                     result = {}
-                    if type(variables[v]) == str:
+                    if type(variables[v]) is str:
                         print("Simple variable found: " + variables[v])
                         result["value"] = variables[v]
                         # print(v)
                         # print(type(result))
-                        VAR_TYPE="BASIC"
+                        # VAR_TYPE="BASIC"
 
                         # variables_table.add_row([v, variables[v], " "&#x274c; (not properly formed)", ""])
                     else:

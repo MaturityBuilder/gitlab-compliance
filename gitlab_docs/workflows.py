@@ -1,6 +1,7 @@
 
-import gitlab_docs.yaml_md_table as gldocs
-import logging, os
+# import gitlab_docs.yaml_md_table as gldocs
+import logging
+import os
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|INCLUDES WRAPPER")
@@ -10,7 +11,7 @@ def document_workflows(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
     print("Generating Documentation for Workflows")
     OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
     import yaml
-    from pytablewriter import MarkdownTableWriter
+    # from pytablewriter import MarkdownTableWriter
     from prettytable import MARKDOWN
     with open(GLDOCS_CONFIG_FILE, 'r') as file:
         try:

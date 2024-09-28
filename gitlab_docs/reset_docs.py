@@ -1,10 +1,11 @@
-import logging, os
+import logging
+import os
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|MARKDOWN WRAPPER")
 logger.setLevel(LOG_LEVEL)
 OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
-def replaceTextBetween(originalText, delimeterA, delimeterB, replacementText=""):
+def replaceTextBetween(originalText, delimeterA, delimeterB="", replacementText=""):
     leadingText = originalText.split(delimeterA)[0]
     trailingText = originalText.split(delimeterB)[1]
 
@@ -51,7 +52,7 @@ def gitlab_docs_check_header(OUTPUT_FILE,GLDOCS_TITLE):
     if gitlab_docs_check_file_exists(OUTPUT_FILE):
         analyzer = MarkdownAnalyzer(OUTPUT_FILE)
         headers = analyzer.identify_headers()
-        sections = analyzer.identify_sections()
+        # sections = analyzer.identify_sections()
         if headers:
             # print(headers)
             if GLDOCS_TITLE in headers["Header"]:

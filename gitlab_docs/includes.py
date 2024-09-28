@@ -1,6 +1,7 @@
 
 import gitlab_docs.yaml_md_table as gldocs
-import logging, os
+import logging
+import os
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|INCLUDES WRAPPER")

@@ -1,4 +1,5 @@
-import logging, os
+import logging
+import os
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|JOBS WRAPPER")
@@ -9,7 +10,7 @@ def get_jobs(GLDOCS_CONFIG_FILE,WRITE_MODE):
     print("Generating Documentation for Jobs")
     OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
     import yaml
-    from pytablewriter import MarkdownTableWriter
+    # from pytablewriter import MarkdownTableWriter
     from prettytable import MARKDOWN
     from prettytable import PrettyTable
 
