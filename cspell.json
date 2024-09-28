@@ -1,9 +1,6 @@
 {
-    // Version of the setting file.  Always 0.2
     "version": "0.2",
-    // language - current active spelling language
     "language": "en",
-    // words - list of words to be always considered correct
     "words": [
         "mkdirp",
         "tsmerge",
@@ -42,9 +39,6 @@
         "package-lock.json",
         "megalinter-reports"
     ],
-    // flagWords - list of words to be always considered incorrect
-    // This is useful for offensive words and common spelling errors.
-    // For example "hte" should be "the"
     "flagWords": [
         "hte"
     ]
