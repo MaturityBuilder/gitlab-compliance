@@ -38,7 +38,8 @@ build:
     # - poetry config.repositories.test-pypi https://test.pypi.org
     - poetry build
     # - latest_build=$(ls ./dist/*.tar.gz)
-    - pip3 install $(ls ./dist/*.tar.gz)
+    - pip3 install -q $(ls ./dist/*.tar.gz)
+    - gitlab-docs
 
 
 
