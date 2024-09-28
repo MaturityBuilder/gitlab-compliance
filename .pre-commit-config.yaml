@@ -3,20 +3,44 @@ repos:
     rev: v2.3.0
     hooks:
     - id: trailing-whitespace
+      stages:
+        - commit-msg
     - id: end-of-file-fixer
+      stages:
+        - commit-msg
     - id: check-yaml
+      stages:
+        - commit-msg
     - id: check-added-large-files
+      stages:
+        - commit-msg
     - id: check-merge-conflict
+      stages:
+        - commit-msg
     - id: check-ast
+      stages:
+        - commit-msg
     - id: double-quote-string-fixer
+      stages:
+        - commit-msg
     - id: debug-statements
+      stages:
+        - commit-msg
     - id: check-toml
+      stages:
+        - commit-msg
     - id: check-json
+      stages:
+        - commit-msg
     - id: check-xml
+      stages:
+        - commit-msg
   - repo: https://github.com/psf/black
     rev: 22.10.0
     hooks:
     - id: black
+      stages:
+        - commit-msg
   # - repo: https://gitlab.com/charlieasmith/gitlab-docs
   #   id: gitlab-docs
   #   hooks:
