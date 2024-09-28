@@ -33,7 +33,9 @@ build:
   script:
     # install poetry for managing application
     - make init
-    - make build
+    - export PATH="/root/.local/bin:$PATH"
+    - poetry --version
+    - poetry build
     # - latest_build=$(ls ./dist/*.tar.gz)
     - pip3 install $(ls ./dist/*.tar.gz)
 
