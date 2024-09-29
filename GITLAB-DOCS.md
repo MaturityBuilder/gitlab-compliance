@@ -16,6 +16,10 @@
 |                                 artifacts                                  |                image                |    stage     |                variables                 |
 |:--------------------------------------------------------------------------:|:-----------------------------------:|:------------:|:----------------------------------------:|
 | {'when': 'always', 'paths': ['megalinter-reports'], 'expire_in': '1 week'} | oxsecurity/megalinter-python:v8.0.0 | code-quality | {'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR'} |
+### build:python
+| environment |             id_tokens              | needs | stage |
+|:-----------:|:----------------------------------:|:-----:|:-----:|
+|   release   | {'PYPI_ID_TOKEN': {'aud': 'pypi'}} |   []  |  .pre |
 ### docker-build-master
 |     image     |                                                 rules                                                  |     services    | stage |
 |:-------------:|:------------------------------------------------------------------------------------------------------:|:---------------:|:-----:|
