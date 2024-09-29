@@ -5,6 +5,10 @@ init:
 	curl -sSL https://install.python-poetry.org | python3 -
 	poetry config.repositories.test-pypi https://test.pypi.org
 
+megalinter:
+  # Stops conversion
+  git config --global core.autocrlf false
+  npx mega-linter-runner -f python --remove-container
 build:
 	poetry build
 

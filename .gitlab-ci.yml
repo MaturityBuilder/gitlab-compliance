@@ -1,5 +1,4 @@
 ---
-
 stages:
   - code-quality
   - build
@@ -12,10 +11,11 @@ image: python:3.12
 default:
   tags:
     - gitlab-org
+
 megalinter:
   stage: code-quality
   image: oxsecurity/megalinter-python:v8.0.0
-  script: [ "true" ] # if script: ["true"] doesn't work, you may try ->  script: [ "/bin/bash /entrypoint.sh" ]
+  script: ["true"] # if script: ["true"] doesn't work, you may try ->  script: [ "/bin/bash /entrypoint.sh" ]
   variables:
     # All available variables are described in documentation
     # https://megalinter.io/configuration/
@@ -30,9 +30,12 @@ megalinter:
 build:python:
   stage: build
   needs: []
+  environment: release
+  id_tokens:
+    id-token: write
   script:
     # install poetry for managing application
-    - curl -sSL https://install.python-poetry.org | python3 -
+    - curl -sSL "https://install.python-poetry.org" | python3 -
     - export PATH="/root/.local/bin:$PATH"
     - poetry --version
     # - poetry config.repositories.test-pypi https://test.pypi.org

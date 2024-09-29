@@ -1,28 +1,39 @@
 import logging
 import os
+
 import yaml
+
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|VARIABLES WRAPPER")
 logger.setLevel(LOG_LEVEL)
-OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
+OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
+
+
 def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
     print("Generating Documentation for Variables")
-    OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
+    OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
 
     # from pytablewriter import MarkdownTableWriter
     from prettytable import MARKDOWN
-    with open(GLDOCS_CONFIG_FILE, 'r') as file:
+
+    with open(GLDOCS_CONFIG_FILE, "r") as file:
         try:
             data = yaml.load(file, Loader=yaml.SafeLoader)
-            if 'variables' in data:
+            if "variables" in data:
                 variables = data["variables"]
                 # print(gldocs.generate_markdown_table(variables))
                 from prettytable import PrettyTable
 
                 variables_table = PrettyTable()
                 variables_table.set_style(MARKDOWN)
-                variables_table.field_names = ["Key", "Value", "Description", "Options", "Expand"]
+                variables_table.field_names = [
+                    "Key",
+                    "Value",
+                    "Description",
+                    "Options",
+                    "Expand",
+                ]
                 # variables_table.add_rows([variables])
                 # print(variables)
 
@@ -34,27 +45,40 @@ def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
                     if type(variables[v]) is str:
                         print("Simple variable found: " + variables[v])
                         result["value"] = variables[v]
-                        # print(v)
-                        # print(type(result))
-                        # VAR_TYPE="BASIC"
 
-                        # variables_table.add_row([v, variables[v], " "&#x274c; (not properly formed)", ""])
                     else:
                         if "description" in variables[v]:
                             description = variables[v]["description"]
                         else:
-                            print("Description for: " + v + " isn't set, variable should have description set, gitlab-docs considers this malformed :(")
+                            print(
+                                "Description for: "
+                                + v
+                                + " isn't set, variable should have description set, "
+                                + "gitlab-docs considers this malformed :("
+                            )
                             description = "&#x274c;"
 
                         if "options" in variables[v]:
                             options = variables[v]["options"]
                         else:
-                            print("options key: " + v + " isn't set, but will improve code hygiene if you set where possible, gitlab-docs  - https://docs.gitlab.com/ee/ci/yaml/#variablesoptions ")
+                            print(
+                                "options key: "
+                                + v
+                                + " isn't set, but will improve code hygiene if you"
+                                + " set where possible, gitlab-docs  - "
+                                + "https://docs.gitlab.com/ee/ci/yaml/"
+                                + "#variablesoptions"
+                            )
                             options = "&#x274c;"
                         if "expand" in variables[v]:
                             expand = variables[v]["expand"]
                         else:
-                            print("expand key: " + v + " isn't set, default value will recored as 'true' - https://docs.gitlab.com/ee/ci/yaml/#variablesexpand")
+                            print(
+                                "expand key: "
+                                + v
+                                + " isn't set, default value will recored as 'true'"
+                                + "https://docs.gitlab.com/ee/ci/yaml/#variablesexpand"
+                            )
                             expand = "true"
 
                 variables_table.add_row([v, variables[v], description, options, expand])
@@ -69,7 +93,6 @@ def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
                 f.write(GLDOCS_CONFIG_FILE_HEADING)
                 f.write(str(variables_table))
                 f.close()
-
 
         except yaml.YAMLError as exc:
             print(exc)

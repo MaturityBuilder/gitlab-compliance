@@ -1,22 +1,26 @@
-
 # import gitlab_docs.yaml_md_table as gldocs
 import logging
 import os
+
+import yaml
+
+# from pytablewriter import MarkdownTableWriter
+from prettytable import MARKDOWN
+
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|INCLUDES WRAPPER")
 logger.setLevel(LOG_LEVEL)
-OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
+OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
+
+
 def document_workflows(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
     print("Generating Documentation for Workflows")
-    OUTPUT_FILE=os.getenv("OUTPUT_FILE", "README.md")
-    import yaml
-    # from pytablewriter import MarkdownTableWriter
-    from prettytable import MARKDOWN
-    with open(GLDOCS_CONFIG_FILE, 'r') as file:
+    OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
+    with open(GLDOCS_CONFIG_FILE, "r") as file:
         try:
             data = yaml.load(file, Loader=yaml.SafeLoader)
-            if 'workflow' in data:
+            if "workflow" in data:
                 workflow = data["workflow"]
 
                 # print(gldocs.generate_markdown_table(includes))
@@ -30,9 +34,9 @@ def document_workflows(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
                 count = 0
                 for w in workflow:
                     count = count + 1
-                    print("count: "+ str(count))
+                    print("count: " + str(count))
                     # if isinstance(w, (str)):
-                    value = str(w).replace('{', '').replace('}', '')
+                    value = str(w).replace("{", "").replace("}", "")
                     print(value)
                     workflow_table.add_row([count, str(value)])
 

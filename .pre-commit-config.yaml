@@ -2,47 +2,67 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.3.0
     hooks:
-    - id: trailing-whitespace
-      stages:
-        - commit-msg
-    - id: end-of-file-fixer
-      stages:
-        - commit-msg
-    - id: check-yaml
-      stages:
-        - commit-msg
-    - id: check-added-large-files
-      stages:
-        - commit-msg
-    - id: check-merge-conflict
-      stages:
-        - commit-msg
-    - id: check-ast
-      stages:
-        - commit-msg
-    - id: double-quote-string-fixer
-      stages:
-        - commit-msg
-    - id: debug-statements
-      stages:
-        - commit-msg
-    - id: check-toml
-      stages:
-        - commit-msg
-    - id: check-json
-      stages:
-        - commit-msg
-    - id: check-xml
-      stages:
-        - commit-msg
+      - id: trailing-whitespace
+        stages:
+          - commit-msg
+      - id: end-of-file-fixer
+        stages:
+          - commit-msg
+      - id: check-yaml
+        stages:
+          - commit-msg
+      - id: check-added-large-files
+        stages:
+          - commit-msg
+      - id: check-merge-conflict
+        stages:
+          - commit-msg
+      - id: check-ast
+        stages:
+          - commit-msg
+      - id: double-quote-string-fixer
+        stages:
+          - commit-msg
+      - id: debug-statements
+        stages:
+          - commit-msg
+      - id: check-toml
+        stages:
+          - commit-msg
+      - id: check-json
+        stages:
+          - commit-msg
+      - id: check-xml
+        stages:
+          - commit-msg
   - repo: https://github.com/psf/black
     rev: 22.10.0
     hooks:
-    - id: black
-      stages:
-        - commit-msg
+      - id: black
+        stages:
+          - commit-msg
   # - repo: https://gitlab.com/charlieasmith/gitlab-docs
   #   # id: gitlab-docs
   #   hooks:
   #     - id: gitlab-docs
   #   rev: f-code-for-includes-docs
+  # - repo: https://github.com/oxsecurity/megalinter
+  #   rev: v8.0.0 # Git tag specifying the hook, not mega-linter-runner, version
+  #   hooks:
+  #     - id: megalinter-incremental # Faster, less thorough
+  #       stages:
+  #         - commit
+  #       args:
+  #         - mega-linter-runner
+  #         - --containername
+  #         - "megalinter-incremental"
+  #         - --remove-container
+  #         - --fix
+  #         - --env
+  #         - "'APPLY_FIXES=all'"
+  #         - --env
+  #         - "'CLEAR_REPORT_FOLDER=true'"
+  #         - --env
+  #         - "'FLAVOR=python'"
+  #         # - --env
+  #         # - "'LOG_LEVEL=warning'"

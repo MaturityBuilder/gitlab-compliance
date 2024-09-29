@@ -3,3 +3,4 @@ sample-files/*.md
 gitlab-docs/
 dist/
 gitlab_docs/__pycache__/
+megalinter-reports

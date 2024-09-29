@@ -11,9 +11,9 @@ include:
       MY_INPUTS: "true"
     rules:
       - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-  - project: 'charlieasmith/a-generic-fragment'
+  - project: "charlieasmith/a-generic-fragment"
     ref: main
-    file: 'a-fragment-file.yml'
+    file: "a-fragment-file.yml"
     variables:
       MY_VARIABLE: "true"
     rules:
@@ -24,9 +24,9 @@ default:
 variables:
   RUNNER: docker
 workflow:
-    - if: $CI_COMMIT_REF_NAME == "main"
-    - if: $CI_COMMIT_TAG
-    - when: never
+  - if: $CI_COMMIT_REF_NAME == "main"
+  - if: $CI_COMMIT_TAG
+  - when: never
 
 stages:
   - code-quality

@@ -4,7 +4,7 @@ name = "gitlab-docs"
 version = "0.0.36"
 description = "A tool that automatically generates gitlab documentation from yaml files"
 authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
-readme = "README.md"
+readme = "GITLAB-DOCS.md"
 packages = [{include = "gitlab_docs", format = "sdist"}]
 
 [tool.poetry.dependencies]
