@@ -27,7 +27,11 @@ megalinter:
     paths:
       - megalinter-reports
     expire_in: 1 week
-
+.install_poetry:
+  script:
+    - curl -sSL "https://install.python-poetry.org" | python3 -
+    - export PATH="/root/.local/bin:$PATH"
+    - poetry --version
 build:python:
   stage: .pre
   needs: []
@@ -40,9 +44,7 @@ build:python:
   # before_script:
   script:
     # install poetry for managing application
-    - curl -sSL "https://install.python-poetry.org" | python3 -
-    - export PATH="/root/.local/bin:$PATH"+
-    - poetry --version
+    - !reference [".install_poetry", "script"]
     - poetry install
     # - poetry config.repositories.test-pypi https://test.pypi.org
     - poetry build
@@ -54,7 +56,7 @@ build:python:
     - apt update -qq -y
     - apt install -qq -y jq
     - |
-      python -m pip install id jq
+      python -m pip -q install id jq
       oidc_token=$(python -m id PYPI)
       resp=$(curl -X POST https://pypi.org/_/oidc/mint-token -d "{\"token\":\"${oidc_token}\"}")
       api_token=$(jq --raw-output '.token' <<< "${resp}")
