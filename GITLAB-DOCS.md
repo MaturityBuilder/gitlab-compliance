@@ -1,5 +1,6 @@
 
 # Gitlab Docs
+# Gitlab Docs
 ## Variables
 |     Key     |   Value   | Description | Options  | Expand |
 |:-----------:|:---------:|:-----------:|:--------:|:------:|
