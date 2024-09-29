@@ -14,7 +14,7 @@ logger.setLevel(LOG_LEVEL)
 OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
 
 
-def document_workflows(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
+def document_workflows(GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False):
     print("Generating Documentation for Workflows")
     OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
     with open(GLDOCS_CONFIG_FILE, "r") as file:
@@ -40,10 +40,11 @@ def document_workflows(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
                     print(value)
                     workflow_table.add_row([count, str(value)])
 
-                GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
                 f = open(OUTPUT_FILE, "a")
-                f.write("\n")
-                f.write(GLDOCS_CONFIG_FILE_HEADING)
+                if not DISABLE_TITLE:
+                    GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
+                    f.write("\n")
+                    f.write(GLDOCS_CONFIG_FILE_HEADING)
                 f.write(str(workflow_table))
                 f.close()
                 logger.debug("")

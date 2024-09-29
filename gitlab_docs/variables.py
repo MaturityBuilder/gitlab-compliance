@@ -10,7 +10,7 @@ logger.setLevel(LOG_LEVEL)
 OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
 
 
-def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
+def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False):
     print("Generating Documentation for Variables")
     OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
 
@@ -86,12 +86,16 @@ def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
                 print("")
                 print(str(variables_table))
                 print("")
-
-                GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
                 f = open(OUTPUT_FILE, "a")
-                f.write("\n\n")
-                f.write(GLDOCS_CONFIG_FILE_HEADING)
+                if not DISABLE_TITLE:
+                    # GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
+                    f.write("\n")
+                    # f.write(GLDOCS_CONFIG_FILE_HEADING)
+                f.write("\n")
+                f.write("## Variables")
+                f.write("\n")
                 f.write(str(variables_table))
+                f.write("\n")
                 f.close()
 
         except yaml.YAMLError as exc:

@@ -25,7 +25,7 @@ class EnvLoader(yaml.SafeLoader):
     pass
 
 
-def get_jobs(GLDOCS_CONFIG_FILE, WRITE_MODE):
+def get_jobs(GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE=True,DISABLE_TYPE_HEADING=True):
     exclude_keywords = ["default", "include", "stages", "variables", "workflow","image"]
     print("Generating Documentation for Jobs")
     OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
@@ -35,11 +35,14 @@ def get_jobs(GLDOCS_CONFIG_FILE, WRITE_MODE):
         jobs = data
         # Create file lock against output md file
         f = open(OUTPUT_FILE, "a")
-        GLDOCS_CONFIG_FILE_HEADING = str("## " + "Jobs" + "\n\n")
-        f.write("\n\n")
-        f.write(GLDOCS_CONFIG_FILE_HEADING)
-        f.write("\n\n")
-        f.close()
+        if not DISABLE_TITLE:
+            GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
+            f.write("\n\n")
+            f.write(GLDOCS_CONFIG_FILE_HEADING)
+        if not DISABLE_TYPE_HEADING:
+            f.write(str("## " + "Jobs" + "\n"))
+            f.write("\n")
+            f.close()
         # print(type(jobs))
         for j in jobs:
             if j in exclude_keywords:
@@ -64,10 +67,7 @@ def get_jobs(GLDOCS_CONFIG_FILE, WRITE_MODE):
                     # print(job_config_table)
                     logger.debug("### " + j)
                     f = open(OUTPUT_FILE, "a")
-                    f.write(str("### " + j + "\n\n"))
+                    f.write(str("### " + j + "\n"))
                     f.write(str(job_config_table))
-                    f.write(str("\n\n"))
+                    f.write(str("\n"))
                     f.close()
-
-    # except error:
-    # logger.debug("An Error Occured whilst documenting the jobs")

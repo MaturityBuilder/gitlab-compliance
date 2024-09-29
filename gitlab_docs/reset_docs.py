@@ -15,7 +15,7 @@ def replaceTextBetween(originalText, delimiterA, delimiterB="", replacementText=
     return leadingText + delimiterA + replacementText + delimiterB + trailingText
 
 
-def gitlab_docs_reset_writer(OUTPUT_FILE, MODE, GLDOCS_TITLE="Gitlab Docs"):
+def gitlab_docs_reset_writer(OUTPUT_FILE, MODE, GLDOCS_TITLE="Gitlab Docs", DISABLE_TITLE=False):
     """
     MODE value can be either STARTING or CLOSING
     """

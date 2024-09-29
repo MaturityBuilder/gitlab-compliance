@@ -1,5 +1,10 @@
 import logging
 import os
+import gitlab_docs.jobs as jobs
+import yaml
+from prettytable import MARKDOWN
+from prettytable import PrettyTable
+import semver
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)
@@ -8,11 +13,10 @@ logger.setLevel(LOG_LEVEL)
 OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
 
 
-def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
+def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False,DISABLE_TYPE_HEADING=True):
     print("Generating Documentation for Includes")
     OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
-    import yaml
-    from prettytable import MARKDOWN
+
 
     with open(GLDOCS_CONFIG_FILE, "r") as file:
         try:
@@ -21,7 +25,6 @@ def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
                 includes = data["include"]
 
                 # print(gldocs.generate_markdown_table(includes))
-                from prettytable import PrettyTable
 
                 includes_table = PrettyTable()
                 includes_table.set_style(MARKDOWN)
@@ -144,22 +147,26 @@ def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
                                         GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,
                                         WRITE_MODE="a",
                                     )
-                                    import jobs as jobs
 
                                     jobs.get_jobs(
                                         GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,
                                         WRITE_MODE="a",
+                                        DISABLE_TITLE=True,
+                                        DISABLE_TYPE_HEADING=DISABLE_TYPE_HEADING
                                     )
                                 except KeyError:
                                     logger.debug(
                                         "include don't exist in " + GLDOCS_CONFIG_FILE
                                     )
 
-                GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
                 f = open(OUTPUT_FILE, "a")
-                f.write("\n\n")
-                f.write(GLDOCS_CONFIG_FILE_HEADING)
+                # GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
+                # f.write(GLDOCS_CONFIG_FILE_HEADING)
+
+                f.write("\n")
+                f.write(str("## " + "Includes" + "\n\n"))
                 f.write(str(includes_table))
+                f.write("\n")
                 f.close()
                 logger.debug("")
                 logger.debug(str(includes_table))
@@ -169,7 +176,7 @@ def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
 
 
 def check_include_version_is_sema_version(version, file, include):
-    import semver
+
 
     logger.debug("Is Version Sem Ver:" + str(semver.Version.is_valid(version)))
     if not semver.Version.is_valid(version):
