@@ -32,7 +32,11 @@ build:python:
   needs: []
   environment: release
   id_tokens:
-    id-token: write
+    PYPI_ID_TOKEN:
+      # testpypi
+      aud: pypi
+      id-token: write
+  # before_script:
   script:
     # install poetry for managing application
     - curl -sSL "https://install.python-poetry.org" | python3 -
@@ -43,6 +47,14 @@ build:python:
     # - latest_build=$(ls ./dist/*.tar.gz)
     - pip3 install -q $(ls ./dist/*.tar.gz)
     - gitlab-docs
+    # Authentication using OIDC
+    # Replace "https://pypi.org/*" with "https://test.pypi.org/*" if uploading to TestPyPI
+    - |
+      oidc_token=$(python -m id PYPI)
+      resp=$(curl -X POST https://pypi.org/_/oidc/mint-token -d "{\"token\":\"${oidc_token}\"}")
+      api_token=$(jq --raw-output '.token' <<< "${resp}")
+      poetry config http-basic.pypi __token__ "${api_token}"
+      poetry publish
 
 docker-build-master:
   # Official docker image.
