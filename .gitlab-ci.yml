@@ -51,8 +51,8 @@ build:python:
     - gitlab-docs
     # Authentication using OIDC
     # Replace "https://pypi.org/*" with "https://test.pypi.org/*" if uploading to TestPyPI
-    - apt update 
-    - apt install jq
+    - apt update -qq -y
+    - apt install -qq -y jq
     - |
       python -m pip install id jq
       oidc_token=$(python -m id PYPI)
