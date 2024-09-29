@@ -7,6 +7,7 @@ stages:
 
 variables:
   APPLICATION: gitlab-docs
+  OUTPUT_FILE: README.md
 image: python:3.12
 default:
   tags:
