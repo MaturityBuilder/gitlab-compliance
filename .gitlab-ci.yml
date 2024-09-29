@@ -59,7 +59,8 @@ build:python:
       resp=$(curl -X POST https://pypi.org/_/oidc/mint-token -d "{\"token\":\"${oidc_token}\"}")
       api_token=$(jq --raw-output '.token' <<< "${resp}")
       poetry config http-basic.pypi __token__ "${api_token}"
-      poetry publish
+      poetry version patch
+      poetry publish --build
 
 docker-build-master:
   # Official docker image.

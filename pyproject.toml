@@ -1,4 +1,4 @@
-[tool.poetry_bumpversion.file."gitlab-docs/__init__.py"]
+[tool.poetry_bumpversion.file."gitlab_docs/__init__.py"]
 [tool.poetry]
 name = "gitlab-docs"
 version = "0.0.36"
