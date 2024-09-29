@@ -52,6 +52,7 @@ build:python:
     # Authentication using OIDC
     # Replace "https://pypi.org/*" with "https://test.pypi.org/*" if uploading to TestPyPI
     - |
+      pip3 install -q id
       oidc_token=$(python -m id PYPI)
       resp=$(curl -X POST https://pypi.org/_/oidc/mint-token -d "{\"token\":\"${oidc_token}\"}")
       api_token=$(jq --raw-output '.token' <<< "${resp}")
