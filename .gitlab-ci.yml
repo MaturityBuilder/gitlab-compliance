@@ -35,7 +35,7 @@ build:python:
     PYPI_ID_TOKEN:
       # testpypi
       aud: pypi
-      id-token: write
+      # id-token: write
   # before_script:
   script:
     # install poetry for managing application
