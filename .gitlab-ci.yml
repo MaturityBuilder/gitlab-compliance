@@ -41,7 +41,7 @@ build:python:
   script:
     # install poetry for managing application
     - curl -sSL "https://install.python-poetry.org" | python3 -
-    - export PATH="/root/.local/bin:$PATH"
+    - export PATH="/root/.local/bin:$PATH"+
     - poetry --version
     - poetry install
     # - poetry config.repositories.test-pypi https://test.pypi.org
@@ -52,7 +52,7 @@ build:python:
     # Authentication using OIDC
     # Replace "https://pypi.org/*" with "https://test.pypi.org/*" if uploading to TestPyPI
     - |
-      pip3 install -q id jq
+      python -m pip install id jq
       oidc_token=$(python -m id PYPI)
       resp=$(curl -X POST https://pypi.org/_/oidc/mint-token -d "{\"token\":\"${oidc_token}\"}")
       api_token=$(jq --raw-output '.token' <<< "${resp}")
@@ -75,7 +75,7 @@ docker-build-master:
 
 build:docker:
   # Official docker image.
-  needs: []
+  # needs: []
   tags:
     - gitlab-org-docker
   image: docker:latest
