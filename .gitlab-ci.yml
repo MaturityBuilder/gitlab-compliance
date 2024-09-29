@@ -29,7 +29,7 @@ megalinter:
     expire_in: 1 week
 
 build:python:
-  stage: build
+  stage: .pre
   needs: []
   environment: release
   id_tokens:
