@@ -43,6 +43,7 @@ build:python:
     - curl -sSL "https://install.python-poetry.org" | python3 -
     - export PATH="/root/.local/bin:$PATH"
     - poetry --version
+    - poetry install
     # - poetry config.repositories.test-pypi https://test.pypi.org
     - poetry build
     # - latest_build=$(ls ./dist/*.tar.gz)

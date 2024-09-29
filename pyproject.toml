@@ -17,9 +17,10 @@ markdown-analysis = "*"
 setuptools = "*"
 
 
+
 [tool.poetry.scripts]
 gitlab-docs = 'gitlab_docs.app:main'
 
 [build-system]
-requires = ["poetry-core","setuptools","poetry-bumpversion"]
+requires = ["poetry-core","setuptools","poetry-bumpversion","id"]
 build-backend = "poetry.core.masonry.api"
