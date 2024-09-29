@@ -27,42 +27,38 @@ megalinter:
     paths:
       - megalinter-reports
     expire_in: 1 week
-.install_poetry:
-  script:
-    - curl -sSL "https://install.python-poetry.org" | python3 -
-    - export PATH="/root/.local/bin:$PATH"
-    - poetry --version
-build:python:
-  stage: .pre
-  needs: []
-  environment: release
-  id_tokens:
-    PYPI_ID_TOKEN:
-      # testpypi
-      aud: pypi
-      # id-token: write
-  # before_script:
-  script:
-    # install poetry for managing application
-    - !reference [".install_poetry", "script"]
-    - poetry install
-    # - poetry config.repositories.test-pypi https://test.pypi.org
-    - poetry build
-    # - latest_build=$(ls ./dist/*.tar.gz)
-    - pip3 install -q $(ls ./dist/*.tar.gz)
-    - gitlab-docs
-    # Authentication using OIDC
-    # Replace "https://pypi.org/*" with "https://test.pypi.org/*" if uploading to TestPyPI
-    - apt update -qq -y
-    - apt install -qq -y jq
-    - |
-      python -m pip -q install id jq
-      oidc_token=$(python -m id PYPI)
-      resp=$(curl -X POST https://pypi.org/_/oidc/mint-token -d "{\"token\":\"${oidc_token}\"}")
-      api_token=$(jq --raw-output '.token' <<< "${resp}")
-      poetry config http-basic.pypi __token__ "${api_token}"
-      poetry version patch
-      poetry publish --build
+
+# build:python:
+#   stage: .pre
+#   needs: []
+#   environment: release
+#   id_tokens:
+#     PYPI_ID_TOKEN:
+#       # testpypi
+#       aud: pypi
+#       # id-token: write
+#   # before_script:
+#   script:
+#     # install poetry for managing application
+#     # - !reference [".install_poetry", "script"]
+#     - poetry install
+#     # - poetry config.repositories.test-pypi https://test.pypi.org
+#     - poetry build
+#     # - latest_build=$(ls ./dist/*.tar.gz)
+#     - pip3 install -q $(ls ./dist/*.tar.gz)
+#     - gitlab-docs
+#     # Authentication using OIDC
+#     # Replace "https://pypi.org/*" with "https://test.pypi.org/*" if uploading to TestPyPI
+#     - apt update -qq -y
+#     - apt install -qq -y jq
+#     - |
+#       python -m pip -q install id jq
+#       oidc_token=$(python -m id PYPI)
+#       resp=$(curl -X POST https://pypi.org/_/oidc/mint-token -d "{\"token\":\"${oidc_token}\"}")
+#       api_token=$(jq --raw-output '.token' <<< "${resp}")
+#       poetry config http-basic.pypi __token__ "${api_token}"
+#       poetry version patch
+#       poetry publish --build
 
 docker-build-master:
   # Official docker image.
@@ -94,3 +90,9 @@ build:docker:
     - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_COMMIT_TAG || $CI_COMMIT_REF_NAME == "f-code-for-includes-docs"
+
+.install_poetry:
+  script:
+    - curl -sSL "https://install.python-poetry.org" | python3 -
+    - export PATH="/root/.local/bin:$PATH"
+    - poetry --version

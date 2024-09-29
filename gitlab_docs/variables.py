@@ -43,14 +43,14 @@ def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
                     expand = "true"
                     result = {}
                     if type(variables[v]) is str:
-                        print("Simple variable found: " + variables[v])
+                        logger.debug("Simple variable found: " + variables[v])
                         result["value"] = variables[v]
 
                     else:
                         if "description" in variables[v]:
                             description = variables[v]["description"]
                         else:
-                            print(
+                            logger.debug(
                                 "Description for: "
                                 + v
                                 + " isn't set, variable should have description set, "
@@ -73,7 +73,7 @@ def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a"):
                         if "expand" in variables[v]:
                             expand = variables[v]["expand"]
                         else:
-                            print(
+                            logger.debug(
                                 "expand key: "
                                 + v
                                 + " isn't set, default value will recored as 'true'"
