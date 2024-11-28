@@ -11,12 +11,12 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|INCLUDES WRAPPER")
 logger.setLevel(LOG_LEVEL)
-OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
 
 
-def document_workflows(GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False):
+
+def document_workflows(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False):
     print("Generating Documentation for Workflows")
-    OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
+    
     with open(GLDOCS_CONFIG_FILE, "r") as file:
         try:
             data = yaml.load(file, Loader=yaml.SafeLoader)

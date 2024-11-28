@@ -5,7 +5,6 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|MARKDOWN WRAPPER")
 logger.setLevel(LOG_LEVEL)
-OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
 
 
 def replaceTextBetween(originalText, delimiterA, delimiterB="", replacementText=""):
@@ -15,15 +14,15 @@ def replaceTextBetween(originalText, delimiterA, delimiterB="", replacementText=
     return leadingText + delimiterA + replacementText + delimiterB + trailingText
 
 
-def gitlab_docs_reset_writer(OUTPUT_FILE, MODE, GLDOCS_TITLE="Gitlab Docs", DISABLE_TITLE=False):
+def gitlab_docs_reset_writer(OUTPUT_FILE, MODE, GLDOCS_TITLE="Gitlab Docs"):
     """
     MODE value can be either STARTING or CLOSING
     """
     # import markdown
     # import frontmatter
-    # gldocs_opening = "[comment]: <> (gitlab-docs-opening-auto-generated)"
+    gldocs_opening = "[comment]: <> (gitlab-docs-opening-auto-generated)"
     gldocs_closing = "[comment]: <> (gitlab-docs-closing-auto-generated)"
-    OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
+    
     if MODE == "STARTING":
         print(
             "Do we have a header in in markdown file already: "
@@ -33,7 +32,7 @@ def gitlab_docs_reset_writer(OUTPUT_FILE, MODE, GLDOCS_TITLE="Gitlab Docs", DISA
             print("Output File already has Gitlab Docs")
             gitlab_docs_remove_docs(
                 OUTPUT_FILE=OUTPUT_FILE,
-                GLDOCS_TITLE=GLDOCS_TITLE,
+                GLDOCS_TITLE=gldocs_opening,
                 GLDOCS_END=gldocs_closing,
             )
         else:
@@ -41,11 +40,11 @@ def gitlab_docs_reset_writer(OUTPUT_FILE, MODE, GLDOCS_TITLE="Gitlab Docs", DISA
             if gitlab_docs_check_file_exists(OUTPUT_FILE):
                 gitlab_docs_remove_docs(
                     OUTPUT_FILE=OUTPUT_FILE,
-                    GLDOCS_TITLE=GLDOCS_TITLE,
+                    GLDOCS_TITLE=gldocs_opening,
                     GLDOCS_END=gldocs_closing,
                 )
                 with open(OUTPUT_FILE, "a") as f:
-                    f.write("\n" + "# " + GLDOCS_TITLE)
+                    f.write("\n" + "# " + gldocs_opening)
 
     if MODE == "CLOSING":
 

@@ -2,13 +2,18 @@ build-container:
 	docker build -t gitlab-docs .
 	docker run -it gitlab-docs
 init:
-	curl -sSL https://install.python-poetry.org | python3 -
+	brew install poetry
+	echo 'PATH=$HOME/.local/bin:$HOME/.poetry/bin:$PATH' >> ~/.bash_profile
+	echo 'PATH=$HOME/.local/bin:$HOME/.poetry/bin:$PATH' >> ~/.zshrc
 	poetry config.repositories.test-pypi https://test.pypi.org
-
+	poetry install
+# install python dependancies
+install: 
+	poetry install
 megalinter:
-  # Stops conversion
   git config --global core.autocrlf false
   npx mega-linter-runner -f python --remove-container
+
 build:
 	poetry build
 

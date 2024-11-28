@@ -58,12 +58,12 @@ todo-check:
   image: docker
   services:
     - docker:24.0.5-dind
+    - !reference [.inject-aws-credentials-apk-based-os, script]
   variables:
     DOCKER_BUILDKIT: 1
     DOCKER_DRIVER: overlay2
     ECR_URL: some_aws_account_number.dkr.ecr.eu-west-2.amazonaws.com
   script:
-    # - !reference [.inject-aws-credentials-apk-based-os, script]
     - |
       aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin ${ECR_URL}
       docker-compose build

@@ -7,12 +7,12 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|VARIABLES WRAPPER")
 logger.setLevel(LOG_LEVEL)
-OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
 
 
-def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False):
+
+def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE):
     print("Generating Documentation for Variables")
-    OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
+    
 
     # from pytablewriter import MarkdownTableWriter
     from prettytable import MARKDOWN
@@ -86,7 +86,7 @@ def document_variables(GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False):
                 print("")
                 print(str(variables_table))
                 print("")
-                f = open(OUTPUT_FILE, "a")
+                f = open(OUTPUT_FILE, WRITE_MODE)
                 if not DISABLE_TITLE:
                     # GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
                     f.write("\n")

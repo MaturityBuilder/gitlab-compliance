@@ -10,14 +10,9 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|INCLUDES WRAPPER")
 logger.setLevel(LOG_LEVEL)
-OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
 
-
-def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False,DISABLE_TYPE_HEADING=True):
+def document_includes(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False,DISABLE_TYPE_HEADING=True):
     print("Generating Documentation for Includes")
-    OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
-
-
     with open(GLDOCS_CONFIG_FILE, "r") as file:
         try:
             data = yaml.load(file, Loader=yaml.SafeLoader)
@@ -144,11 +139,11 @@ def document_includes(GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False,DI
                                 SUB_GLDOCS_CONFIG_FILE = "" + i[key]
                                 try:
                                     document_includes(
-                                        GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,
+                                        OUTPUT_FILE=OUTPUT_FILE, GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,
                                         WRITE_MODE="a",
                                     )
 
-                                    jobs.get_jobs(
+                                    jobs.get_jobs(OUTPUT_FILE=OUTPUT_FILE,
                                         GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,
                                         WRITE_MODE="a",
                                         DISABLE_TITLE=True,
