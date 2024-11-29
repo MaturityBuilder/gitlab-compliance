@@ -62,7 +62,7 @@ megalinter:
     # - latest_build=$(ls ./dist/*.tar.gz)
     - pip3 install -q $(ls ./dist/*.tar.gz)
     - gitlab-docs
-    - !reference [.publish,scripts]
+    - !reference [.publish,script]
 .publish:
   script:
     - |
