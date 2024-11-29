@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS")
 logger.setLevel(LOG_LEVEL)
 OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
-
+ENABLE_WORKFLOW_DOCUMENTATION = os.getenv("ENABLE_WORKFLOW_DOCUMENTATION", False)
 def main():
     print("Welcome to Gitlab Docs")
     # resets markdown output file and adds GITLAB DOCS opening marker
@@ -38,7 +38,8 @@ def main():
         # md_writer.gitlab_docs_reset_writer(OUTPUT_FILE=OUTPUT_FILE, MODE="STARTING")
         variables.document_variables(GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE, WRITE_MODE="w",DISABLE_TITLE=False,OUTPUT_FILE=OUTPUT_FILE)
         includes.document_includes(GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE, WRITE_MODE="w",DISABLE_TITLE=False, DISABLE_TYPE_HEADING=False,OUTPUT_FILE=OUTPUT_FILE)
-        workflows.document_workflows(GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE, WRITE_MODE="w",DISABLE_TITLE=True,OUTPUT_FILE=OUTPUT_FILE)
+        if ENABLE_WORKFLOW_DOCUMENTATION != False:
+            workflows.document_workflows(GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE, WRITE_MODE="w",DISABLE_TITLE=True,OUTPUT_FILE=OUTPUT_FILE)
         jobs.get_jobs(GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE, WRITE_MODE="w", DISABLE_TITLE=False, DISABLE_TYPE_HEADING=False,OUTPUT_FILE=OUTPUT_FILE)
 
         # resets markdown output file and adds GITLAB DOCS closing marker

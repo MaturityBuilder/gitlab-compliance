@@ -20,9 +20,10 @@ gitlab-docs
 # ENVIRONMENT VARIABLES
 | Key                | Default Value    | Description                                                                                           |
 |--------------------|------------------|-------------------------------------------------------------------------------------------------------|
-| GLDOCS_CONFIG_FILE | .gitlab-ci.yml   | The gitlab configuration file you want to generate documentation on                                   |
-| OUTPUT_FILE        | ./GITLAB-DOCS.md | The file to output documentation to  (WARNING outputting to README.md will overwrite file at present) |
-| LOG_LEVEL          | INFO             | Determines the verbosity of the logging when you run gitlab-docs                                      |
+| GLDOCS_CONFIG_FILE            | .gitlab-ci.yml   | The gitlab configuration file you want to generate documentation on                                   |
+| OUTPUT_FILE                   | ./GITLAB-DOCS.md | The file to output documentation to  (WARNING outputting to README.md will overwrite file at present) |
+| LOG_LEVEL                     | INFO             | Determines the verbosity of the logging when you run gitlab-docs                                        |
+| ENABLE_WORKFLOW_DOCUMENTATION | False            | Outputting documentaton for the workflow config is experiemental |
 
 <!-- ### Precommit Hook -->
 <!-- ```yml

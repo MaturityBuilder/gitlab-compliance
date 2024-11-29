@@ -1,6 +1,6 @@
 build-container:
 	docker build -t gitlab-docs .
-	docker run -it gitlab-docs
+	docker run -v ${PWD}:/gitlab-docs charlieasmith93/gitlab-docs
 init:
 	brew install poetry
 	echo 'PATH=$HOME/.local/bin:$HOME/.poetry/bin:$PATH' >> ~/.bash_profile

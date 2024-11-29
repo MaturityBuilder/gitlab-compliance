@@ -138,7 +138,10 @@ def document_includes(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_T
                             if type == "local":
                                 SUB_GLDOCS_CONFIG_FILE = "" + i[key]
                                 try:
+                                    if str(SUB_GLDOCS_CONFIG_FILE)[0] == "/":
+                                        SUB_GLDOCS_CONFIG_FILE = SUB_GLDOCS_CONFIG_FILE[1:]
                                     document_includes(
+                                    
                                         OUTPUT_FILE=OUTPUT_FILE, GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,
                                         WRITE_MODE="a",
                                     )
