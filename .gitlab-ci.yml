@@ -8,7 +8,7 @@ include:
   - local: gitlab-ci/hidden.jobs.yml
 variables:
   APPLICATION: gitlab-docs
-  OUTPUT_FILE: README.md
+  OUTPUT_FILE: GITLAB-DOCS.md
 image: python:3.12
 default:
   tags:
