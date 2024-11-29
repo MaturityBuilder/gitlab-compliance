@@ -38,10 +38,12 @@ def get_jobs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE=True,DIS
         # Create file lock against output md file
         f = open(OUTPUT_FILE, "a")
         if not DISABLE_TITLE:
-            GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
+            f.write("\n")
+            GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n")
             f.write("\n\n")
             f.write(GLDOCS_CONFIG_FILE_HEADING)
         if not DISABLE_TYPE_HEADING:
+            f.write("\n")
             f.write(str("## " + "Jobs" + "\n"))
             f.write("\n")
             f.close()
@@ -80,7 +82,12 @@ def get_jobs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE=True,DIS
                     job_name = j.upper()
                     logger.debug("### " + job_name)
                     f = open(OUTPUT_FILE, "a")
-                    f.write(str("### **" + job_name + "**\n"))
+                    f.write(str("\n"))
+                    f.write(str("###" + job_name + "\n\n"))
+                    f.write(str("\n"))
                     f.write(str(job_config_table))
                     f.write(str("\n"))
                     f.close()
+        f = open(OUTPUT_FILE, "a")
+        f.write(str("\n\n"))
+        f.close()

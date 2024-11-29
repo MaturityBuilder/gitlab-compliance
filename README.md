@@ -10,7 +10,21 @@ pip3 install --user gitlab-docs
 ```bash
 docker run -v ${PWD}:/gitlab-docs charlieasmith93/gitlab-docs
 ```
-### Precommit Hook
+## Using gitlab-docs
+This will output the results in the current working directory to `GITLAB-DOCS.md` based on the `.gitlab-ci.yml` config. Noting it will also automatically try to detect and produce documentation for any include configurations as well. 
+
+```
+gitlab-docs
+
+```
+# ENVIRONMENT VARIABLES
+| Key                | Default Value    | Description                                                                                           |
+|--------------------|------------------|-------------------------------------------------------------------------------------------------------|
+| GLDOCS_CONFIG_FILE | .gitlab-ci.yml   | The gitlab configuration file you want to generate documentation on                                   |
+| OUTPUT_FILE        | ./GITLAB-DOCS.md | The file to output documentation to  (WARNING outputting to README.md will overwrite file at present) |
+| LOG_LEVEL          | INFO             | Determines the verbosity of the logging when you run gitlab-docs                                      |
+
+<!-- ### Precommit Hook -->
 <!-- ```yml
 
 ``` -->

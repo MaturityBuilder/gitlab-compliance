@@ -1,7 +1,13 @@
+[project.urls]
+"Home Page" = "https://pypi.org/manage/project/gitlab-docs"
+DOCUMENTATION = "https://pypi.org/manage/project/gitlab-docs"
+Repository = "https://gitlab.com/charlieasmith/gitlab-docs"
+Gitlab     = "https://gitlab.com/charlieasmith/gitlab-docs"
+
 [tool.poetry_bumpversion.file."gitlab_docs/__init__.py"]
 [tool.poetry]
 name = "gitlab-docs"
-version = "0.0.36"
+version = "0.0.46"
 description = "A tool that automatically generates gitlab documentation from yaml files"
 authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
 readme = "GITLAB-DOCS.md"
