@@ -117,7 +117,7 @@ docker-build-master:
   dependencies:
     - build
   image: docker:latest
-  stage: promote
+  stage: publish
   services:
     - docker:dind
   before_script:
