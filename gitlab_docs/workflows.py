@@ -3,7 +3,6 @@ import logging
 import os
 
 import yaml
-
 # from pytablewriter import MarkdownTableWriter
 from prettytable import MARKDOWN
 
@@ -13,10 +12,11 @@ logger = logging.getLogger("GITLAB DOCS|INCLUDES WRAPPER")
 logger.setLevel(LOG_LEVEL)
 
 
-
-def document_workflows(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False):
+def document_workflows(
+    OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False
+):
     print("Generating Documentation for Workflows")
-    
+
     with open(GLDOCS_CONFIG_FILE, "r") as file:
         try:
             data = yaml.load(file, Loader=yaml.SafeLoader)
@@ -42,7 +42,9 @@ def document_workflows(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_
 
                 f = open(OUTPUT_FILE, "a")
                 if not DISABLE_TITLE:
-                    GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
+                    GLDOCS_CONFIG_FILE_HEADING = str(
+                        "## " + GLDOCS_CONFIG_FILE + "\n\n"
+                    )
                     f.write("\n")
                     f.write(GLDOCS_CONFIG_FILE_HEADING)
                 f.write(str(workflow_table))

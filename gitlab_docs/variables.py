@@ -9,10 +9,8 @@ logger = logging.getLogger("GITLAB DOCS|VARIABLES WRAPPER")
 logger.setLevel(LOG_LEVEL)
 
 
-
 def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE):
     print("Generating Documentation for Variables")
-    
 
     # from pytablewriter import MarkdownTableWriter
     from prettytable import MARKDOWN

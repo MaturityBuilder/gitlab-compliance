@@ -1,9 +1,12 @@
 import logging
 import os
+
 import yaml
-from prettytable import MARKDOWN, PrettyTable
-from prettytable.colortable import ColorTable, Themes
+from prettytable import MARKDOWN
 from prettytable import MARKDOWN as DESIGN
+from prettytable import PrettyTable
+from prettytable.colortable import ColorTable, Themes
+
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|JOBS WRAPPER")
@@ -12,8 +15,8 @@ logger.setLevel(LOG_LEVEL)
 
 def env_var_replacement(loader, node):
     replacements = {
-      '${VAR1}': '',
-      '${VAR2}': '',
+        "${VAR1}": "",
+        "${VAR2}": "",
     }
     s = node.value
     # print("Debug !Reference Tag")
@@ -22,17 +25,32 @@ def env_var_replacement(loader, node):
     #     s = s.replace(k, v)
     # return s
 
+
 # Define a loader class that will contain your custom logic
 class EnvLoader(yaml.SafeLoader):
     pass
 
 
-def get_jobs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE=True,DISABLE_TYPE_HEADING=True, detailed=False):
-    exclude_keywords = ["default", "include", "stages", "variables", "workflow","image"]
+def get_jobs(
+    OUTPUT_FILE,
+    GLDOCS_CONFIG_FILE,
+    WRITE_MODE,
+    DISABLE_TITLE=True,
+    DISABLE_TYPE_HEADING=True,
+    detailed=False,
+):
+    exclude_keywords = [
+        "default",
+        "include",
+        "stages",
+        "variables",
+        "workflow",
+        "image",
+    ]
     print("Generating Documentation for Jobs")
-    
+
     with open(GLDOCS_CONFIG_FILE, "r") as file:
-        EnvLoader.add_constructor('!reference', env_var_replacement)
+        EnvLoader.add_constructor("!reference", env_var_replacement)
         data = yaml.load(file, Loader=EnvLoader)
         jobs = data
         # Create file lock against output md file
@@ -59,9 +77,8 @@ def get_jobs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE=True,DIS
                 job_config_table.border = True
                 job_config_table.set_style(DESIGN)
                 # job_config_table.border=False
-                if detailed is False: 
+                if detailed is False:
                     jobs[j].pop("rules", None)
-
 
                 jobs[j].pop("before_script", None)
                 jobs[j].pop("script", None)
@@ -71,12 +88,16 @@ def get_jobs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE=True,DIS
                 if jobs[j]:
                     for key in sorted(jobs[j]):
                         # job_config_table_headers.append(key)
-                        job_property = '**' + key + '**'
-                        value = str(jobs[j][key]).replace(",","\n").replace('{','').replace('}','')
-                        print([job_property,value])
+                        job_property = "**" + key + "**"
+                        value = (
+                            str(jobs[j][key])
+                            .replace(",", "\n")
+                            .replace("{", "")
+                            .replace("}", "")
+                        )
+                        print([job_property, value])
 
-
-                        job_config_table.add_row([job_property,value])
+                        job_config_table.add_row([job_property, value])
                         # job_config.append([key,jobs[j][key]])
                         logger.debug(jobs[j][key])
 
@@ -88,7 +109,7 @@ def get_jobs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE=True,DIS
                     f = open(OUTPUT_FILE, "a")
                     # f.write(str("\n"))
                     f.write(str("### " + job_name + "\n\n"))
-                    
+
                     f.write(str("\n"))
                     f.write(str(job_config_table))
                     f.write(str("\n"))

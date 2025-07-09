@@ -22,7 +22,7 @@ def gitlab_docs_reset_writer(OUTPUT_FILE, MODE, GLDOCS_TITLE="Gitlab Docs"):
     # import frontmatter
     gldocs_opening = "[comment]: <> (gitlab-docs-opening-auto-generated)"
     gldocs_closing = "[comment]: <> (gitlab-docs-closing-auto-generated)"
-    
+
     if MODE == "STARTING":
         print(
             "Do we have a header in in markdown file already: "

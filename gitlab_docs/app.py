@@ -6,7 +6,9 @@ Author: Charlie Smith
 ## Import Thirdparty Libraries
 import logging
 import os
+
 import click
+
 # from datetime import datetime
 # from datetime import timedelta
 # from distutils.util import strtobool
@@ -24,31 +26,62 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS")
 logger.setLevel(LOG_LEVEL)
 OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
+
+
 # ENABLE_WORKFLOW_DOCUMENTATION = os.getenv("ENABLE_WORKFLOW_DOCUMENTATION", False)
 @click.command()
-@click.option("--detailed", required=False, help="Will include workflow and rules from jobs.", is_flag=True)
+@click.option(
+    "--detailed",
+    required=False,
+    help="Will include workflow and rules from jobs.",
+    is_flag=True,
+)
 def gitlab_docs(detailed):
     """A command line tool to convert your gitlab-ci yml into markdown documentation."""
-    
-    ENABLE_WORKFLOW_DOCUMENTATION=detailed
+
+    ENABLE_WORKFLOW_DOCUMENTATION = detailed
     print("Welcome to Gitlab Docs")
     # resets markdown output file and adds GITLAB DOCS opening marker
     GLDOCS_CONFIG_FILE = os.getenv("GLDOCS_CONFIG_FILE", ".gitlab-ci.yml")
     try:
-        sudoku = open(GLDOCS_CONFIG_FILE, 'r').readlines()
+        sudoku = open(GLDOCS_CONFIG_FILE, "r").readlines()
     except FileNotFoundError:
         print("Gitlab Configuration " + GLDOCS_CONFIG_FILE + " doesn't exist")
         return 0
     else:
         # md_writer.gitlab_docs_reset_writer(OUTPUT_FILE=OUTPUT_FILE, MODE="STARTING")
-        variables.document_variables(GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE, WRITE_MODE="w",DISABLE_TITLE=False,OUTPUT_FILE=OUTPUT_FILE)
-        includes.document_includes(GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE, WRITE_MODE="w",DISABLE_TITLE=False, DISABLE_TYPE_HEADING=False,OUTPUT_FILE=OUTPUT_FILE)
+        variables.document_variables(
+            GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+            WRITE_MODE="w",
+            DISABLE_TITLE=False,
+            OUTPUT_FILE=OUTPUT_FILE,
+        )
+        includes.document_includes(
+            GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+            WRITE_MODE="w",
+            DISABLE_TITLE=False,
+            DISABLE_TYPE_HEADING=False,
+            OUTPUT_FILE=OUTPUT_FILE,
+        )
         if ENABLE_WORKFLOW_DOCUMENTATION is not True:
-            workflows.document_workflows(GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE, WRITE_MODE="w",DISABLE_TITLE=True,OUTPUT_FILE=OUTPUT_FILE)
-        jobs.get_jobs(GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE, WRITE_MODE="w", DISABLE_TITLE=False, DISABLE_TYPE_HEADING=False,OUTPUT_FILE=OUTPUT_FILE, detailed=detailed)
+            workflows.document_workflows(
+                GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+                WRITE_MODE="w",
+                DISABLE_TITLE=True,
+                OUTPUT_FILE=OUTPUT_FILE,
+            )
+        jobs.get_jobs(
+            GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+            WRITE_MODE="w",
+            DISABLE_TITLE=False,
+            DISABLE_TYPE_HEADING=False,
+            OUTPUT_FILE=OUTPUT_FILE,
+            detailed=detailed,
+        )
 
         # resets markdown output file and adds GITLAB DOCS closing marker
         md_writer.gitlab_docs_reset_writer(OUTPUT_FILE=OUTPUT_FILE, MODE="CLOSING")
 
-if __name__ == '__main__':
-  gitlab_docs(obj={})
+
+if __name__ == "__main__":
+    gitlab_docs(obj={})

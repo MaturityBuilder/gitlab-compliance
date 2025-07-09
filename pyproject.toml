@@ -30,6 +30,14 @@ click = "^8.2.1"
 [tool.poetry.scripts]
 gitlab-docs = 'src..app:gitlab_docs'
 
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^4.2.0"
+black = "^25.1.0"
+isort = "^6.0.1"
+flake8 = "^7.3.0"
+mypy = "^1.16.1"
+bandit = "^1.8.6"
+
 [build-system]
 requires = ["poetry-core","setuptools","poetry-bumpversion","id"]
 build-backend = "poetry.core.masonry.api"
