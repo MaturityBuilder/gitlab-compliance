@@ -27,7 +27,7 @@ class EnvLoader(yaml.SafeLoader):
     pass
 
 
-def get_jobs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE=True,DISABLE_TYPE_HEADING=True):
+def get_jobs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE=True,DISABLE_TYPE_HEADING=True, detailed=False):
     exclude_keywords = ["default", "include", "stages", "variables", "workflow","image"]
     print("Generating Documentation for Jobs")
     
@@ -59,6 +59,10 @@ def get_jobs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE=True,DIS
                 job_config_table.border = True
                 job_config_table.set_style(DESIGN)
                 # job_config_table.border=False
+                if detailed is False: 
+                    jobs[j].pop("rules", None)
+
+
                 jobs[j].pop("before_script", None)
                 jobs[j].pop("script", None)
                 jobs[j].pop("after_script", None)
@@ -82,8 +86,9 @@ def get_jobs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE=True,DIS
                     job_name = j.upper()
                     logger.debug("### " + job_name)
                     f = open(OUTPUT_FILE, "a")
-                    f.write(str("\n"))
-                    f.write(str("###" + job_name + "\n\n"))
+                    # f.write(str("\n"))
+                    f.write(str("### " + job_name + "\n\n"))
+                    
                     f.write(str("\n"))
                     f.write(str(job_config_table))
                     f.write(str("\n"))

@@ -14,7 +14,7 @@ readme = "GITLAB-DOCS.md"
 packages = [{include = "gitlab_docs", format = "sdist"}]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = ">=3.12"
 prettytable = "*"
 pytablewriter = "~1.2.0"
 oyaml = "*"
@@ -23,11 +23,12 @@ markdown-analysis = "*"
 setuptools = "*"
 jq = "^1.8.0"
 semver = "^3.0.2"
+click = "^8.2.1"
 
 
 
 [tool.poetry.scripts]
-gitlab-docs = 'gitlab_docs.app:main'
+gitlab-docs = 'gitlab_docs.app:gitlab_docs'
 
 [build-system]
 requires = ["poetry-core","setuptools","poetry-bumpversion","id"]
