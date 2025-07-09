@@ -1,3 +1,5 @@
+[project]
+name = "gitlab-docs"
 [project.urls]
 "Home Page" = "https://pypi.org/manage/project/gitlab-docs"
 DOCUMENTATION = "https://pypi.org/manage/project/gitlab-docs"
