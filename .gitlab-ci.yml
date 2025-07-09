@@ -16,9 +16,9 @@ default:
 
 workflow:
   rules:
-  - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-  - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-  - if: '$CI_COMMIT_REF_NAME	== $CI_COMMIT_TAG'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
+    - if: "$CI_COMMIT_REF_NAME	== $CI_COMMIT_TAG"
 
 megalinter:
   stage: code-quality
@@ -62,7 +62,7 @@ megalinter:
     # - latest_build=$(ls ./dist/*.tar.gz)
     - pip3 install -q $(ls ./dist/*.tar.gz)
     - gitlab-docs
-    - !reference [.publish,script]
+    - !reference [.publish, script]
 .publish:
   script:
     - |
@@ -70,12 +70,12 @@ megalinter:
       apt install -qq -y jq
       pip3 install poetry-bumpversion
       if [[ $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH || $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG ]];
-      then 
+      then
         echo "Authenticating to Test PYPI so we can publish the new version to test :)"
         # WARNING THIS ISN'T SETUP YET.
         # Authentication using OIDC
         # Replace "https://pypi.org/*" with "https://test.pypi.org/*" if uploading to TestPyPI
-        poetry build 
+        poetry build
       else
         echo "Authenticating to Production PYPI so we can publish the new version :)"
         python -m pip -q install id jq
@@ -84,7 +84,7 @@ megalinter:
         api_token=$(jq --raw-output '.token' <<< "${resp}")
         poetry config http-basic.pypi __token__ "${api_token}"
         poetry version patch
-        
+
         poetry publish --build
       fi
 
@@ -129,4 +129,3 @@ docker-build-master:
     - docker push -q --all-tags "$CI_REGISTRY_IMAGE"
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_COMMIT_TAG || $CI_COMMIT_REF_NAME == "f-code-for-includes-docs"
-

@@ -8,7 +8,7 @@ init:
 	poetry config.repositories.test-pypi https://test.pypi.org
 	poetry install
 # install python dependancies
-install: 
+install:
 	poetry install
 megalinter:
   git config --global core.autocrlf false
