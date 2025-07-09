@@ -4,8 +4,8 @@ services:
       dockerfile: dockerfile
       context: .
     container_name: gitlab-docs
-    environment:
-      - MOUNT_PATH=
+    # environment:
+    #   - MOUNT_PATH=
     volumes:
       - ${PWD}/sample-files:/gitlab-project
       - ${PWD}/src:/gitlab-docs
