@@ -6,30 +6,12 @@ from prettytable import MARKDOWN
 from prettytable import MARKDOWN as DESIGN
 from prettytable import PrettyTable
 from prettytable.colortable import ColorTable, Themes
+import gitlab_docs.common as common
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|JOBS WRAPPER")
 logger.setLevel(LOG_LEVEL)
-
-
-def env_var_replacement(loader, node):
-    replacements = {
-        "${VAR1}": "",
-        "${VAR2}": "",
-    }
-    s = node.value
-    # print("Debug !Reference Tag")
-    # print(s)
-    # for k, v in replacements.items():
-    #     s = s.replace(k, v)
-    # return s
-
-
-# Define a loader class that will contain your custom logic
-class EnvLoader(yaml.SafeLoader):
-    pass
-
 
 def get_jobs(
     OUTPUT_FILE,
@@ -50,8 +32,7 @@ def get_jobs(
     print("Generating Documentation for Jobs")
 
     with open(GLDOCS_CONFIG_FILE, "r") as file:
-        EnvLoader.add_constructor("!reference", env_var_replacement)
-        data = yaml.load(file, Loader=EnvLoader)
+        data = yaml.load(file, Loader=common.EnvLoader)
         jobs = data
         # Create file lock against output md file
         f = open(OUTPUT_FILE, "a")
@@ -95,7 +76,7 @@ def get_jobs(
                             .replace("{", "")
                             .replace("}", "")
                         )
-                        print([job_property, value])
+                        # print([job_property, value])
 
                         job_config_table.add_row([job_property, value])
                         # job_config.append([key,jobs[j][key]])
@@ -107,10 +88,10 @@ def get_jobs(
                     job_name = j.upper()
                     logger.debug("### " + job_name)
                     f = open(OUTPUT_FILE, "a")
-                    # f.write(str("\n"))
+                    f.write(str("\n"))
                     f.write(str("### " + job_name + "\n\n"))
 
-                    f.write(str("\n"))
+                    # f.write(str("\n"))
                     f.write(str(job_config_table))
                     f.write(str("\n"))
                     f.close()

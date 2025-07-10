@@ -84,13 +84,13 @@ megalinter:
         api_token=$(jq --raw-output '.token' <<< "${resp}")
         poetry config http-basic.pypi __token__ "${api_token}"
         poetry version patch
-
         poetry publish --build
       fi
 
 build:
   extends:
     - .build:python
+
 
 build:docker:
   # Official docker image.

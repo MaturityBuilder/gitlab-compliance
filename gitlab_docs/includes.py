@@ -4,7 +4,7 @@ import os
 import semver
 import yaml
 from prettytable import MARKDOWN, PrettyTable
-
+import gitlab_docs.common as common
 import gitlab_docs.jobs as jobs
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -23,7 +23,7 @@ def document_includes(
     print("Generating Documentation for Includes")
     with open(GLDOCS_CONFIG_FILE, "r") as file:
         try:
-            data = yaml.load(file, Loader=yaml.SafeLoader)
+            data = yaml.load(file, Loader=common.EnvLoader)
             if "include" in data:
                 includes = data["include"]
 

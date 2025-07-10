@@ -6,13 +6,8 @@ Author: Charlie Smith
 ## Import Thirdparty Libraries
 import logging
 import os
-
 import click
 
-# from datetime import datetime
-# from datetime import timedelta
-# from distutils.util import strtobool
-# import time
 import gitlab_docs.includes as includes
 import gitlab_docs.jobs as jobs
 import gitlab_docs.reset_docs as md_writer
@@ -35,6 +30,7 @@ OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
     required=False,
     help="Will include workflow and rules from jobs.",
     is_flag=True,
+    default=False
 )
 def gitlab_docs(detailed):
     """A command line tool to convert your gitlab-ci yml into markdown documentation."""
@@ -46,10 +42,11 @@ def gitlab_docs(detailed):
     try:
         sudoku = open(GLDOCS_CONFIG_FILE, "r").readlines()
     except FileNotFoundError:
-        print("Gitlab Configuration " + GLDOCS_CONFIG_FILE + " doesn't exist")
-        return 0
+        click.secho(f"Gitlab Configuration {GLDOCS_CONFIG_FILE} doesn't exist", err=True, blink=True, bold=True, fg="red")
+        exit(1)
     else:
         # md_writer.gitlab_docs_reset_writer(OUTPUT_FILE=OUTPUT_FILE, MODE="STARTING")
+        click.secho(f"Parsing .gitlab-ci.yml", err=True, blink=True, bold=True, fg="blue")
         variables.document_variables(
             GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
             WRITE_MODE="w",
@@ -63,7 +60,7 @@ def gitlab_docs(detailed):
             DISABLE_TYPE_HEADING=False,
             OUTPUT_FILE=OUTPUT_FILE,
         )
-        if ENABLE_WORKFLOW_DOCUMENTATION is not True:
+        if ENABLE_WORKFLOW_DOCUMENTATION is True:
             workflows.document_workflows(
                 GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
                 WRITE_MODE="w",

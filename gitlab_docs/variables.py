@@ -2,22 +2,19 @@ import logging
 import os
 
 import yaml
-
+import gitlab_docs.common as common
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|VARIABLES WRAPPER")
 logger.setLevel(LOG_LEVEL)
 
-
 def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE):
     print("Generating Documentation for Variables")
 
-    # from pytablewriter import MarkdownTableWriter
     from prettytable import MARKDOWN
-
     with open(GLDOCS_CONFIG_FILE, "r") as file:
         try:
-            data = yaml.load(file, Loader=yaml.SafeLoader)
+            data = yaml.load(file, Loader=common.EnvLoader)
             if "variables" in data:
                 variables = data["variables"]
                 # print(gldocs.generate_markdown_table(variables))
@@ -59,14 +56,14 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITL
                         if "options" in variables[v]:
                             options = variables[v]["options"]
                         else:
-                            print(
-                                "options key: "
-                                + v
-                                + " isn't set, but will improve code hygiene if you"
-                                + " set where possible, gitlab-docs  - "
-                                + "https://docs.gitlab.com/ee/ci/yaml/"
-                                + "#variablesoptions"
-                            )
+                            # print(
+                            #     "options key: "
+                            #     + v
+                            #     + " isn't set, but will improve code hygiene if you"
+                            #     + " set where possible, gitlab-docs  - "
+                            #     + "https://docs.gitlab.com/ee/ci/yaml/"
+                            #     + "#variablesoptions"
+                            # )
                             options = "&#x274c;"
                         if "expand" in variables[v]:
                             expand = variables[v]["expand"]
@@ -82,7 +79,7 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITL
                 variables_table.add_row([v, variables[v], description, options, expand])
 
                 print("")
-                print(str(variables_table))
+                # print(str(variables_table))
                 print("")
                 f = open(OUTPUT_FILE, WRITE_MODE)
                 if not DISABLE_TITLE:

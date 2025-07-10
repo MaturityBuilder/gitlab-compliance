@@ -1,8 +1,9 @@
 # import gitlab_docs.yaml_md_table as gldocs
 import logging
 import os
-
 import yaml
+import gitlab_docs.common as common
+
 # from pytablewriter import MarkdownTableWriter
 from prettytable import MARKDOWN
 
@@ -19,7 +20,7 @@ def document_workflows(
 
     with open(GLDOCS_CONFIG_FILE, "r") as file:
         try:
-            data = yaml.load(file, Loader=yaml.SafeLoader)
+            data = yaml.load(file, Loader=common.EnvLoader)
             if "workflow" in data:
                 workflow = data["workflow"]
 
@@ -34,7 +35,7 @@ def document_workflows(
                 count = 0
                 for w in workflow:
                     count = count + 1
-                    print("count: " + str(count))
+                    # print("count: " + str(count))
                     # if isinstance(w, (str)):
                     value = str(w).replace("{", "").replace("}", "")
                     print(value)
