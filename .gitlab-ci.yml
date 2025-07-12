@@ -33,7 +33,6 @@ megalinter:
   allow_failure: true
 .build:python:
   stage: build
-  needs: []
   environment: release
   id_tokens:
     PYPI_ID_TOKEN:
@@ -105,9 +104,10 @@ build:docker:
     - docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
     - docker push -q --all-tags "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
   rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_COMMIT_TAG || $CI_COMMIT_REF_NAME == "f-code-for-includes-docs"
+    - if: $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG && $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
+    #  == $CI_COMMIT_TAG || $CI_COMMIT_REF_NAME == "f-code-for-includes-docs"
 
-docker-build-master:
+docker-build:
   # Official docker image.
   dependencies:
     - build
@@ -123,4 +123,5 @@ docker-build-master:
     - docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" "$CI_REGISTRY_IMAGE"
     - docker push -q --all-tags "$CI_REGISTRY_IMAGE"
   rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_COMMIT_TAG || $CI_COMMIT_REF_NAME == "f-code-for-includes-docs"
+    - if: $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG
+    # || $CI_COMMIT_REF_NAME == "f-code-for-includes-docs"
