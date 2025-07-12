@@ -117,21 +117,21 @@ build:
 #     - if: $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG && $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
 #     #  == $CI_COMMIT_TAG || $CI_COMMIT_REF_NAME == "f-code-for-includes-docs"
 
-docker-build:
-  # Official docker image.
-  dependencies:
-    - build
-  image: docker:latest
-  stage: publish
-  services:
-    - docker:dind
-  before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-  script:
-    - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
-    - docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
-    - docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" "$CI_REGISTRY_IMAGE"
-    - docker push -q --all-tags "$CI_REGISTRY_IMAGE"
-  rules:
-    - if: $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG
-    # || $CI_COMMIT_REF_NAME == "f-code-for-includes-docs"
+# docker-build:
+#   # Official docker image.
+#   dependencies:
+#     - build
+#   image: docker:latest
+#   stage: publish
+#   services:
+#     - docker:dind
+#   before_script:
+#     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+#   script:
+#     - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
+#     - docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+#     - docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" "$CI_REGISTRY_IMAGE"
+#     - docker push -q --all-tags "$CI_REGISTRY_IMAGE"
+#   rules:
+#     - if: $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG
+#     # || $CI_COMMIT_REF_NAME == "f-code-for-includes-docs"
