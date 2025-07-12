@@ -22,7 +22,7 @@ workflow:
 
 megalinter:
   stage: code-quality
-  image: oxsecurity/megalinter-python:v8.0.0
+  image: oxsecurity/megalinter-python:8
   # extends: [".mr_rules"]
   script: ["true"] # if script: ["true"] doesn't work, you may try ->  script: [ "/bin/bash /entrypoint.sh" ]
   variables:
