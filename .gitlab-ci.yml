@@ -94,7 +94,10 @@ build:
 
 build:docker:
   # Official docker image.
-  # needs: []
+  needs: []
+  services:
+    - name: docker:24.0.5-dind
+      alias: docker
   dependencies:
     - build
   tags:
