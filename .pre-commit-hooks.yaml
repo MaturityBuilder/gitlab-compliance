@@ -1,3 +1,4 @@
+---
 - id: gitlab-docs
   name: gitlab-docs
   description: Documents Gitlab CI Yaml

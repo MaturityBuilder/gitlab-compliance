@@ -1,11 +1,11 @@
 import logging
 import os
 
+import gitlab_docs.common as common
+import gitlab_docs.jobs as jobs
 import semver
 import yaml
 from prettytable import MARKDOWN, PrettyTable
-import gitlab_docs.common as common
-import gitlab_docs.jobs as jobs
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)

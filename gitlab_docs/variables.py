@@ -1,17 +1,20 @@
 import logging
 import os
 
-import yaml
 import gitlab_docs.common as common
+import yaml
+
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|VARIABLES WRAPPER")
 logger.setLevel(LOG_LEVEL)
 
+
 def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE):
     print("Generating Documentation for Variables")
 
     from prettytable import MARKDOWN
+
     with open(GLDOCS_CONFIG_FILE, "r") as file:
         try:
             data = yaml.load(file, Loader=common.EnvLoader)

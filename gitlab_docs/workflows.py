@@ -1,8 +1,9 @@
 # import gitlab_docs.yaml_md_table as gldocs
 import logging
 import os
-import yaml
+
 import gitlab_docs.common as common
+import yaml
 
 # from pytablewriter import MarkdownTableWriter
 from prettytable import MARKDOWN
@@ -55,3 +56,4 @@ def document_workflows(
                 logger.debug("")
         except yaml.YAMLError as exc:
             print(exc)
+            logger.error("Unable to read workflow properties")

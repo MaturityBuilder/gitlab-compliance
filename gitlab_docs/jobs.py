@@ -1,17 +1,18 @@
 import logging
 import os
 
+import gitlab_docs.common as common
 import yaml
 from prettytable import MARKDOWN
 from prettytable import MARKDOWN as DESIGN
 from prettytable import PrettyTable
 from prettytable.colortable import ColorTable, Themes
-import gitlab_docs.common as common
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|JOBS WRAPPER")
 logger.setLevel(LOG_LEVEL)
+
 
 def get_jobs(
     OUTPUT_FILE,
@@ -20,7 +21,7 @@ def get_jobs(
     DISABLE_TITLE=True,
     DISABLE_TYPE_HEADING=True,
     detailed=False,
-    experimental=False
+    experimental=False,
 ):
     exclude_keywords = [
         "default",
@@ -33,70 +34,75 @@ def get_jobs(
     print("Generating Documentation for Jobs")
 
     with open(GLDOCS_CONFIG_FILE, "r") as file:
-        data = yaml.load(file, Loader=common.EnvLoader)
-        jobs = data
-        # Create file lock against output md file
-        f = open(OUTPUT_FILE, "a")
-        if not DISABLE_TITLE:
-            f.write("\n")
-            GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n")
-            f.write("\n\n")
-            f.write(GLDOCS_CONFIG_FILE_HEADING)
-        if not DISABLE_TYPE_HEADING:
-            f.write("\n")
-            f.write(str("## " + "Jobs" + "\n"))
-            f.write("\n")
+        try:
+            data = yaml.load(file, Loader=common.EnvLoader)
+
+            jobs = data
+            # Create file lock against output md file
+            f = open(OUTPUT_FILE, "a")
+            if not DISABLE_TITLE:
+                f.write("\n")
+                GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n")
+                f.write("\n\n")
+                f.write(GLDOCS_CONFIG_FILE_HEADING)
+            if not DISABLE_TYPE_HEADING:
+                f.write("\n")
+                f.write(str("## " + "Jobs" + "\n"))
+                f.write("\n")
+                f.close()
+            # print(type(jobs))
+            for j in jobs:
+                if j in exclude_keywords:
+                    logger.debug("Key is reserved for gitlab: " + j)
+                else:
+                    # Build Row Level Table to store each job config in
+                    job_config_table_headers = ["**Key**", "**Value**"]
+
+                    job_config_table = PrettyTable(headers=job_config_table_headers)
+                    job_config_table.border = True
+                    job_config_table.set_style(DESIGN)
+                    # job_config_table.border=False
+                    if experimental is True:
+                        if detailed is True and j["rules"]:
+                            jobs[j].pop("rules", None)
+
+                    jobs[j].pop("before_script", None)
+                    jobs[j].pop("script", None)
+                    jobs[j].pop("after_script", None)
+                    # print(jobs[j])
+                    job_config = []
+                    if jobs[j]:
+                        for key in sorted(jobs[j]):
+                            # job_config_table_headers.append(key)
+                            job_property = "**" + key + "**"
+                            value = (
+                                str(jobs[j][key])
+                                .replace(",", "\n")
+                                .replace("{", "")
+                                .replace("}", "")
+                            )
+                            # print([job_property, value])
+
+                            job_config_table.add_row([job_property, value])
+                            # job_config.append([key,jobs[j][key]])
+                            logger.debug(jobs[j][key])
+
+                        job_config_table.field_names = job_config_table_headers
+                        # job_config_table.add_row(job_config)
+                        # print(job_config_table)
+                        job_name = j.upper()
+                        logger.debug("### " + job_name)
+                        f = open(OUTPUT_FILE, "a")
+                        f.write(str("\n"))
+                        f.write(str("### " + job_name + "\n\n"))
+
+                        # f.write(str("\n"))
+                        f.write(str(job_config_table))
+                        f.write(str("\n"))
+                        f.close()
+            f = open(OUTPUT_FILE, "a")
+            f.write(str("\n\n"))
             f.close()
-        # print(type(jobs))
-        for j in jobs:
-            if j in exclude_keywords:
-                logger.debug("Key is reserved for gitlab: " + j)
-            else:
-                # Build Row Level Table to store each job config in
-                job_config_table_headers = ["**Key**", "**Value**"]
-
-                job_config_table = PrettyTable(headers=job_config_table_headers)
-                job_config_table.border = True
-                job_config_table.set_style(DESIGN)
-                # job_config_table.border=False
-                if experimental is True:
-                    if detailed is True and j["rules"]:
-                        jobs[j].pop("rules", None)
-
-                jobs[j].pop("before_script", None)
-                jobs[j].pop("script", None)
-                jobs[j].pop("after_script", None)
-                # print(jobs[j])
-                job_config = []
-                if jobs[j]:
-                    for key in sorted(jobs[j]):
-                        # job_config_table_headers.append(key)
-                        job_property = "**" + key + "**"
-                        value = (
-                            str(jobs[j][key])
-                            .replace(",", "\n")
-                            .replace("{", "")
-                            .replace("}", "")
-                        )
-                        # print([job_property, value])
-
-                        job_config_table.add_row([job_property, value])
-                        # job_config.append([key,jobs[j][key]])
-                        logger.debug(jobs[j][key])
-
-                    job_config_table.field_names = job_config_table_headers
-                    # job_config_table.add_row(job_config)
-                    # print(job_config_table)
-                    job_name = j.upper()
-                    logger.debug("### " + job_name)
-                    f = open(OUTPUT_FILE, "a")
-                    f.write(str("\n"))
-                    f.write(str("### " + job_name + "\n\n"))
-
-                    # f.write(str("\n"))
-                    f.write(str(job_config_table))
-                    f.write(str("\n"))
-                    f.close()
-        f = open(OUTPUT_FILE, "a")
-        f.write(str("\n\n"))
-        f.close()
+        except Exception as error:
+            logger.error(error)
+            logger.info("Unable to read yaml file")
