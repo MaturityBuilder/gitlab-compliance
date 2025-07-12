@@ -20,6 +20,7 @@ def get_jobs(
     DISABLE_TITLE=True,
     DISABLE_TYPE_HEADING=True,
     detailed=False,
+    experimental=False
 ):
     exclude_keywords = [
         "default",
@@ -58,8 +59,9 @@ def get_jobs(
                 job_config_table.border = True
                 job_config_table.set_style(DESIGN)
                 # job_config_table.border=False
-                if detailed is False:
-                    jobs[j].pop("rules", None)
+                if experimental is True:
+                    if detailed is True and j["rules"]:
+                        jobs[j].pop("rules", None)
 
                 jobs[j].pop("before_script", None)
                 jobs[j].pop("script", None)
