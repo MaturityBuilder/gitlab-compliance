@@ -7,9 +7,6 @@
 
 ## Jobs
 
-
-
-
 ## Includes
 
 | Include Type |          Project          | Version | Valid Version | File | Variables | Rules |
@@ -21,7 +18,6 @@
 ## .gitlab-ci.yml
 
 ## Jobs
-
 
 ### MEGALINTER
 
@@ -44,8 +40,7 @@
 |                 |      'expire_in': '1 hour'     |
 | **environment** |            release             |
 |  **id_tokens**  | 'PYPI_ID_TOKEN': 'aud': 'pypi' |
-|    **needs**    |               []               |
-|    **stage**    |              .pre              |
+|    **stage**    |             build              |
 
 ### BUILD
 
@@ -55,22 +50,24 @@
 
 ### BUILD:DOCKER
 
-|     **Key**      |       **Value**       |
-| :--------------: | :-------------------: |
-| **dependencies** |       ['build']       |
-|    **image**     |     docker:latest     |
-|   **services**   |    ['docker:dind']    |
-|    **stage**     |         build         |
-|     **tags**     | ['gitlab-org-docker'] |
+|     **Key**      |                                          **Value**                                           |
+| :--------------: | :------------------------------------------------------------------------------------------: |
+| **dependencies** |                                          ['build']                                           |
+|    **image**     |                                        docker:latest                                         |
+|    **rules**     | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG && $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH'] |
+|   **services**   |                                       ['docker:dind']                                        |
+|    **stage**     |                                            build                                             |
+|     **tags**     |                                    ['gitlab-org-docker']                                     |
 
-### DOCKER-BUILD-MASTER
+### DOCKER-BUILD
 
-|     **Key**      |    **Value**    |
-| :--------------: | :-------------: |
-| **dependencies** |    ['build']    |
-|    **image**     |  docker:latest  |
-|   **services**   | ['docker:dind'] |
-|    **stage**     |     publish     |
+|     **Key**      |                    **Value**                    |
+| :--------------: | :---------------------------------------------: |
+| **dependencies** |                    ['build']                    |
+|    **image**     |                  docker:latest                  |
+|    **rules**     | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
+|   **services**   |                 ['docker:dind']                 |
+|    **stage**     |                     publish                     |
 
 
 

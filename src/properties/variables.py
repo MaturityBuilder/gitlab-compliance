@@ -1,8 +1,7 @@
 import logging
 import os
-
 import yaml
-import gitlab_docs.common as common
+import src.modules.common as common
 LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("GITLAB DOCS|VARIABLES WRAPPER")
