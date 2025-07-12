@@ -1,4 +1,3 @@
-import logging
 import os
 import yaml
 from prettytable import MARKDOWN
@@ -6,11 +5,7 @@ from prettytable import MARKDOWN as DESIGN
 from prettytable import PrettyTable
 from prettytable.colortable import ColorTable, Themes
 import src.modules.common as common
-
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("GITLAB DOCS|JOBS WRAPPER")
-logger.setLevel(LOG_LEVEL)
+from src.modules.logging import logger
 
 def get_jobs(
     OUTPUT_FILE,
@@ -29,7 +24,7 @@ def get_jobs(
         "workflow",
         "image",
     ]
-    print("Generating Documentation for Jobs")
+    logger.trace("Generating Documentation for Jobs")
 
     with open(GLDOCS_CONFIG_FILE, "r") as file:
         data = yaml.load(file, Loader=common.EnvLoader)
@@ -46,7 +41,7 @@ def get_jobs(
             f.write(str("## " + "Jobs" + "\n"))
             f.write("\n")
             f.close()
-        # print(type(jobs))
+        # logger.trace(type(jobs))
         for j in jobs:
             if j in exclude_keywords:
                 logger.debug("Key is reserved for gitlab: " + j)
@@ -65,7 +60,7 @@ def get_jobs(
                 jobs[j].pop("before_script", None)
                 jobs[j].pop("script", None)
                 jobs[j].pop("after_script", None)
-                # print(jobs[j])
+                # logger.trace(jobs[j])
                 job_config = []
                 if jobs[j]:
                     for key in sorted(jobs[j]):
@@ -77,7 +72,7 @@ def get_jobs(
                             .replace("{", "")
                             .replace("}", "")
                         )
-                        # print([job_property, value])
+                        # logger.trace([job_property, value])
 
                         job_config_table.add_row([job_property, value])
                         # job_config.append([key,jobs[j][key]])
@@ -85,7 +80,7 @@ def get_jobs(
 
                     job_config_table.field_names = job_config_table_headers
                     # job_config_table.add_row(job_config)
-                    # print(job_config_table)
+                    # logger.trace(job_config_table)
                     job_name = j.upper()
                     logger.debug("### " + job_name)
                     f = open(OUTPUT_FILE, "a")

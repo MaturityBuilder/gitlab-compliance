@@ -1,17 +1,10 @@
-import logging
 import os
-
 import semver
 import yaml
 from prettytable import MARKDOWN, PrettyTable
 import src.modules.common as common
 import src.properties.jobs as jobs
-
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("GITLAB DOCS|INCLUDES WRAPPER")
-logger.setLevel(LOG_LEVEL)
-
+from src.modules.logging import logger
 
 def document_includes(
     OUTPUT_FILE,
@@ -20,14 +13,14 @@ def document_includes(
     DISABLE_TITLE=False,
     DISABLE_TYPE_HEADING=True,
 ):
-    print("Generating Documentation for Includes")
+    logger.trace("Generating Documentation for Includes")
     with open(GLDOCS_CONFIG_FILE, "r") as file:
         try:
             data = yaml.load(file, Loader=common.EnvLoader)
             if "include" in data:
                 includes = data["include"]
 
-                # print(gldocs.generate_markdown_table(includes))
+                # logger.trace(gldocs.generate_markdown_table(includes))
 
                 includes_table = PrettyTable()
                 includes_table.set_style(MARKDOWN)
@@ -41,19 +34,19 @@ def document_includes(
                     "Rules",
                 ]
                 # includes_table.add_rows([includes])
-                logger.debug(includes)
+                logger.log("DEBUG",includes)
 
                 for i in includes:
 
                     if isinstance(i, (str)):
-                        logger.debug(i)
+                        logger.log("DEBUG",i)
                         i = {"local": i}
-                    logger.debug(i)
+                    logger.log("DEBUG",i)
                     for key in i.keys():
                         type = key
-                        logger.debug("Type is: " + key)
+                        logger.log("DEBUG","Type is: " + key)
                         if type == "project":
-                            logger.debug("Type is: " + key)
+                            logger.log("DEBUG","Type is: " + key)
                             version = i["ref"]
                             value = i["project"]
                             file = i["file"]
@@ -72,7 +65,7 @@ def document_includes(
                             try:
                                 inc_rules = i["rules"]
                             except KeyError:
-                                logger.debug("No rules found for: %s", value)
+                                logger.log("DEBUG","No rules found for: %s", value)
                             includes_table.add_row(
                                 [
                                     type,
@@ -106,7 +99,7 @@ def document_includes(
                             try:
                                 inc_rules = i["rules"]
                             except KeyError:
-                                logger.debug("No rules found for: %s", value)
+                                logger.log("DEBUG","No rules found for: %s", value)
                             includes_table.add_row(
                                 [
                                     type,
@@ -125,13 +118,13 @@ def document_includes(
                             try:
                                 inc_vars = i["variables"]
                             except KeyError:
-                                logger.debug("No Variables found for: %s", value)
+                                logger.log("DEBUG","No Variables found for: %s", value)
 
                             inc_rules = ""
                             try:
                                 inc_rules = i["rules"]
                             except KeyError:
-                                logger.debug("No rules found for: %s", value)
+                                logger.log("DEBUG","No rules found for: %s", value)
                             includes_table.add_row(
                                 [
                                     type,
@@ -164,7 +157,7 @@ def document_includes(
                                         DISABLE_TYPE_HEADING=DISABLE_TYPE_HEADING,
                                     )
                                 except KeyError:
-                                    logger.debug(
+                                    logger.log("DEBUG",
                                         "include don't exist in " + GLDOCS_CONFIG_FILE
                                     )
 
@@ -177,16 +170,16 @@ def document_includes(
                 f.write(str(includes_table))
                 f.write("\n")
                 f.close()
-                logger.debug("")
-                logger.debug(str(includes_table))
-                logger.debug("")
+                logger.log("DEBUG","")
+                logger.log("DEBUG",str(includes_table))
+                logger.log("DEBUG","")
         except yaml.YAMLError as exc:
-            print(exc)
+            logger.trace(exc)
 
 
 def check_include_version_is_sema_version(version, file, include):
 
-    logger.debug("Is Version Sem Ver:" + str(semver.Version.is_valid(version)))
+    logger.log("DEBUG","Is Version Sem Ver:" + str(semver.Version.is_valid(version)))
     if not semver.Version.is_valid(version):
         logger.warning(
             "Is Version Sem Ver: %s | File: %s | Include: %s",

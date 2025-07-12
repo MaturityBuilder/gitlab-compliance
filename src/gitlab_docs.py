@@ -6,7 +6,6 @@ Author: Charlie Smith
 ## Import Thirdparty Libraries
 import os
 import click
-
 import src.properties.includes as includes
 import src.properties.jobs as jobs
 import src.properties.variables as variables
@@ -39,17 +38,16 @@ def gitlab_docs(detailed,OUTPUT_FILE):
     """A command line tool to convert your gitlab-ci yml into markdown documentation."""
 
     ENABLE_WORKFLOW_DOCUMENTATION = detailed
-    logger.info("Welcome to Gitlab Docs")
+    logger.success("Welcome to Gitlab Docs")
     # resets markdown output file and adds GITLAB DOCS opening marker
     GLDOCS_CONFIG_FILE = os.getenv("GLDOCS_CONFIG_FILE", ".gitlab-ci.yml")
     try:
         sudoku = open(GLDOCS_CONFIG_FILE, "r").readlines()
     except FileNotFoundError:
-        click.secho(f"Gitlab Configuration {GLDOCS_CONFIG_FILE} doesn't exist", err=True, blink=True, bold=True, fg="red")
+        click.error(f"Gitlab Configuration {GLDOCS_CONFIG_FILE} doesn't exist", err=True, blink=True, bold=True, fg="red")
         exit(1)
     else:
         # md_writer.gitlab_docs_reset_writer(OUTPUT_FILE=OUTPUT_FILE, MODE="STARTING")
-        click.secho(f"Parsing .gitlab-ci.yml", err=True, blink=True, bold=True, fg="blue")
         variables.document_variables(
             GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
             WRITE_MODE="w",
@@ -81,7 +79,6 @@ def gitlab_docs(detailed,OUTPUT_FILE):
 
         # resets markdown output file and adds GITLAB DOCS closing marker
         md_writer.gitlab_docs_reset_writer(OUTPUT_FILE=OUTPUT_FILE, MODE="CLOSING")
-
-
+    logger.info(f"Successfully generated documentation for {GLDOCS_CONFIG_FILE} here: {OUTPUT_FILE}")
 if __name__ == "__main__":
     gitlab_docs(obj={})

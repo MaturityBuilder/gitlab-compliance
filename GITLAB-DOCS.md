@@ -51,27 +51,7 @@
 |   **Key**   |     **Value**     |
 | :---------: | :---------------: |
 | **extends** | ['.build:python'] |
-
-### BUILD:DOCKER
-
-|     **Key**      |                                          **Value**                                           |
-| :--------------: | :------------------------------------------------------------------------------------------: |
-| **dependencies** |                                          ['build']                                           |
-|    **image**     |                                        docker:latest                                         |
-|    **rules**     | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG && $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH'] |
-|   **services**   |                                       ['docker:dind']                                        |
-|    **stage**     |                                            build                                             |
-|     **tags**     |                                    ['gitlab-org-docker']                                     |
-
-### DOCKER-BUILD
-
-|     **Key**      |                    **Value**                    |
-| :--------------: | :---------------------------------------------: |
-| **dependencies** |                    ['build']                    |
-|    **image**     |                  docker:latest                  |
-|    **rules**     | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
-|   **services**   |                 ['docker:dind']                 |
-|    **stage**     |                     publish                     |
+|  **needs**  |         []        |
 
 
 

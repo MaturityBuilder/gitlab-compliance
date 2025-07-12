@@ -1,0 +1,405 @@
+🐛  20:21:35 | src.modules.logging:<module>:40 - ℹ️ Informational log
+🐛  20:21:35 | src.modules.logging:<module>:41 - ✅ Operation successful!
+🐛  20:21:35 | src.modules.logging:<module>:42 - ⚠️ Watch out!
+🐛  20:21:35 | src.modules.logging:<module>:43 - ❌ An error occurred
+🐛  20:21:35 | src.modules.logging:<module>:44 - 🔥 Critical failure!
+🐛  20:21:35 | src.gitlab_docs:gitlab_docs:41 - Welcome to Gitlab Docs
+🐛  20:21:35 | src.properties.variables:document_variables:8 - Generating Documentation for Variables
+🐛  20:21:35 | src.properties.variables:document_variables:37 - Simple variable found: gitlab-docs
+🐛  20:21:35 | src.properties.variables:document_variables:37 - Simple variable found: GITLAB-DOCS.md
+🐛  20:21:35 | src.properties.variables:document_variables:77 -
+🐛  20:21:35 | src.properties.variables:document_variables:79 -
+🐛  20:21:35 | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:21:35 | src.properties.includes:document_includes:37 - [{'local': 'gitlab-ci/hidden.jobs.yml'}]
+🐛  20:21:35 | src.properties.includes:document_includes:44 - {'local': 'gitlab-ci/hidden.jobs.yml'}
+🐛  20:21:35 | src.properties.includes:document_includes:47 - Type is: local
+🐛  20:21:35 | src.properties.includes:document_includes:121 - No Variables found for: %s
+🐛  20:21:35 | src.properties.includes:document_includes:127 - No rules found for: %s
+🐛  20:21:35 | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:21:35 | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:21:35 | src.properties.includes:document_includes:173 -
+🐛  20:21:35 | src.properties.includes:document_includes:174 - | Include Type |          Project          | Version | Valid Version | File | Variables | Rules |
+| :----------: | :-----------------------: | :-----: | :-----------: | :--: | :-------: | :---: |
+|    local     | gitlab-ci/hidden.jobs.yml |   n/a   |    &#9989;    |      |           |       |
+🐛  20:21:35 | src.properties.includes:document_includes:175 -
+🐛  20:21:35 | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:21:35 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: stages
+🐛  20:21:35 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: include
+🐛  20:21:35 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: variables
+🐛  20:21:35 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: image
+🐛  20:21:35 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: default
+🐛  20:21:35 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: workflow
+🐛  20:21:35 | src.properties.jobs:get_jobs:79 - True
+🐛  20:21:35 | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['megalinter-reports'], 'expire_in': '1 week'}
+🐛  20:21:35 | src.properties.jobs:get_jobs:79 - oxsecurity/megalinter-python:8
+🐛  20:21:35 | src.properties.jobs:get_jobs:79 - code-quality
+🐛  20:21:35 | src.properties.jobs:get_jobs:79 - {'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR'}
+🐛  20:21:35 | src.properties.jobs:get_jobs:85 - ### MEGALINTER
+🐛  20:21:35 | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['./dist/*.tar.gz'], 'expire_in': '1 hour'}
+🐛  20:21:35 | src.properties.jobs:get_jobs:79 - release
+🐛  20:21:35 | src.properties.jobs:get_jobs:79 - {'PYPI_ID_TOKEN': {'aud': 'pypi'}}
+🐛  20:21:35 | src.properties.jobs:get_jobs:79 - build
+🐛  20:21:35 | src.properties.jobs:get_jobs:85 - ### .BUILD:PYTHON
+🐛  20:21:35 | src.properties.jobs:get_jobs:79 - ['.build:python']
+🐛  20:21:35 | src.properties.jobs:get_jobs:79 - []
+🐛  20:21:35 | src.properties.jobs:get_jobs:85 - ### BUILD
+🐛  20:21:50 | src.modules.logging:<module>:40 - ℹ️ Informational log
+🐛  20:21:50 | src.modules.logging:<module>:41 - ✅ Operation successful!
+🐛  20:21:50 | src.modules.logging:<module>:42 - ⚠️ Watch out!
+🐛  20:21:50 | src.modules.logging:<module>:43 - ❌ An error occurred
+🐛  20:21:50 | src.modules.logging:<module>:44 - 🔥 Critical failure!
+🐛  20:21:50 | src.gitlab_docs:gitlab_docs:41 - Welcome to Gitlab Docs
+🐛  20:21:50 | src.properties.variables:document_variables:8 - Generating Documentation for Variables
+🐛  20:21:50 | src.properties.variables:document_variables:37 - Simple variable found: gitlab-docs
+🐛  20:21:50 | src.properties.variables:document_variables:37 - Simple variable found: GITLAB-DOCS.md
+🐛  20:21:50 | src.properties.variables:document_variables:77 -
+🐛  20:21:50 | src.properties.variables:document_variables:79 -
+🐛  20:21:50 | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:21:50 | src.properties.includes:document_includes:37 - [{'local': 'gitlab-ci/hidden.jobs.yml'}]
+🐛  20:21:50 | src.properties.includes:document_includes:44 - {'local': 'gitlab-ci/hidden.jobs.yml'}
+🐛  20:21:50 | src.properties.includes:document_includes:47 - Type is: local
+🐛  20:21:50 | src.properties.includes:document_includes:121 - No Variables found for: %s
+🐛  20:21:50 | src.properties.includes:document_includes:127 - No rules found for: %s
+🐛  20:21:50 | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:21:50 | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:21:50 | src.properties.includes:document_includes:173 -
+🐛  20:21:50 | src.properties.includes:document_includes:174 - | Include Type |          Project          | Version | Valid Version | File | Variables | Rules |
+| :----------: | :-----------------------: | :-----: | :-----------: | :--: | :-------: | :---: |
+|    local     | gitlab-ci/hidden.jobs.yml |   n/a   |    &#9989;    |      |           |       |
+🐛  20:21:50 | src.properties.includes:document_includes:175 -
+🐛  20:21:50 | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:21:50 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: stages
+🐛  20:21:50 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: include
+🐛  20:21:50 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: variables
+🐛  20:21:50 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: image
+🐛  20:21:50 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: default
+🐛  20:21:50 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: workflow
+🐛  20:21:50 | src.properties.jobs:get_jobs:79 - True
+🐛  20:21:50 | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['megalinter-reports'], 'expire_in': '1 week'}
+🐛  20:21:50 | src.properties.jobs:get_jobs:79 - oxsecurity/megalinter-python:8
+🐛  20:21:50 | src.properties.jobs:get_jobs:79 - code-quality
+🐛  20:21:50 | src.properties.jobs:get_jobs:79 - {'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR'}
+🐛  20:21:50 | src.properties.jobs:get_jobs:85 - ### MEGALINTER
+🐛  20:21:50 | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['./dist/*.tar.gz'], 'expire_in': '1 hour'}
+🐛  20:21:50 | src.properties.jobs:get_jobs:79 - release
+🐛  20:21:50 | src.properties.jobs:get_jobs:79 - {'PYPI_ID_TOKEN': {'aud': 'pypi'}}
+🐛  20:21:50 | src.properties.jobs:get_jobs:79 - build
+🐛  20:21:50 | src.properties.jobs:get_jobs:85 - ### .BUILD:PYTHON
+🐛  20:21:50 | src.properties.jobs:get_jobs:79 - ['.build:python']
+🐛  20:21:50 | src.properties.jobs:get_jobs:79 - []
+🐛  20:21:50 | src.properties.jobs:get_jobs:85 - ### BUILD
+🐛  20:22:03 | src.modules.logging:<module>:40 - ℹ️ Informational log
+🐛  20:22:03 | src.modules.logging:<module>:41 - ✅ Operation successful!
+🐛  20:22:03 | src.modules.logging:<module>:42 - ⚠️ Watch out!
+🐛  20:22:03 | src.modules.logging:<module>:43 - ❌ An error occurred
+🐛  20:22:03 | src.modules.logging:<module>:44 - 🔥 Critical failure!
+🐛  20:22:03 | src.gitlab_docs:gitlab_docs:41 - Welcome to Gitlab Docs
+🐛  20:22:03 | src.properties.variables:document_variables:8 - Generating Documentation for Variables
+🐛  20:22:03 | src.properties.variables:document_variables:37 - Simple variable found: gitlab-docs
+🐛  20:22:03 | src.properties.variables:document_variables:37 - Simple variable found: GITLAB-DOCS.md
+🐛  20:22:03 | src.properties.variables:document_variables:77 -
+🐛  20:22:03 | src.properties.variables:document_variables:79 -
+🐛  20:22:03 | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:22:03 | src.properties.includes:document_includes:37 - [{'local': 'gitlab-ci/hidden.jobs.yml'}]
+🐛  20:22:03 | src.properties.includes:document_includes:44 - {'local': 'gitlab-ci/hidden.jobs.yml'}
+🐛  20:22:03 | src.properties.includes:document_includes:47 - Type is: local
+🐛  20:22:03 | src.properties.includes:document_includes:121 - No Variables found for: %s
+🐛  20:22:03 | src.properties.includes:document_includes:127 - No rules found for: %s
+🐛  20:22:03 | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:22:03 | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:22:03 | src.properties.includes:document_includes:173 -
+🐛  20:22:03 | src.properties.includes:document_includes:174 - | Include Type |          Project          | Version | Valid Version | File | Variables | Rules |
+| :----------: | :-----------------------: | :-----: | :-----------: | :--: | :-------: | :---: |
+|    local     | gitlab-ci/hidden.jobs.yml |   n/a   |    &#9989;    |      |           |       |
+🐛  20:22:03 | src.properties.includes:document_includes:175 -
+🐛  20:22:03 | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:22:03 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: stages
+🐛  20:22:03 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: include
+🐛  20:22:03 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: variables
+🐛  20:22:03 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: image
+🐛  20:22:03 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: default
+🐛  20:22:03 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: workflow
+🐛  20:22:03 | src.properties.jobs:get_jobs:79 - True
+🐛  20:22:03 | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['megalinter-reports'], 'expire_in': '1 week'}
+🐛  20:22:03 | src.properties.jobs:get_jobs:79 - oxsecurity/megalinter-python:8
+🐛  20:22:03 | src.properties.jobs:get_jobs:79 - code-quality
+🐛  20:22:03 | src.properties.jobs:get_jobs:79 - {'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR'}
+🐛  20:22:03 | src.properties.jobs:get_jobs:85 - ### MEGALINTER
+🐛  20:22:03 | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['./dist/*.tar.gz'], 'expire_in': '1 hour'}
+🐛  20:22:03 | src.properties.jobs:get_jobs:79 - release
+🐛  20:22:03 | src.properties.jobs:get_jobs:79 - {'PYPI_ID_TOKEN': {'aud': 'pypi'}}
+🐛  20:22:03 | src.properties.jobs:get_jobs:79 - build
+🐛  20:22:03 | src.properties.jobs:get_jobs:85 - ### .BUILD:PYTHON
+🐛  20:22:03 | src.properties.jobs:get_jobs:79 - ['.build:python']
+🐛  20:22:03 | src.properties.jobs:get_jobs:79 - []
+🐛  20:22:03 | src.properties.jobs:get_jobs:85 - ### BUILD
+2025-07-12 20:22:41.694 | INFO     | src.modules.logging:<module>:39 - ℹ️ Informational log
+2025-07-12 20:22:41.694 | SUCCESS  | src.modules.logging:<module>:40 - ✅ Operation successful!
+2025-07-12 20:22:41.694 | WARNING  | src.modules.logging:<module>:41 - ⚠️ Watch out!
+2025-07-12 20:22:41.694 | ERROR    | src.modules.logging:<module>:42 - ❌ An error occurred
+2025-07-12 20:22:41.694 | CRITICAL | src.modules.logging:<module>:43 - 🔥 Critical failure!
+2025-07-12 20:22:41.696 | INFO     | src.gitlab_docs:gitlab_docs:41 - Welcome to Gitlab Docs
+2025-07-12 20:22:41.696 | INFO     | src.properties.variables:document_variables:8 - Generating Documentation for Variables
+2025-07-12 20:22:41.703 | DEBUG    | src.properties.variables:document_variables:37 - Simple variable found: gitlab-docs
+2025-07-12 20:22:41.703 | DEBUG    | src.properties.variables:document_variables:37 - Simple variable found: GITLAB-DOCS.md
+2025-07-12 20:22:41.703 | INFO     | src.properties.variables:document_variables:77 -
+2025-07-12 20:22:41.704 | INFO     | src.properties.variables:document_variables:79 -
+2025-07-12 20:22:41.704 | INFO     | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+2025-07-12 20:22:41.709 | DEBUG    | src.properties.includes:document_includes:37 - [{'local': 'gitlab-ci/hidden.jobs.yml'}]
+2025-07-12 20:22:41.709 | DEBUG    | src.properties.includes:document_includes:44 - {'local': 'gitlab-ci/hidden.jobs.yml'}
+2025-07-12 20:22:41.709 | DEBUG    | src.properties.includes:document_includes:47 - Type is: local
+2025-07-12 20:22:41.709 | DEBUG    | src.properties.includes:document_includes:121 - No Variables found for: %s
+2025-07-12 20:22:41.709 | DEBUG    | src.properties.includes:document_includes:127 - No rules found for: %s
+2025-07-12 20:22:41.709 | INFO     | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+2025-07-12 20:22:41.710 | INFO     | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+2025-07-12 20:22:41.710 | DEBUG    | src.properties.includes:document_includes:173 -
+2025-07-12 20:22:41.711 | DEBUG    | src.properties.includes:document_includes:174 - | Include Type |          Project          | Version | Valid Version | File | Variables | Rules |
+| :----------: | :-----------------------: | :-----: | :-----------: | :--: | :-------: | :---: |
+|    local     | gitlab-ci/hidden.jobs.yml |   n/a   |    &#9989;    |      |           |       |
+2025-07-12 20:22:41.711 | DEBUG    | src.properties.includes:document_includes:175 -
+2025-07-12 20:22:41.711 | INFO     | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+2025-07-12 20:22:41.715 | DEBUG    | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: stages
+2025-07-12 20:22:41.715 | DEBUG    | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: include
+2025-07-12 20:22:41.715 | DEBUG    | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: variables
+2025-07-12 20:22:41.715 | DEBUG    | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: image
+2025-07-12 20:22:41.716 | DEBUG    | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: default
+2025-07-12 20:22:41.716 | DEBUG    | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: workflow
+2025-07-12 20:22:41.716 | DEBUG    | src.properties.jobs:get_jobs:79 - True
+2025-07-12 20:22:41.716 | DEBUG    | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['megalinter-reports'], 'expire_in': '1 week'}
+2025-07-12 20:22:41.716 | DEBUG    | src.properties.jobs:get_jobs:79 - oxsecurity/megalinter-python:8
+2025-07-12 20:22:41.716 | DEBUG    | src.properties.jobs:get_jobs:79 - code-quality
+2025-07-12 20:22:41.716 | DEBUG    | src.properties.jobs:get_jobs:79 - {'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR'}
+2025-07-12 20:22:41.716 | DEBUG    | src.properties.jobs:get_jobs:85 - ### MEGALINTER
+2025-07-12 20:22:41.717 | DEBUG    | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['./dist/*.tar.gz'], 'expire_in': '1 hour'}
+2025-07-12 20:22:41.717 | DEBUG    | src.properties.jobs:get_jobs:79 - release
+2025-07-12 20:22:41.717 | DEBUG    | src.properties.jobs:get_jobs:79 - {'PYPI_ID_TOKEN': {'aud': 'pypi'}}
+2025-07-12 20:22:41.717 | DEBUG    | src.properties.jobs:get_jobs:79 - build
+2025-07-12 20:22:41.717 | DEBUG    | src.properties.jobs:get_jobs:85 - ### .BUILD:PYTHON
+2025-07-12 20:22:41.717 | DEBUG    | src.properties.jobs:get_jobs:79 - ['.build:python']
+2025-07-12 20:22:41.717 | DEBUG    | src.properties.jobs:get_jobs:79 - []
+2025-07-12 20:22:41.717 | DEBUG    | src.properties.jobs:get_jobs:85 - ### BUILD
+🐛  20:22:53 | src.modules.logging:<module>:40 - ℹ️ Informational log
+🐛  20:22:53 | src.modules.logging:<module>:41 - ✅ Operation successful!
+🐛  20:22:53 | src.modules.logging:<module>:42 - ⚠️ Watch out!
+🐛  20:22:53 | src.modules.logging:<module>:43 - ❌ An error occurred
+🐛  20:22:53 | src.modules.logging:<module>:44 - 🔥 Critical failure!
+🐛  20:22:53 | src.gitlab_docs:gitlab_docs:41 - Welcome to Gitlab Docs
+🐛  20:22:53 | src.properties.variables:document_variables:8 - Generating Documentation for Variables
+🐛  20:22:53 | src.properties.variables:document_variables:37 - Simple variable found: gitlab-docs
+🐛  20:22:53 | src.properties.variables:document_variables:37 - Simple variable found: GITLAB-DOCS.md
+🐛  20:22:53 | src.properties.variables:document_variables:77 -
+🐛  20:22:53 | src.properties.variables:document_variables:79 -
+🐛  20:22:53 | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:22:53 | src.properties.includes:document_includes:37 - [{'local': 'gitlab-ci/hidden.jobs.yml'}]
+🐛  20:22:53 | src.properties.includes:document_includes:44 - {'local': 'gitlab-ci/hidden.jobs.yml'}
+🐛  20:22:53 | src.properties.includes:document_includes:47 - Type is: local
+🐛  20:22:53 | src.properties.includes:document_includes:121 - No Variables found for: %s
+🐛  20:22:53 | src.properties.includes:document_includes:127 - No rules found for: %s
+🐛  20:22:53 | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:22:53 | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:22:53 | src.properties.includes:document_includes:173 -
+🐛  20:22:53 | src.properties.includes:document_includes:174 - | Include Type |          Project          | Version | Valid Version | File | Variables | Rules |
+| :----------: | :-----------------------: | :-----: | :-----------: | :--: | :-------: | :---: |
+|    local     | gitlab-ci/hidden.jobs.yml |   n/a   |    &#9989;    |      |           |       |
+🐛  20:22:53 | src.properties.includes:document_includes:175 -
+🐛  20:22:53 | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:22:53 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: stages
+🐛  20:22:53 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: include
+🐛  20:22:53 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: variables
+🐛  20:22:53 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: image
+🐛  20:22:53 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: default
+🐛  20:22:53 | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: workflow
+🐛  20:22:53 | src.properties.jobs:get_jobs:79 - True
+🐛  20:22:53 | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['megalinter-reports'], 'expire_in': '1 week'}
+🐛  20:22:53 | src.properties.jobs:get_jobs:79 - oxsecurity/megalinter-python:8
+🐛  20:22:53 | src.properties.jobs:get_jobs:79 - code-quality
+🐛  20:22:53 | src.properties.jobs:get_jobs:79 - {'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR'}
+🐛  20:22:53 | src.properties.jobs:get_jobs:85 - ### MEGALINTER
+🐛  20:22:53 | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['./dist/*.tar.gz'], 'expire_in': '1 hour'}
+🐛  20:22:53 | src.properties.jobs:get_jobs:79 - release
+🐛  20:22:53 | src.properties.jobs:get_jobs:79 - {'PYPI_ID_TOKEN': {'aud': 'pypi'}}
+🐛  20:22:53 | src.properties.jobs:get_jobs:79 - build
+🐛  20:22:53 | src.properties.jobs:get_jobs:85 - ### .BUILD:PYTHON
+🐛  20:22:53 | src.properties.jobs:get_jobs:79 - ['.build:python']
+🐛  20:22:53 | src.properties.jobs:get_jobs:79 - []
+🐛  20:22:53 | src.properties.jobs:get_jobs:85 - ### BUILD
+🐛  20:23:24 | 🔸 INFO | src.modules.logging:<module>:42 - ℹ️ Informational log
+🐛  20:23:24 | 🔸 SUCCESS | src.modules.logging:<module>:43 - ✅ Operation successful!
+🐛  20:23:24 | 🔸 WARNING | src.modules.logging:<module>:44 - ⚠️ Watch out!
+🐛  20:23:24 | 🔸 ERROR | src.modules.logging:<module>:45 - ❌ An error occurred
+🐛  20:23:24 | 🔸 CRITICAL | src.modules.logging:<module>:46 - 🔥 Critical failure!
+🐛  20:23:24 | 🔸 INFO | src.gitlab_docs:gitlab_docs:41 - Welcome to Gitlab Docs
+🐛  20:23:24 | 🔸 INFO | src.properties.variables:document_variables:8 - Generating Documentation for Variables
+🐛  20:23:24 | 🔸 DEBUG | src.properties.variables:document_variables:37 - Simple variable found: gitlab-docs
+🐛  20:23:24 | 🔸 DEBUG | src.properties.variables:document_variables:37 - Simple variable found: GITLAB-DOCS.md
+🐛  20:23:24 | 🔸 INFO | src.properties.variables:document_variables:77 -
+🐛  20:23:24 | 🔸 INFO | src.properties.variables:document_variables:79 -
+🐛  20:23:24 | 🔸 INFO | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:23:25 | 🔸 DEBUG | src.properties.includes:document_includes:37 - [{'local': 'gitlab-ci/hidden.jobs.yml'}]
+🐛  20:23:25 | 🔸 DEBUG | src.properties.includes:document_includes:44 - {'local': 'gitlab-ci/hidden.jobs.yml'}
+🐛  20:23:25 | 🔸 DEBUG | src.properties.includes:document_includes:47 - Type is: local
+🐛  20:23:25 | 🔸 DEBUG | src.properties.includes:document_includes:121 - No Variables found for: %s
+🐛  20:23:25 | 🔸 DEBUG | src.properties.includes:document_includes:127 - No rules found for: %s
+🐛  20:23:25 | 🔸 INFO | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:23:25 | 🔸 INFO | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:23:25 | 🔸 DEBUG | src.properties.includes:document_includes:173 -
+🐛  20:23:25 | 🔸 DEBUG | src.properties.includes:document_includes:174 - | Include Type |          Project          | Version | Valid Version | File | Variables | Rules |
+| :----------: | :-----------------------: | :-----: | :-----------: | :--: | :-------: | :---: |
+|    local     | gitlab-ci/hidden.jobs.yml |   n/a   |    &#9989;    |      |           |       |
+🐛  20:23:25 | 🔸 DEBUG | src.properties.includes:document_includes:175 -
+🐛  20:23:25 | 🔸 INFO | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: stages
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: include
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: variables
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: image
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: default
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: workflow
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - True
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['megalinter-reports'], 'expire_in': '1 week'}
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - oxsecurity/megalinter-python:8
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - code-quality
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR'}
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:85 - ### MEGALINTER
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['./dist/*.tar.gz'], 'expire_in': '1 hour'}
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - release
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'PYPI_ID_TOKEN': {'aud': 'pypi'}}
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - build
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:85 - ### .BUILD:PYTHON
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - ['.build:python']
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - []
+🐛  20:23:25 | 🔸 DEBUG | src.properties.jobs:get_jobs:85 - ### BUILD
+🐛  20:24:39 | 🔸 INFO | src.modules.logging:<module>:42 - ℹ️ Informational log
+🐛  20:24:39 | 🔸 SUCCESS | src.modules.logging:<module>:43 - ✅ Operation successful!
+🐛  20:24:39 | 🔸 WARNING | src.modules.logging:<module>:44 - ⚠️ Watch out!
+🐛  20:24:39 | 🔸 ERROR | src.modules.logging:<module>:45 - ❌ An error occurred
+🐛  20:24:39 | 🔸 CRITICAL | src.modules.logging:<module>:46 - 🔥 Critical failure!
+🐛  20:24:39 | 🔸 INFO | src.gitlab_docs:gitlab_docs:41 - Welcome to Gitlab Docs
+🐛  20:24:39 | 🔸 INFO | src.properties.variables:document_variables:8 - Generating Documentation for Variables
+🐛  20:24:39 | 🔸 DEBUG | src.properties.variables:document_variables:37 - Simple variable found: gitlab-docs
+🐛  20:24:39 | 🔸 DEBUG | src.properties.variables:document_variables:37 - Simple variable found: GITLAB-DOCS.md
+🐛  20:24:39 | 🔸 INFO | src.properties.variables:document_variables:77 -
+🐛  20:24:39 | 🔸 INFO | src.properties.variables:document_variables:79 -
+🐛  20:24:39 | 🔸 INFO | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:24:39 | 🔸 DEBUG | src.properties.includes:document_includes:37 - [{'local': 'gitlab-ci/hidden.jobs.yml'}]
+🐛  20:24:39 | 🔸 DEBUG | src.properties.includes:document_includes:44 - {'local': 'gitlab-ci/hidden.jobs.yml'}
+🐛  20:24:39 | 🔸 DEBUG | src.properties.includes:document_includes:47 - Type is: local
+🐛  20:24:39 | 🔸 DEBUG | src.properties.includes:document_includes:121 - No Variables found for: %s
+🐛  20:24:39 | 🔸 DEBUG | src.properties.includes:document_includes:127 - No rules found for: %s
+🐛  20:24:39 | 🔸 INFO | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:24:39 | 🔸 INFO | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:24:39 | 🔸 DEBUG | src.properties.includes:document_includes:173 -
+🐛  20:24:39 | 🔸 DEBUG | src.properties.includes:document_includes:174 - | Include Type |          Project          | Version | Valid Version | File | Variables | Rules |
+| :----------: | :-----------------------: | :-----: | :-----------: | :--: | :-------: | :---: |
+|    local     | gitlab-ci/hidden.jobs.yml |   n/a   |    &#9989;    |      |           |       |
+🐛  20:24:39 | 🔸 DEBUG | src.properties.includes:document_includes:175 -
+🐛  20:24:39 | 🔸 INFO | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: stages
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: include
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: variables
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: image
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: default
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: workflow
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - True
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['megalinter-reports'], 'expire_in': '1 week'}
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - oxsecurity/megalinter-python:8
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - code-quality
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR'}
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:85 - ### MEGALINTER
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['./dist/*.tar.gz'], 'expire_in': '1 hour'}
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - release
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'PYPI_ID_TOKEN': {'aud': 'pypi'}}
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - build
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:85 - ### .BUILD:PYTHON
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - ['.build:python']
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - []
+🐛  20:24:39 | 🔸 DEBUG | src.properties.jobs:get_jobs:85 - ### BUILD
+🐛  20:25:04 | 🔸 INFO | src.modules.logging:<module>:42 - ℹ️ Informational log
+🐛  20:25:04 | 🔸 SUCCESS | src.modules.logging:<module>:43 - ✅ Operation successful!
+🐛  20:25:04 | 🔸 WARNING | src.modules.logging:<module>:44 - ⚠️ Watch out!
+🐛  20:25:04 | 🔸 ERROR | src.modules.logging:<module>:45 - ❌ An error occurred
+🐛  20:25:04 | 🔸 CRITICAL | src.modules.logging:<module>:46 - 🔥 Critical failure!
+🐛  20:25:04 | 🔸 INFO | src.gitlab_docs:gitlab_docs:41 - Welcome to Gitlab Docs
+🐛  20:25:04 | 🔸 INFO | src.properties.variables:document_variables:8 - Generating Documentation for Variables
+🐛  20:25:04 | 🔸 DEBUG | src.properties.variables:document_variables:37 - Simple variable found: gitlab-docs
+🐛  20:25:04 | 🔸 DEBUG | src.properties.variables:document_variables:37 - Simple variable found: GITLAB-DOCS.md
+🐛  20:25:04 | 🔸 INFO | src.properties.variables:document_variables:77 -
+🐛  20:25:04 | 🔸 INFO | src.properties.variables:document_variables:79 -
+🐛  20:25:04 | 🔸 INFO | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:25:04 | 🔸 DEBUG | src.properties.includes:document_includes:37 - [{'local': 'gitlab-ci/hidden.jobs.yml'}]
+🐛  20:25:04 | 🔸 DEBUG | src.properties.includes:document_includes:44 - {'local': 'gitlab-ci/hidden.jobs.yml'}
+🐛  20:25:04 | 🔸 DEBUG | src.properties.includes:document_includes:47 - Type is: local
+🐛  20:25:04 | 🔸 DEBUG | src.properties.includes:document_includes:121 - No Variables found for: %s
+🐛  20:25:04 | 🔸 DEBUG | src.properties.includes:document_includes:127 - No rules found for: %s
+🐛  20:25:04 | 🔸 INFO | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:25:04 | 🔸 INFO | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:25:04 | 🔸 DEBUG | src.properties.includes:document_includes:173 -
+🐛  20:25:04 | 🔸 DEBUG | src.properties.includes:document_includes:174 - | Include Type |          Project          | Version | Valid Version | File | Variables | Rules |
+| :----------: | :-----------------------: | :-----: | :-----------: | :--: | :-------: | :---: |
+|    local     | gitlab-ci/hidden.jobs.yml |   n/a   |    &#9989;    |      |           |       |
+🐛  20:25:04 | 🔸 DEBUG | src.properties.includes:document_includes:175 -
+🐛  20:25:04 | 🔸 INFO | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: stages
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: include
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: variables
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: image
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: default
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: workflow
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - True
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['megalinter-reports'], 'expire_in': '1 week'}
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - oxsecurity/megalinter-python:8
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - code-quality
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR'}
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:85 - ### MEGALINTER
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['./dist/*.tar.gz'], 'expire_in': '1 hour'}
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - release
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'PYPI_ID_TOKEN': {'aud': 'pypi'}}
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - build
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:85 - ### .BUILD:PYTHON
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - ['.build:python']
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - []
+🐛  20:25:04 | 🔸 DEBUG | src.properties.jobs:get_jobs:85 - ### BUILD
+🐛  20:26:23 | 🔸 INFO | src.modules.logging:<module>:40 - ℹ️ Informational log
+🐛  20:26:23 | 🔸 SUCCESS | src.modules.logging:<module>:41 - ✅ Operation successful!
+🐛  20:26:23 | 🔸 WARNING | src.modules.logging:<module>:42 - ⚠️ Watch out!
+🐛  20:26:23 | 🔸 ERROR | src.modules.logging:<module>:43 - ❌ An error occurred
+🐛  20:26:23 | 🔸 CRITICAL | src.modules.logging:<module>:44 - 🔥 Critical failure!
+🐛  20:26:23 | 🔸 INFO | src.gitlab_docs:gitlab_docs:41 - Welcome to Gitlab Docs
+🐛  20:26:23 | 🔸 INFO | src.properties.variables:document_variables:8 - Generating Documentation for Variables
+🐛  20:26:23 | 🔸 DEBUG | src.properties.variables:document_variables:37 - Simple variable found: gitlab-docs
+🐛  20:26:23 | 🔸 DEBUG | src.properties.variables:document_variables:37 - Simple variable found: GITLAB-DOCS.md
+🐛  20:26:23 | 🔸 INFO | src.properties.variables:document_variables:77 -
+🐛  20:26:23 | 🔸 INFO | src.properties.variables:document_variables:79 -
+🐛  20:26:23 | 🔸 INFO | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:26:23 | 🔸 DEBUG | src.properties.includes:document_includes:37 - [{'local': 'gitlab-ci/hidden.jobs.yml'}]
+🐛  20:26:23 | 🔸 DEBUG | src.properties.includes:document_includes:44 - {'local': 'gitlab-ci/hidden.jobs.yml'}
+🐛  20:26:23 | 🔸 DEBUG | src.properties.includes:document_includes:47 - Type is: local
+🐛  20:26:23 | 🔸 DEBUG | src.properties.includes:document_includes:121 - No Variables found for: %s
+🐛  20:26:23 | 🔸 DEBUG | src.properties.includes:document_includes:127 - No rules found for: %s
+🐛  20:26:23 | 🔸 INFO | src.properties.includes:document_includes:16 - Generating Documentation for Includes
+🐛  20:26:23 | 🔸 INFO | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:26:23 | 🔸 DEBUG | src.properties.includes:document_includes:173 -
+🐛  20:26:23 | 🔸 DEBUG | src.properties.includes:document_includes:174 - | Include Type |          Project          | Version | Valid Version | File | Variables | Rules |
+| :----------: | :-----------------------: | :-----: | :-----------: | :--: | :-------: | :---: |
+|    local     | gitlab-ci/hidden.jobs.yml |   n/a   |    &#9989;    |      |           |       |
+🐛  20:26:23 | 🔸 DEBUG | src.properties.includes:document_includes:175 -
+🐛  20:26:23 | 🔸 INFO | src.properties.jobs:get_jobs:27 - Generating Documentation for Jobs
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: stages
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: include
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: variables
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: image
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: default
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:47 - Key is reserved for gitlab: workflow
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - True
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['megalinter-reports'], 'expire_in': '1 week'}
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - oxsecurity/megalinter-python:8
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - code-quality
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR'}
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:85 - ### MEGALINTER
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'when': 'always', 'paths': ['./dist/*.tar.gz'], 'expire_in': '1 hour'}
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - release
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - {'PYPI_ID_TOKEN': {'aud': 'pypi'}}
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - build
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:85 - ### .BUILD:PYTHON
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - ['.build:python']
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:79 - []
+🐛  20:26:23 | 🔸 DEBUG | src.properties.jobs:get_jobs:85 - ### BUILD

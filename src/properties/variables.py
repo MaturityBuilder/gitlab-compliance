@@ -2,13 +2,10 @@ import logging
 import os
 import yaml
 import src.modules.common as common
-LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("GITLAB DOCS|VARIABLES WRAPPER")
-logger.setLevel(LOG_LEVEL)
+from src.modules.logging import logger
 
 def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE):
-    print("Generating Documentation for Variables")
+    logger.trace("Generating Documentation for Variables")
 
     from prettytable import MARKDOWN
     with open(GLDOCS_CONFIG_FILE, "r") as file:
@@ -16,7 +13,7 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITL
             data = yaml.load(file, Loader=common.EnvLoader)
             if "variables" in data:
                 variables = data["variables"]
-                # print(gldocs.generate_markdown_table(variables))
+                # logger.trace(gldocs.generate_markdown_table(variables))
                 from prettytable import PrettyTable
 
                 variables_table = PrettyTable()
@@ -29,7 +26,7 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITL
                     "Expand",
                 ]
                 # variables_table.add_rows([variables])
-                # print(variables)
+                # logger.trace(variables)
 
                 for v in variables:
                     description = "&#x274c;"
@@ -55,7 +52,7 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITL
                         if "options" in variables[v]:
                             options = variables[v]["options"]
                         else:
-                            # print(
+                            # logger.trace(
                             #     "options key: "
                             #     + v
                             #     + " isn't set, but will improve code hygiene if you"
@@ -77,9 +74,6 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITL
 
                 variables_table.add_row([v, variables[v], description, options, expand])
 
-                print("")
-                # print(str(variables_table))
-                print("")
                 f = open(OUTPUT_FILE, WRITE_MODE)
                 if not DISABLE_TITLE:
                     # GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
@@ -93,4 +87,4 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITL
                 f.close()
 
         except yaml.YAMLError as exc:
-            print(exc)
+            logger.trace(exc)
