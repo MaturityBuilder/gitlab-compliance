@@ -87,6 +87,7 @@ megalinter:
       fi
 
 build:
+  stage: test
   extends:
     - .build:python
 
