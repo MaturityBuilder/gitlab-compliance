@@ -1,12 +1,11 @@
 import logging
 import os
-
 import yaml
 from prettytable import MARKDOWN
 from prettytable import MARKDOWN as DESIGN
 from prettytable import PrettyTable
 from prettytable.colortable import ColorTable, Themes
-import gitlab_docs.common as common
+import src.modules.common as common
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.INFO)

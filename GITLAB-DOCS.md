@@ -31,7 +31,7 @@
 |   **artifacts**   |            'when': 'always'            |
 |                   |     'paths': ['megalinter-reports']    |
 |                   |          'expire_in': '1 week'         |
-|     **image**     |  oxsecurity/megalinter-python:v8.0.0   |
+|     **image**     |     oxsecurity/megalinter-python:8     |
 |     **stage**     |              code-quality              |
 |   **variables**   | 'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR' |
 
@@ -44,8 +44,7 @@
 |                 |      'expire_in': '1 hour'     |
 | **environment** |            release             |
 |  **id_tokens**  | 'PYPI_ID_TOKEN': 'aud': 'pypi' |
-|    **needs**    |               []               |
-|    **stage**    |              .pre              |
+|    **stage**    |             build              |
 
 ### BUILD
 
@@ -55,22 +54,24 @@
 
 ### BUILD:DOCKER
 
-|     **Key**      |       **Value**       |
-| :--------------: | :-------------------: |
-| **dependencies** |       ['build']       |
-|    **image**     |     docker:latest     |
-|   **services**   |    ['docker:dind']    |
-|    **stage**     |         build         |
-|     **tags**     | ['gitlab-org-docker'] |
+|     **Key**      |                                          **Value**                                           |
+| :--------------: | :------------------------------------------------------------------------------------------: |
+| **dependencies** |                                          ['build']                                           |
+|    **image**     |                                        docker:latest                                         |
+|    **rules**     | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG && $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH'] |
+|   **services**   |                                       ['docker:dind']                                        |
+|    **stage**     |                                            build                                             |
+|     **tags**     |                                    ['gitlab-org-docker']                                     |
 
-### DOCKER-BUILD-MASTER
+### DOCKER-BUILD
 
-|     **Key**      |    **Value**    |
-| :--------------: | :-------------: |
-| **dependencies** |    ['build']    |
-|    **image**     |  docker:latest  |
-|   **services**   | ['docker:dind'] |
-|    **stage**     |     publish     |
+|     **Key**      |                    **Value**                    |
+| :--------------: | :---------------------------------------------: |
+| **dependencies** |                    ['build']                    |
+|    **image**     |                  docker:latest                  |
+|    **rules**     | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
+|   **services**   |                 ['docker:dind']                 |
+|    **stage**     |                     publish                     |
 
 
 

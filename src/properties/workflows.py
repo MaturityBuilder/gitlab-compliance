@@ -2,7 +2,7 @@
 import logging
 import os
 import yaml
-import gitlab_docs.common as common
+import src.modules.common as common
 
 # from pytablewriter import MarkdownTableWriter
 from prettytable import MARKDOWN

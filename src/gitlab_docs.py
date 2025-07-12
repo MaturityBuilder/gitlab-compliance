@@ -4,23 +4,17 @@ Author: Charlie Smith
 """
 
 ## Import Thirdparty Libraries
-import logging
 import os
 import click
 
-import gitlab_docs.includes as includes
-import gitlab_docs.jobs as jobs
-import gitlab_docs.reset_docs as md_writer
-import gitlab_docs.variables as variables
-import gitlab_docs.workflows as workflows
+import src.properties.includes as includes
+import src.properties.jobs as jobs
+import src.properties.variables as variables
+import src.properties.workflows as workflows
+from src.modules.logging import logger
+import src.modules.reset_docs as md_writer
 
 # flake8: noqa: E501
-# Logging Setup
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("GITLAB DOCS")
-logger.setLevel(LOG_LEVEL)
-OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
 
 
 # ENABLE_WORKFLOW_DOCUMENTATION = os.getenv("ENABLE_WORKFLOW_DOCUMENTATION", False)
@@ -32,11 +26,20 @@ OUTPUT_FILE = os.getenv("OUTPUT_FILE", "GITLAB-DOCS.md")
     is_flag=True,
     default=False
 )
-def gitlab_docs(detailed):
+@click.option(
+    "--output-file",
+    "-o",
+    "OUTPUT_FILE",
+    required=False,
+    help="Output location of the markdown documentation.",
+
+    default="GITLAB-DOCS.md"
+)
+def gitlab_docs(detailed,OUTPUT_FILE):
     """A command line tool to convert your gitlab-ci yml into markdown documentation."""
 
     ENABLE_WORKFLOW_DOCUMENTATION = detailed
-    print("Welcome to Gitlab Docs")
+    logger.info("Welcome to Gitlab Docs")
     # resets markdown output file and adds GITLAB DOCS opening marker
     GLDOCS_CONFIG_FILE = os.getenv("GLDOCS_CONFIG_FILE", ".gitlab-ci.yml")
     try:
