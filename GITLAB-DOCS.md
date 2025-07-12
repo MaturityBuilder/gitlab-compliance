@@ -7,6 +7,9 @@
 
 ## Jobs
 
+
+
+
 ## Includes
 
 | Include Type |          Project          | Version | Valid Version | File | Variables | Rules |
@@ -19,6 +22,7 @@
 
 ## Jobs
 
+
 ### MEGALINTER
 
 |      **Key**      |               **Value**                |
@@ -27,7 +31,7 @@
 |   **artifacts**   |            'when': 'always'            |
 |                   |     'paths': ['megalinter-reports']    |
 |                   |          'expire_in': '1 week'         |
-|     **image**     |  oxsecurity/megalinter-python:v8.0.0   |
+|     **image**     |     oxsecurity/megalinter-python:8     |
 |     **stage**     |              code-quality              |
 |   **variables**   | 'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR' |
 

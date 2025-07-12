@@ -13,7 +13,7 @@ version = "0.1.2"
 description = "A tool that automatically generates gitlab documentation from yaml files"
 authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
 readme = "README.md"
-packages = [{include = "src", format = "sdist"}]
+packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.12"
@@ -24,15 +24,13 @@ typer = "^0.10.0"
 markdown-analysis = "*"
 setuptools = "*"
 jq = "^1.8.0"
-semver = "^3.0.2"
 click = "<=7.1.2"
-
-
 
 [tool.poetry.scripts]
 gitlab-docs = 'src.gitlab_docs:gitlab_docs'
 
 [tool.poetry.group.dev.dependencies]
+semver = "^3.0.2"
 md-click = "^1.0.1"
 
 [build-system]
