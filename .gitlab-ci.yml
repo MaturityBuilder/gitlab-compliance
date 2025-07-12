@@ -92,29 +92,30 @@ build:
     - .build:python
 
 
-build:docker:
-  # Official docker image.
-  needs: []
-  services:
-    - name: docker:24.0.5-dind
-      alias: docker
-  dependencies:
-    - build
-  tags:
-    - gitlab-org-docker
-  image: docker:latest
-  stage: build
-  services:
-    - docker:dind
-  before_script:
-    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
-  script:
-    - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
-    - docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
-    - docker push -q --all-tags "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
-  rules:
-    - if: $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG && $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
-    #  == $CI_COMMIT_TAG || $CI_COMMIT_REF_NAME == "f-code-for-includes-docs"
+# build:docker:
+#   # Official docker image.
+#   needs: []
+#   services:
+#     - name: docker:24.0.5-dind
+#       alias: docker
+#   dependencies:
+#     - build
+#   tags:
+#     - gitlab-org-docker
+#   image: docker:latest
+#   stage: build
+#   services:
+#     - docker:dind
+#   before_script:
+#     - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin registry.gitlab.com
+#     # $CI_REGISTRY
+#   script:
+#     - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
+#     - docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+#     - docker push -q --all-tags "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+#   rules:
+#     - if: $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG && $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
+#     #  == $CI_COMMIT_TAG || $CI_COMMIT_REF_NAME == "f-code-for-includes-docs"
 
 docker-build:
   # Official docker image.
