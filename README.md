@@ -69,9 +69,9 @@ gitlab-docs
 <hr>
 
 
-| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
-| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
-|                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
+| <span data-bs-theme="dark" class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :-----------------------------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                              variables                              |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
 
 
 ### BEHAVE-TESTS
@@ -82,9 +82,9 @@ gitlab-docs
 <hr>
 
 
-| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
-| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
-|                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
+| <span data-bs-theme="dark" class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :-----------------------------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                              variables                              |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
 
 
 ### .BUILD:PYTHON

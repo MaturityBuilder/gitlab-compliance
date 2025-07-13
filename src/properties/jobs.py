@@ -79,9 +79,9 @@ def get_jobs(
                         # job_config_table_headers.append(key)
                         if key in ["variables"]:
                             # print(json.dumps(jobs[j]["variables"].keys()))
-                            print(key)
+                            # print(key)
                             var = jobs[j][key].keys()
-                            print(var)
+                            # print(var)
                             # var=json.dumps(jobs[j][key])
                             # # .iteritems()
                             for variable_key in var:
@@ -101,15 +101,15 @@ def get_jobs(
                     # f = open(OUTPUT_FILE, "a")
                     add_between_markers(str("\n"))
                     add_between_markers(str("### " + job_name + "\n\n"))
-
+                    add_between_markers("<hr>")
+                    add_between_markers(str("\n"))
                     # add_between_markers(str("\n"))
                     add_between_markers(str(job_config_table))
                     print(job_variables_config_table)
 
                     if value_counter > 0:
-                        job_variables_config_table.field_names = ['<span data-bs-theme="dark" class="badge text-bg-danger">Type</span>','<span class="badge text-bg-warning">Key</span>','<span class="badge text-bg-success">Value</span>']
-                        add_between_markers("<hr>")
-                        add_between_markers(str("\n"))
+                        job_variables_config_table.field_names = ['<span class="badge text-bg-danger">Type</span>','<span class="badge text-bg-warning">Key</span>','<span class="badge text-bg-success">Value</span>']
+
                         print(job_variables_config_table)
                         add_between_markers(str("\n"))
                         add_between_markers(str(job_variables_config_table))
