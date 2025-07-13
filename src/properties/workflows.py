@@ -6,11 +6,11 @@ import src.modules.common as common
 from src.modules.logging import logger
 # from pytablewriter import MarkdownTableWriter
 from prettytable import MARKDOWN
-
+from src.modules.reset_docs import add_between_markers
 
 
 def document_workflows(
-    OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False
+    OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE=False
 ):
     logger.trace("Generating Documentation for Workflows")
 
@@ -37,15 +37,15 @@ def document_workflows(
                     logger.trace(value)
                     workflow_table.add_row([count, str(value)])
 
-                f = open(OUTPUT_FILE, "a")
+                # f = open(OUTPUT_FILE, "a")
                 if not DISABLE_TITLE:
                     GLDOCS_CONFIG_FILE_HEADING = str(
                         "## " + GLDOCS_CONFIG_FILE + "\n\n"
                     )
-                    f.write("\n")
-                    f.write(GLDOCS_CONFIG_FILE_HEADING)
-                f.write(str(workflow_table))
-                f.close()
+                    add_between_markers("\n")
+                    add_between_markers(GLDOCS_CONFIG_FILE_HEADING)
+                add_between_markers(str(workflow_table))
+                # f.close()
                 logger.debug("")
                 logger.debug(str(workflow_table))
                 logger.debug("")

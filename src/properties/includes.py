@@ -5,11 +5,12 @@ from prettytable import MARKDOWN, PrettyTable
 import src.modules.common as common
 import src.properties.jobs as jobs
 from src.modules.logging import logger
+from src.modules.reset_docs import add_between_markers
 
 def document_includes(
     OUTPUT_FILE,
     GLDOCS_CONFIG_FILE,
-    WRITE_MODE="a",
+
     DISABLE_TITLE=False,
     DISABLE_TYPE_HEADING=True,
 ):
@@ -146,13 +147,13 @@ def document_includes(
                                     document_includes(
                                         OUTPUT_FILE=OUTPUT_FILE,
                                         GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,
-                                        WRITE_MODE="a",
+
                                     )
 
                                     jobs.get_jobs(
                                         OUTPUT_FILE=OUTPUT_FILE,
                                         GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,
-                                        WRITE_MODE="a",
+
                                         DISABLE_TITLE=True,
                                         DISABLE_TYPE_HEADING=DISABLE_TYPE_HEADING,
                                     )
@@ -161,15 +162,15 @@ def document_includes(
                                         "include don't exist in " + GLDOCS_CONFIG_FILE
                                     )
 
-                f = open(OUTPUT_FILE, "a")
+                # f = open(OUTPUT_FILE, "a")
                 # GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
-                # f.write(GLDOCS_CONFIG_FILE_HEADING)
+                # add_between_markers(GLDOCS_CONFIG_FILE_HEADING)
 
-                f.write("\n")
-                f.write(str("## " + "Includes" + "\n\n"))
-                f.write(str(includes_table))
-                f.write("\n")
-                f.close()
+                add_between_markers("\n")
+                add_between_markers(str("## " + "Includes" + "\n\n"))
+                add_between_markers(str(includes_table))
+                add_between_markers("\n")
+                # f.close()
                 logger.log("DEBUG","")
                 logger.log("DEBUG",str(includes_table))
                 logger.log("DEBUG","")

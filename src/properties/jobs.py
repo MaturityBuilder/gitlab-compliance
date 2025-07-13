@@ -1,16 +1,17 @@
 import os
-import yaml
+import yaml, json
 from prettytable import MARKDOWN
 from prettytable import MARKDOWN as DESIGN
 from prettytable import PrettyTable
 from prettytable.colortable import ColorTable, Themes
 import src.modules.common as common
 from src.modules.logging import logger
+from src.modules.reset_docs import add_between_markers
 
 def get_jobs(
     OUTPUT_FILE,
     GLDOCS_CONFIG_FILE,
-    WRITE_MODE,
+
     DISABLE_TITLE=True,
     DISABLE_TYPE_HEADING=True,
     detailed=False,
@@ -30,17 +31,17 @@ def get_jobs(
         data = yaml.load(file, Loader=common.EnvLoader)
         jobs = data
         # Create file lock against output md file
-        f = open(OUTPUT_FILE, "a")
-        if not DISABLE_TITLE:
-            f.write("\n")
-            GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n")
-            f.write("\n\n")
-            f.write(GLDOCS_CONFIG_FILE_HEADING)
-        if not DISABLE_TYPE_HEADING:
-            f.write("\n")
-            f.write(str("## " + "Jobs" + "\n"))
-            f.write("\n")
-            f.close()
+        # f = open(OUTPUT_FILE, "a")
+        # if not DISABLE_TITLE:
+        #     add_between_markers("\n")
+        #     GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n")
+        #     add_between_markers("\n")
+        #     add_between_markers(GLDOCS_CONFIG_FILE_HEADING)
+        # if not DISABLE_TYPE_HEADING:
+        #     add_between_markers("\n")
+        #     add_between_markers(str("## " + "Jobs" + "\n"))
+        #     add_between_markers("\n")
+
         # logger.trace(type(jobs))
         for j in jobs:
             if j in exclude_keywords:
@@ -62,9 +63,12 @@ def get_jobs(
                 jobs[j].pop("after_script", None)
                 # logger.trace(jobs[j])
                 job_config = []
+                job_variables_config_table = PrettyTable()
+                job_variables_config_table.border = True
+                job_variables_config_table.set_style(DESIGN)
+                value_counter = 0
                 if jobs[j]:
                     for key in sorted(jobs[j]):
-                        # job_config_table_headers.append(key)
                         job_property = "**" + key + "**"
                         value = (
                             str(jobs[j][key])
@@ -72,9 +76,20 @@ def get_jobs(
                             .replace("{", "")
                             .replace("}", "")
                         )
-                        # logger.trace([job_property, value])
-
-                        job_config_table.add_row([job_property, value])
+                        # job_config_table_headers.append(key)
+                        if key in ["variables"]:
+                            # print(json.dumps(jobs[j]["variables"].keys()))
+                            print(key)
+                            var = jobs[j][key].keys()
+                            print(var)
+                            # var=json.dumps(jobs[j][key])
+                            # # .iteritems()
+                            for variable_key in var:
+                                variable_value = jobs[j]["variables"][variable_key]
+                                value_counter = value_counter + 1
+                                job_variables_config_table.add_row([key,variable_key, variable_value])
+                        else:
+                            job_config_table.add_row([job_property, value])
                         # job_config.append([key,jobs[j][key]])
                         logger.debug(jobs[j][key])
 
@@ -83,14 +98,20 @@ def get_jobs(
                     # logger.trace(job_config_table)
                     job_name = j.upper()
                     logger.debug("### " + job_name)
-                    f = open(OUTPUT_FILE, "a")
-                    f.write(str("\n"))
-                    f.write(str("### " + job_name + "\n\n"))
+                    # f = open(OUTPUT_FILE, "a")
+                    add_between_markers(str("\n"))
+                    add_between_markers(str("### " + job_name + "\n\n"))
 
-                    # f.write(str("\n"))
-                    f.write(str(job_config_table))
-                    f.write(str("\n"))
-                    f.close()
-        f = open(OUTPUT_FILE, "a")
-        f.write(str("\n\n"))
-        f.close()
+                    # add_between_markers(str("\n"))
+                    add_between_markers(str(job_config_table))
+                    print(job_variables_config_table)
+
+                    if value_counter > 0:
+                        job_variables_config_table.field_names = ['<span class="badge text-bg-danger">Type</span>','<span class="badge text-bg-warning">Key</span>','<span class="badge text-bg-success">Value</span>']
+                        print(job_variables_config_table)
+                        add_between_markers("<hr>")
+                        add_between_markers(str("\n\n"))
+                        # add_between_markers(str())
+                        add_between_markers(str(job_variables_config_table))
+                    add_between_markers(str("\n"))
+        add_between_markers(str("\n"))

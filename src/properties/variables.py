@@ -3,8 +3,10 @@ import os
 import yaml
 import src.modules.common as common
 from src.modules.logging import logger
+# from src.modules.reset_docs import update_marked_block
+from src.modules.reset_docs import add_between_markers
 
-def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE):
+def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
     logger.trace("Generating Documentation for Variables")
 
     from prettytable import MARKDOWN
@@ -74,17 +76,17 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITL
 
                 variables_table.add_row([v, variables[v], description, options, expand])
 
-                f = open(OUTPUT_FILE, WRITE_MODE)
+                # f = open(OUTPUT_FILE, WRITE_MODE)
                 if not DISABLE_TITLE:
                     # GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
-                    f.write("\n")
-                    # f.write(GLDOCS_CONFIG_FILE_HEADING)
-                f.write("\n")
-                f.write("## Variables")
-                f.write("\n")
-                f.write(str(variables_table))
-                f.write("\n")
-                f.close()
+                    add_between_markers("\n")
+                    # add_between_markers(GLDOCS_CONFIG_FILE_HEADING)
+                add_between_markers("\n")
+                add_between_markers("## Variables")
+                add_between_markers("\n")
+                add_between_markers(str(variables_table))
+                add_between_markers("\n")
+                # f.close()
 
         except yaml.YAMLError as exc:
             logger.trace(exc)

@@ -1,97 +1,105 @@
 import os
 from src.modules.logging import logger
+file_path="README.md"
 
+marker_start="[comment]: <> (gitlab-docs-opening-auto-generated)"
+marker_end="[comment]: <> (gitlab-docs-closing-auto-generated)"
+gldocs_opening = "[comment]: <> (gitlab-docs-opening-auto-generated)"
+gldocs_closing = "[comment]: <> (gitlab-docs-closing-auto-generated)"
 
-
-def replaceTextBetween(originalText, delimiterA, delimiterB="", replacementText=""):
-    leadingText = originalText.split(delimiterA)[0]
-    trailingText = originalText.split(delimiterB)[1]
-
-    return leadingText + delimiterA + replacementText + delimiterB + trailingText
-
-
-def gitlab_docs_reset_writer(OUTPUT_FILE, MODE, GLDOCS_TITLE="Gitlab Docs"):
+def update_marked_block(new_content):
     """
-    MODE value can be either STARTING or CLOSING
-    """
-    # import markdown
-    # import frontmatter
-    gldocs_opening = "[comment]: <> (gitlab-docs-opening-auto-generated)"
-    gldocs_closing = "[comment]: <> (gitlab-docs-closing-auto-generated)"
+    Inserts or updates a uniquely marked block in a file.
 
-    if MODE == "STARTING":
-        logger.info(
-            "Do we have a header in in markdown file already: "
-            + str(gitlab_docs_check_header(OUTPUT_FILE, GLDOCS_TITLE=GLDOCS_TITLE))
+    - If the markers already exist, updates the content between them.
+    - If not, appends a new marked block to the file.
+    - Supports multiple distinct blocks (different marker pairs) in one file.
+
+    Args:
+        file_path (str): Path to the file to modify.
+        marker_start (str): Unique start marker (e.g., '# BEGIN_GITLAB_DOCS').
+        marker_end (str): Unique end marker (e.g., '# END_GITLAB_DOCS').
+        new_content (str): Content to insert between the markers.
+    """
+    # file_path, marker_start, marker_end,
+    # file_path="GITLAB-DOCS.md"
+    # marker_start="# BEGIN_GITLAB_DOCS"
+    # marker_end="# END_GITLAB_DOCS"
+    # Create the file if it doesn't exist
+    if not os.path.exists(file_path):
+        with open(file_path, "w", encoding="utf-8") as f:
+            pass  # create an empty file
+    # Read the file contents
+    with open(file_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    start_idx = end_idx = None
+    for i, line in enumerate(lines):
+        if marker_start in line:
+            start_idx = i
+        if marker_end in line and start_idx is not None:
+            end_idx = i
+            break
+
+    # Construct the block
+    block = [f"{marker_start}\n", new_content.rstrip() + "\n", f"{marker_end}\n"]
+
+    if start_idx is not None and end_idx is not None and start_idx < end_idx:
+        # Update existing block
+        lines = lines[:start_idx] + block + lines[end_idx + 1 :]
+    else:
+        # Append new block
+        if lines and not lines[-1].endswith("\n"):
+            lines[-1] += "\n"
+        lines += ["\n"] + block
+
+    # Write back the updated file
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.writelines(lines)
+
+def add_between_markers(new_content):
+    """
+    Appends content between marker lines in a file.
+
+    - If the marker block does not exist, it creates it and adds the content.
+    - If the marker block exists, it inserts the content before the end marker.
+    - Creates the file if it doesn't exist.
+
+    Args:
+        file_path (str): File to modify.
+        marker_start (str): Unique start marker (e.g., '# BEGIN_DOCS').
+        marker_end (str): Unique end marker (e.g., '# END_DOCS').
+        new_content (str): Content to insert between the markers.
+    """
+    if not os.path.exists(file_path):
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(f"{marker_start}\n{new_content.rstrip()}\n{marker_end}\n")
+        return
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    start_idx = end_idx = None
+    for i, line in enumerate(lines):
+        if marker_start in line:
+            start_idx = i
+        elif marker_end in line and start_idx is not None:
+            end_idx = i
+            break
+
+    if start_idx is not None and end_idx is not None:
+        # Insert before the end marker
+        insertion_point = end_idx
+        lines = (
+            lines[:insertion_point]
+            + [new_content.rstrip() + "\n"]
+            + lines[insertion_point:]
         )
-        if gitlab_docs_check_header(OUTPUT_FILE, GLDOCS_TITLE):
-            logger.info("Output File already has Gitlab Docs")
-            gitlab_docs_remove_docs(
-                OUTPUT_FILE=OUTPUT_FILE,
-                GLDOCS_TITLE=gldocs_opening,
-                GLDOCS_END=gldocs_closing,
-            )
-        else:
-            logger.info("Output File is new to Gitlab Docs")
-            if gitlab_docs_check_file_exists(OUTPUT_FILE):
-                gitlab_docs_remove_docs(
-                    OUTPUT_FILE=OUTPUT_FILE,
-                    GLDOCS_TITLE=gldocs_opening,
-                    GLDOCS_END=gldocs_closing,
-                )
-                with open(OUTPUT_FILE, "a") as f:
-                    f.write("\n" + "# " + gldocs_opening)
-
-    if MODE == "CLOSING":
-
-        with open(OUTPUT_FILE, "a") as f:
-            f.write("\n\n" + gldocs_closing)
-
-
-def gitlab_docs_check_file_exists(OUTPUT_FILE):
-    from pathlib import Path
-
-    CHECK_OUTPUT_FILE = Path(OUTPUT_FILE)
-    if CHECK_OUTPUT_FILE.is_file():
-        return True
     else:
-        return False
+        # Append whole block
+        if lines and not lines[-1].endswith("\n"):
+            lines[-1] += "\n"
+        lines += ["\n", marker_start + "\n", new_content.rstrip() + "\n", marker_end + "\n"]
 
-
-def gitlab_docs_check_header(OUTPUT_FILE, GLDOCS_TITLE):
-    from mrkdwn_analysis import MarkdownAnalyzer
-
-    gitlab_docs_check_file_exists(OUTPUT_FILE)
-    if gitlab_docs_check_file_exists(OUTPUT_FILE):
-        analyzer = MarkdownAnalyzer(OUTPUT_FILE)
-        headers = analyzer.identify_headers()
-        # sections = analyzer.identify_sections()
-        if headers:
-            # logger.info(headers)
-            if GLDOCS_TITLE in headers["Header"]:
-                # logger.info(headers["Header"])
-                return True
-            else:
-                return False
-        else:
-            logger.info("No Headers in output file found: " + OUTPUT_FILE)
-            return False
-    else:
-        return False
-
-
-def gitlab_docs_remove_docs(OUTPUT_FILE, GLDOCS_TITLE, GLDOCS_END):
-
-    with open(OUTPUT_FILE, "r") as f:
-        contents = f.read()
-        to_replace = contents[
-            contents.find(GLDOCS_TITLE) + len(GLDOCS_TITLE) : contents.rfind(GLDOCS_END)
-        ]
-        contents = contents.replace(to_replace, "")
-    with open(OUTPUT_FILE, "w") as f:
-        f.write(contents)
-    with open(OUTPUT_FILE, "r") as f:
-        contents = f.read()
-        contents = contents.replace(GLDOCS_END, "")
-    with open(OUTPUT_FILE, "w") as f:
-        f.write(contents)
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.writelines(lines)
