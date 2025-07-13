@@ -60,27 +60,27 @@ gitlab-docs
 
 <hr>
 
-|      **Key**      |            **Value**             |
-| :---------------: | :------------------------------: |
-| **allow_failure** |               True               |
-|   **artifacts**   |         'when': 'always'         |
-|                   |  'paths': ['megalinter-reports'] |
-|                   |       'expire_in': '1 week'      |
-|     **image**     |  oxsecurity/megalinter-python:8  |
-|     **stage**     |               test               |
+|    **Property**   |           **Value**            |
+| :---------------: | :----------------------------: |
+| **allow_failure** |              True              |
+|     **image**     | oxsecurity/megalinter-python:8 |
+|     **stage**     |              test              |
 
 | <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
 | :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |              ['megalinter-reports']              |
+|                   artifacts                    |                   expire_in                    |                      1 week                      |
 |                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
 
 ### BEHAVE-TESTS
 
 <hr>
 
-|  **Key**  |     **Value**      |
-| :-------: | :----------------: |
-|  **only** | ['merge_requests'] |
-| **stage** |        test        |
+| **Property** |     **Value**      |
+| :----------: | :----------------: |
+|   **only**   | ['merge_requests'] |
+|  **stage**   |        test        |
 
 | <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
 | :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
@@ -90,29 +90,35 @@ gitlab-docs
 
 <hr>
 
-|     **Key**     |           **Value**            |
+|   **Property**  |           **Value**            |
 | :-------------: | :----------------------------: |
-|  **artifacts**  |        'when': 'always'        |
-|                 |  'paths': ['./dist/*.tar.gz']  |
-|                 |      'expire_in': '1 hour'     |
 | **environment** |            release             |
 |  **id_tokens**  | 'PYPI_ID_TOKEN': 'aud': 'pypi' |
 |    **stage**    |             build              |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |               ['./dist/*.tar.gz']                |
+|                   artifacts                    |                   expire_in                    |                      1 hour                      |
 
 ### BUILD
 
 <hr>
 
-|   **Key**   |     **Value**     |
-| :---------: | :---------------: |
-| **extends** | ['.build:python'] |
-|  **needs**  |         []        |
+| **Property** | **Value** |
+| :----------: | :-------: |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                    extends                     |                                                |                  .build:python                   |
+|                     needs                      |                                                |                      hell0                       |
 
 ### DOCKER-BUILD
 
 <hr>
 
-|     **Key**      |                    **Value**                    |
+|   **Property**   |                    **Value**                    |
 | :--------------: | :---------------------------------------------: |
 | **dependencies** |                    ['build']                    |
 |    **image**     |                  docker:latest                  |

@@ -48,11 +48,17 @@ def get_jobs(
                 logger.debug("Key is reserved for gitlab: " + j)
             else:
                 # Build Row Level Table to store each job config in
-                job_config_table_headers = ["**Key**", "**Value**"]
+                job_config_table_headers = ["**Property**", "**Value**"]
 
                 job_config_table = PrettyTable(headers=job_config_table_headers)
                 job_config_table.border = True
                 job_config_table.set_style(DESIGN)
+                job_config_table.field_names = job_config_table_headers
+
+                job_variables_config_table = PrettyTable()
+                job_variables_config_table.border = True
+                job_variables_config_table.set_style(DESIGN)
+                job_variables_config_table.field_names = ['<span class="badge text-bg-danger">Type</span>','<span class="badge text-bg-warning">Key</span>','<span class="badge text-bg-success">Value</span>']
                 # job_config_table.border=False
                 if experimental is True:
                     if detailed is True and j["rules"]:
@@ -63,9 +69,7 @@ def get_jobs(
                 jobs[j].pop("after_script", None)
                 # logger.trace(jobs[j])
                 job_config = []
-                job_variables_config_table = PrettyTable()
-                job_variables_config_table.border = True
-                job_variables_config_table.set_style(DESIGN)
+
                 value_counter = 0
                 if jobs[j]:
                     for key in sorted(jobs[j]):
@@ -77,23 +81,36 @@ def get_jobs(
                             .replace("}", "")
                         )
                         # job_config_table_headers.append(key)
-                        if key in ["variables", "artifacts"]:
+                        if key in ["variables"]:
                             # print(json.dumps(jobs[j]["variables"].keys()))
                             # print(key)
                             var = jobs[j][key].keys()
                             # print(var)
                             # var=json.dumps(jobs[j][key])
                             # # .iteritems()
-                            for variable_key in var:
-                                variable_value = jobs[j]["variables"][variable_key]
+                            for item_key in var:
+                                value = jobs[j][key][item_key]
                                 value_counter = value_counter + 1
-                                job_variables_config_table.add_row([key,variable_key, variable_value])
+                                job_variables_config_table.add_row([key,item_key, value])
+                        elif key in ["artifacts"] and type(key).__name__ != str:
+                            var = jobs[j][key].keys()
+                            for item_key in var:
+                                value = jobs[j][key][item_key]
+                                value_counter = value_counter + 1
+                                job_variables_config_table.add_row([key,item_key, value])
+                            # print(type(key).__name__)
+                        elif key in ["needs", "extends"]:
+                            # print("found extends")
+                            # logger.warning(len(jobs[j][key]))
+                            for x in jobs[j][key]:
+                                value_counter = value_counter + 1
+                                # print([key,"Hidden Job", x])
+                                job_variables_config_table.add_row([key,"", x])
                         else:
                             job_config_table.add_row([job_property, value])
                         # job_config.append([key,jobs[j][key]])
                         logger.debug(jobs[j][key])
 
-                    job_config_table.field_names = job_config_table_headers
                     # job_config_table.add_row(job_config)
                     # logger.trace(job_config_table)
                     job_name = j.upper()
@@ -105,12 +122,10 @@ def get_jobs(
                     add_between_markers(str("\n"))
                     # add_between_markers(str("\n"))
                     add_between_markers(str(job_config_table))
-                    print(job_variables_config_table)
+                    # print(job_variables_config_table)
 
                     if value_counter > 0:
-                        job_variables_config_table.field_names = ['<span class="badge text-bg-danger">Type</span>','<span class="badge text-bg-warning">Key</span>','<span class="badge text-bg-success">Value</span>']
-
-                        print(job_variables_config_table)
+                        # print(job_variables_config_table)
                         add_between_markers(str("\n"))
                         add_between_markers(str(job_variables_config_table))
                     add_between_markers(str("\n"))

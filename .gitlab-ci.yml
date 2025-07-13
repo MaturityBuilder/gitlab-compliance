@@ -98,7 +98,7 @@ behave-tests:
       fi
 
 build:
-  needs: []
+  needs: ["hell0"]
   extends:
     - .build:python
 
