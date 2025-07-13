@@ -3,8 +3,8 @@ import os
 import yaml
 import src.modules.common as common
 from src.modules.logging import logger
-# from src.modules.reset_docs import update_marked_block
-from src.modules.reset_docs import add_between_markers
+# from src.modules.doc_controller import update_marked_block
+from src.modules.doc_controller import add_between_markers
 
 def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
     logger.trace("Generating Documentation for Variables")

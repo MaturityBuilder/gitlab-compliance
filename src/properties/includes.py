@@ -5,7 +5,7 @@ from prettytable import MARKDOWN, PrettyTable
 import src.modules.common as common
 import src.properties.jobs as jobs
 from src.modules.logging import logger
-from src.modules.reset_docs import add_between_markers
+from src.modules.doc_controller import add_between_markers
 
 def document_includes(
     OUTPUT_FILE,

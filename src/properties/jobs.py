@@ -6,7 +6,7 @@ from prettytable import PrettyTable
 from prettytable.colortable import ColorTable, Themes
 import src.modules.common as common
 from src.modules.logging import logger
-from src.modules.reset_docs import add_between_markers
+from src.modules.doc_controller import add_between_markers
 
 def get_jobs(
     OUTPUT_FILE,
@@ -39,10 +39,11 @@ def get_jobs(
         #     add_between_markers(GLDOCS_CONFIG_FILE_HEADING)
         # if not DISABLE_TYPE_HEADING:
         #     add_between_markers("\n")
-        #     add_between_markers(str("## " + "Jobs" + "\n"))
+        add_between_markers(str("## " + "Jobs" + "\n"))
         #     add_between_markers("\n")
 
         # logger.trace(type(jobs))
+
         for j in jobs:
             if j in exclude_keywords:
                 logger.debug("Key is reserved for gitlab: " + j)
@@ -116,7 +117,11 @@ def get_jobs(
                     job_name = j.upper()
                     logger.debug("### " + job_name)
                     # f = open(OUTPUT_FILE, "a")
-                    add_between_markers(str("### " + job_name + "\n\n"))
+                    if not job_name.startswith('.'):
+                        styled_job_name = f"""<h4><span class="badge text-bg-info">{job_name}</span></h4>"""
+                    else:
+                        styled_job_name = f"""<h4><span class="badge text-bg-secondary">{job_name}</span></h4>"""
+                    add_between_markers(styled_job_name)
                     add_between_markers(str("\n"))
                     add_between_markers("<hr>")
                     add_between_markers(str("\n"))
@@ -129,4 +134,4 @@ def get_jobs(
                         add_between_markers(str("\n"))
                         add_between_markers(str(job_variables_config_table))
                     add_between_markers(str("\n"))
-        add_between_markers(str("\n"))
+        # add_between_markers(str("\n"))

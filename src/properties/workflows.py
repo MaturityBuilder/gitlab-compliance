@@ -6,7 +6,7 @@ import src.modules.common as common
 from src.modules.logging import logger
 # from pytablewriter import MarkdownTableWriter
 from prettytable import MARKDOWN
-from src.modules.reset_docs import add_between_markers
+from src.modules.doc_controller import add_between_markers
 
 
 def document_workflows(

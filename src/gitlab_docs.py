@@ -12,11 +12,10 @@ import src.properties.jobs as jobs
 import src.properties.variables as variables
 import src.properties.workflows as workflows
 from src.modules.logging import logger
-import src.modules.reset_docs as md_writer
-from src.modules.reset_docs import update_marked_block, add_between_markers
+import src.modules.doc_controller as md_writer
+from src.modules.doc_controller import update_marked_block, add_between_markers
 
 # flake8: noqa: E501
-
 
 # ENABLE_WORKFLOW_DOCUMENTATION = os.getenv("ENABLE_WORKFLOW_DOCUMENTATION", False)
 @click.command()
@@ -24,6 +23,16 @@ from src.modules.reset_docs import update_marked_block, add_between_markers
     "--detailed",
     required=False,
     help="Will include workflow and rules from jobs.",
+    is_flag=True,
+    default=False
+)
+
+@click.option(
+    "--dry-mode",
+    "-d",
+    "DRY_MODE",
+    required=False,
+    help="If set will disable documentation from being written",
     is_flag=True,
     default=False
 )
@@ -36,7 +45,7 @@ from src.modules.reset_docs import update_marked_block, add_between_markers
 
     default="GITLAB-DOCS.md"
 )
-def gitlab_docs(detailed,OUTPUT_FILE):
+def gitlab_docs(detailed,OUTPUT_FILE,DRY_MODE):
     """
     A command line tool to convert your gitlab-ci yml into markdown documentation.
     """

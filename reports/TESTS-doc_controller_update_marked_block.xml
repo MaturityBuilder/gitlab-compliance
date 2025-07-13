@@ -1,0 +1,38 @@
+<testsuite name="doc_controller_update_marked_block.Update marked block in a file" tests="2" errors="0" failures="0" skipped="0" time="0.000741" timestamp="2025-07-13T22:55:57.421370" hostname="CGWQ6JFJYC"><testcase classname="doc_controller_update_marked_block.Update marked block in a file" name="Create new file and insert marked block" status="passed" time="0.000397"><system-out>
+<![CDATA[
+@scenario.begin
+  Scenario: Create new file and insert marked block
+    Given the file "README.md" does not exist ... passed in 0.000s
+    When I update the block with ... passed in 0.000s
+      """
+      This is some new content.
+      """
+    Then the file "README.md" should contain the marked block with ... passed in 0.000s
+      """
+      This is some new content.
+      """
+
+@scenario.end
+--------------------------------------------------------------------------------
+]]>
+</system-out></testcase><testcase classname="doc_controller_update_marked_block.Update marked block in a file" name="Update existing block in file" status="passed" time="0.000344"><system-out>
+<![CDATA[
+@scenario.begin
+  Scenario: Update existing block in file
+    Given the file "README.md" contains the block ... passed in 0.000s
+      """
+      Old content.
+      """
+    When I update the block with ... passed in 0.000s
+      """
+      New updated content.
+      """
+    Then the file "README.md" should contain the marked block with ... passed in 0.000s
+      """
+      New updated content.
+      """
+
+@scenario.end
+--------------------------------------------------------------------------------
+]]>
+</system-out></testcase></testsuite>

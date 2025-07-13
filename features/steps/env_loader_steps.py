@@ -17,6 +17,6 @@ def step_when_yaml_loaded(context):
 @then("the variables should be replaced correctly")
 def step_then_check_replacement(context):
     expected = "Hello, foo and bar!"
-    print(context)
+    # print(context)
     assert context
     #  None

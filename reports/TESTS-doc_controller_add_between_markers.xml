@@ -1,0 +1,39 @@
+<testsuite name="doc_controller_add_between_markers.Add content between markers in a file" tests="2" errors="0" failures="0" skipped="0" time="0.000891" timestamp="2025-07-13T22:55:57.419392" hostname="CGWQ6JFJYC"><testcase classname="doc_controller_add_between_markers.Add content between markers in a file" name="Create a new file and insert marker block" status="passed" time="0.000527"><system-out>
+<![CDATA[
+@scenario.begin
+  Scenario: Create a new file and insert marker block
+    Given the file "README.md" does not exist ... passed in 0.000s
+    When I add between markers ... passed in 0.000s
+      """
+      This is initial content.
+      """
+    Then the file "README.md" should contain ... passed in 0.000s
+      """
+      This is initial content.
+      """
+
+@scenario.end
+--------------------------------------------------------------------------------
+]]>
+</system-out></testcase><testcase classname="doc_controller_add_between_markers.Add content between markers in a file" name="Add content before existing end marker" status="passed" time="0.000364"><system-out>
+<![CDATA[
+@scenario.begin
+  Scenario: Add content before existing end marker
+    Given the file "README.md" contains block ... passed in 0.000s
+      """
+      Existing content.
+      """
+    When I add between markers ... passed in 0.000s
+      """
+      Additional content.
+      """
+    Then the file "README.md" should contain ... passed in 0.000s
+      """
+      Existing content.
+      Additional content.
+      """
+
+@scenario.end
+--------------------------------------------------------------------------------
+]]>
+</system-out></testcase></testsuite>

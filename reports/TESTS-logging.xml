@@ -1,0 +1,12 @@
+<testsuite name="logging.Loguru logger configuration" tests="1" errors="0" failures="0" skipped="0" time="0.106075" timestamp="2025-07-13T22:55:57.530513" hostname="CGWQ6JFJYC"><testcase classname="logging.Loguru logger configuration" name="Environment-based log level controls debug logging" status="passed" time="0.106075"><system-out>
+<![CDATA[
+@scenario.begin
+  Scenario: Environment-based log level controls debug logging
+    Given LOG_LEVEL is set to "DEBUG" ... passed in 0.000s
+    When the logger is initialized ... passed in 0.106s
+    Then debug logs should be visible ... passed in 0.000s
+
+@scenario.end
+--------------------------------------------------------------------------------
+]]>
+</system-out></testcase></testsuite>
