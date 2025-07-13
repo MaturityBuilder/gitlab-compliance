@@ -68,6 +68,7 @@ gitlab-docs
 |     **stage**     |               test               |
 <hr>
 
+
 | <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
 | :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
 |                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
@@ -79,6 +80,7 @@ gitlab-docs
 |  **only** | ['merge_requests'] |
 | **stage** |        test        |
 <hr>
+
 
 | <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
 | :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
