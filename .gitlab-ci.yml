@@ -1,8 +1,7 @@
 ---
 stages:
-  - code-quality
-  - build
   - test
+  - build
   - publish
 include:
   - local: gitlab-ci/hidden.jobs.yml
@@ -21,7 +20,7 @@ workflow:
     - if: $CI_COMMIT_REF_NAME == $CI_COMMIT_TAG
 
 megalinter:
-  stage: code-quality
+  stage: test
   image: oxsecurity/megalinter-python:8
   # extends: [".mr_rules"]
   script: ["true"] # if script: ["true"] doesn't work, you may try ->  script: [ "/bin/bash /entrypoint.sh" ]
