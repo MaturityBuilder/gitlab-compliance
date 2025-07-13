@@ -36,6 +36,18 @@ megalinter:
       - megalinter-reports
     expire_in: 1 week
   allow_failure: true
+
+behave-tests:
+  stage: test
+  variables:
+    POETRY_VIRTUALENVS_CREATE: "false"
+  before_script:
+    - pip install poetry
+    - poetry install
+  script:
+    - poetry run behave
+  only:
+    - merge_requests
 .build:python:
   stage: build
   environment: release
