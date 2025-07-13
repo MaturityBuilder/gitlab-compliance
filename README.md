@@ -58,6 +58,8 @@ gitlab-docs
 
 
 ### MEGALINTER
+<hr>
+
 |      **Key**      |            **Value**             |
 | :---------------: | :------------------------------: |
 | **allow_failure** |               True               |
@@ -66,28 +68,28 @@ gitlab-docs
 |                   |       'expire_in': '1 week'      |
 |     **image**     |  oxsecurity/megalinter-python:8  |
 |     **stage**     |               test               |
-<hr>
 
-
-| <span data-bs-theme="dark" class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
-| :-----------------------------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
-|                              variables                              |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
 
 
 ### BEHAVE-TESTS
+<hr>
+
 |  **Key**  |     **Value**      |
 | :-------: | :----------------: |
 |  **only** | ['merge_requests'] |
 | **stage** |        test        |
-<hr>
 
-
-| <span data-bs-theme="dark" class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
-| :-----------------------------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
-|                              variables                              |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
 
 
 ### .BUILD:PYTHON
+<hr>
+
 |     **Key**     |           **Value**            |
 | :-------------: | :----------------------------: |
 |  **artifacts**  |        'when': 'always'        |
@@ -99,6 +101,8 @@ gitlab-docs
 
 
 ### BUILD
+<hr>
+
 |   **Key**   |     **Value**     |
 | :---------: | :---------------: |
 | **extends** | ['.build:python'] |
@@ -106,6 +110,8 @@ gitlab-docs
 
 
 ### DOCKER-BUILD
+<hr>
+
 |     **Key**      |                    **Value**                    |
 | :--------------: | :---------------------------------------------: |
 | **dependencies** |                    ['build']                    |
