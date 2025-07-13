@@ -107,7 +107,7 @@ def get_jobs(
                     print(job_variables_config_table)
 
                     if value_counter > 0:
-                        job_variables_config_table.field_names = ['<span class="badge text-bg-danger">Type</span>','<span class="badge text-bg-warning">Key</span>','<span class="badge text-bg-success">Value</span>']
+                        job_variables_config_table.field_names = ['<span data-bs-theme="dark" class="badge text-bg-danger">Type</span>','<span class="badge text-bg-warning">Key</span>','<span class="badge text-bg-success">Value</span>']
                         add_between_markers("<hr>")
                         add_between_markers(str("\n"))
                         print(job_variables_config_table)
