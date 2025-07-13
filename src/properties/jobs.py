@@ -77,7 +77,7 @@ def get_jobs(
                             .replace("}", "")
                         )
                         # job_config_table_headers.append(key)
-                        if key in ["variables"]:
+                        if key in ["variables", "artifacts"]:
                             # print(json.dumps(jobs[j]["variables"].keys()))
                             # print(key)
                             var = jobs[j][key].keys()

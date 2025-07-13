@@ -56,8 +56,8 @@ gitlab-docs
 | :----------: | :-----------------------: | :-----: | :-----------: | :--: | :-------: | :---: |
 |    local     | gitlab-ci/hidden.jobs.yml |   n/a   |    &#9989;    |      |           |       |
 
-
 ### MEGALINTER
+
 <hr>
 
 |      **Key**      |            **Value**             |
@@ -73,8 +73,8 @@ gitlab-docs
 | :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
 |                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
 
-
 ### BEHAVE-TESTS
+
 <hr>
 
 |  **Key**  |     **Value**      |
@@ -86,8 +86,8 @@ gitlab-docs
 | :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
 |                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
 
-
 ### .BUILD:PYTHON
+
 <hr>
 
 |     **Key**     |           **Value**            |
@@ -99,8 +99,8 @@ gitlab-docs
 |  **id_tokens**  | 'PYPI_ID_TOKEN': 'aud': 'pypi' |
 |    **stage**    |             build              |
 
-
 ### BUILD
+
 <hr>
 
 |   **Key**   |     **Value**     |
@@ -108,8 +108,8 @@ gitlab-docs
 | **extends** | ['.build:python'] |
 |  **needs**  |         []        |
 
-
 ### DOCKER-BUILD
+
 <hr>
 
 |     **Key**      |                    **Value**                    |
