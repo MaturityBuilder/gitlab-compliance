@@ -54,14 +54,6 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
                         if "options" in variables[v]:
                             options = variables[v]["options"]
                         else:
-                            # logger.trace(
-                            #     "options key: "
-                            #     + v
-                            #     + " isn't set, but will improve code hygiene if you"
-                            #     + " set where possible, gitlab-docs  - "
-                            #     + "https://docs.gitlab.com/ee/ci/yaml/"
-                            #     + "#variablesoptions"
-                            # )
                             options = "&#x274c;"
                         if "expand" in variables[v]:
                             expand = variables[v]["expand"]
@@ -79,13 +71,13 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
                 # f = open(OUTPUT_FILE, WRITE_MODE)
                 if not DISABLE_TITLE:
                     # GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
-                    add_between_markers("\n")
-                    # add_between_markers(GLDOCS_CONFIG_FILE_HEADING)
-                add_between_markers("\n")
-                add_between_markers("## Variables")
-                add_between_markers("\n")
-                add_between_markers(str(variables_table))
-                add_between_markers("\n")
+                    add_between_markers(file_path=OUTPUT_FILE, content="\n")
+                    # add_between_markers(file_path=OUTPUT_FILE, content=GLDOCS_CONFIG_FILE_HEADING)
+                add_between_markers(file_path=OUTPUT_FILE, content="\n")
+                add_between_markers(file_path=OUTPUT_FILE, content="## Variables")
+                add_between_markers(file_path=OUTPUT_FILE, content="\n")
+                add_between_markers(file_path=OUTPUT_FILE, content=str(variables_table))
+                add_between_markers(file_path=OUTPUT_FILE, content="\n")
                 # f.close()
 
         except yaml.YAMLError as exc:

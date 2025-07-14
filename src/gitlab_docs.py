@@ -43,33 +43,28 @@ from src.modules.doc_controller import update_marked_block, add_between_markers
     required=False,
     help="Output location of the markdown documentation.",
 
-    default="GITLAB-DOCS.md"
+    default="README.md"
 )
-def gitlab_docs(detailed,OUTPUT_FILE,DRY_MODE):
+@click.option(
+    "--input-config",
+    "-i",
+    "GLDOCS_CONFIG_FILE",
+    required=False,
+    help="The Gitlab CI Input configuration file to generated documentation from.",
+    default=".gitlab-ci.yml"
+)
+
+def gitlab_docs(detailed,OUTPUT_FILE,DRY_MODE,GLDOCS_CONFIG_FILE):
     """
     A command line tool to convert your gitlab-ci yml into markdown documentation.
     """
 
     ENABLE_WORKFLOW_DOCUMENTATION = detailed
     logger.success("Welcome to Gitlab Docs")
-    GLDOCS_CONFIG_FILE = os.getenv("GLDOCS_CONFIG_FILE", ".gitlab-ci.yml")
-    # try:
-    #     open(GLDOCS_CONFIG_FILE, "r").readlines()
-    # except FileNotFoundError:
-    #     click.error(f"Gitlab Configuration {GLDOCS_CONFIG_FILE} doesn't exist", err=True, blink=True, bold=True, fg="red")
-    #     exit(1)
-    # else:
-    # my_time = str(datetime.now())
-    update_marked_block("\n\n")
-    add_between_markers(
-        f"""<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-            <h1><span class="badge text-bg-primary">GITLAB DOCS - {GLDOCS_CONFIG_FILE}</span></h1>
-           """
-    )
-    # add_between_markers(f"{my_time}")
-    # return ''
-    # resets markdown output file and adds GITLAB DOCS opening marker
-    # md_writer.gitlab_docs_reset_writer(OUTPUT_FILE=OUTPUT_FILE, MODE="STARTING")
+    update_marked_block(file_path=OUTPUT_FILE, content="\n\n")
+    bootstrap =  f"""<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+            <h1><span class="badge text-bg-primary">GITLAB DOCS - {GLDOCS_CONFIG_FILE}</span></h1>"""
+    add_between_markers(file_path=OUTPUT_FILE,content=bootstrap)
     variables.document_variables(
         GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
 
@@ -86,7 +81,6 @@ def gitlab_docs(detailed,OUTPUT_FILE,DRY_MODE):
     if ENABLE_WORKFLOW_DOCUMENTATION is True:
         workflows.document_workflows(
             GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
-
             DISABLE_TITLE=True,
             OUTPUT_FILE=OUTPUT_FILE,
         )

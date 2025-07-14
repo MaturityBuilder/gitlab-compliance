@@ -32,15 +32,15 @@ def get_jobs(
         jobs = data
         # Create file lock against output md file
         # f = open(OUTPUT_FILE, "a")
-        # if not DISABLE_TITLE:
-        #     add_between_markers("\n")
-        #     GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n")
-        #     add_between_markers("\n")
-        #     add_between_markers(GLDOCS_CONFIG_FILE_HEADING)
+        if not DISABLE_TITLE:
+            add_between_markers(file_path=OUTPUT_FILE, content="\n")
+            GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n")
+            add_between_markers(file_path=OUTPUT_FILE, content="\n")
+            add_between_markers(file_path=OUTPUT_FILE, content=GLDOCS_CONFIG_FILE_HEADING)
         # if not DISABLE_TYPE_HEADING:
-        #     add_between_markers("\n")
-        add_between_markers(str("## " + "Jobs" + "\n"))
-        #     add_between_markers("\n")
+        #     add_between_markers(file_path=OUTPUT_FILE, content="\n")
+        #     # add_between_markers(file_path=OUTPUT_FILE, content=str("## " + "Jobs" + "\n"))
+        #     add_between_markers(file_path=OUTPUT_FILE, content="\n")
 
         # logger.trace(type(jobs))
 
@@ -100,7 +100,7 @@ def get_jobs(
                                 value_counter = value_counter + 1
                                 job_variables_config_table.add_row([key,item_key, value])
                             # print(type(key).__name__)
-                        elif key in ["needs", "extends"]:
+                        elif key in ["needs"]:
                             # print("found extends")
                             # logger.warning(len(jobs[j][key]))
                             for x in jobs[j][key]:
@@ -121,17 +121,17 @@ def get_jobs(
                         styled_job_name = f"""<h4><span class="badge text-bg-info">{job_name}</span></h4>"""
                     else:
                         styled_job_name = f"""<h4><span class="badge text-bg-secondary">{job_name}</span></h4>"""
-                    add_between_markers(styled_job_name)
-                    add_between_markers(str("\n"))
-                    add_between_markers("<hr>")
-                    add_between_markers(str("\n"))
-                    # add_between_markers(str("\n"))
-                    add_between_markers(str(job_config_table))
+                    add_between_markers(file_path=OUTPUT_FILE, content=styled_job_name)
+                    add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+                    add_between_markers(file_path=OUTPUT_FILE, content="<hr>")
+                    add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+                    # add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+                    add_between_markers(file_path=OUTPUT_FILE, content=str(job_config_table))
                     # print(job_variables_config_table)
 
                     if value_counter > 0:
                         # print(job_variables_config_table)
-                        add_between_markers(str("\n"))
-                        add_between_markers(str(job_variables_config_table))
-                    add_between_markers(str("\n"))
-        # add_between_markers(str("\n"))
+                        add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+                        add_between_markers(file_path=OUTPUT_FILE, content=str(job_variables_config_table))
+                    add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+        # add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))

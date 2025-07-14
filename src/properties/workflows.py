@@ -42,9 +42,9 @@ def document_workflows(
                     GLDOCS_CONFIG_FILE_HEADING = str(
                         "## " + GLDOCS_CONFIG_FILE + "\n\n"
                     )
-                    add_between_markers("\n")
-                    add_between_markers(GLDOCS_CONFIG_FILE_HEADING)
-                add_between_markers(str(workflow_table))
+                    add_between_markers(file_path=OUTPUT_FILE, content="\n")
+                    add_between_markers(file_path=OUTPUT_FILE, content=GLDOCS_CONFIG_FILE_HEADING)
+                add_between_markers(file_path=OUTPUT_FILE, content=str(workflow_table))
                 # f.close()
                 logger.debug("")
                 logger.debug(str(workflow_table))

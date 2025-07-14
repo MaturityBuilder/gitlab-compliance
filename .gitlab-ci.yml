@@ -8,6 +8,7 @@ include:
 variables:
   APPLICATION: gitlab-docs
   OUTPUT_FILE: GITLAB-DOCS.md
+  CI_REGISTRY: registry.gitlab.com
 image: python:3.12
 default:
   tags:
@@ -44,7 +45,8 @@ behave-tests:
     - pip install poetry
     - poetry install
   script:
-    - poetry run behave
+    - poetry run coverage run -m behave
+    - poetry run coverage report --fail-under 87
   only:
     - merge_requests
 .build:python:
@@ -130,8 +132,9 @@ build:
 
 docker-build:
   # Official docker image.
-  dependencies:
-    - build
+  # dependencies:
+  #   - build
+  needs: []
   image: docker:latest
   stage: publish
   tags:
