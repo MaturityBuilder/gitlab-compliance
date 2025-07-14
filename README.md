@@ -15,7 +15,11 @@ pip3 install --user gitlab-docs
 ```bash
 docker run -v ${PWD}:/gitlab-docs charlieasmith93/gitlab-docs
 ```
+or
 
+```bash
+podman run -p 8000:8000 -v $PWD:/app/ charlieasmith93/gitlab-docs
+```
 ## Using gitlab-docs
 
 This will output the results in the current working directory to `GITLAB-DOCS.md` based on the `.gitlab-ci.yml` config. Noting it will also automatically try to detect and produce documentation for any include configurations as well.
@@ -48,6 +52,12 @@ gitlab-docs
 |     Key     |     Value      | Description | Options  | Expand |
 | :---------: | :------------: | :---------: | :------: | :----: |
 | OUTPUT_FILE | GITLAB-DOCS.md |   &#x274c;  | &#x274c; |  true  |
+
+
+## Includes
+| Include Type |          Project          | Version | Valid Version | File | Variables | Rules |
+| :----------: | :-----------------------: | :-----: | :-----------: | :--: | :-------: | :---: |
+|    local     | gitlab-ci/hidden.jobs.yml |   n/a   |    &#9989;    |      |           |       |
 
 
 
@@ -102,24 +112,20 @@ gitlab-docs
 
 <hr>
 
-| **Property** | **Value** |
-| :----------: | :-------: |
-
-| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
-| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
-|                    extends                     |                                                |                  .build:python                   |
+| **Property** |     **Value**     |
+| :----------: | :---------------: |
+| **extends**  | ['.build:python'] |
 
 <h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
 
 <hr>
 
-|   **Property**   |                    **Value**                    |
-| :--------------: | :---------------------------------------------: |
-| **dependencies** |                    ['build']                    |
-|    **image**     |                  docker:latest                  |
-|    **rules**     | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
-|   **services**   |                 ['docker:dind']                 |
-|    **stage**     |                     publish                     |
-|     **tags**     |              ['gitlab-org-docker']              |
+| **Property** |                    **Value**                    |
+| :----------: | :---------------------------------------------: |
+|  **image**   |                  docker:latest                  |
+|  **rules**   | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
+| **services** |                 ['docker:dind']                 |
+|  **stage**   |                     publish                     |
+|   **tags**   |              ['gitlab-org-docker']              |
 
 [comment]: <> (gitlab-docs-closing-auto-generated)
