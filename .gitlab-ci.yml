@@ -8,7 +8,7 @@ include:
 variables:
   APPLICATION: gitlab-docs
   OUTPUT_FILE: GITLAB-DOCS.md
-  CI_REGISTRY: registry.gitlab.com
+  # CI_REGISTRY: registry.gitlab.com
 image: python:3.12
 default:
   tags:
