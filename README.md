@@ -15,7 +15,11 @@ pip3 install --user gitlab-docs
 ```bash
 docker run -v ${PWD}:/gitlab-docs charlieasmith93/gitlab-docs
 ```
+or
 
+```bash
+podman run -it -v $(PWD):/gitlab-docs charlieasmith93/gitlab-docs
+```
 ## Using gitlab-docs
 
 This will output the results in the current working directory to `GITLAB-DOCS.md` based on the `.gitlab-ci.yml` config. Noting it will also automatically try to detect and produce documentation for any include configurations as well.
@@ -30,180 +34,98 @@ gitlab-docs
 | Key                           | Default Value    | Description                                                                                          |
 | ----------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------- |
 | GLDOCS_CONFIG_FILE            | .gitlab-ci.yml   | The gitlab configuration file you want to generate documentation on                                  |
-| OUTPUT_FILE                   | ./GITLAB-DOCS.md | The file to output documentation to (WARNING outputting to README.md will overwrite file at present) |
-| LOG_LEVEL                     | INFO             | Determines the verbosity of the logging when you run gitlab-docs                                     |
-| ENABLE_WORKFLOW_DOCUMENTATION | False            | Outputting documentaton for the workflow config is experiemental                                     |
+| OUTPUT_FILE                   | ./README.md | The file to output documentation to. |
+| LOG_LEVEL                     | INFO             | Determines the verbosity of the logging when you run gitlab-docs. For detailed logging set to TRACE.                                    |
+| | False            | Outputting documentation for the workflow config is experimental                                     |
 
 ## Example of what's generated
-## .gitlab-ci.yml
+<br><hr>
 
-## Jobs
+[comment]: <> (gitlab-docs-opening-auto-generated)
 
-### MEGALINTER
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+            <h1><span class="badge text-bg-primary">GITLAB DOCS - .gitlab-ci.yml</span></h1>
 
-|    **Key**    |               **Value**                |
-| :-----------: | :------------------------------------: |
-| **artifacts** |            'when': 'always'            |
-|               |    'paths': ['megalinter-reports']     |
-|               |         'expire_in': '1 week'          |
-|   **image**   |  oxsecurity/megalinter-python:v8.0.0   |
-|   **stage**   |              code-quality              |
-| **variables** | 'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR' |
 
-### .BUILD:PYTHON
+## Variables
 
-|     **Key**     |           **Value**            |
-| :-------------: | :----------------------------: |
-|  **artifacts**  |        'when': 'always'        |
-|                 |  'paths': ['./dist/*.tar.gz']  |
-|                 |     'expire_in': '1 hour'      |
-| **environment** |            release             |
-|  **id_tokens**  | 'PYPI_ID_TOKEN': 'aud': 'pypi' |
-|    **needs**    |               []               |
-|    **stage**    |              .pre              |
+|     Key     |     Value      | Description | Options  | Expand |
+| :---------: | :------------: | :---------: | :------: | :----: |
+| OUTPUT_FILE | GITLAB-DOCS.md |   &#x274c;  | &#x274c; |  true  |
 
-### BUILD
 
-|   **Key**   |     **Value**     |
-| :---------: | :---------------: |
-| **extends** | ['.build:python'] |
-
-### BUILD:DOCKER
-
-|     **Key**      |       **Value**       |
-| :--------------: | :-------------------: |
-| **dependencies** |       ['build']       |
-|    **image**     |     docker:latest     |
-|   **services**   |    ['docker:dind']    |
-|    **stage**     |         build         |
-|     **tags**     | ['gitlab-org-docker'] |
-
-### DOCKER-BUILD-MASTER
-
-|     **Key**      |    **Value**    |
-| :--------------: | :-------------: |
-| **dependencies** |    ['build']    |
-|    **image**     |  docker:latest  |
-|   **services**   | ['docker:dind'] |
-|    **stage**     |     promote     |
-
-[comment]: <> (gitlab-docs-closing-auto-generated)
+## Includes
+| Include Type |          Project          | Version | Valid Version | File | Variables | Rules |
+| :----------: | :-----------------------: | :-----: | :-----------: | :--: | :-------: | :---: |
+|    local     | gitlab-ci/hidden.jobs.yml |   n/a   |    &#9989;    |      |           |       |
 
 
 
 ## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">MEGALINTER</span></h4>
 
-## Jobs
+<hr>
 
-### MEGALINTER
+|    **Property**   |           **Value**            |
+| :---------------: | :----------------------------: |
+| **allow_failure** |              True              |
+|     **image**     | oxsecurity/megalinter-ci_light |
+|     **stage**     |              test              |
 
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |              ['megalinter-reports']              |
+|                   artifacts                    |                   expire_in                    |                      1 week                      |
+|                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
 
-|      **Key**      |               **Value**                |
-| :---------------: | :------------------------------------: |
-| **allow_failure** |                  True                  |
-|   **artifacts**   |            'when': 'always'            |
-|                   |     'paths': ['megalinter-reports']    |
-|                   |          'expire_in': '1 week'         |
-|     **image**     |  oxsecurity/megalinter-python:v8.0.0   |
-|     **stage**     |              code-quality              |
-|   **variables**   | 'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR' |
-### .BUILD:PYTHON
+<h4><span class="badge text-bg-info">BEHAVE-TESTS</span></h4>
 
+<hr>
 
-|     **Key**     |           **Value**            |
+| **Property** |     **Value**      |
+| :----------: | :----------------: |
+|   **only**   | ['merge_requests'] |
+|  **stage**   |        test        |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
+
+<h4><span class="badge text-bg-secondary">.BUILD:PYTHON</span></h4>
+
+<hr>
+
+|   **Property**  |           **Value**            |
 | :-------------: | :----------------------------: |
-|  **artifacts**  |        'when': 'always'        |
-|                 |  'paths': ['./dist/*.tar.gz']  |
-|                 |      'expire_in': '1 hour'     |
 | **environment** |            release             |
 |  **id_tokens**  | 'PYPI_ID_TOKEN': 'aud': 'pypi' |
-|    **needs**    |               []               |
-|    **stage**    |              .pre              |
-### BUILD
+|    **stage**    |             build              |
 
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |               ['./dist/*.tar.gz']                |
+|                   artifacts                    |                   expire_in                    |                      1 hour                      |
 
-|   **Key**   |     **Value**     |
-| :---------: | :---------------: |
-| **extends** | ['.build:python'] |
-### BUILD:DOCKER
+<h4><span class="badge text-bg-info">BUILD</span></h4>
 
+<hr>
 
-|     **Key**      |       **Value**       |
-| :--------------: | :-------------------: |
-| **dependencies** |       ['build']       |
-|    **image**     |     docker:latest     |
-|   **services**   |    ['docker:dind']    |
-|    **stage**     |         build         |
-|     **tags**     | ['gitlab-org-docker'] |
-### DOCKER-BUILD-MASTER
+| **Property** |     **Value**     |
+| :----------: | :---------------: |
+| **extends**  | ['.build:python'] |
 
+<h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
 
-|     **Key**      |    **Value**    |
-| :--------------: | :-------------: |
-| **dependencies** |    ['build']    |
-|    **image**     |  docker:latest  |
-|   **services**   | ['docker:dind'] |
-|    **stage**     |     publish     |
+<hr>
 
-
-
-
-[comment]: <> (gitlab-docs-closing-auto-generated)
-
-
-## .gitlab-ci.yml
-
-## Jobs
-
-### MEGALINTER
-
-
-|      **Key**      |               **Value**                |
-| :---------------: | :------------------------------------: |
-| **allow_failure** |                  True                  |
-|   **artifacts**   |            'when': 'always'            |
-|                   |     'paths': ['megalinter-reports']    |
-|                   |          'expire_in': '1 week'         |
-|     **image**     |  oxsecurity/megalinter-python:v8.0.0   |
-|     **stage**     |              code-quality              |
-|   **variables**   | 'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR' |
-### .BUILD:PYTHON
-
-
-|     **Key**     |           **Value**            |
-| :-------------: | :----------------------------: |
-|  **artifacts**  |        'when': 'always'        |
-|                 |  'paths': ['./dist/*.tar.gz']  |
-|                 |      'expire_in': '1 hour'     |
-| **environment** |            release             |
-|  **id_tokens**  | 'PYPI_ID_TOKEN': 'aud': 'pypi' |
-|    **needs**    |               []               |
-|    **stage**    |              .pre              |
-### BUILD
-
-
-|   **Key**   |     **Value**     |
-| :---------: | :---------------: |
-| **extends** | ['.build:python'] |
-### BUILD:DOCKER
-
-
-|     **Key**      |       **Value**       |
-| :--------------: | :-------------------: |
-| **dependencies** |       ['build']       |
-|    **image**     |     docker:latest     |
-|   **services**   |    ['docker:dind']    |
-|    **stage**     |         build         |
-|     **tags**     | ['gitlab-org-docker'] |
-### DOCKER-BUILD-MASTER
-
-
-|     **Key**      |    **Value**    |
-| :--------------: | :-------------: |
-| **dependencies** |    ['build']    |
-|    **image**     |  docker:latest  |
-|   **services**   | ['docker:dind'] |
-|    **stage**     |     publish     |
-
+| **Property** |                    **Value**                    |
+| :----------: | :---------------------------------------------: |
+|  **image**   |                  docker:latest                  |
+|  **rules**   | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
+| **services** |                 ['docker:dind']                 |
+|  **stage**   |                      build                      |
+|   **tags**   |              ['gitlab-org-docker']              |
 
 [comment]: <> (gitlab-docs-closing-auto-generated)

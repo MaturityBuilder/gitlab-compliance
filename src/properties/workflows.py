@@ -3,20 +3,16 @@ import logging
 import os
 import yaml
 import src.modules.common as common
-
+from src.modules.logging import logger
 # from pytablewriter import MarkdownTableWriter
 from prettytable import MARKDOWN
-
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("GITLAB DOCS|INCLUDES WRAPPER")
-logger.setLevel(LOG_LEVEL)
+from src.modules.doc_controller import add_between_markers
 
 
 def document_workflows(
-    OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False
+    OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE=False
 ):
-    print("Generating Documentation for Workflows")
+    logger.trace("Generating Documentation for Workflows")
 
     with open(GLDOCS_CONFIG_FILE, "r") as file:
         try:
@@ -24,7 +20,7 @@ def document_workflows(
             if "workflow" in data:
                 workflow = data["workflow"]
 
-                # print(gldocs.generate_markdown_table(includes))
+                # logger.trace(gldocs.generate_markdown_table(includes))
                 from prettytable import PrettyTable
 
                 workflow_table = PrettyTable()
@@ -35,23 +31,23 @@ def document_workflows(
                 count = 0
                 for w in workflow:
                     count = count + 1
-                    # print("count: " + str(count))
+                    # logger.trace("count: " + str(count))
                     # if isinstance(w, (str)):
                     value = str(w).replace("{", "").replace("}", "")
-                    print(value)
+                    logger.trace(value)
                     workflow_table.add_row([count, str(value)])
 
-                f = open(OUTPUT_FILE, "a")
+                # f = open(OUTPUT_FILE, "a")
                 if not DISABLE_TITLE:
                     GLDOCS_CONFIG_FILE_HEADING = str(
                         "## " + GLDOCS_CONFIG_FILE + "\n\n"
                     )
-                    f.write("\n")
-                    f.write(GLDOCS_CONFIG_FILE_HEADING)
-                f.write(str(workflow_table))
-                f.close()
+                    add_between_markers(file_path=OUTPUT_FILE, content="\n")
+                    add_between_markers(file_path=OUTPUT_FILE, content=GLDOCS_CONFIG_FILE_HEADING)
+                add_between_markers(file_path=OUTPUT_FILE, content=str(workflow_table))
+                # f.close()
                 logger.debug("")
                 logger.debug(str(workflow_table))
                 logger.debug("")
         except yaml.YAMLError as exc:
-            print(exc)
+            logger.trace(exc)

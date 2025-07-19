@@ -1,0 +1,32 @@
+site_name: GitLab Docs
+site_description: Developer documentation for GitLab projects
+docs_dir: docs
+# theme:
+#   name: material
+#   language: en
+#   features:
+#     - navigation.tabs
+#     - navigation.top
+#     - content.code.copy
+#     - content.action.edit
+#     - search.suggest
+#     - search.highlight
+#   palette:
+#     - scheme: default
+#       primary: indigo
+#       accent: indigo
+#     - scheme: slate
+#       primary: indigo
+#       accent: indigo
+#       toggle:
+#         icon: material/weather-night
+#         name: Switch to dark mode
+#   font:
+#     text: Roboto
+#     code: Roboto Mono
+  # logo: assets/images/logo.png  # optional
+  # favicon: assets/images/favicon.ico  # optional
+
+nav:
+  - Home: README.md
+  - GITLAB-DOCS: GITLAB-DOCS.md

@@ -9,7 +9,7 @@ Gitlab     = "https://gitlab.com/charlieasmith/gitlab-docs"
 [tool.poetry_bumpversion.file."src/__init__.py"]
 [tool.poetry]
 name = "gitlab-docs"
-version = "0.1.2"
+version = "0.1.5"
 description = "A tool that automatically generates gitlab documentation from yaml files"
 authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
 readme = "README.md"
@@ -26,12 +26,18 @@ setuptools = "*"
 jq = "^1.8.0"
 click = "<=7.1.2"
 semver = "^3.0.2"
+pyyaml = "^6.0.2"
+loguru = "0.7.0"
 
 [tool.poetry.scripts]
 gitlab-docs = 'src.gitlab_docs:gitlab_docs'
 
 [tool.poetry.group.dev.dependencies]
 md-click = "^1.0.1"
+pytest = "^8.4.1"
+behave = "^1.2.6"
+pyyaml = "^6.0.2"
+coverage = "^7.9.2"
 
 [build-system]
 requires = ["poetry-core","setuptools","poetry-bumpversion","id"]

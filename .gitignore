@@ -4,3 +4,10 @@ gitlab-docs/
 dist/
 gitlab_docs/__pycache__/
 megalinter-reports
+__pycache__
+.coverage
+!.coveragerc
+reports
+.trunk/
+trunk/
+__pycache__/
