@@ -18,7 +18,7 @@ docker run -v ${PWD}:/gitlab-docs charlieasmith93/gitlab-docs
 or
 
 ```bash
-podman run -p 8000:8000 -v $PWD:/app/ charlieasmith93/gitlab-docs
+podman run -it -v $(PWD):/gitlab-docs charlieasmith93/gitlab-docs
 ```
 ## Using gitlab-docs
 
