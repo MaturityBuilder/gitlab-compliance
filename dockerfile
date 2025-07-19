@@ -7,7 +7,7 @@ COPY ./src ./src/
 RUN poetry install -q
 RUN poetry build
 
-FROM python:3.12-alpine as gitlab-docs
+FROM python:3.12-alpine AS gitlab-docs
 RUN mkdir -p /gitlab-docs/
 WORKDIR /gitlab-docs
 COPY --from=builder build/dist/* .
