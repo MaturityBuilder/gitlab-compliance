@@ -69,7 +69,7 @@ gitlab-docs
 |    **Property**   |           **Value**            |
 | :---------------: | :----------------------------: |
 | **allow_failure** |              True              |
-|     **image**     | oxsecurity/megalinter-python:8 |
+|     **image**     | oxsecurity/megalinter-ci_light |
 |     **stage**     |              test              |
 
 | <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
@@ -125,7 +125,7 @@ gitlab-docs
 |  **image**   |                  docker:latest                  |
 |  **rules**   | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
 | **services** |                 ['docker:dind']                 |
-|  **stage**   |                     publish                     |
+|  **stage**   |                      build                      |
 |   **tags**   |              ['gitlab-org-docker']              |
 
 [comment]: <> (gitlab-docs-closing-auto-generated)
