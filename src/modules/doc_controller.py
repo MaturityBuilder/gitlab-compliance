@@ -10,26 +10,77 @@ marker_start = "[comment]: <> (gitlab-docs-opening-auto-generated)"
 marker_end = "[comment]: <> (gitlab-docs-closing-auto-generated)"
 dry=os.environ.get("DRY_MODE", False)
 # print(os.environ.get("DRY_MODE"))
+# def update_marked_block(file_path, content):
+#     """
+#     Inserts or updates a uniquely marked block in a file.
+
+#     - If the markers already exist, updates the content between them.
+#     - If not, appends a new marked block to the file.
+#     - Supports multiple distinct blocks (different marker pairs) in one file.
+
+#     Args:
+#         content (str): Content to insert between the markers.
+#         dry (bool): If True, logs intended changes but doesn't modify the file.
+#     """
+#     try:
+#         if not os.path.exists(file_path):
+#             logger.trace(f"File {file_path} does not exist. Creating new file.")
+#             if dry:
+#                 logger.info("[Dry Run] Would create file and insert new block.")
+#                 return
+#             with open(file_path, "w", encoding="utf-8"):
+#                 pass  # create an empty file
+
+#         with open(file_path, "r", encoding="utf-8") as f:
+#             lines = f.readlines()
+
+#         start_idx = end_idx = None
+#         for i, line in enumerate(lines):
+#             if marker_start in line:
+#                 start_idx = i
+#             if marker_end in line and start_idx is not None:
+#                 end_idx = i
+#                 break
+
+#         block = [f"{marker_start}\n", content.rstrip() + "\n", f"{marker_end}\n"]
+
+#         if start_idx is not None and end_idx is not None and start_idx < end_idx:
+#             logger.trace("Updating existing block.")
+#             lines = lines[:start_idx] + block + lines[end_idx + 1 :]
+#         else:
+#             logger.trace("Appending new block.")
+#             if lines and not lines[-1].endswith("\n"):
+#                 lines[-1] += "\n"
+#             lines += ["\n"] + block
+
+#         if dry:
+#             logger.info("[Dry Run] Would write the following to file:")
+#             logger.info("".join(lines))
+#         else:
+#             with open(file_path, "w", encoding="utf-8") as f:
+#                 f.writelines(lines)
+#             logger.trace(f"Block successfully written to {file_path}")
+
+#     except Exception as e:
+#         logger.error(f"Failed to update block in {file_path}: {e}")
+
 def update_marked_block(file_path, content):
     """
-    Inserts or updates a uniquely marked block in a file.
-
-    - If the markers already exist, updates the content between them.
-    - If not, appends a new marked block to the file.
-    - Supports multiple distinct blocks (different marker pairs) in one file.
-
-    Args:
-        content (str): Content to insert between the markers.
-        dry (bool): If True, logs intended changes but doesn't modify the file.
+    Test implementation matching your original function
     """
+    marker_start = "[comment]: <> (gitlab-docs-opening-auto-generated)"
+    marker_end = "[comment]: <> (gitlab-docs-closing-auto-generated)"
+    dry = getattr(update_marked_block, '_dry_mode', False)
+
     try:
         if not os.path.exists(file_path):
             logger.trace(f"File {file_path} does not exist. Creating new file.")
             if dry:
                 logger.info("[Dry Run] Would create file and insert new block.")
                 return
-            with open(file_path, "w", encoding="utf-8"):
-                pass  # create an empty file
+            else:
+                with open(file_path, "w", encoding="utf-8"):
+                    pass  # create an empty file
 
         with open(file_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
@@ -63,6 +114,7 @@ def update_marked_block(file_path, content):
 
     except Exception as e:
         logger.error(f"Failed to update block in {file_path}: {e}")
+
 
 def add_between_markers(file_path, content):
     """

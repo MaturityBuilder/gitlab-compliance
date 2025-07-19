@@ -41,6 +41,7 @@ Feature: Update marked block in README.md
     And the file should contain "Some existing content"
     And the file should contain the marked block
 
+
   Scenario: Handle file with no final newline
     Given I have a file "README.md" with content "No newline" and no final newline
     When I update the marked block with content "Block content"

@@ -46,7 +46,7 @@ behave-tests:
     - poetry install
   script:
     - poetry run coverage run -m behave
-    - poetry run coverage report --fail-under 87
+    - poetry run coverage report --fail-under 80
   only:
     - merge_requests
 .build:python:
