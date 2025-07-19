@@ -1,27 +1,16 @@
 Feature: Add content between markers in a file
 
-  Scenario: Create a new file and insert marker block
-    Given the file "test_README.md" does not exist
-    When I add between markers
-      """
-      This is initial content.
-      """
-    Then the file "test_README.md" should contain
-      """
-      This is initial content.
-      """
+  Scenario: File does not exist
+    Given a non-existent file path
+    When I add content "Hello world!" between markers
+    Then the file should be created with the content between markers
 
-  Scenario: Add content before existing end marker
-    Given the file "test_README.md" contains block
-      """
-      Existing content.
-      """
-    When I add between markers
-      """
-      Additional content.
-      """
-    Then the file "test_README.md" should contain
-      """
-      Existing content.
-      Additional content.
-      """
+  Scenario: File exists without marker block
+    Given an existing file without marker block
+    When I add content "Inserted content" between markers
+    Then the file should contain a new marker block with the content
+
+  Scenario: File exists with existing marker block
+    Given a file with existing marker block containing "Old content"
+    When I add content "New content" between markers
+    Then the content should appear before the end marker

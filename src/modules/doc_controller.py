@@ -64,7 +64,6 @@ def update_marked_block(file_path, content):
     except Exception as e:
         logger.error(f"Failed to update block in {file_path}: {e}")
 
-
 def add_between_markers(file_path, content):
     """
     Appends content between marker lines in a file.
