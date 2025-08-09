@@ -13,10 +13,9 @@ def document_workflows(
     OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE=False
 ):
     logger.trace("Generating Documentation for Workflows")
-
-    with open(GLDOCS_CONFIG_FILE, "r") as file:
-        try:
-            data = yaml.load(file, Loader=common.EnvLoader)
+    file = common.read_yml(GLDOCS_CONFIG_FILE)
+    try:
+        for data in file:
             if "workflow" in data:
                 workflow = data["workflow"]
 
@@ -49,5 +48,5 @@ def document_workflows(
                 logger.debug("")
                 logger.debug(str(workflow_table))
                 logger.debug("")
-        except yaml.YAMLError as exc:
-            logger.trace(exc)
+    except yaml.YAMLError as exc:
+        logger.trace(exc)

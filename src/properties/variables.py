@@ -10,9 +10,10 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
     logger.trace("Generating Documentation for Variables")
 
     from prettytable import MARKDOWN
-    with open(GLDOCS_CONFIG_FILE, "r") as file:
-        try:
-            data = yaml.load(file, Loader=common.EnvLoader)
+
+    file = common.read_yml(GLDOCS_CONFIG_FILE)
+    try:
+        for data in file:
             if "variables" in data:
                 variables = data["variables"]
                 # logger.trace(gldocs.generate_markdown_table(variables))
@@ -28,7 +29,7 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
                     "Expand",
                 ]
                 # variables_table.add_rows([variables])
-                # logger.trace(variables)
+                logger.info(variables)
 
                 for v in variables:
                     description = "&#x274c;"
@@ -66,7 +67,7 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
                             )
                             expand = "true"
 
-                variables_table.add_row([v, variables[v], description, options, expand])
+                    variables_table.add_row([v, variables[v], description, options, expand])
 
                 # f = open(OUTPUT_FILE, WRITE_MODE)
                 if not DISABLE_TITLE:
@@ -80,5 +81,5 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
                 add_between_markers(file_path=OUTPUT_FILE, content="\n")
                 # f.close()
 
-        except yaml.YAMLError as exc:
-            logger.trace(exc)
+    except yaml.YAMLError as exc:
+        logger.trace(exc)

@@ -1,4 +1,11 @@
 ---
+spec:
+  inputs:
+    job-stage:
+      default: test
+    environment:
+      default: production
+---
 stages:
   - test
   - build
