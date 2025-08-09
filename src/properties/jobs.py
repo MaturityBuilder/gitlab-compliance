@@ -27,9 +27,9 @@ def get_jobs(
     ]
     logger.trace("Generating Documentation for Jobs")
 
-    with open(GLDOCS_CONFIG_FILE, "r") as file:
-        data = yaml.load(file, Loader=common.EnvLoader)
-        jobs = data
+    file = common.read_yml(GLDOCS_CONFIG_FILE)
+
+    for jobs in file:
         # Create file lock against output md file
         # f = open(OUTPUT_FILE, "a")
         if not DISABLE_TITLE:
@@ -133,5 +133,5 @@ def get_jobs(
                         # print(job_variables_config_table)
                         add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
                         add_between_markers(file_path=OUTPUT_FILE, content=str(job_variables_config_table))
-                    add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
-        # add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+                        add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+                        # add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))

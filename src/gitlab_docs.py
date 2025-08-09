@@ -10,6 +10,7 @@ from datetime import datetime
 import src.properties.includes as includes
 import src.properties.jobs as jobs
 import src.properties.variables as variables
+import src.properties.inputs as inputs
 import src.properties.workflows as workflows
 from src.modules.logging import logger
 import src.modules.doc_controller as md_writer
@@ -65,6 +66,12 @@ def gitlab_docs(detailed,OUTPUT_FILE,DRY_MODE,GLDOCS_CONFIG_FILE):
     bootstrap =  f"""<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
             <h1><span class="badge text-bg-primary">GITLAB DOCS - {GLDOCS_CONFIG_FILE}</span></h1>"""
     add_between_markers(file_path=OUTPUT_FILE,content=bootstrap)
+    inputs.document_inputs(
+        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+
+        DISABLE_TITLE=False,
+        OUTPUT_FILE=OUTPUT_FILE,
+    )
     variables.document_variables(
         GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
 

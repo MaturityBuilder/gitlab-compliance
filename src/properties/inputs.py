@@ -6,68 +6,68 @@ from src.modules.logging import logger
 # from src.modules.doc_controller import update_marked_block
 from src.modules.doc_controller import add_between_markers
 
-def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
-    logger.trace("Generating Documentation for Variables")
+def document_inputs(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
+    logger.trace("Generating Documentation for inputs")
 
     from prettytable import MARKDOWN
 
     file = common.read_yml(GLDOCS_CONFIG_FILE)
     try:
         for data in file:
-            if "variables" in data:
-                variables = data["variables"]
-                # logger.trace(gldocs.generate_markdown_table(variables))
+            if "spec" in data:
+                inputs = data["spec"]["inputs"]
+                # logger.trace(gldocs.generate_markdown_table(inputs))
                 from prettytable import PrettyTable
 
-                variables_table = PrettyTable()
-                variables_table.set_style(MARKDOWN)
-                variables_table.field_names = [
+                inputs_table = PrettyTable()
+                inputs_table.set_style(MARKDOWN)
+                inputs_table.field_names = [
                     "Key",
                     "Value",
                     "Description",
                     "Options",
                     "Expand",
                 ]
-                # variables_table.add_rows([variables])
-                logger.info(variables)
+                # inputs_table.add_rows([inputs])
+                logger.info(inputs)
 
-                for v in variables:
+                for v in inputs:
                     description = "&#x274c;"
                     options = "&#x274c;"
                     expand = "true"
                     result = {}
-                    if type(variables[v]) is str:
-                        logger.debug("Simple variable found: " + variables[v])
-                        result["value"] = variables[v]
+                    if type(inputs[v]) is str:
+                        logger.debug("Simple input found: " + inputs[v])
+                        result["value"] = inputs[v]
 
                     else:
-                        if "description" in variables[v]:
-                            description = variables[v]["description"]
+                        if "description" in inputs[v]:
+                            description = inputs[v]["description"]
                         else:
                             logger.debug(
                                 "Description for: "
                                 + v
-                                + " isn't set, variable should have description set, "
+                                + " isn't set, input should have description set, "
                                 + "gitlab-docs considers this malformed :("
                             )
                             description = "&#x274c;"
 
-                        if "options" in variables[v]:
-                            options = variables[v]["options"]
+                        if "options" in inputs[v]:
+                            options = inputs[v]["options"]
                         else:
                             options = "&#x274c;"
-                        if "expand" in variables[v]:
-                            expand = variables[v]["expand"]
+                        if "expand" in inputs[v]:
+                            expand = inputs[v]["expand"]
                         else:
                             logger.debug(
                                 "expand key: "
                                 + v
                                 + " isn't set, default value will recored as 'true'"
-                                + "https://docs.gitlab.com/ee/ci/yaml/#variablesexpand"
+                                + "https://docs.gitlab.com/ee/ci/yaml/#inputsexpand"
                             )
                             expand = "true"
 
-                    variables_table.add_row([v, variables[v], description, options, expand])
+                    inputs_table.add_row([v, inputs[v], description, options, expand])
 
                 # f = open(OUTPUT_FILE, WRITE_MODE)
                 if not DISABLE_TITLE:
@@ -75,9 +75,9 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
                     add_between_markers(file_path=OUTPUT_FILE, content="\n")
                     # add_between_markers(file_path=OUTPUT_FILE, content=GLDOCS_CONFIG_FILE_HEADING)
                 add_between_markers(file_path=OUTPUT_FILE, content="\n")
-                add_between_markers(file_path=OUTPUT_FILE, content="## Variables")
+                add_between_markers(file_path=OUTPUT_FILE, content="## Inputs")
                 add_between_markers(file_path=OUTPUT_FILE, content="\n")
-                add_between_markers(file_path=OUTPUT_FILE, content=str(variables_table))
+                add_between_markers(file_path=OUTPUT_FILE, content=str(inputs_table))
                 add_between_markers(file_path=OUTPUT_FILE, content="\n")
                 # f.close()
 
