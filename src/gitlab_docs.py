@@ -63,8 +63,8 @@ def gitlab_docs(detailed,OUTPUT_FILE,DRY_MODE,GLDOCS_CONFIG_FILE):
     ENABLE_WORKFLOW_DOCUMENTATION = detailed
     logger.success("Welcome to Gitlab Docs")
     update_marked_block(file_path=OUTPUT_FILE, content="\n\n")
-    bootstrap =  f"""<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-            <h1><span class="badge text-bg-primary">GITLAB DOCS - {GLDOCS_CONFIG_FILE}</span></h1>"""
+    # <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    bootstrap =  f"""            <h1><span class="badge text-bg-primary">GITLAB DOCS - {GLDOCS_CONFIG_FILE}</span></h1>"""
     add_between_markers(file_path=OUTPUT_FILE,content=bootstrap)
     inputs.document_inputs(
         GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
