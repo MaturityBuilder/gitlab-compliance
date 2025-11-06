@@ -41,31 +41,34 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
                         result["value"] = variables[v]
 
                     else:
-                        if "description" in variables[v]:
-                            description = variables[v]["description"]
-                        else:
-                            logger.debug(
-                                "Description for: "
-                                + v
-                                + " isn't set, variable should have description set, "
-                                + "gitlab-docs considers this malformed :("
-                            )
-                            description = "&#x274c;"
+                        try: 
+                            if "description" in variables[v]:
+                                description = variables[v]["description"]
+                            else:
+                                logger.debug(
+                                    "Description for: "
+                                    + v
+                                    + " isn't set, variable should have description set, "
+                                    + "gitlab-docs considers this malformed :("
+                                )
+                                description = "&#x274c;"
 
-                        if "options" in variables[v]:
-                            options = variables[v]["options"]
-                        else:
-                            options = "&#x274c;"
-                        if "expand" in variables[v]:
-                            expand = variables[v]["expand"]
-                        else:
-                            logger.debug(
-                                "expand key: "
-                                + v
-                                + " isn't set, default value will recored as 'true'"
-                                + "https://docs.gitlab.com/ee/ci/yaml/#variablesexpand"
-                            )
-                            expand = "true"
+                            if "options" in variables[v]:
+                                options = variables[v]["options"]
+                            else:
+                                options = "&#x274c;"
+                            if "expand" in variables[v]:
+                                expand = variables[v]["expand"]
+                            else:
+                                logger.debug(
+                                    "expand key: "
+                                    + v
+                                    + " isn't set, default value will recored as 'true'"
+                                    + "https://docs.gitlab.com/ee/ci/yaml/#variablesexpand"
+                                )
+                                expand = "true"
+                        except Exception as e:
+                            logger.error(f"Unable to extract variable information from {file}")
 
                     variables_table.add_row([v, variables[v], description, options, expand])
 
