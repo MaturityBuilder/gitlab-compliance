@@ -16,7 +16,7 @@ readme = "README.md"
 packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
-python = "3.12"
+python = "^3.12"
 prettytable = "*"
 pytablewriter = "~1.2.0"
 oyaml = "*"
