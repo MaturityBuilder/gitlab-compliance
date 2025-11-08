@@ -77,6 +77,7 @@ bump_version:
       - CHANGELOG.md
     expire_in: 1 week
 .build:python:
+  needs: []
   stage: build
   environment: release
   id_tokens:
@@ -102,14 +103,8 @@ bump_version:
     - pip3 install -q $(ls ./dist/*.tar.gz)
     - gitlab-docs
     - !reference [.publish, script]
-.publish:
-  id_tokens:
-      PYPI_ID_TOKEN:
-        aud: "pypi"  # OIDC audience for PyPI
-  script:
-    - pip install poetry
-    - poetry config pypi-token.pypi "$PYPI_ID_TOKEN"  # Set OIDC token as Poetry's PyPI token
-    - poetry publish --build --no-interaction --repository pypi dist/*
+    # - poetry config pypi-token.pypi "$PYPI_ID_TOKEN"  # Set OIDC token as Poetry's PyPI token
+    - poetry publish --build --repository pypi --username __token__ --password "$CI_JOB_JWT_V2"
   only:
     - tags
   before_script:
