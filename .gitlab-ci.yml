@@ -57,7 +57,7 @@ behave-tests:
   only:
     - merge_requests
 bump_version:
-  stage: bump
+  stage: .post
   image: python:3.11
   before_script:
     - pip install commitizen
