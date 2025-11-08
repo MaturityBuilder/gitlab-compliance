@@ -5,6 +5,6 @@
   additional_dependencies:
     - gitlab_docs
 
-  language_version: python3.12
+  language_version: python3.12.11
   pass_filenames: false
   files: \.(yml|yaml)$

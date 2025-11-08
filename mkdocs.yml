@@ -9,6 +9,7 @@ docs_dir: docs
 #     - navigation.top
 #     - content.code.copy
 #     - content.action.edit
+#     - content.action.edit
 #     - search.suggest
 #     - search.highlight
 #   palette:

@@ -58,7 +58,7 @@ behave-tests:
     - merge_requests
 bump_version:
   stage: .post
-  image: python:3.11
+  image: python:3.12.11
   before_script:
     - pip install commitizen
     - git config user.name "GitLab CI"

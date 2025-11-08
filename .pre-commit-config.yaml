@@ -5,7 +5,7 @@ repos:
         name: Run GitLab Docs
         entry: gitlab-docs
         language: python
-        language_version: python3.12
+        language_version: python3.12.11
         additional_dependencies:
           - gitlab-docs
         pass_filenames: false
