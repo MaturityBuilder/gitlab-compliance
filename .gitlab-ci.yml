@@ -135,7 +135,6 @@ bump_version:
         poetry publish --build
       fi
 
-charlieasmith/gitlab-docs
 build:
   extends:
     - .build:python
