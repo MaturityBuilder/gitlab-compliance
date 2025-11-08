@@ -16,9 +16,12 @@ from src.modules.logging import logger
 import src.modules.doc_controller as md_writer
 from src.modules.doc_controller import update_marked_block, add_between_markers
 
-# flake8: noqa: E501
 
 # ENABLE_WORKFLOW_DOCUMENTATION = os.getenv("ENABLE_WORKFLOW_DOCUMENTATION", False)
+@click.command()
+def get_images():
+    logger.info("Discovering images from your gitlab-ci yml.")
+
 @click.command()
 @click.option(
     "--detailed",
@@ -27,7 +30,6 @@ from src.modules.doc_controller import update_marked_block, add_between_markers
     is_flag=True,
     default=False
 )
-
 @click.option(
     "--dry-mode",
     "-d",

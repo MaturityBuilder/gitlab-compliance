@@ -56,6 +56,26 @@ behave-tests:
     - poetry run coverage report --fail-under 80
   only:
     - merge_requests
+bump_version:
+  stage: bump
+  image: python:3.11
+  before_script:
+    - pip install commitizen
+    - git config user.name "GitLab CI"
+    - git config user.email "ci-bot@gitlab.com"
+  script:
+    # Ensure we are on the default branch (adjust as needed)
+    - git checkout "$CI_DEFAULT_BRANCH"
+    # Determine the next version bump & create a new tag
+    - cz bump --yes --changelog
+    # Push the new tag and changelog to GitLab
+    - git push origin "$CI_DEFAULT_BRANCH" --tags
+  only:
+    - main
+  artifacts:
+    paths:
+      - CHANGELOG.md
+    expire_in: 1 week
 .build:python:
   stage: build
   environment: release
@@ -83,7 +103,16 @@ behave-tests:
     - gitlab-docs
     - !reference [.publish, script]
 .publish:
+  id_tokens:
+      PYPI_ID_TOKEN:
+        aud: "pypi"  # OIDC audience for PyPI
   script:
+    - pip install poetry
+    - poetry config pypi-token.pypi "$PYPI_ID_TOKEN"  # Set OIDC token as Poetry's PyPI token
+    - poetry publish --build --no-interaction --repository pypi dist/*
+  only:
+    - tags
+  before_script:
     - |
       apt update -qq -y
       apt install -qq -y jq
@@ -106,6 +135,7 @@ behave-tests:
         poetry publish --build
       fi
 
+charlieasmith/gitlab-docs
 build:
   extends:
     - .build:python
