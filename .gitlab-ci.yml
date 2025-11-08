@@ -56,26 +56,50 @@ behave-tests:
     - poetry run coverage report --fail-under 80
   only:
     - merge_requests
-bump_version:
-  stage: .post
+bump-version:
+  stage: .pre
   image: python:3.12.11
   before_script:
-    - pip install commitizen
-    - git config user.name "GitLab CI"
-    - git config user.email "ci-bot@gitlab.com"
+    - pip install poetry conventional-commit versioningit
+    - git config --global user.email "ci-bot@gitlab.com"
+    - git config --global user.name "GitLab CI Bot"
   script:
-    # Ensure we are on the default branch (adjust as needed)
-    - git checkout "$CI_DEFAULT_BRANCH"
-    # Determine the next version bump & create a new tag
-    - cz bump --yes --changelog
-    # Push the new tag and changelog to GitLab
-    - git push origin "$CI_DEFAULT_BRANCH" --tags
-  only:
-    - main
-  artifacts:
-    paths:
-      - CHANGELOG.md
-    expire_in: 1 week
+    # Get the latest tag / version from Poetry
+    - CURRENT_VERSION=$(poetry version -s)
+    - echo "Current version: $CURRENT_VERSION"
+
+    # Get recent commits (since the last tag)
+    - COMMITS=$(git log -1 --pretty=%B)
+    - echo "Last commit message: $COMMITS"
+
+    # Determine bump type based on Conventional Commit rules
+    - |
+      if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
+        BUMP="major"
+      elif echo "$COMMITS" | grep -Eiq "^feat(\(.*\))?: "; then
+        BUMP="minor"
+      elif echo "$COMMITS" | grep -Eiq "^fix(\(.*\))?: "; then
+        BUMP="patch"
+      else
+        echo "No conventional commit keyword found; skipping version bump."
+        exit 0
+      fi
+      echo "Detected bump type: $BUMP"
+
+    # Bump version with Poetry
+    - poetry version $BUMP
+    - NEW_VERSION=$(poetry version -s)
+    - echo "Bumped version: $NEW_VERSION"
+
+    # Commit & tag
+    - git add pyproject.toml
+    - git commit -m "chore(release): $NEW_VERSION [skip ci]"
+    - git tag "v$NEW_VERSION"
+    - git push origin HEAD:$CI_COMMIT_REF_NAME
+    - git push origin "v$NEW_VERSION"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
 .build:python:
   needs: []
   stage: build
