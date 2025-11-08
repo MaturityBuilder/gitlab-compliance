@@ -102,7 +102,6 @@ bump_version:
     # - latest_build=$(ls ./dist/*.tar.gz)
     - pip3 install -q $(ls ./dist/*.tar.gz)
     - gitlab-docs
-    - !reference [.publish, script]
     # - poetry config pypi-token.pypi "$PYPI_ID_TOKEN"  # Set OIDC token as Poetry's PyPI token
     - poetry publish --build --repository pypi --username __token__ --password "$CI_JOB_JWT_V2"
   only:
