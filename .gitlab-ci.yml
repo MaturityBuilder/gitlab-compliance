@@ -20,7 +20,11 @@ image: python:3.12.11
 default:
   tags:
     - gitlab-org
-
+.test:rules:
+  stage: test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -28,7 +32,6 @@ workflow:
     - if: $CI_COMMIT_REF_NAME == $CI_COMMIT_TAG
 
 megalinter:
-  stage: test
   image: oxsecurity/megalinter-ci_light
   # extends: [".mr_rules"]
   script: ["true"] # if script: ["true"] doesn't work, you may try ->  script: [ "/bin/bash /entrypoint.sh" ]
@@ -43,21 +46,23 @@ megalinter:
       - megalinter-reports
     expire_in: 1 week
   allow_failure: true
+  extends: 
+    - .test:rules
 
 behave-tests:
-  stage: test
   variables:
     POETRY_VIRTUALENVS_CREATE: "false"
   before_script:
     - pip install poetry
     - poetry install
+  extends: 
+    - .test:rules
   script:
     - poetry run coverage run -m behave
     - poetry run coverage report --fail-under 80
-  only:
-    - merge_requests
+
 bump-version:
-  stage: .pre
+  stage: .post
   image: python:3.12.11
   before_script:
     - pip install poetry conventional-commit versioningit
@@ -109,9 +114,8 @@ bump-version:
   environment: release
   id_tokens:
     PYPI_ID_TOKEN:
-      # testpypi
       aud: pypi
-      # id-token: write
+      id-token: write
   artifacts:
     when: always
     paths:
