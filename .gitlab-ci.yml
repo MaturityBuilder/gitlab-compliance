@@ -112,10 +112,6 @@ bump-version:
   needs: []
   stage: build
   environment: release
-  id_tokens:
-    PYPI_ID_TOKEN:
-      aud: pypi
-      id-token: write
   artifacts:
     when: always
     paths:
@@ -137,6 +133,7 @@ test-build:
   extends:
     - .build:python
 publish:
+  needs: []
   stage: publish
   script:
     - |
