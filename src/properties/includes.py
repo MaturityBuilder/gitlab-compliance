@@ -1,8 +1,6 @@
 import os
 import semver
 import yaml
-from prettytable import MARKDOWN, PrettyTable
-
 import src.modules.common as common
 import src.properties.jobs as jobs
 from src.modules.logging import logger
@@ -28,12 +26,9 @@ def document_includes(
             if not includes:
                 logger.trace(f"No 'include' section found in {GLDOCS_CONFIG_FILE}")
                 return
-
-            includes_table = PrettyTable()
-            includes_table.set_style(MARKDOWN)
-            includes_table.field_names = [
+            includes_table = common.table_design(field_names = [
                 "Include Type", "Project", "Version", "Valid Version", "File", "Variables", "Rules"
-            ]
+            ])
 
             for i in includes:
                 try:

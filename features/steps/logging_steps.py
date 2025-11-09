@@ -1,24 +1,33 @@
 from behave import given, when, then
-import os
-import subprocess
-from src.modules.logging import logger
-@given('LOG_LEVEL is set to "DEBUG"')
-def step_given_debug_env(context):
-    os.environ["LOG_LEVEL"] = "DEBUG"
+from io import StringIO
+from src.modules.logging import configure_logger
 
-@when("the logger is initialized")
-def step_when_logger_runs(context):
-    result = subprocess.run(
-        ["python3", "-c", '''
-from src.modules.logging import logger
-logger.debug("This is debug")
-'''],
-        capture_output=True,
-        env=os.environ
-    )
-    context.output = result.stderr.decode()
-@then("debug logs should be visible")
-def step_debug_logs_visible(context):
-    assert "This is debug" in context.output
+@given('no LOG_LEVEL is provided')
+def step_no_log_level(context):
+    context.output = StringIO()
+    context.logger = configure_logger(log_level=None, output=context.output)
 
-    assert "🐛" in context.output
+@given('an invalid LOG_LEVEL')
+def step_invalid_log_level(context):
+    context.output = StringIO()
+    context.logger = configure_logger(log_level="INVALID", output=context.output)
+
+@when('I log an info message')
+def step_log_info(context):
+    context.logger.info("Info test message")
+
+@when('I log a debug message')
+def step_log_debug(context):
+    context.logger.debug("Debug test message")
+
+@then('the output should contain "INFO" and the message')
+def step_check_info_output(context):
+    output = context.output.getvalue()
+    assert "INFO" in output
+    assert "Info test message" in output
+
+@then('the output should contain the bug emoji 🐛 and the debug message')
+def step_check_debug_output(context):
+    output = context.output.getvalue()
+    assert "🐛" in output
+    assert "Debug test message" in output

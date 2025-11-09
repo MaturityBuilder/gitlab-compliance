@@ -1,5 +1,6 @@
 [project]
 name = "gitlab-docs"
+dynamic = [ "readme" ]
 [project.urls]
 "Home Page" = "https://pypi.org/manage/project/gitlab-docs"
 DOCUMENTATION = "https://pypi.org/manage/project/gitlab-docs"
@@ -7,13 +8,17 @@ Repository = "https://gitlab.com/charlieasmith/gitlab-docs"
 Gitlab     = "https://gitlab.com/charlieasmith/gitlab-docs"
 
 [tool.poetry_bumpversion.file."src/__init__.py"]
+
 [tool.poetry]
 name = "gitlab-docs"
 version = "0.2.9"
 description = "A tool that automatically generates gitlab documentation from yaml files"
 authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
-readme = "README.md"
+readme = ["docs/index.md", "docs/command-reference.md", "docs/output-example.md"]
+
 packages = [{ include = "src" }]
+
+
 
 [tool.poetry.dependencies]
 python = "^3.12.11"

@@ -4,7 +4,8 @@ RUN mkdir -p /build && mkdir -p /build/src
 WORKDIR /build
 COPY pyproject.toml poetry.lock README.md ./
 COPY ./src ./src/
-RUN poetry install -q
+copy ./docs ./docs/
+RUN poetry install
 RUN poetry build
 
 FROM python:3.12.11-alpine AS gitlab-docs

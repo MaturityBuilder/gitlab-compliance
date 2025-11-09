@@ -11,3 +11,4 @@ reports
 .trunk/
 trunk/
 __pycache__/
+reports/

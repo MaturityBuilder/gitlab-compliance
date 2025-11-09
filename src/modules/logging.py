@@ -2,33 +2,36 @@ from loguru import logger
 import os
 import sys
 
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+def configure_logger(log_level=None, output=None):
+    """
+    Configures Loguru logger.
 
-logger.remove()
-format="{level}|{time:HH:mm:ss}|{module}| {message}"
-message=''
-if LOG_LEVEL not in ["INFO","ERROR", "WARNING", "CRITICAL", "SUCCESS"]:
-    logger.add(sys.stderr,
-        level="DEBUG",
-        format=f"<cyan>🐛 {format}</cyan> | "
-    )
-logger.add(sys.stderr,
-    level="INFO",
-    format=f"{format} "
-)
-# logger.add(sys.stderr,
-#     level="INFO",
-#     format=f"<green>✅ {format} </green>"
-# )
-# logger.add(sys.stderr,
-#     level="WARNING",
-#     format=f"<yellow>⚠️ {format}</yellow>"
-# )
-# logger.add(sys.stderr,
-#     level="CRITICAL",
-#     format=f"<red>🔥  {format}</red>"
-# )
-# logger.add(sys.stderr,
-#     level="ERROR",
-#     format=f"<red>❌ {format}</red>"
-# )
+    Args:
+        log_level (str, optional): Log level to use. Defaults to env LOG_LEVEL or INFO.
+        output (file-like, optional): Stream to write logs to. Defaults to sys.stderr.
+    """
+    # Remove existing sinks
+    logger.remove()
+
+    # Determine log level
+    LOG_LEVEL = (log_level or os.getenv("LOG_LEVEL", "INFO")).upper()
+
+    # Default output
+    out = output or sys.stderr
+
+    fmt = "{level}|{time:HH:mm:ss}|{module}| {message}"
+
+    # Add DEBUG sink if LOG_LEVEL is invalid
+    if LOG_LEVEL not in ["INFO", "ERROR", "WARNING", "CRITICAL", "SUCCESS"]:
+        logger.add(out,
+                   level="DEBUG",
+                   format=f"<cyan>🐛 {fmt}</cyan> | ")
+
+    # Always add INFO sink
+    logger.add(out,
+               level="INFO",
+               format=f"{fmt} ")
+
+    return logger
+
+logger = configure_logger()
