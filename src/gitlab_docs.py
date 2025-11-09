@@ -116,7 +116,7 @@ def dump_helper(base_command, docs_dir):
 def cli():
     pass
 
-@click.command('dumps')
+@click.command()
 @click.option('--baseModule', help='The base command module path to import', required=True)
 @click.option('--baseCommand', help='The base command function to import', required=True)
 @click.option('--docsPath', help='The docs dir path to write the md files', required=True)
@@ -155,8 +155,7 @@ def dumps(**kwargs):
 
     return
 
-click.group()
-@click.command()
+click.command()
 @click.option(
     "--detailed",
     required=False,
@@ -190,12 +189,10 @@ click.group()
     help="The Gitlab CI Input configuration file to generated documentation from.",
     default=".gitlab-ci.yml"
 )
-
 def gitlab_docs(detailed,OUTPUT_FILE,DRY_MODE,GLDOCS_CONFIG_FILE):
     """
     A command line tool to convert your gitlab-ci yml into markdown documentation.
     """
-
     ENABLE_WORKFLOW_DOCUMENTATION = detailed
     logger.success("Welcome to Gitlab Docs")
     update_marked_block(file_path=OUTPUT_FILE, content="\n\n")
