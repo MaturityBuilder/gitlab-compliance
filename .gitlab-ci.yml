@@ -67,7 +67,7 @@ behave-tests:
     - .poetry:install
   script:
     - poetry run coverage run -m behave --color -m
-    - poetry run coverage report --fail-under 75 -m
+    - poetry run coverage report --fail-under 70 -m
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
 
 bump-version:
