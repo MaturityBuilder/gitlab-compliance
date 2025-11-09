@@ -41,11 +41,11 @@ def get_job_attribute(
             if j not in exclude_keywords:
                 job_result = [GLDOCS_CONFIG_FILE,j]
                 for a in attributes:
-                    # print(a)
+                    
                     if a in jobs[j]:
-                        # print(jobs[j][a])
+                        
                         job_result.append(jobs[j][a])
-                        # print([j,jobs[j][a],GLDOCS_CONFIG_FILE])
+                        
                     else:
                         job_result.append("Not Found")
                         notfound_counter=notfound_counter+1

@@ -1,6 +1,11 @@
-Feature: Loguru logger configuration
+Feature: Loguru logging configuration
 
-  Scenario: Environment-based log level controls debug logging
-    Given LOG_LEVEL is set to "DEBUG"
-    When the logger is initialized
-    Then debug logs should be visible
+  Scenario: Default LOG_LEVEL uses INFO
+    Given no LOG_LEVEL is provided
+    When I log an info message
+    Then the output should contain "INFO" and the message
+
+  Scenario: Invalid LOG_LEVEL triggers DEBUG logger
+    Given an invalid LOG_LEVEL
+    When I log a debug message
+    Then the output should contain the bug emoji 🐛 and the debug message

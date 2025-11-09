@@ -16,8 +16,8 @@ def read_yml(GLDOCS_CONFIG_FILE):
     return documents
 
 def table_design(headers=[],field_names=[],style="MARKDOWN"):
-    from prettytable import MARKDOWN
     
+    from prettytable import TableStyle
     from prettytable import PrettyTable
     from prettytable.colortable import ColorTable, Themes
     table = PrettyTable(headers=headers)
@@ -26,8 +26,9 @@ def table_design(headers=[],field_names=[],style="MARKDOWN"):
     else:
         table.field_names = headers
     table.border = True
-    table.set_style(MARKDOWN)
-    table.sortby = headers[0]
+    
+    table.set_style(TableStyle.MARKDOWN)
+    # table.sortby = headers[0]
     table.align = "c"
     for header in headers:
         table.align[header] = "c"
