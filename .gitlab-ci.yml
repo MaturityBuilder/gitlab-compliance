@@ -93,7 +93,7 @@ bump-version:
       echo "Bumped version: $NEW_VERSION"
 
     # Commit & tag
-    - git remote set-url origin "https://oauth2:${CI_PUSH_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
+    - git remote set-url origin "https://oauth2:${CI_JOB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
     - git add pyproject.toml
     - git commit -m "chore $NEW_VERSION [skip ci]"
     - git tag "$NEW_VERSION"
