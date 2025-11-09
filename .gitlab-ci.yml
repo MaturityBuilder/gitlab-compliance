@@ -31,7 +31,7 @@ default:
     - curl -sSL "https://install.python-poetry.org" | python3 -
     - export PATH="/root/.local/bin:$PATH"
     - poetry --version
-    - poetry install -q
+    - poetry install
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -141,11 +141,7 @@ publish:
     - .poetry:install
   stage: publish
   script:
-    - |
-      apt update -qq -y
-      apt install -qq -y jq
-      poetry install -q
-      poetry publish --build --repository pypi --username __token__ --password "$CI_JOB_JWT_V2"
+    - poetry publish --build --repository pypi --username __token__ --password "$CI_JOB_JWT_V2"
   id_tokens:
     PYPI_JWT:
       aud: "https://pypi.org"
