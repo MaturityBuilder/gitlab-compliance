@@ -4,6 +4,7 @@ RUN mkdir -p /build && mkdir -p /build/src
 WORKDIR /build
 COPY pyproject.toml poetry.lock README.md ./
 COPY ./src ./src/
+copy ./docs ./docs/
 RUN poetry install
 RUN poetry build
 
