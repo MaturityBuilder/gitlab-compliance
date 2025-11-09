@@ -130,39 +130,23 @@ bump-version:
     # - poetry config.repositories.test-pypi https://test.pypi.org
   script:
     - poetry build
-    # - latest_build=$(ls ./dist/*.tar.gz)
     - pip3 install -q $(ls ./dist/*.tar.gz)
     - gitlab-docs
-    # - poetry config pypi-token.pypi "$PYPI_ID_TOKEN"  # Set OIDC token as Poetry's PyPI token
-    - poetry publish --repository pypi --username __token__ --password "$CI_JOB_JWT_V2"
-  # only:
-  #   - tags
-  before_script:
+
+test-build:
+  extends:
+    - .build:python
+publish:
+  stage: publish
+  script:
     - |
       apt update -qq -y
       apt install -qq -y jq
-      pip3 install poetry-bumpversion
-      if [[ $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH || $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG ]];
-      then
-        echo "Authenticating to Test PYPI so we can publish the new version to test :)"
-        # WARNING THIS ISN'T SETUP YET.
-        # Authentication using OIDC
-        # Replace "https://pypi.org/*" with "https://test.pypi.org/*" if uploading to TestPyPI
-        poetry build
-      else
-        echo "Authenticating to Production PYPI so we can publish the new version :)"
-        python -m pip -q install id jq
-        oidc_token=$(python -m id PYPI)
-        resp=$(curl -X POST https://pypi.org/_/oidc/mint-token -d "{\"token\":\"${oidc_token}\"}")
-        api_token=$(jq --raw-output '.token' <<< "${resp}")
-        poetry config http-basic.pypi __token__ "${api_token}"
-        poetry version patch
-        poetry publish --build
-      fi
-
-build:
-  extends:
-    - .build:python
+      poetry install -q
+      poetry publish --repository pypi --username __token__ --password "$CI_JOB_JWT_V2"
+  id_tokens:
+    PYPI_JWT:
+      aud: "https://pypi.org"
 
 
 # build:docker:
