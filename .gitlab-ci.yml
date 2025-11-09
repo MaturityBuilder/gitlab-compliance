@@ -25,6 +25,13 @@ default:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+.poetry:install:
+  before_script:
+    # install poetry for managing application
+    - curl -sSL "https://install.python-poetry.org" | python3 -
+    - export PATH="/root/.local/bin:$PATH"
+    - poetry --version
+    - poetry install -q
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -57,6 +64,7 @@ behave-tests:
     - poetry install
   extends: 
     - .test:rules
+    - .poetry:install
   script:
     - poetry run coverage run -m behave
     - poetry run coverage report --fail-under 80
@@ -112,18 +120,13 @@ bump-version:
   needs: []
   stage: build
   environment: release
+  extends:
+    - .poetry:install
   artifacts:
     when: always
     paths:
       - ./dist/*.tar.gz
     expire_in: 1 hour
-  before_script:
-    # install poetry for managing application
-    - curl -sSL "https://install.python-poetry.org" | python3 -
-    - export PATH="/root/.local/bin:$PATH"
-    - poetry --version
-    - poetry install
-    # - poetry config.repositories.test-pypi https://test.pypi.org
   script:
     - poetry build
     - pip3 install -q $(ls ./dist/*.tar.gz)
@@ -134,6 +137,8 @@ test-build:
     - .build:python
 publish:
   needs: []
+  extends:
+    - .poetry:install
   stage: publish
   script:
     - |
