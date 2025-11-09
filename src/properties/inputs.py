@@ -3,13 +3,13 @@ import os
 import yaml
 import src.modules.common as common
 from src.modules.logging import logger
-# from src.modules.doc_controller import update_marked_block
+# from src.modules.doc_controller import add_between_markers
 from src.modules.doc_controller import add_between_markers
 
 def document_inputs(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
     logger.trace("Generating Documentation for inputs")
 
-    from prettytable import MARKDOWN
+    
 
     file = common.read_yml(GLDOCS_CONFIG_FILE)
     try:
@@ -17,17 +17,14 @@ def document_inputs(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
             if "spec" in data:
                 inputs = data["spec"]["inputs"]
                 # logger.trace(gldocs.generate_markdown_table(inputs))
-                from prettytable import PrettyTable
-
-                inputs_table = PrettyTable()
-                inputs_table.set_style(MARKDOWN)
-                inputs_table.field_names = [
+            
+                inputs_table = common.table_design(headers=[
                     "Key",
                     "Value",
                     "Description",
                     "Options",
                     "Expand",
-                ]
+                ])
                 # inputs_table.add_rows([inputs])
                 logger.info(inputs)
 

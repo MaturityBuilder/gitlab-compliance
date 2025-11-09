@@ -4,8 +4,6 @@ import os
 import yaml
 import src.modules.common as common
 from src.modules.logging import logger
-# from pytablewriter import MarkdownTableWriter
-from prettytable import MARKDOWN
 from src.modules.doc_controller import add_between_markers
 
 
@@ -19,13 +17,7 @@ def document_workflows(
             if "workflow" in data:
                 workflow = data["workflow"]
 
-                # logger.trace(gldocs.generate_markdown_table(includes))
-                from prettytable import PrettyTable
-
-                workflow_table = PrettyTable()
-                workflow_table.set_style(MARKDOWN)
-                workflow_table.field_names = ["Rules #", "Workflow Rules"]
-                # workflow_table.add_rows([includes])
+                workflow_table = common.table_design(field_names = ["Rules #", "Workflow Rules"])
                 logger.debug(workflow)
                 count = 0
                 for w in workflow:

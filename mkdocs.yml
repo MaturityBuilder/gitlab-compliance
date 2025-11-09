@@ -29,5 +29,6 @@ docs_dir: docs
   # favicon: assets/images/favicon.ico  # optional
 
 nav:
-  - Home: README.md
-  - GITLAB-DOCS: GITLAB-DOCS.md
+  - Home: ./index.md
+  - Output Example: ./output-example.md
+  - Command Reference: ./command-reference.md

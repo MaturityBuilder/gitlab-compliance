@@ -3,13 +3,11 @@ import os
 import yaml
 import src.modules.common as common
 from src.modules.logging import logger
-# from src.modules.doc_controller import update_marked_block
+# from src.modules.doc_controller import add_between_markers
 from src.modules.doc_controller import add_between_markers
 
 def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
     logger.trace("Generating Documentation for Variables")
-
-    from prettytable import MARKDOWN
 
     file = common.read_yml(GLDOCS_CONFIG_FILE)
     try:
@@ -17,19 +15,14 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
             if "variables" in data:
                 variables = data["variables"]
                 # logger.trace(gldocs.generate_markdown_table(variables))
-                from prettytable import PrettyTable
-
-                variables_table = PrettyTable()
-                variables_table.set_style(MARKDOWN)
-                variables_table.field_names = [
+                field_names = [
                     "Key",
                     "Value",
                     "Description",
                     "Options",
                     "Expand",
                 ]
-                # variables_table.add_rows([variables])
-                logger.info(variables)
+                variables_table = common.table_design(headers=field_names,field_names=field_names)
 
                 for v in variables:
                     description = "&#x274c;"

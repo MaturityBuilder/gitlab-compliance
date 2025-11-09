@@ -24,43 +24,34 @@ def get_jobs(
         "variables",
         "workflow",
         "image",
+        "spec",
     ]
     logger.trace("Generating Documentation for Jobs")
 
     file = common.read_yml(GLDOCS_CONFIG_FILE)
-
+    add_between_markers(file_path=OUTPUT_FILE, content="## Jobs")
     for jobs in file:
         # Create file lock against output md file
         # f = open(OUTPUT_FILE, "a")
-        if not DISABLE_TITLE:
-            add_between_markers(file_path=OUTPUT_FILE, content="\n")
-            GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n")
-            add_between_markers(file_path=OUTPUT_FILE, content="\n")
-            add_between_markers(file_path=OUTPUT_FILE, content=GLDOCS_CONFIG_FILE_HEADING)
+        # if not DISABLE_TITLE:
+        #     add_between_markers(file_path=OUTPUT_FILE, content="\n")
+        #     GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n")
+        #     add_between_markers(file_path=OUTPUT_FILE, content=GLDOCS_CONFIG_FILE_HEADING)
         # if not DISABLE_TYPE_HEADING:
-        #     add_between_markers(file_path=OUTPUT_FILE, content="\n")
-        #     # add_between_markers(file_path=OUTPUT_FILE, content=str("## " + "Jobs" + "\n"))
-        #     add_between_markers(file_path=OUTPUT_FILE, content="\n")
+            # add_between_markers(file_path=OUTPUT_FILE, content="\n")
+            # add_between_markers(file_path=OUTPUT_FILE, content=str("## " + "Jobs" + "\n"))
+            # add_between_markers(file_path=OUTPUT_FILE, content="\n")
 
         # logger.trace(type(jobs))
 
         for j in jobs:
-            if j in exclude_keywords:
+            if j in exclude_keywords and not j.startswith("."):
                 logger.debug("Key is reserved for gitlab: " + j)
             else:
                 # Build Row Level Table to store each job config in
-                job_config_table_headers = ["**Property**", "**Value**"]
-
-                job_config_table = PrettyTable(headers=job_config_table_headers)
-                job_config_table.border = True
-                job_config_table.set_style(DESIGN)
-                job_config_table.field_names = job_config_table_headers
-
-                job_variables_config_table = PrettyTable()
-                job_variables_config_table.border = True
-                job_variables_config_table.set_style(DESIGN)
-                job_variables_config_table.field_names = ['<span class="badge text-bg-danger">Type</span>','<span class="badge text-bg-warning">Key</span>','<span class="badge text-bg-success">Value</span>']
-                # job_config_table.border=False
+              
+                job_config_table = common.table_design(headers=["**Attribute**", "**Value**"])
+                variable_table = common.table_design(headers=['<span class="badge text-bg-danger">Attribute</span>','<span class="badge text-bg-warning">Key</span>','<span class="badge text-bg-success">Value</span>'])
                 try: 
                     if experimental is True:
                         if detailed is True and j["rules"]:
@@ -69,12 +60,13 @@ def get_jobs(
                     jobs[j].pop("before_script", None)
                     jobs[j].pop("script", None)
                     jobs[j].pop("after_script", None)
+                    jobs[j].pop("artifacts", None)
                     # logger.trace(jobs[j])
                     job_config = []
                     value_counter = 0
                     if jobs[j]:
                         for key in sorted(jobs[j]):
-                            job_property = "**" + key + "**"
+                            job_Attribute = "**" + key + "**"
                             value = (
                                 str(jobs[j][key])
                                 .replace(",", "\n")
@@ -92,13 +84,13 @@ def get_jobs(
                                 for item_key in var:
                                     value = jobs[j][key][item_key]
                                     value_counter = value_counter + 1
-                                    job_variables_config_table.add_row([key,item_key, value])
+                                    variable_table.add_row([key,item_key, value])
                             elif key in ["artifacts"] and type(key).__name__ != str:
                                 var = jobs[j][key].keys()
                                 for item_key in var:
                                     value = jobs[j][key][item_key]
                                     value_counter = value_counter + 1
-                                    job_variables_config_table.add_row([key,item_key, value])
+                                    variable_table.add_row([key,item_key, value])
                                 # print(type(key).__name__)
                             elif key in ["needs"]:
                                 # print("found extends")
@@ -106,9 +98,9 @@ def get_jobs(
                                 for x in jobs[j][key]:
                                     value_counter = value_counter + 1
                                     # print([key,"Hidden Job", x])
-                                    job_variables_config_table.add_row([key,"", x])
+                                    variable_table.add_row([key,"", x])
                             else:
-                                job_config_table.add_row([job_property, value])
+                                job_config_table.add_row([job_Attribute, value])
                             # job_config.append([key,jobs[j][key]])
                             logger.debug(jobs[j][key])
 
@@ -127,14 +119,14 @@ def get_jobs(
                         add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
                         # add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
                         add_between_markers(file_path=OUTPUT_FILE, content=str(job_config_table))
-                        # print(job_variables_config_table)
+                        # print(variable_table)
 
                         if value_counter > 0:
-                            # print(job_variables_config_table)
+                            # print(variable_table)
                             add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
-                            add_between_markers(file_path=OUTPUT_FILE, content=str(job_variables_config_table))
+                            add_between_markers(file_path=OUTPUT_FILE, content=str(variable_table))
                             add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
-                            # add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+                        add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
                 except AttributeError as e:
                     logger.info("Unable to pop job attribute") 
                 except Exception as e:
