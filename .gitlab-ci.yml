@@ -145,7 +145,7 @@ publish:
       apt update -qq -y
       apt install -qq -y jq
       poetry install -q
-      poetry publish --repository pypi --username __token__ --password "$CI_JOB_JWT_V2"
+      poetry publish --build --repository pypi --username __token__ --password "$CI_JOB_JWT_V2"
   id_tokens:
     PYPI_JWT:
       aud: "https://pypi.org"
