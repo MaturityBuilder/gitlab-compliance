@@ -50,21 +50,89 @@ gitlab-docs
 
 ```
 
-# ENVIRONMENT VARIABLES
+## Command Reference
 
-| Key                           | Default Value    | Description                                                                                          |
-| ----------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------- |
-| GLDOCS_CONFIG_FILE            | .gitlab-ci.yml   | The gitlab configuration file you want to generate documentation on                                  |
-| OUTPUT_FILE                   | ./README.md | The file to output documentation to. |
-| LOG_LEVEL                     | INFO             | Determines the verbosity of the logging when you run gitlab-docs. For detailed logging set to TRACE.                                    |
-| | False            | Outputting documentation for the workflow config is experimental                                     |
+A command line tool to convert your gitlab-ci yml into markdown documentation.
+
+### Usage
+
+```
+Usage: gitlab-docs [OPTIONS] COMMAND [ARGS]...
+```
+
+### Options
+* `detailed`: 
+  * Type: BOOL 
+  * Default: `false`
+  * Usage: `--detailed`
+
+  Will include workflow and rules from jobs.
+
+
+* `DRY_MODE`: 
+  * Type: BOOL 
+  * Default: `false`
+  * Usage: `--dry-mode
+-d`
+
+  If set will disable documentation from being written
+
+
+* `OUTPUT_FILE`: 
+  * Type: STRING 
+  * Default: `readme.md`
+  * Usage: `--output-file
+-o`
+
+  Output location of the markdown documentation.
+
+
+* `GLDOCS_CONFIG_FILE`: 
+  * Type: STRING 
+  * Default: `.gitlab-ci.yml`
+  * Usage: `--input-config
+-i`
+
+  The Gitlab CI Input configuration file to generated documentation from.
+
+
+* `help`: 
+  * Type: BOOL 
+  * Default: `false`
+  * Usage: `--help`
+
+  Show this message and exit.
+
+
+
+### CLI Help
+
+```
+Usage: gitlab-docs [OPTIONS] COMMAND [ARGS]...
+
+  A command line tool to convert your gitlab-ci yml into markdown
+  documentation.
+
+Options:
+  --detailed               Will include workflow and rules from jobs.
+  -d, --dry-mode           If set will disable documentation from being
+                           written
+
+  -o, --output-file TEXT   Output location of the markdown documentation.
+  -i, --input-config TEXT  The Gitlab CI Input configuration file to generated
+                           documentation from.
+
+  --help                   Show this message and exit.
+
+Commands:
+  get-images
+```
 
 ## Example of what's generated
 <br><hr>
 
 [comment]: <> (gitlab-docs-opening-auto-generated)
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
             <h1><span class="badge text-bg-primary">GITLAB DOCS - .gitlab-ci.yml</span></h1>
 
 
@@ -98,6 +166,15 @@ gitlab-docs
 
 
 ## .gitlab-ci.yml
+<h4><span class="badge text-bg-secondary">.TEST:RULES</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |    'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH']   |
+|  **stage**   |                          test                         |
 <h4><span class="badge text-bg-info">MEGALINTER</span></h4>
 
 <hr>
@@ -105,8 +182,8 @@ gitlab-docs
 |    **Property**   |           **Value**            |
 | :---------------: | :----------------------------: |
 | **allow_failure** |              True              |
+|    **extends**    |        ['.test:rules']         |
 |     **image**     | oxsecurity/megalinter-ci_light |
-|     **stage**     |              test              |
 
 | <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
 | :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
@@ -119,24 +196,33 @@ gitlab-docs
 
 <hr>
 
-| **Property** |     **Value**      |
-| :----------: | :----------------: |
-|   **only**   | ['merge_requests'] |
-|  **stage**   |        test        |
+| **Property** |      **Value**      |
+| :----------: | :-----------------: |
+| **extends**  |    ['.test:rules'   |
+|              |  '.poetry:install'] |
 
 | <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
 | :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
 |                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
 
+<h4><span class="badge text-bg-info">BUMP-VERSION</span></h4>
+
+<hr>
+
+| **Property** |               **Value**               |
+| :----------: | :-----------------------------------: |
+|  **image**   |             python:3.12.11            |
+|  **rules**   | ['if': '$CI_COMMIT_BRANCH == "main"'] |
+|  **stage**   |                 .post                 |
 <h4><span class="badge text-bg-secondary">.BUILD:PYTHON</span></h4>
 
 <hr>
 
-|   **Property**  |           **Value**            |
-| :-------------: | :----------------------------: |
-| **environment** |            release             |
-|  **id_tokens**  | 'PYPI_ID_TOKEN': 'aud': 'pypi' |
-|    **stage**    |             build              |
+|   **Property**  |      **Value**      |
+| :-------------: | :-----------------: |
+| **environment** |       release       |
+|   **extends**   | ['.poetry:install'] |
+|    **stage**    |        build        |
 
 | <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
 | :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
@@ -144,13 +230,23 @@ gitlab-docs
 |                   artifacts                    |                     paths                      |               ['./dist/*.tar.gz']                |
 |                   artifacts                    |                   expire_in                    |                      1 hour                      |
 
-<h4><span class="badge text-bg-info">BUILD</span></h4>
+<h4><span class="badge text-bg-info">TEST-BUILD</span></h4>
 
 <hr>
 
 | **Property** |     **Value**     |
 | :----------: | :---------------: |
 | **extends**  | ['.build:python'] |
+<h4><span class="badge text-bg-info">PUBLISH</span></h4>
+
+<hr>
+
+|  **Property** |                    **Value**                    |
+| :-----------: | :---------------------------------------------: |
+|  **extends**  |               ['.poetry:install']               |
+| **id_tokens** |      'PYPI_JWT': 'aud': 'https://pypi.org'      |
+|   **rules**   | ['if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG'] |
+|   **stage**   |                     publish                     |
 <h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
 
 <hr>
@@ -162,4 +258,1149 @@ gitlab-docs
 | **services** |                 ['docker:dind']                 |
 |  **stage**   |                      build                      |
 |   **tags**   |              ['gitlab-org-docker']              |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">SPEC</span></h4>
+
+<hr>
+
+| **Property** |                **Value**                |
+| :----------: | :-------------------------------------: |
+|  **inputs**  |      'job-stage': 'default': 'test'     |
+|              |  'environment': 'default': 'production' |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">VARIABLES</span></h4>
+
+<hr>
+
+|   **Property**  |   **Value**    |
+| :-------------: | :------------: |
+| **APPLICATION** |  gitlab-docs   |
+| **OUTPUT_FILE** | GITLAB-DOCS.md |
+<h4><span class="badge text-bg-info">DEFAULT</span></h4>
+
+<hr>
+
+| **Property** |   **Value**    |
+| :----------: | :------------: |
+|   **tags**   | ['gitlab-org'] |
+<h4><span class="badge text-bg-secondary">.TEST:RULES</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |    'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH']   |
+|  **stage**   |                          test                         |
+<h4><span class="badge text-bg-info">WORKFLOW</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |     'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'   |
+|              |     'if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG']    |
+<h4><span class="badge text-bg-info">MEGALINTER</span></h4>
+
+<hr>
+
+|    **Property**   |           **Value**            |
+| :---------------: | :----------------------------: |
+| **allow_failure** |              True              |
+|    **extends**    |        ['.test:rules']         |
+|     **image**     | oxsecurity/megalinter-ci_light |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |              ['megalinter-reports']              |
+|                   artifacts                    |                   expire_in                    |                      1 week                      |
+|                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
+
+<h4><span class="badge text-bg-info">BEHAVE-TESTS</span></h4>
+
+<hr>
+
+| **Property** |      **Value**      |
+| :----------: | :-----------------: |
+| **extends**  |    ['.test:rules'   |
+|              |  '.poetry:install'] |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
+
+<h4><span class="badge text-bg-info">BUMP-VERSION</span></h4>
+
+<hr>
+
+| **Property** |               **Value**               |
+| :----------: | :-----------------------------------: |
+|  **image**   |             python:3.12.11            |
+|  **rules**   | ['if': '$CI_COMMIT_BRANCH == "main"'] |
+|  **stage**   |                 .post                 |
+<h4><span class="badge text-bg-secondary">.BUILD:PYTHON</span></h4>
+
+<hr>
+
+|   **Property**  |      **Value**      |
+| :-------------: | :-----------------: |
+| **environment** |       release       |
+|   **extends**   | ['.poetry:install'] |
+|    **stage**    |        build        |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |               ['./dist/*.tar.gz']                |
+|                   artifacts                    |                   expire_in                    |                      1 hour                      |
+
+<h4><span class="badge text-bg-info">TEST-BUILD</span></h4>
+
+<hr>
+
+| **Property** |     **Value**     |
+| :----------: | :---------------: |
+| **extends**  | ['.build:python'] |
+<h4><span class="badge text-bg-info">PUBLISH</span></h4>
+
+<hr>
+
+|  **Property** |                    **Value**                    |
+| :-----------: | :---------------------------------------------: |
+|  **extends**  |               ['.poetry:install']               |
+| **id_tokens** |      'PYPI_JWT': 'aud': 'https://pypi.org'      |
+|   **rules**   | ['if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG'] |
+|   **stage**   |                     publish                     |
+<h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
+
+<hr>
+
+| **Property** |                    **Value**                    |
+| :----------: | :---------------------------------------------: |
+|  **image**   |                  docker:latest                  |
+|  **rules**   | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
+| **services** |                 ['docker:dind']                 |
+|  **stage**   |                      build                      |
+|   **tags**   |              ['gitlab-org-docker']              |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">SPEC</span></h4>
+
+<hr>
+
+| **Property** |                **Value**                |
+| :----------: | :-------------------------------------: |
+|  **inputs**  |      'job-stage': 'default': 'test'     |
+|              |  'environment': 'default': 'production' |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">VARIABLES</span></h4>
+
+<hr>
+
+|   **Property**  |   **Value**    |
+| :-------------: | :------------: |
+| **APPLICATION** |  gitlab-docs   |
+| **OUTPUT_FILE** | GITLAB-DOCS.md |
+<h4><span class="badge text-bg-info">DEFAULT</span></h4>
+
+<hr>
+
+| **Property** |   **Value**    |
+| :----------: | :------------: |
+|   **tags**   | ['gitlab-org'] |
+<h4><span class="badge text-bg-secondary">.TEST:RULES</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |    'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH']   |
+|  **stage**   |                          test                         |
+<h4><span class="badge text-bg-info">WORKFLOW</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |     'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'   |
+|              |     'if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG']    |
+<h4><span class="badge text-bg-info">MEGALINTER</span></h4>
+
+<hr>
+
+|    **Property**   |           **Value**            |
+| :---------------: | :----------------------------: |
+| **allow_failure** |              True              |
+|    **extends**    |        ['.test:rules']         |
+|     **image**     | oxsecurity/megalinter-ci_light |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |              ['megalinter-reports']              |
+|                   artifacts                    |                   expire_in                    |                      1 week                      |
+|                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
+
+<h4><span class="badge text-bg-info">BEHAVE-TESTS</span></h4>
+
+<hr>
+
+| **Property** |      **Value**      |
+| :----------: | :-----------------: |
+| **extends**  |    ['.test:rules'   |
+|              |  '.poetry:install'] |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
+
+<h4><span class="badge text-bg-info">BUMP-VERSION</span></h4>
+
+<hr>
+
+| **Property** |               **Value**               |
+| :----------: | :-----------------------------------: |
+|  **image**   |             python:3.12.11            |
+|  **rules**   | ['if': '$CI_COMMIT_BRANCH == "main"'] |
+|  **stage**   |                 .post                 |
+<h4><span class="badge text-bg-secondary">.BUILD:PYTHON</span></h4>
+
+<hr>
+
+|   **Property**  |      **Value**      |
+| :-------------: | :-----------------: |
+| **environment** |       release       |
+|   **extends**   | ['.poetry:install'] |
+|    **stage**    |        build        |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |               ['./dist/*.tar.gz']                |
+|                   artifacts                    |                   expire_in                    |                      1 hour                      |
+
+<h4><span class="badge text-bg-info">TEST-BUILD</span></h4>
+
+<hr>
+
+| **Property** |     **Value**     |
+| :----------: | :---------------: |
+| **extends**  | ['.build:python'] |
+<h4><span class="badge text-bg-info">PUBLISH</span></h4>
+
+<hr>
+
+|  **Property** |                    **Value**                    |
+| :-----------: | :---------------------------------------------: |
+|  **extends**  |               ['.poetry:install']               |
+| **id_tokens** |      'PYPI_JWT': 'aud': 'https://pypi.org'      |
+|   **rules**   | ['if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG'] |
+|   **stage**   |                     publish                     |
+<h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
+
+<hr>
+
+| **Property** |                    **Value**                    |
+| :----------: | :---------------------------------------------: |
+|  **image**   |                  docker:latest                  |
+|  **rules**   | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
+| **services** |                 ['docker:dind']                 |
+|  **stage**   |                      build                      |
+|   **tags**   |              ['gitlab-org-docker']              |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">SPEC</span></h4>
+
+<hr>
+
+| **Property** |                **Value**                |
+| :----------: | :-------------------------------------: |
+|  **inputs**  |      'job-stage': 'default': 'test'     |
+|              |  'environment': 'default': 'production' |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">VARIABLES</span></h4>
+
+<hr>
+
+|   **Property**  |   **Value**    |
+| :-------------: | :------------: |
+| **APPLICATION** |  gitlab-docs   |
+| **OUTPUT_FILE** | GITLAB-DOCS.md |
+<h4><span class="badge text-bg-info">DEFAULT</span></h4>
+
+<hr>
+
+| **Property** |   **Value**    |
+| :----------: | :------------: |
+|   **tags**   | ['gitlab-org'] |
+<h4><span class="badge text-bg-secondary">.TEST:RULES</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |    'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH']   |
+|  **stage**   |                          test                         |
+<h4><span class="badge text-bg-info">WORKFLOW</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |     'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'   |
+|              |     'if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG']    |
+<h4><span class="badge text-bg-info">MEGALINTER</span></h4>
+
+<hr>
+
+|    **Property**   |           **Value**            |
+| :---------------: | :----------------------------: |
+| **allow_failure** |              True              |
+|    **extends**    |        ['.test:rules']         |
+|     **image**     | oxsecurity/megalinter-ci_light |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |              ['megalinter-reports']              |
+|                   artifacts                    |                   expire_in                    |                      1 week                      |
+|                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
+
+<h4><span class="badge text-bg-info">BEHAVE-TESTS</span></h4>
+
+<hr>
+
+| **Property** |      **Value**      |
+| :----------: | :-----------------: |
+| **extends**  |    ['.test:rules'   |
+|              |  '.poetry:install'] |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
+
+<h4><span class="badge text-bg-info">BUMP-VERSION</span></h4>
+
+<hr>
+
+| **Property** |               **Value**               |
+| :----------: | :-----------------------------------: |
+|  **image**   |             python:3.12.11            |
+|  **rules**   | ['if': '$CI_COMMIT_BRANCH == "main"'] |
+|  **stage**   |                 .post                 |
+<h4><span class="badge text-bg-secondary">.BUILD:PYTHON</span></h4>
+
+<hr>
+
+|   **Property**  |      **Value**      |
+| :-------------: | :-----------------: |
+| **environment** |       release       |
+|   **extends**   | ['.poetry:install'] |
+|    **stage**    |        build        |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |               ['./dist/*.tar.gz']                |
+|                   artifacts                    |                   expire_in                    |                      1 hour                      |
+
+<h4><span class="badge text-bg-info">TEST-BUILD</span></h4>
+
+<hr>
+
+| **Property** |     **Value**     |
+| :----------: | :---------------: |
+| **extends**  | ['.build:python'] |
+<h4><span class="badge text-bg-info">PUBLISH</span></h4>
+
+<hr>
+
+|  **Property** |                    **Value**                    |
+| :-----------: | :---------------------------------------------: |
+|  **extends**  |               ['.poetry:install']               |
+| **id_tokens** |      'PYPI_JWT': 'aud': 'https://pypi.org'      |
+|   **rules**   | ['if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG'] |
+|   **stage**   |                     publish                     |
+<h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
+
+<hr>
+
+| **Property** |                    **Value**                    |
+| :----------: | :---------------------------------------------: |
+|  **image**   |                  docker:latest                  |
+|  **rules**   | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
+| **services** |                 ['docker:dind']                 |
+|  **stage**   |                      build                      |
+|   **tags**   |              ['gitlab-org-docker']              |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">SPEC</span></h4>
+
+<hr>
+
+| **Property** |                **Value**                |
+| :----------: | :-------------------------------------: |
+|  **inputs**  |      'job-stage': 'default': 'test'     |
+|              |  'environment': 'default': 'production' |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">VARIABLES</span></h4>
+
+<hr>
+
+|   **Property**  |   **Value**    |
+| :-------------: | :------------: |
+| **APPLICATION** |  gitlab-docs   |
+| **OUTPUT_FILE** | GITLAB-DOCS.md |
+<h4><span class="badge text-bg-info">DEFAULT</span></h4>
+
+<hr>
+
+| **Property** |   **Value**    |
+| :----------: | :------------: |
+|   **tags**   | ['gitlab-org'] |
+<h4><span class="badge text-bg-secondary">.TEST:RULES</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |    'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH']   |
+|  **stage**   |                          test                         |
+<h4><span class="badge text-bg-info">WORKFLOW</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |     'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'   |
+|              |     'if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG']    |
+<h4><span class="badge text-bg-info">MEGALINTER</span></h4>
+
+<hr>
+
+|    **Property**   |           **Value**            |
+| :---------------: | :----------------------------: |
+| **allow_failure** |              True              |
+|    **extends**    |        ['.test:rules']         |
+|     **image**     | oxsecurity/megalinter-ci_light |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |              ['megalinter-reports']              |
+|                   artifacts                    |                   expire_in                    |                      1 week                      |
+|                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
+
+<h4><span class="badge text-bg-info">BEHAVE-TESTS</span></h4>
+
+<hr>
+
+| **Property** |      **Value**      |
+| :----------: | :-----------------: |
+| **extends**  |    ['.test:rules'   |
+|              |  '.poetry:install'] |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
+
+<h4><span class="badge text-bg-info">BUMP-VERSION</span></h4>
+
+<hr>
+
+| **Property** |               **Value**               |
+| :----------: | :-----------------------------------: |
+|  **image**   |             python:3.12.11            |
+|  **rules**   | ['if': '$CI_COMMIT_BRANCH == "main"'] |
+|  **stage**   |                 .post                 |
+<h4><span class="badge text-bg-secondary">.BUILD:PYTHON</span></h4>
+
+<hr>
+
+|   **Property**  |      **Value**      |
+| :-------------: | :-----------------: |
+| **environment** |       release       |
+|   **extends**   | ['.poetry:install'] |
+|    **stage**    |        build        |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |               ['./dist/*.tar.gz']                |
+|                   artifacts                    |                   expire_in                    |                      1 hour                      |
+
+<h4><span class="badge text-bg-info">TEST-BUILD</span></h4>
+
+<hr>
+
+| **Property** |     **Value**     |
+| :----------: | :---------------: |
+| **extends**  | ['.build:python'] |
+<h4><span class="badge text-bg-info">PUBLISH</span></h4>
+
+<hr>
+
+|  **Property** |                    **Value**                    |
+| :-----------: | :---------------------------------------------: |
+|  **extends**  |               ['.poetry:install']               |
+| **id_tokens** |      'PYPI_JWT': 'aud': 'https://pypi.org'      |
+|   **rules**   | ['if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG'] |
+|   **stage**   |                     publish                     |
+<h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
+
+<hr>
+
+| **Property** |                    **Value**                    |
+| :----------: | :---------------------------------------------: |
+|  **image**   |                  docker:latest                  |
+|  **rules**   | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
+| **services** |                 ['docker:dind']                 |
+|  **stage**   |                      build                      |
+|   **tags**   |              ['gitlab-org-docker']              |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">SPEC</span></h4>
+
+<hr>
+
+| **Property** |                **Value**                |
+| :----------: | :-------------------------------------: |
+|  **inputs**  |      'job-stage': 'default': 'test'     |
+|              |  'environment': 'default': 'production' |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">VARIABLES</span></h4>
+
+<hr>
+
+|   **Property**  |   **Value**    |
+| :-------------: | :------------: |
+| **APPLICATION** |  gitlab-docs   |
+| **OUTPUT_FILE** | GITLAB-DOCS.md |
+<h4><span class="badge text-bg-info">DEFAULT</span></h4>
+
+<hr>
+
+| **Property** |   **Value**    |
+| :----------: | :------------: |
+|   **tags**   | ['gitlab-org'] |
+<h4><span class="badge text-bg-secondary">.TEST:RULES</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |    'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH']   |
+|  **stage**   |                          test                         |
+<h4><span class="badge text-bg-info">WORKFLOW</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |     'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'   |
+|              |     'if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG']    |
+<h4><span class="badge text-bg-info">MEGALINTER</span></h4>
+
+<hr>
+
+|    **Property**   |           **Value**            |
+| :---------------: | :----------------------------: |
+| **allow_failure** |              True              |
+|    **extends**    |        ['.test:rules']         |
+|     **image**     | oxsecurity/megalinter-ci_light |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |              ['megalinter-reports']              |
+|                   artifacts                    |                   expire_in                    |                      1 week                      |
+|                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
+
+<h4><span class="badge text-bg-info">BEHAVE-TESTS</span></h4>
+
+<hr>
+
+| **Property** |      **Value**      |
+| :----------: | :-----------------: |
+| **extends**  |    ['.test:rules'   |
+|              |  '.poetry:install'] |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
+
+<h4><span class="badge text-bg-info">BUMP-VERSION</span></h4>
+
+<hr>
+
+| **Property** |               **Value**               |
+| :----------: | :-----------------------------------: |
+|  **image**   |             python:3.12.11            |
+|  **rules**   | ['if': '$CI_COMMIT_BRANCH == "main"'] |
+|  **stage**   |                 .post                 |
+<h4><span class="badge text-bg-secondary">.BUILD:PYTHON</span></h4>
+
+<hr>
+
+|   **Property**  |      **Value**      |
+| :-------------: | :-----------------: |
+| **environment** |       release       |
+|   **extends**   | ['.poetry:install'] |
+|    **stage**    |        build        |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |               ['./dist/*.tar.gz']                |
+|                   artifacts                    |                   expire_in                    |                      1 hour                      |
+
+<h4><span class="badge text-bg-info">TEST-BUILD</span></h4>
+
+<hr>
+
+| **Property** |     **Value**     |
+| :----------: | :---------------: |
+| **extends**  | ['.build:python'] |
+<h4><span class="badge text-bg-info">PUBLISH</span></h4>
+
+<hr>
+
+|  **Property** |                    **Value**                    |
+| :-----------: | :---------------------------------------------: |
+|  **extends**  |               ['.poetry:install']               |
+| **id_tokens** |      'PYPI_JWT': 'aud': 'https://pypi.org'      |
+|   **rules**   | ['if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG'] |
+|   **stage**   |                     publish                     |
+<h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
+
+<hr>
+
+| **Property** |                    **Value**                    |
+| :----------: | :---------------------------------------------: |
+|  **image**   |                  docker:latest                  |
+|  **rules**   | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
+| **services** |                 ['docker:dind']                 |
+|  **stage**   |                      build                      |
+|   **tags**   |              ['gitlab-org-docker']              |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">SPEC</span></h4>
+
+<hr>
+
+| **Property** |                **Value**                |
+| :----------: | :-------------------------------------: |
+|  **inputs**  |      'job-stage': 'default': 'test'     |
+|              |  'environment': 'default': 'production' |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">VARIABLES</span></h4>
+
+<hr>
+
+|   **Property**  |   **Value**    |
+| :-------------: | :------------: |
+| **APPLICATION** |  gitlab-docs   |
+| **OUTPUT_FILE** | GITLAB-DOCS.md |
+<h4><span class="badge text-bg-info">DEFAULT</span></h4>
+
+<hr>
+
+| **Property** |   **Value**    |
+| :----------: | :------------: |
+|   **tags**   | ['gitlab-org'] |
+<h4><span class="badge text-bg-secondary">.TEST:RULES</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |    'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH']   |
+|  **stage**   |                          test                         |
+<h4><span class="badge text-bg-info">WORKFLOW</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |     'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'   |
+|              |     'if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG']    |
+<h4><span class="badge text-bg-info">MEGALINTER</span></h4>
+
+<hr>
+
+|    **Property**   |           **Value**            |
+| :---------------: | :----------------------------: |
+| **allow_failure** |              True              |
+|    **extends**    |        ['.test:rules']         |
+|     **image**     | oxsecurity/megalinter-ci_light |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |              ['megalinter-reports']              |
+|                   artifacts                    |                   expire_in                    |                      1 week                      |
+|                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
+
+<h4><span class="badge text-bg-info">BEHAVE-TESTS</span></h4>
+
+<hr>
+
+| **Property** |      **Value**      |
+| :----------: | :-----------------: |
+| **extends**  |    ['.test:rules'   |
+|              |  '.poetry:install'] |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
+
+<h4><span class="badge text-bg-info">BUMP-VERSION</span></h4>
+
+<hr>
+
+| **Property** |               **Value**               |
+| :----------: | :-----------------------------------: |
+|  **image**   |             python:3.12.11            |
+|  **rules**   | ['if': '$CI_COMMIT_BRANCH == "main"'] |
+|  **stage**   |                 .post                 |
+<h4><span class="badge text-bg-secondary">.BUILD:PYTHON</span></h4>
+
+<hr>
+
+|   **Property**  |      **Value**      |
+| :-------------: | :-----------------: |
+| **environment** |       release       |
+|   **extends**   | ['.poetry:install'] |
+|    **stage**    |        build        |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |               ['./dist/*.tar.gz']                |
+|                   artifacts                    |                   expire_in                    |                      1 hour                      |
+
+<h4><span class="badge text-bg-info">TEST-BUILD</span></h4>
+
+<hr>
+
+| **Property** |     **Value**     |
+| :----------: | :---------------: |
+| **extends**  | ['.build:python'] |
+<h4><span class="badge text-bg-info">PUBLISH</span></h4>
+
+<hr>
+
+|  **Property** |                    **Value**                    |
+| :-----------: | :---------------------------------------------: |
+|  **extends**  |               ['.poetry:install']               |
+| **id_tokens** |      'PYPI_JWT': 'aud': 'https://pypi.org'      |
+|   **rules**   | ['if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG'] |
+|   **stage**   |                     publish                     |
+<h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
+
+<hr>
+
+| **Property** |                    **Value**                    |
+| :----------: | :---------------------------------------------: |
+|  **image**   |                  docker:latest                  |
+|  **rules**   | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
+| **services** |                 ['docker:dind']                 |
+|  **stage**   |                      build                      |
+|   **tags**   |              ['gitlab-org-docker']              |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">SPEC</span></h4>
+
+<hr>
+
+| **Property** |                **Value**                |
+| :----------: | :-------------------------------------: |
+|  **inputs**  |      'job-stage': 'default': 'test'     |
+|              |  'environment': 'default': 'production' |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">VARIABLES</span></h4>
+
+<hr>
+
+|   **Property**  |   **Value**    |
+| :-------------: | :------------: |
+| **APPLICATION** |  gitlab-docs   |
+| **OUTPUT_FILE** | GITLAB-DOCS.md |
+<h4><span class="badge text-bg-info">DEFAULT</span></h4>
+
+<hr>
+
+| **Property** |   **Value**    |
+| :----------: | :------------: |
+|   **tags**   | ['gitlab-org'] |
+<h4><span class="badge text-bg-secondary">.TEST:RULES</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |    'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH']   |
+|  **stage**   |                          test                         |
+<h4><span class="badge text-bg-info">WORKFLOW</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |     'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'   |
+|              |     'if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG']    |
+<h4><span class="badge text-bg-info">MEGALINTER</span></h4>
+
+<hr>
+
+|    **Property**   |           **Value**            |
+| :---------------: | :----------------------------: |
+| **allow_failure** |              True              |
+|    **extends**    |        ['.test:rules']         |
+|     **image**     | oxsecurity/megalinter-ci_light |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |              ['megalinter-reports']              |
+|                   artifacts                    |                   expire_in                    |                      1 week                      |
+|                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
+
+<h4><span class="badge text-bg-info">BEHAVE-TESTS</span></h4>
+
+<hr>
+
+| **Property** |      **Value**      |
+| :----------: | :-----------------: |
+| **extends**  |    ['.test:rules'   |
+|              |  '.poetry:install'] |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
+
+<h4><span class="badge text-bg-info">BUMP-VERSION</span></h4>
+
+<hr>
+
+| **Property** |               **Value**               |
+| :----------: | :-----------------------------------: |
+|  **image**   |             python:3.12.11            |
+|  **rules**   | ['if': '$CI_COMMIT_BRANCH == "main"'] |
+|  **stage**   |                 .post                 |
+<h4><span class="badge text-bg-secondary">.BUILD:PYTHON</span></h4>
+
+<hr>
+
+|   **Property**  |      **Value**      |
+| :-------------: | :-----------------: |
+| **environment** |       release       |
+|   **extends**   | ['.poetry:install'] |
+|    **stage**    |        build        |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |               ['./dist/*.tar.gz']                |
+|                   artifacts                    |                   expire_in                    |                      1 hour                      |
+
+<h4><span class="badge text-bg-info">TEST-BUILD</span></h4>
+
+<hr>
+
+| **Property** |     **Value**     |
+| :----------: | :---------------: |
+| **extends**  | ['.build:python'] |
+<h4><span class="badge text-bg-info">PUBLISH</span></h4>
+
+<hr>
+
+|  **Property** |                    **Value**                    |
+| :-----------: | :---------------------------------------------: |
+|  **extends**  |               ['.poetry:install']               |
+| **id_tokens** |      'PYPI_JWT': 'aud': 'https://pypi.org'      |
+|   **rules**   | ['if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG'] |
+|   **stage**   |                     publish                     |
+<h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
+
+<hr>
+
+| **Property** |                    **Value**                    |
+| :----------: | :---------------------------------------------: |
+|  **image**   |                  docker:latest                  |
+|  **rules**   | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
+| **services** |                 ['docker:dind']                 |
+|  **stage**   |                      build                      |
+|   **tags**   |              ['gitlab-org-docker']              |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">SPEC</span></h4>
+
+<hr>
+
+| **Property** |                **Value**                |
+| :----------: | :-------------------------------------: |
+|  **inputs**  |      'job-stage': 'default': 'test'     |
+|              |  'environment': 'default': 'production' |
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">VARIABLES</span></h4>
+
+<hr>
+
+|   **Property**  |   **Value**    |
+| :-------------: | :------------: |
+| **APPLICATION** |  gitlab-docs   |
+| **OUTPUT_FILE** | GITLAB-DOCS.md |
+<h4><span class="badge text-bg-info">DEFAULT</span></h4>
+
+<hr>
+
+| **Property** |   **Value**    |
+| :----------: | :------------: |
+|   **tags**   | ['gitlab-org'] |
+<h4><span class="badge text-bg-secondary">.TEST:RULES</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |    'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH']   |
+|  **stage**   |                          test                         |
+<h4><span class="badge text-bg-info">WORKFLOW</span></h4>
+
+<hr>
+
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |     'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'   |
+|              |     'if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG']    |
+<h4><span class="badge text-bg-info">MEGALINTER</span></h4>
+
+<hr>
+
+|    **Property**   |           **Value**            |
+| :---------------: | :----------------------------: |
+| **allow_failure** |              True              |
+|    **extends**    |        ['.test:rules']         |
+|     **image**     | oxsecurity/megalinter-ci_light |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |              ['megalinter-reports']              |
+|                   artifacts                    |                   expire_in                    |                      1 week                      |
+|                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
+
+<h4><span class="badge text-bg-info">BEHAVE-TESTS</span></h4>
+
+<hr>
+
+| **Property** |      **Value**      |
+| :----------: | :-----------------: |
+| **extends**  |    ['.test:rules'   |
+|              |  '.poetry:install'] |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
+
+<h4><span class="badge text-bg-info">BUMP-VERSION</span></h4>
+
+<hr>
+
+| **Property** |               **Value**               |
+| :----------: | :-----------------------------------: |
+|  **image**   |             python:3.12.11            |
+|  **rules**   | ['if': '$CI_COMMIT_BRANCH == "main"'] |
+|  **stage**   |                 .post                 |
+<h4><span class="badge text-bg-secondary">.BUILD:PYTHON</span></h4>
+
+<hr>
+
+|   **Property**  |      **Value**      |
+| :-------------: | :-----------------: |
+| **environment** |       release       |
+|   **extends**   | ['.poetry:install'] |
+|    **stage**    |        build        |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |               ['./dist/*.tar.gz']                |
+|                   artifacts                    |                   expire_in                    |                      1 hour                      |
+
+<h4><span class="badge text-bg-info">TEST-BUILD</span></h4>
+
+<hr>
+
+| **Property** |     **Value**     |
+| :----------: | :---------------: |
+| **extends**  | ['.build:python'] |
+<h4><span class="badge text-bg-info">PUBLISH</span></h4>
+
+<hr>
+
+|  **Property** |                    **Value**                    |
+| :-----------: | :---------------------------------------------: |
+|  **extends**  |               ['.poetry:install']               |
+| **id_tokens** |      'PYPI_JWT': 'aud': 'https://pypi.org'      |
+|   **rules**   | ['if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG'] |
+|   **stage**   |                     publish                     |
+<h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
+
+<hr>
+
+| **Property** |                    **Value**                    |
+| :----------: | :---------------------------------------------: |
+|  **image**   |                  docker:latest                  |
+|  **rules**   | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
+| **services** |                 ['docker:dind']                 |
+|  **stage**   |                      build                      |
+|   **tags**   |              ['gitlab-org-docker']              |
+
+
+## {attribute} Report
+
+
+## {attribute} Report
+
+
+## {attribute} Report
+
+
+## {attribute} Report
+
+
+## {attribute} Report
+
+
+## {attribute} Report
+
+
+## {attribute} Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
+
+
+## Gitlab Attribute Report
 [comment]: <> (gitlab-docs-closing-auto-generated)
