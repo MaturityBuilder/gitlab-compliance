@@ -14,7 +14,7 @@ name = "gitlab-docs"
 version = "0.2.9"
 description = "A tool that automatically generates gitlab documentation from yaml files"
 authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
-readme = ["docs/index.md", "docs/command-reference.md", "docs/example-output.md"]
+readme = ["docs/index.md", "docs/command-reference.md", "docs/output-example.md"]
 
 packages = [{ include = "src" }]
 
