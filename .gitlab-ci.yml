@@ -141,7 +141,7 @@ publish:
     - .poetry:install
   stage: publish
   script:
-    - poetry publish --build --repository pypi --username __token__ --password "$CI_JOB_JWT_V2"
+    - poetry publish --build --username __token__ --password "$CI_JOB_JWT_V2"
   id_tokens:
     PYPI_JWT:
       aud: "https://pypi.org"
