@@ -11,7 +11,7 @@ Gitlab     = "https://gitlab.com/charlieasmith/gitlab-docs"
 
 [tool.poetry]
 name = "gitlab-docs"
-version = "0.2.9"
+version = "1.0.0"
 description = "A tool that automatically generates gitlab documentation from yaml files"
 authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
 readme = ["docs/index.md", "docs/command-reference.md", "docs/output-example.md"]
