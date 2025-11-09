@@ -90,16 +90,15 @@ bump-version:
       # Bump version with Poetry
       poetry version $BUMP
       NEW_VERSION=$(poetry version -s)
+      echo "__version__ = \"$NEW_VERSION\"" > src/__init__.py
       echo "Bumped version: $NEW_VERSION"
 
-    # Commit & tag
-    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com".insteadOf "https://gitlab.com"
-    - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com".insteadOf "git@gitlab.com"
-    # - git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
-    - git add pyproject.toml
-    - git commit -m "chore $NEW_VERSION [skip ci]"
+      git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com".insteadOf "https://gitlab.com"
+      git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com".insteadOf "git@gitlab.com"
+      git add pyproject.toml src/__init__.py
+      git commit -m "chore: bumping version to $NEW_VERSION"
     - git tag "$NEW_VERSION"
-    - git push origin HEAD:$CI_COMMIT_REF_NAME
+    - git push origin HEAD:$CI_COMMIT_REF_NAME --push-option="ci.skip"
     - git push origin "$NEW_VERSION"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
