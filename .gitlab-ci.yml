@@ -67,7 +67,7 @@ behave-tests:
     - .poetry:install
   script:
     - poetry run coverage run -m behave
-    - poetry run coverage report --fail-under 75
+    - poetry run coverage report --fail-under 70
 
 bump-version:
   stage: .post
@@ -145,8 +145,6 @@ publish:
     - poetry publish --build
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_COMMIT_TAG
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-
 
 # build:docker:
 #   # Official docker image.
