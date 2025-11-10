@@ -16,7 +16,8 @@ variables:
   APPLICATION: gitlab-docs
   OUTPUT_FILE: GITLAB-DOCS.md
   # CI_REGISTRY: registry.gitlab.com
-image: python:3.12.11
+image:
+    name: python:3.12.11-slim
 default:
   tags:
     - gitlab-org
@@ -28,6 +29,8 @@ default:
 .poetry:install:
   before_script:
     # install poetry for managing application
+    - apt-get update -qy
+    - apt-get install -qy curl git
     - curl -sSL "https://install.python-poetry.org" | python3 -
     - export PATH="/root/.local/bin:$PATH"
     - poetry --version
