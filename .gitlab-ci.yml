@@ -3,8 +3,6 @@ spec:
   inputs:
     job-stage:
       default: test
-    environment:
-      default: production
 ---
 stages:
   - test
@@ -73,7 +71,7 @@ behave-tests:
     - poetry run coverage report --fail-under 70
 
 bump-version:
-  stage: .post
+  stage: publish
   image: python:3.12.11
   before_script:
     - pip install poetry conventional-commit versioningit
@@ -139,7 +137,7 @@ test-build:
   extends:
     - .build:python
 publish:
-  needs: []
+  needs: ["bump-version"]
   extends:
     - .poetry:install
   stage: publish
