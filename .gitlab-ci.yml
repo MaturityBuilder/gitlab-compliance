@@ -16,7 +16,7 @@ variables:
   APPLICATION: gitlab-docs
   OUTPUT_FILE: GITLAB-DOCS.md
   # CI_REGISTRY: registry.gitlab.com
-image: python:3.12.11
+image: python:3.12.11-slim
 default:
   tags:
     - gitlab-org
