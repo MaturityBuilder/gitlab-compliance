@@ -28,8 +28,8 @@ default:
 .poetry:install:
   before_script:
     # install poetry for managing application
-    - apt-get update -q
-    - apt-get install -q curl git
+    - apt-get update -qy
+    - apt-get install -qy curl git
     - curl -sSL "https://install.python-poetry.org" | python3 -
     - export PATH="/root/.local/bin:$PATH"
     - poetry --version
