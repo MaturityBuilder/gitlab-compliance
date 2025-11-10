@@ -66,9 +66,8 @@ behave-tests:
     - .test:rules
     - .poetry:install
   script:
-    - poetry run coverage run -m behave --color -m
-    - poetry run coverage report --fail-under 70 -m
-  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+    - poetry run coverage run -m behave
+    - poetry run coverage report --fail-under 75
 
 bump-version:
   stage: .post
@@ -144,10 +143,12 @@ publish:
   script:
     - poetry publish --build --username __token__ --password "$CI_JOB_JWT_V2"
   id_tokens:
-    PYPI_JWT:
-      aud: "https://pypi.org"
+    PYPI_ID_TOKEN:
+      # Use "testpypi" if uploading to TestPyPI
+      aud: pypi
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_COMMIT_TAG
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 
 
 # build:docker:
