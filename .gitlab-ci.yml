@@ -140,6 +140,7 @@ publish:
   extends:
     - .poetry:install
   stage: publish
+  environment: release
   script:
     - poetry publish --build
   rules:
