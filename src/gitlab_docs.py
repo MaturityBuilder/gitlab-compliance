@@ -59,12 +59,11 @@ def gitlab_docs():
     type=bool,
     help="Return results in json format.",
 )
-def get_attributes(OUTPUT_FILE,DRY_MODE,GLDOCS_CONFIG_FILE,attributes,json):
+def get_attributes(OUTPUT_FILE,GLDOCS_CONFIG_FILE,attributes,json):
     """
     Compared to the generate command, the get-attribute command allows you to pass the properties you wish to document and produces a markdown table.
     Args:
         OUTPUT_FILE (_type_): _description_
-        DRY_MODE (_type_): _description_
         GLDOCS_CONFIG_FILE (_type_): _description_
         attributes (_type_): _description_
         json (_type_): _description_
