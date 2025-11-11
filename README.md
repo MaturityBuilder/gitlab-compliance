@@ -153,3 +153,15 @@ podman run -it -v $(PWD):/gitlab-docs charlieasmith93/gitlab-docs
 |    **tags**   |              ['gitlab-org-docker']              |
 
 [comment]: <> (gitlab-docs-closing-auto-generated)
+
+[comment]: <> (gitlab-docs-attribute-opening-auto-generated)
+
+| **File** | Job Name | README.md |
+| :------: | :------: | :-------: |
+
+|    **File**    |   Job Name   |             image              |
+| :------------: | :----------: | :----------------------------: |
+| .gitlab-ci.yml |  megalinter  | oxsecurity/megalinter-ci_light |
+| .gitlab-ci.yml | bump-version |         python:3.12.11         |
+| .gitlab-ci.yml | docker-build |         docker:latest          |
+[comment]: <> (gitlab-docs-attribute-closing-auto-generated)
