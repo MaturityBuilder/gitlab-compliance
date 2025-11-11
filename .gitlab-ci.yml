@@ -125,11 +125,6 @@ bump-version:
   environment: release
   extends:
     - .poetry:install
-  artifacts:
-    when: always
-    paths:
-      - ./dist/*.tar.gz
-    expire_in: 1 hour
   script:
     - poetry build
     - pip3 install -q $(ls ./dist/*.tar.gz)
@@ -138,8 +133,9 @@ bump-version:
 test-build:
   extends:
     - .build:python
+    - .test:rules
 publish:
-  # needs: ["bump-version"]
+  cache: []
   extends:
     - .poetry:install
   stage: publish
