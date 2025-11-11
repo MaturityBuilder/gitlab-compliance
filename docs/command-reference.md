@@ -41,7 +41,6 @@ Commands:
 Compared to the generate command, the get-attribute command allows you to pass the properties you wish to document and produces a markdown table.
 Args:
     OUTPUT_FILE (_type_): _description_
-    DRY_MODE (_type_): _description_
     GLDOCS_CONFIG_FILE (_type_): _description_
     attributes (_type_): _description_
     json (_type_): _description_
@@ -80,7 +79,7 @@ Usage: gitlab-docs get-attributes [OPTIONS]
   The Gitlab CI Input configuration file to generated documentation from.
 
 
-* `json`: 
+* `json_format`: 
   * Type: BOOL 
   * Default: `false`
   * Usage: `--json
@@ -105,9 +104,9 @@ Usage: gitlab-docs get-attributes [OPTIONS]
 
   Compared to the generate command, the get-attribute command allows you to
   pass the properties you wish to document and produces a markdown table.
-  Args:     OUTPUT_FILE (_type_): _description_     DRY_MODE (_type_):
-  _description_     GLDOCS_CONFIG_FILE (_type_): _description_
-  attributes (_type_): _description_     json (_type_): _description_
+  Args:     OUTPUT_FILE (_type_): _description_     GLDOCS_CONFIG_FILE
+  (_type_): _description_     attributes (_type_): _description_     json
+  (_type_): _description_
 
 Options:
   -a, --attributes TEXT    Pass a comma seperated list of gitlab ci yml

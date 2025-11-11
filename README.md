@@ -42,16 +42,25 @@ or
 podman run -it -v $(PWD):/gitlab-docs charlieasmith93/gitlab-docs
 ```
 
+[comment]: <> (gitlab-docs-attribute-opening-auto-generated)
+
+
+|    **File**    |   Job Name   |             image              |
+| :------------: | :----------: | :----------------------------: |
+| .gitlab-ci.yml |  megalinter  | oxsecurity/megalinter-ci_light |
+| .gitlab-ci.yml | bump-version |         python:3.12.11         |
+| .gitlab-ci.yml | docker-build |         docker:latest          |
+[comment]: <> (gitlab-docs-attribute-closing-auto-generated)
+
 [comment]: <> (gitlab-docs-opening-auto-generated)
 
 # GITLAB DOCS - .gitlab-ci.yml
 
 ## Inputs
 
-|     Key     |           Value           | Description | Options  | Expand |
-| :---------: | :-----------------------: | :---------: | :------: | :----: |
-|  job-stage  |    {'default': 'test'}    |   &#x274c;  | &#x274c; |  true  |
-| environment | {'default': 'production'} |   &#x274c;  | &#x274c; |  true  |
+|    Key    |        Value        | Description | Options  | Expand |
+| :-------: | :-----------------: | :---------: | :------: | :----: |
+| job-stage | {'default': 'test'} |   &#x274c;  | &#x274c; |  true  |
 
 
 ## Variables
@@ -68,7 +77,9 @@ podman run -it -v $(PWD):/gitlab-docs charlieasmith93/gitlab-docs
 
 | **Attribute** |                       **Value**                       |
 | :-----------: | :---------------------------------------------------: |
-|   **rules**   | ['if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|   **rules**   |                ['if': '$CI_COMMIT_TAG'                |
+|               |                     'when': 'never'                   |
+|               |  'if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
 |               |    'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH']   |
 |   **stage**   |                          test                         |
 
@@ -109,7 +120,7 @@ podman run -it -v $(PWD):/gitlab-docs charlieasmith93/gitlab-docs
 | :-----------: | :-----------------------------------: |
 |   **image**   |             python:3.12.11            |
 |   **rules**   | ['if': '$CI_COMMIT_BRANCH == "main"'] |
-|   **stage**   |                 .post                 |
+|   **stage**   |                publish                |
 
 <h4><span class="badge text-bg-secondary">.BUILD:PYTHON</span></h4>
 
@@ -125,20 +136,22 @@ podman run -it -v $(PWD):/gitlab-docs charlieasmith93/gitlab-docs
 
 <hr>
 
-| **Attribute** |     **Value**     |
-| :-----------: | :---------------: |
-|  **extends**  | ['.build:python'] |
+| **Attribute** |    **Value**     |
+| :-----------: | :--------------: |
+|  **extends**  | ['.build:python' |
+|               |  '.test:rules']  |
 
 <h4><span class="badge text-bg-info">PUBLISH</span></h4>
 
 <hr>
 
-| **Attribute** |                    **Value**                    |
-| :-----------: | :---------------------------------------------: |
-|  **extends**  |               ['.poetry:install']               |
-| **id_tokens** |      'PYPI_JWT': 'aud': 'https://pypi.org'      |
-|   **rules**   | ['if': '$CI_COMMIT_REF_NAME == $CI_COMMIT_TAG'] |
-|   **stage**   |                     publish                     |
+|  **Attribute**  |        **Value**         |
+| :-------------: | :----------------------: |
+|    **cache**    |            []            |
+| **environment** |         release          |
+|   **extends**   |   ['.poetry:install']    |
+|    **rules**    | ['if': '$CI_COMMIT_TAG'] |
+|    **stage**    |         publish          |
 
 <h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
 
@@ -153,15 +166,3 @@ podman run -it -v $(PWD):/gitlab-docs charlieasmith93/gitlab-docs
 |    **tags**   |              ['gitlab-org-docker']              |
 
 [comment]: <> (gitlab-docs-closing-auto-generated)
-
-[comment]: <> (gitlab-docs-attribute-opening-auto-generated)
-
-| **File** | Job Name | README.md |
-| :------: | :------: | :-------: |
-
-|    **File**    |   Job Name   |             image              |
-| :------------: | :----------: | :----------------------------: |
-| .gitlab-ci.yml |  megalinter  | oxsecurity/megalinter-ci_light |
-| .gitlab-ci.yml | bump-version |         python:3.12.11         |
-| .gitlab-ci.yml | docker-build |         docker:latest          |
-[comment]: <> (gitlab-docs-attribute-closing-auto-generated)

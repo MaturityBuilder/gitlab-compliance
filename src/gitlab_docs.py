@@ -53,13 +53,13 @@ def gitlab_docs():
 @click.option(
     "--json",
     "-j",
-    "json",
+    "json_format",
     required=False,
     default=False,
     type=bool,
     help="Return results in json format.",
 )
-def get_attributes(OUTPUT_FILE,GLDOCS_CONFIG_FILE,attributes,json):
+def get_attributes(OUTPUT_FILE,GLDOCS_CONFIG_FILE,attributes,json_format):
     """
     Compared to the generate command, the get-attribute command allows you to pass the properties you wish to document and produces a markdown table.
     Args:
@@ -69,13 +69,14 @@ def get_attributes(OUTPUT_FILE,GLDOCS_CONFIG_FILE,attributes,json):
         json (_type_): _description_
     """
     logger.info(f"Discovering attributes {attributes} from your gitlab-ci yml.")
+    
     get_job_attribute(
         GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
         DISABLE_TITLE=False,
         DISABLE_TYPE_HEADING=False,
         OUTPUT_FILE=OUTPUT_FILE,
         attributes=attributes,
-        json_format=json
+        json_format=json_format
     )
 
 @click.command()
