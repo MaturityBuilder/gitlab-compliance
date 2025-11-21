@@ -26,7 +26,7 @@ default:
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-.poetry:install:
+# .poetry:install:
   # before_script:
   #   # install poetry for managing application
   #   - apt-get update -qy
@@ -66,7 +66,7 @@ behave-tests:
     - poetry install
   extends: 
     - .test:rules
-    - .poetry:install
+    # - .poetry:install
   script:
     - poetry run coverage run -m behave
     - poetry run coverage report --fail-under 70
@@ -122,8 +122,8 @@ bump-version:
   needs: []
   stage: build
   environment: release
-  extends:
-    - .poetry:install
+  # extends:
+    # - .poetry:install
   script:
     - poetry build
     - pip3 install -q $(ls ./dist/*.tar.gz)
@@ -135,8 +135,8 @@ test-build:
     - .test:rules
 publish:
   cache: []
-  extends:
-    - .poetry:install
+  # extends:
+  #   - .poetry:install
   stage: publish
   environment: release
   script:
