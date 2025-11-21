@@ -21,7 +21,7 @@ packages = [{ include = "src" }]
 
 
 [tool.poetry.dependencies]
-python = "^3.12.11"
+python = "<3.15,>=3.10"
 prettytable = "*"
 pytablewriter = "~1.2.0"
 oyaml = "*"
@@ -29,16 +29,18 @@ typer = "^0.10.0"
 markdown-analysis = "*"
 setuptools = "*"
 jq = "^1.8.0"
-click = "<=7.1.2"
+click = "8.0.0"
 semver = "^3.0.2"
 pyyaml = "^6.0.2"
 loguru = "0.7.0"
+python-gitlab = "^7.0.0"
+rich = "^14.2.0"
+copilot-api = "^1.0.0"
 
 [tool.poetry.scripts]
 gitlab-docs = 'src.gitlab_docs:gitlab_docs'
 
 [tool.poetry.group.dev.dependencies]
-md-click = "^1.0.1"
 pytest = "^8.4.1"
 behave = "^1.2.6"
 pyyaml = "^6.0.2"

@@ -15,7 +15,7 @@ variables:
   OUTPUT_FILE: GITLAB-DOCS.md
   # CI_REGISTRY: registry.gitlab.com
 image:
-    name: python:3.12.11-slim
+    name: charlieasmith93/poetry-python3:3.12.12-1.8.3
 default:
   tags:
     - gitlab-docs
@@ -27,14 +27,14 @@ default:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 .poetry:install:
-  before_script:
-    # install poetry for managing application
-    - apt-get update -qy
-    - apt-get install -qy curl git
-    - curl -sSL "https://install.python-poetry.org" | python3 -
-    - export PATH="/root/.local/bin:$PATH"
-    - poetry --version
-    - poetry install
+  # before_script:
+  #   # install poetry for managing application
+  #   - apt-get update -qy
+  #   - apt-get install -qy curl git
+  #   - curl -sSL "https://install.python-poetry.org" | python3 -
+  #   - export PATH="/root/.local/bin:$PATH"
+  #   - poetry --version
+  #   - poetry install
 workflow:
   rules:
     - if: "$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH && $CI_COMMIT_MESSAGE =~ /^chore: bumping version to/"
@@ -63,7 +63,6 @@ behave-tests:
   variables:
     POETRY_VIRTUALENVS_CREATE: "false"
   before_script:
-    - pip install poetry
     - poetry install
   extends: 
     - .test:rules
@@ -76,7 +75,7 @@ bump-version:
   stage: publish
   image: python:3.12.11
   before_script:
-    - pip install poetry conventional-commit versioningit
+    - pip install conventional-commit versioningit
     - git config --global user.email "ci-bot@gitlab.com"
     - git config --global user.name "GitLab CI Bot"
   script:
