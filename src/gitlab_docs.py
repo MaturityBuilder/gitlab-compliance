@@ -17,6 +17,7 @@ import src.modules.doc_controller as md_writer
 from src.modules.doc_controller import update_marked_block, add_between_markers, remove_duplicate_headings
 from src.modules.command_reference import dumps
 from src.properties.extract_job_attribute import get_job_attribute
+from src.modules.release import release_notes
 @click.group()
 def gitlab_docs():
     """
@@ -163,5 +164,6 @@ def generate(detailed,OUTPUT_FILE,DRY_MODE,GLDOCS_CONFIG_FILE):
 gitlab_docs.add_command(get_attributes)
 gitlab_docs.add_command(dumps)
 gitlab_docs.add_command(generate)
+gitlab_docs.add_command(release_notes)
 if __name__ == "__main__":
     gitlab_docs(obj={})

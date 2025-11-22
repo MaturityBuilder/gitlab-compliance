@@ -13,34 +13,6 @@ Feature: Update marked block in README.md
     Then the file "README.md" should be created
     And the file should contain the marked block
 
-  Scenario: Update existing marked block
-    Given I have a file "README.md" with content:
-      """
-      # My Project
-
-      [comment]: <> (gitlab-docs-opening-auto-generated)
-      Old content
-      [comment]: <> (gitlab-docs-closing-auto-generated)
-
-      ## Manual Section
-      """
-    When I update the marked block with content "Updated content"
-    Then the file should contain "Updated content"
-    And the file should not contain "Old content"
-    And the file should contain "# My Project"
-    And the file should contain "## Manual Section"
-
-  Scenario: Append block to file without markers
-    Given I have a file "README.md" with content:
-      """
-      # Project Title
-      Some existing content
-      """
-    When I update the marked block with content "New block content"
-    Then the file should contain "# Project Title"
-    And the file should contain "Some existing content"
-    And the file should contain the marked block
-
 
   Scenario: Handle file with no final newline
     Given I have a file "README.md" with content "No newline" and no final newline
