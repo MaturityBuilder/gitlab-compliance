@@ -164,6 +164,6 @@ def generate(detailed,OUTPUT_FILE,DRY_MODE,GLDOCS_CONFIG_FILE):
 gitlab_docs.add_command(get_attributes)
 gitlab_docs.add_command(dumps)
 gitlab_docs.add_command(generate)
-gitlab_docs.add_command(release_notes)
+# gitlab_docs.add_command(release_notes)
 if __name__ == "__main__":
     gitlab_docs(obj={})
