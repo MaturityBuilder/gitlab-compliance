@@ -4,7 +4,7 @@ services:
   gitlab-docs-alpine:
     build:
       context: .
-      dockerfile: Dockerfile.alpine
+      dockerfile: Dockerfile
       target: alpine
     image: gitlab-docs:alpine
     container_name: gitlab-docs-alpine
@@ -15,13 +15,13 @@ services:
     read_only: true
     command: ["gitlab-docs", "--help"]
 
-  gitlab-docs-debian:
+  gitlab-docs-slim:
     build:
       context: .
-      dockerfile: Dockerfile.alpine
-      target: debian
-    image: gitlab-docs:debian
-    container_name: gitlab-docs-debian
+      dockerfile: Dockerfile
+      target: slim
+    image: gitlab-docs:slim
+    container_name: gitlab-docs-slim
     security_opt:
       - no-new-privileges:true
     cap_drop:

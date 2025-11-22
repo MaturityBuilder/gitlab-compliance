@@ -182,7 +182,9 @@ docker-build:
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
-    - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
+    - docker-compose build
+    - docker tag gitlab-docs:alpine gitlab-docs:$CI_COMMIT_REF_SLUG-alpine
+    - docker tag gitlab-docs:slim gitlab-docs:$CI_COMMIT_REF_SLUG-slim
     - docker run -v $PWD:/gitlab-docs "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
   rules:
     - if: $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG
