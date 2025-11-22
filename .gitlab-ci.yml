@@ -15,7 +15,7 @@ variables:
   OUTPUT_FILE: GITLAB-DOCS.md
   # CI_REGISTRY: registry.gitlab.com
 image:
-    name: charlieasmith93/poetry-python3:3.12.12-1.8.3
+    name: charlieasmith93/poetry-python3:3.12.12-1.8.3-dev
 default:
   tags:
     - gitlab-docs
