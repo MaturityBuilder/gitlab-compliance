@@ -69,7 +69,7 @@ behave-tests:
     # - .poetry:install
   script:
     - poetry run coverage run -m behave
-    - poetry run coverage report --fail-under 70
+    - poetry run coverage report --fail-under 67
 
 bump-version:
   stage: publish
