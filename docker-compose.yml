@@ -1,7 +1,30 @@
-# .pre-commit-hooks.yaml
-- id: gitlab-docs
-  name: Run GitLab Docs
-  description: Automatically update GitLab pipeline documentation in README.md
-  entry: gitlab-docs
-  language: system
-  pass_filenames: false
+version: "3.9"
+
+services:
+  gitlab-docs-alpine:
+    build:
+      context: .
+      dockerfile: Dockerfile.alpine
+      target: alpine
+    image: gitlab-docs:alpine
+    container_name: gitlab-docs-alpine
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    command: ["gitlab-docs", "--help"]
+
+  gitlab-docs-debian:
+    build:
+      context: .
+      dockerfile: Dockerfile.alpine
+      target: debian
+    image: gitlab-docs:debian
+    container_name: gitlab-docs-debian
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    command: ["gitlab-docs", "--help"]

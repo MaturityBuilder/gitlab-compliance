@@ -22,10 +22,12 @@ default:
 .test:rules:
   stage: test
   rules:
-    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_TAG 
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 # .poetry:install:
   # before_script:
   #   # install poetry for managing application
@@ -41,9 +43,11 @@ workflow:
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_REF_NAME == $CI_COMMIT_TAG
 
+.ci-rules:
+  rules:
+    - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG
 megalinter:
   image: oxsecurity/megalinter-ci_light
-  # extends: [".mr_rules"]
   script: ["true"] # if script: ["true"] doesn't work, you may try ->  script: [ "/bin/bash /entrypoint.sh" ]
   variables:
     # All available variables are described in documentation
@@ -66,14 +70,12 @@ behave-tests:
     - poetry install
   extends: 
     - .test:rules
-    # - .poetry:install
   script:
     - poetry run coverage run -m behave
     - poetry run coverage report --fail-under 67
 
 bump-version:
   stage: publish
-  image: python:3.12.11
   before_script:
     - pip install conventional-commit versioningit
     - git config --global user.email "ci-bot@gitlab.com"
@@ -135,8 +137,6 @@ test-build:
     - .test:rules
 publish:
   cache: []
-  # extends:
-  #   - .poetry:install
   stage: publish
   environment: release
   script:

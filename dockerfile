@@ -1,4 +1,4 @@
-FROM python:3.12.11-slim AS builder
+FROM python:3.12.12-slim AS builder
 RUN pip3 install -q poetry==2.1.3
 RUN mkdir -p /build && mkdir -p /build/src
 WORKDIR /build
@@ -8,7 +8,7 @@ COPY ./docs ./docs/
 RUN poetry install
 RUN poetry build
 
-FROM python:3.12.11-alpine AS gitlab-docs
+FROM python:3.12.12-alpine AS gitlab-docs
 RUN mkdir -p /gitlab-docs/
 WORKDIR /gitlab-docs
 COPY --from=builder build/dist/* .
