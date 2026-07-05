@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from behave import given, then, when
+from behave import then, when
 
 from src.compliance.oci_registry import (
     bundle_policies_dir,
