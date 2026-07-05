@@ -54,7 +54,7 @@ jobs:
           pip install -e .
 
       - name: Run tests
-        run: pytest -q
+        run: pytest -vv --tb=short
 
       - name: Build package
         run: python -m build

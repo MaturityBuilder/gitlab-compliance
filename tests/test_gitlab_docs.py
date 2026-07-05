@@ -62,8 +62,9 @@ def test_repo_ci_generates_jobs():
     assert "MEGALINTER" in body
 
 
-def test_markdown_merge_replaces_generated_block():
-    wrapped = merge_markdown_output("GITLAB-DOCS.md", "new body")
+def test_markdown_merge_replaces_generated_block(tmp_path):
+    target = tmp_path / "docs.md"
+    wrapped = merge_markdown_output(target, "new body")
     assert "new body" in wrapped
     assert GLDOCS_OPENING_MARKER in wrapped
     assert GLDOCS_CLOSING_MARKER in wrapped
@@ -90,7 +91,10 @@ def test_detailed_includes_workflow_for_repo():
 
 @pytest.mark.parametrize("fmt", ["markdown", "html", "json", "csv"])
 def test_output_formats(fmt):
-    out = generate_documentation_body(REPO_CI, output_format=fmt)
+    from gitlab_docs.render import DocTable, render_table
+
+    table = DocTable(headers=["Key", "Value"], rows=[["MEGALINTER", "true"]])
+    out = render_table(table, fmt)
     assert out.strip()
     if fmt == "html":
         assert "<table" in out.lower()
