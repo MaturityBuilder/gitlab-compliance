@@ -163,7 +163,8 @@ def after_scenario(context, scenario):
                 try:
                     file_path = os.path.join(root, file)
                     os.chmod(file_path, stat.S_IWRITE | stat.S_IREAD)
-                except:
+                except OSError:
+                    # Best-effort cleanup: ignore chmod failures on locked/read-only files.
                     pass
 
         shutil.rmtree(context.test_dir, ignore_errors=True)
