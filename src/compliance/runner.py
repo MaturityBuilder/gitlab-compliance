@@ -178,7 +178,7 @@ def run_compliance(
     workspace = _build_behave_workspace(resolved_features_dir)
     policy_catalog = build_policy_catalog(resolved_features_dir)
 
-    exit_code = 1
+    exit_code: int | None = None
     scenario_results: list[ScenarioResult] = []
     features = 0
     scenarios = 0
