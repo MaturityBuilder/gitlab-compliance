@@ -2,7 +2,6 @@ import os
 import shutil
 import stat
 import tempfile
-from unittest.mock import MagicMock
 
 from behave import given, then, when
 
