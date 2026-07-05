@@ -54,7 +54,9 @@ jobs:
           pip install -e .
 
       - name: Run tests
-        run: python scripts/ci_test.py
+        run: |
+          python scripts/ci_test.py
+          pytest -q
       - name: Build package
         run: python -m build
 
