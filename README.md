@@ -18,21 +18,32 @@ docker run -v ${PWD}:/gitlab-docs charlieasmith93/gitlab-docs
 
 ## Using gitlab-docs
 
-This will output the results in the current working directory to `GITLAB-DOCS.md` based on the `.gitlab-ci.yml` config. Noting it will also automatically try to detect and produce documentation for any include configurations as well.
+This writes documentation from `.gitlab-ci.yml` (and nested `local` includes) to `GITLAB-DOCS.md` by default. Re-runs replace only the block between the `gitlab-docs-opening-auto-generated` and `gitlab-docs-closing-auto-generated` HTML comments, so you can keep hand-written content above or below the generated section.
 
-```
+```bash
 gitlab-docs
-
+gitlab-docs --detailed
+gitlab-docs -c .gitlab-ci.yml -o docs/ci.md
+gitlab-docs --format html -o docs/ci.html
+gitlab-docs --format json -o docs/ci.json
 ```
+
+| Flag | Description |
+| ---- | ----------- |
+| `--detailed` | Include workflow rules and per-job `rules` |
+| `-c`, `--config` | CI config file (overrides `GLDOCS_CONFIG_FILE`) |
+| `-o`, `--output` | Output path (overrides `OUTPUT_FILE`) |
+| `--format` | `markdown` (default), `html`, `json`, or `csv` |
 
 # ENVIRONMENT VARIABLES
 
 | Key                           | Default Value    | Description                                                                                          |
 | ----------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------- |
 | GLDOCS_CONFIG_FILE            | .gitlab-ci.yml   | The gitlab configuration file you want to generate documentation on                                  |
-| OUTPUT_FILE                   | ./GITLAB-DOCS.md | The file to output documentation to (WARNING outputting to README.md will overwrite file at present) |
+| OUTPUT_FILE                   | ./GITLAB-DOCS.md | The file to output documentation to                                                                  |
+| OUTPUT_FORMAT                 | markdown         | Output format: markdown, html, json, or csv (non-markdown writes the full file, without merge markers) |
 | LOG_LEVEL                     | INFO             | Determines the verbosity of the logging when you run gitlab-docs                                     |
-| ENABLE_WORKFLOW_DOCUMENTATION | False            | Outputting documentaton for the workflow config is experiemental                                     |
+| ENABLE_WORKFLOW_DOCUMENTATION | false            | When true, documents `workflow` (same as `--detailed` for workflows; job `rules` still need `--detailed`) |
 
 ## Example of what's generated
 ## .gitlab-ci.yml

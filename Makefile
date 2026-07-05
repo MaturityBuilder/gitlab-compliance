@@ -10,6 +10,8 @@ init:
 # install python dependancies
 install:
 	poetry install
+test:
+	poetry run pytest -q
 megalinter:
   git config --global core.autocrlf false
   npx mega-linter-runner -f python --remove-container

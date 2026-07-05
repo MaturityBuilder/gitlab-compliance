@@ -1,101 +1,56 @@
-import logging
-import os
+"""Merge generated documentation into markdown output files."""
 
-LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("GITLAB DOCS|MARKDOWN WRAPPER")
-logger.setLevel(LOG_LEVEL)
+from pathlib import Path
+
+from gitlab_docs.constants import GLDOCS_CLOSING_MARKER, GLDOCS_OPENING_MARKER
 
 
-def replaceTextBetween(originalText, delimiterA, delimiterB="", replacementText=""):
-    leadingText = originalText.split(delimiterA)[0]
-    trailingText = originalText.split(delimiterB)[1]
+def strip_generation_markers(content: str) -> str:
+    """Remove opening/closing markers and any prior generated block between them."""
+    if GLDOCS_OPENING_MARKER not in content:
+        return content
+    start = content.find(GLDOCS_OPENING_MARKER)
+    end = content.rfind(GLDOCS_CLOSING_MARKER)
+    if end == -1 or end < start:
+        return content[:start] + content[start + len(GLDOCS_OPENING_MARKER) :]
+    before = content[:start]
+    after = content[end + len(GLDOCS_CLOSING_MARKER) :]
+    return before + after
 
-    return leadingText + delimiterA + replacementText + delimiterB + trailingText
 
-
-def gitlab_docs_reset_writer(OUTPUT_FILE, MODE, GLDOCS_TITLE="Gitlab Docs"):
+def merge_markdown_output(output_file: str | Path, body: str) -> str:
     """
-    MODE value can be either STARTING or CLOSING
+    Insert or replace generated body between gitlab-docs HTML comment markers.
     """
-    # import markdown
-    # import frontmatter
-    gldocs_opening = "[comment]: <> (gitlab-docs-opening-auto-generated)"
-    gldocs_closing = "[comment]: <> (gitlab-docs-closing-auto-generated)"
+    path = Path(output_file)
+    body = body.strip()
+    wrapped_body = (
+        f"{GLDOCS_OPENING_MARKER}\n\n{body}\n\n{GLDOCS_CLOSING_MARKER}\n"
+    )
 
-    if MODE == "STARTING":
-        print(
-            "Do we have a header in in markdown file already: "
-            + str(gitlab_docs_check_header(OUTPUT_FILE, GLDOCS_TITLE=GLDOCS_TITLE))
-        )
-        if gitlab_docs_check_header(OUTPUT_FILE, GLDOCS_TITLE):
-            print("Output File already has Gitlab Docs")
-            gitlab_docs_remove_docs(
-                OUTPUT_FILE=OUTPUT_FILE,
-                GLDOCS_TITLE=gldocs_opening,
-                GLDOCS_END=gldocs_closing,
-            )
-        else:
-            print("Output File is new to Gitlab Docs")
-            if gitlab_docs_check_file_exists(OUTPUT_FILE):
-                gitlab_docs_remove_docs(
-                    OUTPUT_FILE=OUTPUT_FILE,
-                    GLDOCS_TITLE=gldocs_opening,
-                    GLDOCS_END=gldocs_closing,
-                )
-                with open(OUTPUT_FILE, "a") as f:
-                    f.write("\n" + "# " + gldocs_opening)
+    if path.is_file():
+        existing = path.read_text(encoding="utf-8")
+        if GLDOCS_OPENING_MARKER in existing and GLDOCS_CLOSING_MARKER in existing:
+            start = existing.find(GLDOCS_OPENING_MARKER)
+            end = existing.rfind(GLDOCS_CLOSING_MARKER) + len(GLDOCS_CLOSING_MARKER)
+            return existing[:start] + wrapped_body.strip() + existing[end:]
+        cleaned = strip_generation_markers(existing).rstrip()
+        if cleaned:
+            return f"{cleaned}\n\n{wrapped_body}"
+        return wrapped_body
 
-    if MODE == "CLOSING":
-
-        with open(OUTPUT_FILE, "a") as f:
-            f.write("\n\n" + gldocs_closing)
+    return wrapped_body
 
 
-def gitlab_docs_check_file_exists(OUTPUT_FILE):
-    from pathlib import Path
+def write_documentation(
+    output_file: str | Path,
+    body: str,
+    output_format: str = "markdown",
+) -> None:
+    path = Path(output_file)
+    path.parent.mkdir(parents=True, exist_ok=True)
 
-    CHECK_OUTPUT_FILE = Path(OUTPUT_FILE)
-    if CHECK_OUTPUT_FILE.is_file():
-        return True
+    if output_format == "markdown":
+        path.write_text(merge_markdown_output(path, body), encoding="utf-8")
     else:
-        return False
-
-
-def gitlab_docs_check_header(OUTPUT_FILE, GLDOCS_TITLE):
-    from mrkdwn_analysis import MarkdownAnalyzer
-
-    gitlab_docs_check_file_exists(OUTPUT_FILE)
-    if gitlab_docs_check_file_exists(OUTPUT_FILE):
-        analyzer = MarkdownAnalyzer(OUTPUT_FILE)
-        headers = analyzer.identify_headers()
-        # sections = analyzer.identify_sections()
-        if headers:
-            # print(headers)
-            if GLDOCS_TITLE in headers["Header"]:
-                # print(headers["Header"])
-                return True
-            else:
-                return False
-        else:
-            print("No Headers in output file found: " + OUTPUT_FILE)
-            return False
-    else:
-        return False
-
-
-def gitlab_docs_remove_docs(OUTPUT_FILE, GLDOCS_TITLE, GLDOCS_END):
-
-    with open(OUTPUT_FILE, "r") as f:
-        contents = f.read()
-        to_replace = contents[
-            contents.find(GLDOCS_TITLE) + len(GLDOCS_TITLE) : contents.rfind(GLDOCS_END)
-        ]
-        contents = contents.replace(to_replace, "")
-    with open(OUTPUT_FILE, "w") as f:
-        f.write(contents)
-    with open(OUTPUT_FILE, "r") as f:
-        contents = f.read()
-        contents = contents.replace(GLDOCS_END, "")
-    with open(OUTPUT_FILE, "w") as f:
-        f.write(contents)
+        path.write_text(body.strip() + "\n", encoding="utf-8")

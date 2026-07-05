@@ -1,16 +1,201 @@
 import logging
-import os
+from pathlib import Path
+from typing import Any
 
 import semver
-import yaml
-from prettytable import MARKDOWN, PrettyTable
-import gitlab_docs.common as common
-import gitlab_docs.jobs as jobs
 
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("GITLAB DOCS|INCLUDES WRAPPER")
-logger.setLevel(LOG_LEVEL)
+from gitlab_docs import jobs as jobs_module
+from gitlab_docs.constants import NON_SEMVER_REFS
+from gitlab_docs.render import DocTable, render_table
+from gitlab_docs.yaml_load import load_ci_config
+
+logger = logging.getLogger("gitlab_docs.includes")
+
+INCLUDE_TYPES = ("local", "project", "remote", "component", "template")
+
+
+def _ref_validity_label(version: str) -> str:
+    if version in NON_SEMVER_REFS:
+        return "branch/tag"
+    if semver.Version.is_valid(version):
+        return "&#9989;"
+    return "&#x274c;"
+
+
+def check_include_version_is_sema_version(version: str, file: str, include: str) -> bool:
+    if version in NON_SEMVER_REFS:
+        return True
+    valid = semver.Version.is_valid(version)
+    if not valid:
+        logger.warning(
+            "Ref is not semver %s | file=%s | include=%s",
+            version,
+            file,
+            include,
+        )
+    return valid
+
+
+def _normalize_include_item(item: Any) -> dict:
+    if isinstance(item, str):
+        return {"local": item}
+    if isinstance(item, dict):
+        return item
+    return {"local": str(item)}
+
+
+def _include_kind(item: dict) -> str | None:
+    for kind in INCLUDE_TYPES:
+        if kind in item:
+            return kind
+    return None
+
+
+def _component_parts(component_url: str) -> tuple[str, str]:
+    if "@" not in component_url:
+        logger.warning("Component URL has no @ref: %s", component_url)
+        return component_url, "n/a"
+    project, ref = component_url.rsplit("@", 1)
+    return project, ref
+
+
+def _row_for_include(item: dict) -> list[str] | None:
+    kind = _include_kind(item)
+    if kind is None:
+        logger.warning("Unknown include entry: %s", item)
+        return None
+
+    inc_vars = item.get("variables") or item.get("inputs") or ""
+    inc_rules = item.get("rules") or ""
+
+    if kind == "local":
+        path = item["local"]
+        return [kind, path, "n/a", "&#9989;", "", str(inc_vars), str(inc_rules)]
+
+    if kind == "project":
+        version = item.get("ref", "n/a")
+        project = item["project"]
+        file_name = item.get("file", "")
+        valid = _ref_validity_label(str(version))
+        return [kind, project, str(version), valid, str(file_name), str(inc_vars), str(inc_rules)]
+
+    if kind == "component":
+        project, version = _component_parts(item["component"])
+        valid = _ref_validity_label(version)
+        return [kind, project, version, valid, "", str(inc_vars), str(inc_rules)]
+
+    if kind == "remote":
+        return [
+            kind,
+            item.get("remote", ""),
+            "n/a",
+            "&#9989;",
+            "",
+            str(inc_vars),
+            str(inc_rules),
+        ]
+
+    if kind == "template":
+        return [
+            kind,
+            item.get("template", ""),
+            "n/a",
+            "&#9989;",
+            "",
+            str(inc_vars),
+            str(inc_rules),
+        ]
+
+    return None
+
+
+def _local_include_path(base_config: Path, local_path: str) -> Path:
+    resolved = Path(local_path)
+    if not resolved.is_absolute():
+        resolved = (base_config.parent / resolved).resolve()
+    if str(local_path).startswith("/"):
+        return Path(str(local_path).lstrip("/"))
+    return resolved
+
+
+def build_includes_section(
+    config_file: Path,
+    data: dict | None = None,
+    *,
+    output_format: str = "markdown",
+    disable_type_heading: bool = False,
+    _visited: set[Path] | None = None,
+) -> str:
+    if data is None:
+        data = load_ci_config(config_file)
+
+    if _visited is None:
+        _visited = set()
+
+    config_file = config_file.resolve()
+    if config_file in _visited:
+        logger.warning("Skipping circular include: %s", config_file)
+        return ""
+    _visited.add(config_file)
+
+    includes_list = data.get("include")
+    if includes_list is None:
+        includes_list = []
+    if not isinstance(includes_list, list):
+        includes_list = [includes_list]
+
+    table = DocTable(
+        headers=[
+            "Include Type",
+            "Project",
+            "Version",
+            "Valid Version",
+            "File",
+            "Variables",
+            "Rules",
+        ],
+    )
+
+    nested_parts: list[str] = []
+    for raw in includes_list:
+        item = _normalize_include_item(raw)
+        row = _row_for_include(item)
+        if row:
+            table.add_row(row)
+
+        kind = _include_kind(item)
+        if kind != "local":
+            continue
+
+        sub_path = _local_include_path(config_file, item["local"])
+        if not sub_path.is_file():
+            logger.warning("Local include not found: %s", sub_path)
+            continue
+
+        nested = build_includes_section(
+            sub_path,
+            output_format=output_format,
+            disable_type_heading=disable_type_heading,
+            _visited=_visited,
+        )
+        if nested:
+            nested_parts.append(nested)
+
+        jobs_part = jobs_module.build_jobs_section(
+            sub_path,
+            output_format=output_format,
+            disable_title=True,
+            disable_type_heading=disable_type_heading,
+        )
+        if jobs_part:
+            nested_parts.append(jobs_part)
+
+    parts: list[str] = list(nested_parts)
+    if table.rows:
+        heading = "" if disable_type_heading else "## Includes\n\n"
+        parts.append(heading + render_table(table, output_format))
+
+    return "\n\n".join(part for part in parts if part).strip()
 
 
 def document_includes(
@@ -20,178 +205,12 @@ def document_includes(
     DISABLE_TITLE=False,
     DISABLE_TYPE_HEADING=True,
 ):
-    print("Generating Documentation for Includes")
-    with open(GLDOCS_CONFIG_FILE, "r") as file:
-        try:
-            data = yaml.load(file, Loader=common.EnvLoader)
-            if "include" in data:
-                includes = data["include"]
+    from gitlab_docs.reset_docs import write_documentation
 
-                # print(gldocs.generate_markdown_table(includes))
-
-                includes_table = PrettyTable()
-                includes_table.set_style(MARKDOWN)
-                includes_table.field_names = [
-                    "Include Type",
-                    "Project",
-                    "Version",
-                    "Valid Version",
-                    "File",
-                    "Variables",
-                    "Rules",
-                ]
-                # includes_table.add_rows([includes])
-                logger.debug(includes)
-
-                for i in includes:
-
-                    if isinstance(i, (str)):
-                        logger.debug(i)
-                        i = {"local": i}
-                    logger.debug(i)
-                    for key in i.keys():
-                        type = key
-                        logger.debug("Type is: " + key)
-                        if type == "project":
-                            logger.debug("Type is: " + key)
-                            version = i["ref"]
-                            value = i["project"]
-                            file = i["file"]
-                            if check_include_version_is_sema_version(
-                                version, file=file, include=value
-                            ):
-                                valid_version = "&#9989;"
-                            else:
-                                valid_version = "&#x274c;"
-                            inc_vars = ""
-                            try:
-                                inc_vars = i["variables"]
-                            except KeyError:
-                                logger.warning("No Inputs found for: %s", value)
-                            inc_rules = ""
-                            try:
-                                inc_rules = i["rules"]
-                            except KeyError:
-                                logger.debug("No rules found for: %s", value)
-                            includes_table.add_row(
-                                [
-                                    type,
-                                    value,
-                                    version,
-                                    valid_version,
-                                    file,
-                                    inc_vars,
-                                    inc_rules,
-                                ]
-                            )
-
-                        elif type == "component":
-
-                            version = i["component"].split("@")[1]
-                            value = i["component"].split("@")[0]
-                            if check_include_version_is_sema_version(
-                                version, file="component", include=value
-                            ):
-                                valid_version = "&#9989;"
-                            else:
-                                valid_version = "&#x274c;"
-
-                            inc_vars = ""
-                            try:
-                                inc_vars = i["inputs"]
-                            except KeyError:
-                                logger.warning("No Inputs found for: %s", value)
-
-                            inc_rules = ""
-                            try:
-                                inc_rules = i["rules"]
-                            except KeyError:
-                                logger.debug("No rules found for: %s", value)
-                            includes_table.add_row(
-                                [
-                                    type,
-                                    value,
-                                    version,
-                                    valid_version,
-                                    "",
-                                    inc_vars,
-                                    inc_rules,
-                                ]
-                            )
-                        elif type == "local":
-                            version = "n/a"
-                            value = i[key]
-                            inc_vars = ""
-                            try:
-                                inc_vars = i["variables"]
-                            except KeyError:
-                                logger.debug("No Variables found for: %s", value)
-
-                            inc_rules = ""
-                            try:
-                                inc_rules = i["rules"]
-                            except KeyError:
-                                logger.debug("No rules found for: %s", value)
-                            includes_table.add_row(
-                                [
-                                    type,
-                                    value,
-                                    version,
-                                    "&#9989;",
-                                    "",
-                                    inc_vars,
-                                    inc_rules,
-                                ]
-                            )
-                            if type == "local":
-                                SUB_GLDOCS_CONFIG_FILE = "" + i[key]
-                                try:
-                                    if str(SUB_GLDOCS_CONFIG_FILE)[0] == "/":
-                                        SUB_GLDOCS_CONFIG_FILE = SUB_GLDOCS_CONFIG_FILE[
-                                            1:
-                                        ]
-                                    document_includes(
-                                        OUTPUT_FILE=OUTPUT_FILE,
-                                        GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,
-                                        WRITE_MODE="a",
-                                    )
-
-                                    jobs.get_jobs(
-                                        OUTPUT_FILE=OUTPUT_FILE,
-                                        GLDOCS_CONFIG_FILE=SUB_GLDOCS_CONFIG_FILE,
-                                        WRITE_MODE="a",
-                                        DISABLE_TITLE=True,
-                                        DISABLE_TYPE_HEADING=DISABLE_TYPE_HEADING,
-                                    )
-                                except KeyError:
-                                    logger.debug(
-                                        "include don't exist in " + GLDOCS_CONFIG_FILE
-                                    )
-
-                f = open(OUTPUT_FILE, "a")
-                # GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
-                # f.write(GLDOCS_CONFIG_FILE_HEADING)
-
-                f.write("\n")
-                f.write(str("## " + "Includes" + "\n\n"))
-                f.write(str(includes_table))
-                f.write("\n")
-                f.close()
-                logger.debug("")
-                logger.debug(str(includes_table))
-                logger.debug("")
-        except yaml.YAMLError as exc:
-            print(exc)
-
-
-def check_include_version_is_sema_version(version, file, include):
-
-    logger.debug("Is Version Sem Ver:" + str(semver.Version.is_valid(version)))
-    if not semver.Version.is_valid(version):
-        logger.warning(
-            "Is Version Sem Ver: %s | File: %s | Include: %s",
-            str(semver.Version.is_valid(version)),
-            file,
-            include,
-        )
-    return semver.Version.is_valid(version)
+    body = build_includes_section(
+        Path(GLDOCS_CONFIG_FILE),
+        output_format="markdown",
+        disable_type_heading=DISABLE_TYPE_HEADING,
+    )
+    if body:
+        write_documentation(OUTPUT_FILE, body, "markdown")

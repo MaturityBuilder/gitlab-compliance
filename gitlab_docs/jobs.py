@@ -1,17 +1,85 @@
 import logging
-import os
+from pathlib import Path
+from typing import Any
 
-import yaml
-from prettytable import MARKDOWN
-from prettytable import MARKDOWN as DESIGN
-from prettytable import PrettyTable
-from prettytable.colortable import ColorTable, Themes
-import gitlab_docs.common as common
+from gitlab_docs.constants import RESERVED_CI_KEYS
+from gitlab_docs.render import DocTable, render_table
 
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("GITLAB DOCS|JOBS WRAPPER")
-logger.setLevel(LOG_LEVEL)
+logger = logging.getLogger("gitlab_docs.jobs")
+
+
+def _format_job_value(value: Any) -> str:
+    return (
+        str(value)
+        .replace(",", "\n")
+        .replace("{", "")
+        .replace("}", "")
+    )
+
+
+def _job_block(
+    job_name: str,
+    job_config: dict,
+    *,
+    output_format: str,
+    detailed: bool,
+) -> str:
+    config = dict(job_config)
+    if not detailed:
+        config.pop("rules", None)
+    config.pop("before_script", None)
+    config.pop("script", None)
+    config.pop("after_script", None)
+
+    if not config:
+        return ""
+
+    table = DocTable(headers=["**Key**", "**Value**"])
+    for key in sorted(config):
+        table.add_row([f"**{key}**", _format_job_value(config[key])])
+
+    title = f"### {job_name.upper()}\n\n"
+    return title + render_table(table, output_format)
+
+
+def build_jobs_section(
+    config_file: Path,
+    data: dict | None = None,
+    *,
+    output_format: str = "markdown",
+    detailed: bool = False,
+    disable_title: bool = False,
+    disable_type_heading: bool = False,
+) -> str:
+    from gitlab_docs.yaml_load import load_ci_config
+
+    if data is None:
+        data = load_ci_config(config_file)
+
+    parts: list[str] = []
+    if not disable_title:
+        parts.append(f"## {config_file}\n")
+    if not disable_type_heading:
+        parts.append("## Jobs\n")
+
+    for key, value in data.items():
+        if key in RESERVED_CI_KEYS:
+            logger.debug("Skipping reserved GitLab CI key: %s", key)
+            continue
+        if not isinstance(value, dict):
+            logger.warning(
+                "Skipping key %s in %s: expected a job mapping, got %s",
+                key,
+                config_file,
+                type(value).__name__,
+            )
+            continue
+        block = _job_block(key, value, output_format=output_format, detailed=detailed)
+        if block:
+            parts.append(block)
+
+    return "\n".join(part for part in parts if part).strip()
+
 
 def get_jobs(
     OUTPUT_FILE,
@@ -20,83 +88,16 @@ def get_jobs(
     DISABLE_TITLE=True,
     DISABLE_TYPE_HEADING=True,
     detailed=False,
-    experimental=False
+    experimental=False,
 ):
-    exclude_keywords = [
-        "default",
-        "include",
-        "stages",
-        "variables",
-        "workflow",
-        "image",
-    ]
-    print("Generating Documentation for Jobs")
+    from gitlab_docs.reset_docs import write_documentation
 
-    with open(GLDOCS_CONFIG_FILE, "r") as file:
-        data = yaml.load(file, Loader=common.EnvLoader)
-        jobs = data
-        # Create file lock against output md file
-        f = open(OUTPUT_FILE, "a")
-        if not DISABLE_TITLE:
-            f.write("\n")
-            GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n")
-            f.write("\n\n")
-            f.write(GLDOCS_CONFIG_FILE_HEADING)
-        if not DISABLE_TYPE_HEADING:
-            f.write("\n")
-            f.write(str("## " + "Jobs" + "\n"))
-            f.write("\n")
-            f.close()
-        # print(type(jobs))
-        for j in jobs:
-            if j in exclude_keywords:
-                logger.debug("Key is reserved for gitlab: " + j)
-            else:
-                # Build Row Level Table to store each job config in
-                job_config_table_headers = ["**Key**", "**Value**"]
-
-                job_config_table = PrettyTable(headers=job_config_table_headers)
-                job_config_table.border = True
-                job_config_table.set_style(DESIGN)
-                # job_config_table.border=False
-                if experimental is True:
-                    if detailed is True and j["rules"]:
-                        jobs[j].pop("rules", None)
-
-                jobs[j].pop("before_script", None)
-                jobs[j].pop("script", None)
-                jobs[j].pop("after_script", None)
-                # print(jobs[j])
-                job_config = []
-                if jobs[j]:
-                    for key in sorted(jobs[j]):
-                        # job_config_table_headers.append(key)
-                        job_property = "**" + key + "**"
-                        value = (
-                            str(jobs[j][key])
-                            .replace(",", "\n")
-                            .replace("{", "")
-                            .replace("}", "")
-                        )
-                        # print([job_property, value])
-
-                        job_config_table.add_row([job_property, value])
-                        # job_config.append([key,jobs[j][key]])
-                        logger.debug(jobs[j][key])
-
-                    job_config_table.field_names = job_config_table_headers
-                    # job_config_table.add_row(job_config)
-                    # print(job_config_table)
-                    job_name = j.upper()
-                    logger.debug("### " + job_name)
-                    f = open(OUTPUT_FILE, "a")
-                    f.write(str("\n"))
-                    f.write(str("### " + job_name + "\n\n"))
-
-                    # f.write(str("\n"))
-                    f.write(str(job_config_table))
-                    f.write(str("\n"))
-                    f.close()
-        f = open(OUTPUT_FILE, "a")
-        f.write(str("\n\n"))
-        f.close()
+    body = build_jobs_section(
+        Path(GLDOCS_CONFIG_FILE),
+        output_format="markdown",
+        detailed=detailed,
+        disable_title=not DISABLE_TITLE,
+        disable_type_heading=not DISABLE_TYPE_HEADING,
+    )
+    if body:
+        write_documentation(OUTPUT_FILE, body, "markdown")
