@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+    tags-ignore:
+      - "**"
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  megalinter:
+    name: MegaLinter
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: MegaLinter
+        uses: oxsecurity/megalinter@v8
+        env:
+          DEFAULT_WORKSPACE: ${{ github.workspace }}
+          APPLY_FIXES: none
+          DISABLE_ERRORS: true
+
+  test-and-build:
+    name: Test and build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry-core build \
+            "click>=8,<9" \
+            prettytable \
+            "pytablewriter~=1.2.0" \
+            dominate \
+            pyyaml \
+            "semver>=3" \
+            markdown-analysis \
+            pytest
+          pip install -e .
+
+      - name: Run tests
+        run: |
+          python scripts/ci_test.py
+          pytest -q
+      - name: Build package
+        run: python -m build
+
+      - name: Verify CLI (gitlab-docs)
+        run: |
+          pip install dist/*.whl
+          gitlab-docs
+          test -f GITLAB-DOCS.md
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: dist/
+          retention-days: 7

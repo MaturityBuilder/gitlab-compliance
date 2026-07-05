@@ -4,6 +4,8 @@
   "ignore": [
     "**/node_modules/**",
     "**/.git/**",
+    "**/README.md",
+    "**/GITLAB-DOCS.md",
     "**/.rbenv/**",
     "**/.venv/**",
     "**/*cache*/**",

@@ -1,57 +1,49 @@
-# import gitlab_docs.yaml_md_table as gldocs
 import logging
-import os
-import yaml
-import gitlab_docs.common as common
+from typing import Any
 
-# from pytablewriter import MarkdownTableWriter
-from prettytable import MARKDOWN
+import semver
 
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("GITLAB DOCS|INCLUDES WRAPPER")
-logger.setLevel(LOG_LEVEL)
+from gitlab_docs.constants import NON_SEMVER_REFS
+from gitlab_docs.render import DocTable, render_table
+
+logger = logging.getLogger("gitlab_docs.workflows")
+
+
+def _workflow_rule_entries(workflow: Any) -> list[Any]:
+    if workflow is None:
+        return []
+    if isinstance(workflow, list):
+        return workflow
+    if isinstance(workflow, dict):
+        if "rules" in workflow and isinstance(workflow["rules"], list):
+            return workflow["rules"]
+        return [workflow]
+    return [workflow]
+
+
+def build_workflows_section(data: dict, *, output_format: str = "markdown") -> str:
+    if "workflow" not in data:
+        return ""
+
+    rules = _workflow_rule_entries(data["workflow"])
+    if not rules:
+        return ""
+
+    table = DocTable(headers=["Rules #", "Workflow Rules"])
+    for index, rule in enumerate(rules, start=1):
+        value = str(rule).replace("{", "").replace("}", "")
+        table.add_row([str(index), value])
+
+    return "## Workflow\n\n" + render_table(table, output_format)
 
 
 def document_workflows(
     OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE="a", DISABLE_TITLE=False
 ):
-    print("Generating Documentation for Workflows")
+    from gitlab_docs.reset_docs import write_documentation
+    from gitlab_docs.yaml_load import load_ci_config
 
-    with open(GLDOCS_CONFIG_FILE, "r") as file:
-        try:
-            data = yaml.load(file, Loader=common.EnvLoader)
-            if "workflow" in data:
-                workflow = data["workflow"]
-
-                # print(gldocs.generate_markdown_table(includes))
-                from prettytable import PrettyTable
-
-                workflow_table = PrettyTable()
-                workflow_table.set_style(MARKDOWN)
-                workflow_table.field_names = ["Rules #", "Workflow Rules"]
-                # workflow_table.add_rows([includes])
-                logger.debug(workflow)
-                count = 0
-                for w in workflow:
-                    count = count + 1
-                    # print("count: " + str(count))
-                    # if isinstance(w, (str)):
-                    value = str(w).replace("{", "").replace("}", "")
-                    print(value)
-                    workflow_table.add_row([count, str(value)])
-
-                f = open(OUTPUT_FILE, "a")
-                if not DISABLE_TITLE:
-                    GLDOCS_CONFIG_FILE_HEADING = str(
-                        "## " + GLDOCS_CONFIG_FILE + "\n\n"
-                    )
-                    f.write("\n")
-                    f.write(GLDOCS_CONFIG_FILE_HEADING)
-                f.write(str(workflow_table))
-                f.close()
-                logger.debug("")
-                logger.debug(str(workflow_table))
-                logger.debug("")
-        except yaml.YAMLError as exc:
-            print(exc)
+    data = load_ci_config(GLDOCS_CONFIG_FILE)
+    body = build_workflows_section(data)
+    if body:
+        write_documentation(OUTPUT_FILE, body, "markdown")
