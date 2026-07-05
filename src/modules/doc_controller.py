@@ -3,18 +3,27 @@ A module for controlling inserts and updates to output files.
 """
 
 import os
-from src.modules.logging import logger
 from pathlib import Path
+
+from src.modules.logging import logger
 
 file_path = "README.md"
 
-dry=os.environ.get("DRY_MODE", False)
+dry = os.environ.get("DRY_MODE", False)
 
-def update_marked_block(file_path, content,marker_start="[comment]: <> (gitlab-docs-opening-auto-generated)",marker_end="[comment]: <> (gitlab-docs-closing-auto-generated)"):
+
+def update_marked_block(
+    file_path,
+    content,
+    marker_start="[comment]: <> (gitlab-docs-opening-auto-generated)",
+    marker_end="[comment]: <> (gitlab-docs-closing-auto-generated)",
+    dry=None,
+):
     """
     Test implementation matching your original function
-    """ 
-    dry = getattr(update_marked_block, '_dry_mode', False)
+    """
+    if dry is None:
+        dry = getattr(update_marked_block, "_dry_mode", False)
     try:
         if not os.path.exists(file_path):
             logger.trace(f"File {file_path} does not exist. Creating new file.")
@@ -58,7 +67,13 @@ def update_marked_block(file_path, content,marker_start="[comment]: <> (gitlab-d
     except Exception as e:
         logger.error(f"Failed to update block in {file_path}: {e}")
 
-def add_between_markers(file_path, content, marker_start="[comment]: <> (gitlab-docs-opening-auto-generated)",marker_end="[comment]: <> (gitlab-docs-closing-auto-generated)"):
+
+def add_between_markers(
+    file_path,
+    content,
+    marker_start="[comment]: <> (gitlab-docs-opening-auto-generated)",
+    marker_end="[comment]: <> (gitlab-docs-closing-auto-generated)",
+):
     """
     Appends content between marker lines in a file.
 
@@ -72,7 +87,9 @@ def add_between_markers(file_path, content, marker_start="[comment]: <> (gitlab-
     """
     try:
         if not os.path.exists(file_path):
-            logger.trace(f"File {file_path} does not exist. Creating new file with block.")
+            logger.trace(
+                f"File {file_path} does not exist. Creating new file with block."
+            )
             if dry:
                 logger.info("[Dry Run] Would create file with content:")
                 logger.info(f"{marker_start}\n{content.rstrip()}\n{marker_end}")
@@ -104,7 +121,12 @@ def add_between_markers(file_path, content, marker_start="[comment]: <> (gitlab-
             logger.trace("Appending new marker block.")
             if lines and not lines[-1].endswith("\n"):
                 lines[-1] += "\n"
-            lines += ["\n", marker_start + "\n", content.rstrip() + "\n", marker_end + "\n"]
+            lines += [
+                "\n",
+                marker_start + "\n",
+                content.rstrip() + "\n",
+                marker_end + "\n",
+            ]
 
         if dry:
             logger.logger("[Dry Run] Would write the following to file:")
@@ -114,10 +136,12 @@ def add_between_markers(file_path, content, marker_start="[comment]: <> (gitlab-
                 f.writelines(lines)
             logger.trace(f"Content successfully added to {file_path}")
     except Exception as e:
-            logger.error(f"Failed to insert content into {file_path}: {e}")
+        logger.error(f"Failed to insert content into {file_path}: {e}")
 
 
-def remove_duplicate_headings(file_path: str | Path, output_file: str | Path | None = None):
+def remove_duplicate_headings(
+    file_path: str | Path, output_file: str | Path | None = None
+):
     """
     Removes duplicate Markdown headings from a file.
     Keeps the first occurrence of each heading.

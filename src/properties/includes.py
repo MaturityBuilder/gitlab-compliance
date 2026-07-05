@@ -48,8 +48,8 @@ def document_includes(
                                 "&#9989;" if check_include_version_is_sema_version(version, file, value)
                                 else "&#x274c;"
                             )
-                            inc_vars = i.get("variables", "")
-                            inc_rules = i.get("rules", "")
+                            inc_vars = common.format_dict_summary(i.get("variables", ""))
+                            inc_rules = common.format_rules_summary(i.get("rules", ""))
 
                             includes_table.add_row([
                                 include_type, value, version, valid_version, file, inc_vars, inc_rules
@@ -66,8 +66,8 @@ def document_includes(
                                 "&#9989;" if check_include_version_is_sema_version(version, "component", value)
                                 else "&#x274c;"
                             )
-                            inc_vars = i.get("inputs", "")
-                            inc_rules = i.get("rules", "")
+                            inc_vars = common.format_dict_summary(i.get("inputs", ""))
+                            inc_rules = common.format_rules_summary(i.get("rules", ""))
 
                             includes_table.add_row([
                                 include_type, value, version, valid_version, "", inc_vars, inc_rules
@@ -75,8 +75,8 @@ def document_includes(
 
                         elif include_type == "local":
                             version = "n/a"
-                            inc_vars = i.get("variables", "")
-                            inc_rules = i.get("rules", "")
+                            inc_vars = common.format_dict_summary(i.get("variables", ""))
+                            inc_rules = common.format_rules_summary(i.get("rules", ""))
 
                             includes_table.add_row([
                                 include_type, value, version, "&#9989;", "", inc_vars, inc_rules
