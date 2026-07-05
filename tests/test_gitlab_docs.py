@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from gitlab_docs.pipeline import generate_documentation_body
+from gitlab_docs.reset_docs import merge_markdown_output
 from gitlab_docs.constants import GLDOCS_CLOSING_MARKER, GLDOCS_OPENING_MARKER
 from gitlab_docs.variables import build_variables_section
 from gitlab_docs.workflows import _workflow_rule_entries, build_workflows_section
@@ -62,16 +63,21 @@ def test_repo_ci_generates_jobs():
 
 
 def test_markdown_merge_replaces_generated_block():
+    wrapped = merge_markdown_output("GITLAB-DOCS.md", "new body")
+    assert "new body" in wrapped
+    assert GLDOCS_OPENING_MARKER in wrapped
+    assert GLDOCS_CLOSING_MARKER in wrapped
+
     original = (
         "# Readme\n\n"
         f"{GLDOCS_OPENING_MARKER}\n\nold\n\n{GLDOCS_CLOSING_MARKER}\n\nfooter\n"
     )
-    merged = merge_markdown_output("GITLAB-DOCS.md", "new body")
-    # merge_markdown_output reads file if exists - test logic via inline simulation
     start = original.find(GLDOCS_OPENING_MARKER)
     end = original.rfind(GLDOCS_CLOSING_MARKER) + len(GLDOCS_CLOSING_MARKER)
-    wrapped = f"{GLDOCS_OPENING_MARKER}\n\nnew body\n\n{GLDOCS_CLOSING_MARKER}\n"
-    result = original[:start] + wrapped.strip() + original[end:]
+    replacement = (
+        f"{GLDOCS_OPENING_MARKER}\n\nnew body\n\n{GLDOCS_CLOSING_MARKER}\n"
+    )
+    result = original[:start] + replacement.strip() + original[end:]
     assert "old" not in result
     assert "new body" in result
     assert "footer" in result

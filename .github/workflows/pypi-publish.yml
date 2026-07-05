@@ -42,9 +42,13 @@ jobs:
           python-version: "3.12"
 
       - name: Install Poetry
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry poetry-bumpversion
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          installer-parallel: true
+
+      - name: Sync lock file
+        run: poetry lock --no-interaction
 
       - name: Install project dependencies
         run: poetry install --no-interaction

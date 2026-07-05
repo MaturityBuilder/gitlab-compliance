@@ -24,6 +24,7 @@ jobs:
         uses: oxsecurity/megalinter@v8
         env:
           DEFAULT_WORKSPACE: ${{ github.workspace }}
+          APPLY_FIXES: none
 
   test-and-build:
     name: Test and build
@@ -38,9 +39,13 @@ jobs:
           python-version: "3.12"
 
       - name: Install Poetry
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          installer-parallel: true
+
+      - name: Sync lock file
+        run: poetry lock --no-interaction
 
       - name: Install dependencies
         run: poetry install --no-interaction
@@ -53,8 +58,8 @@ jobs:
 
       - name: Verify CLI (gitlab-docs)
         run: |
-          pip install dist/*.whl
-          gitlab-docs
+          poetry run pip install dist/*.whl
+          poetry run gitlab-docs
           test -f GITLAB-DOCS.md
 
       - name: Upload build artifacts

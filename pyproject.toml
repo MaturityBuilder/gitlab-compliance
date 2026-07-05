@@ -13,7 +13,7 @@ version = "0.2.0"
 description = "A tool that automatically generates gitlab documentation from yaml files"
 authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
 readme = "README.md"
-packages = [{include = "gitlab_docs", format = "sdist"}]
+packages = [{include = "gitlab_docs"}]
 
 [tool.poetry.dependencies]
 python = ">=3.12"
