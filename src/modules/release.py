@@ -84,7 +84,7 @@ def sort_tags(tags: list) -> list:
             reverse=True,
         )
 
-    return sorted(tags, key=lambda tag: _tag_committed_date(tag), reverse=True)
+    return sorted(tags, key=_tag_committed_date, reverse=True)
 
 
 def resolve_baseline_tag(tags: list, since_tag: str | None = None) -> tuple[str, datetime, str | None]:
