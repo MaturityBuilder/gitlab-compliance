@@ -54,7 +54,16 @@ jobs:
           pip install -e .
 
       - name: Run tests
-        run: pytest -vv --tb=short
+        run: |
+          set -o pipefail
+          pytest -vv --tb=short 2>&1 | tee pytest-output.txt
+
+      - name: Upload pytest log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-output
+          path: pytest-output.txt
 
       - name: Build package
         run: python -m build
