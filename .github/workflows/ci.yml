@@ -38,28 +38,29 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          installer-parallel: true
-
-      - name: Sync lock file
-        run: poetry lock --no-interaction
-
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry-core build \
+            "click>=8,<9" \
+            prettytable \
+            "pytablewriter~=1.2.0" \
+            pyyaml \
+            "semver>=3" \
+            markdown-analysis \
+            pytest
+          pip install -e .
 
       - name: Run tests
-        run: poetry run pytest -q
+        run: pytest -q
 
       - name: Build package
-        run: poetry build
+        run: python -m build
 
       - name: Verify CLI (gitlab-docs)
         run: |
-          poetry run pip install dist/*.whl
-          poetry run gitlab-docs
+          pip install dist/*.whl
+          gitlab-docs
           test -f GITLAB-DOCS.md
 
       - name: Upload build artifacts
