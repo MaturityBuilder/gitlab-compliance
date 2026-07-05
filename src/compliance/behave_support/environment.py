@@ -26,7 +26,6 @@ def before_scenario(context, scenario):
             pipeline_file=pipeline,
             include_nested=context.config.userdata.get("include_nested", "true") == "true",
             gitlab_url=context.config.userdata.get("gitlab_url") or None,
-            token=context.config.userdata.get("token") or None,
             project=context.config.userdata.get("project") or None,
             group=context.config.userdata.get("group") or None,
         )

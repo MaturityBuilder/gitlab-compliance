@@ -16,12 +16,8 @@ def _userdata_value(userdata: dict[str, Any], key: str) -> str | None:
 
 
 def resolve_token(userdata: dict[str, Any] | None = None) -> str | None:
-    userdata = userdata or {}
-    return (
-        _userdata_value(userdata, "token")
-        or os.getenv("GITLAB_TOKEN")
-        or os.getenv("CI_JOB_TOKEN")
-    )
+    # Tokens must not be passed through Behave userdata (may appear in logs/reports).
+    return os.getenv("GITLAB_TOKEN") or os.getenv("CI_JOB_TOKEN")
 
 
 def resolve_project(userdata: dict[str, Any] | None = None) -> str | None:
@@ -31,7 +27,7 @@ def resolve_project(userdata: dict[str, Any] | None = None) -> str | None:
 
 def resolve_group(userdata: dict[str, Any] | None = None) -> str | None:
     userdata = userdata or {}
-    return _userdata_value(userdata, "group")
+    return _userdata_value(userdata, "group") or os.getenv("GITLAB_GROUP_PATH")
 
 
 def project_api_ready(userdata: dict[str, Any] | None = None) -> bool:

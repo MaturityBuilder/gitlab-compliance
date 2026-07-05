@@ -46,7 +46,10 @@ def property_matches(entity: dict, property_name: str, expected: str) -> bool:
 
 def property_matches_regex(entity: dict, property_name: str, pattern: str) -> bool:
     value = normalize_value(get_property(entity, property_name))
-    return re.search(pattern, value) is not None
+    try:
+        return re.search(pattern, value) is not None
+    except re.error as exc:
+        raise ValueError(f"Invalid regex pattern for property '{property_name}': {pattern}") from exc
 
 
 def property_not_matches_regex(entity: dict, property_name: str, pattern: str) -> bool:

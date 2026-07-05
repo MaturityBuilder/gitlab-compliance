@@ -10,11 +10,18 @@ file_path = "README.md"
 
 dry=os.environ.get("DRY_MODE", False)
 
-def update_marked_block(file_path, content,marker_start="[comment]: <> (gitlab-docs-opening-auto-generated)",marker_end="[comment]: <> (gitlab-docs-closing-auto-generated)"):
+def update_marked_block(
+    file_path,
+    content,
+    marker_start="[comment]: <> (gitlab-docs-opening-auto-generated)",
+    marker_end="[comment]: <> (gitlab-docs-closing-auto-generated)",
+    dry=None,
+):
     """
     Test implementation matching your original function
-    """ 
-    dry = getattr(update_marked_block, '_dry_mode', False)
+    """
+    if dry is None:
+        dry = getattr(update_marked_block, "_dry_mode", False)
     try:
         if not os.path.exists(file_path):
             logger.trace(f"File {file_path} does not exist. Creating new file.")

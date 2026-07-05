@@ -134,23 +134,26 @@ def load_pipeline_entities(
     project: str | None = None,
     group: str | None = None,
 ) -> dict[str, list[dict]]:
-    from src.compliance.api_config import group_api_ready, project_api_ready, resolve_group, resolve_project, resolve_token
+    from src.compliance.api_config import resolve_group, resolve_project, resolve_token
 
     entities = load_yaml_entities(pipeline_file, include_nested=include_nested)
 
     userdata = {
-        "token": token or "",
         "project": project or "",
         "group": group or "",
     }
-    if project_api_ready(userdata) or group_api_ready(userdata):
+    api_token = token or resolve_token(userdata)
+    resolved_project = resolve_project(userdata)
+    resolved_group = resolve_group(userdata)
+
+    if api_token and (resolved_project or resolved_group):
         from src.compliance.gitlab_api import load_api_entities
 
         api_entities = load_api_entities(
             gitlab_url=gitlab_url,
-            token=resolve_token(userdata),
-            project=resolve_project(userdata),
-            group=resolve_group(userdata),
+            token=api_token,
+            project=resolved_project,
+            group=resolved_group,
         )
         entities["project_settings"].extend(api_entities.get("project_settings", []))
         entities["project_ci_variables"].extend(api_entities.get("project_ci_variables", []))

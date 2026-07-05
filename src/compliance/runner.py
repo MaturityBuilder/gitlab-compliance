@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 import shutil
 import tempfile
@@ -25,6 +26,50 @@ ENVIRONMENT_STUB = """from src.compliance.behave_support.environment import *  #
 """
 
 
+@contextlib.contextmanager
+def _temporary_gitlab_env(
+    *,
+    token: str | None,
+    gitlab_url: str | None,
+    project: str | None,
+    group: str | None,
+):
+    """Inject GitLab credentials into the process env for the Behave subprocess."""
+    updates: dict[str, str] = {}
+    if token:
+        updates["GITLAB_TOKEN"] = token
+    if gitlab_url:
+        updates["GITLAB_URL"] = gitlab_url
+    if project:
+        updates["CI_PROJECT_PATH"] = project
+    if group:
+        updates["GITLAB_GROUP_PATH"] = group
+
+    previous: dict[str, str | None] = {}
+    for key, value in updates.items():
+        previous[key] = os.environ.get(key)
+        os.environ[key] = value
+    try:
+        yield
+    finally:
+        for key, old_value in previous.items():
+            if old_value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = old_value
+
+
+def _assert_within_directory(root: str, candidate: str) -> None:
+    root_path = os.path.realpath(root)
+    candidate_path = os.path.realpath(candidate)
+    try:
+        common = os.path.commonpath([root_path, candidate_path])
+    except ValueError as exc:
+        raise ValueError(f"Invalid feature file path: {candidate}") from exc
+    if common != root_path:
+        raise ValueError(f"Feature file escapes policies directory: {candidate}")
+
+
 def _collect_feature_files(features_dir: str) -> list[str]:
     feature_files = []
     for root, _dirs, files in os.walk(features_dir):
@@ -42,10 +87,13 @@ def _build_behave_workspace(features_dir: str) -> str:
         raise FileNotFoundError(f"No .feature files found in {features_dir}")
 
     for feature_file in feature_files:
-        rel_path = os.path.relpath(feature_file, features_dir)
+        _assert_within_directory(features_dir, feature_file)
+        rel_path = os.path.relpath(os.path.realpath(feature_file), os.path.realpath(features_dir))
+        if rel_path.startswith(".."):
+            raise ValueError(f"Feature file escapes policies directory: {feature_file}")
         target = os.path.join(workspace, rel_path)
         os.makedirs(os.path.dirname(target), exist_ok=True)
-        os.symlink(os.path.abspath(feature_file), target)
+        os.symlink(os.path.realpath(feature_file), target)
 
     with open(os.path.join(workspace, "environment.py"), "w", encoding="utf-8") as handle:
         handle.write(ENVIRONMENT_STUB)
@@ -124,49 +172,62 @@ def run_compliance(
     workspace = _build_behave_workspace(resolved_features_dir)
     policy_catalog = build_policy_catalog(resolved_features_dir)
 
+    exit_code = 1
+    scenario_results: list[ScenarioResult] = []
+    features = 0
+    scenarios = 0
+    passed = 0
+    failed_count = 0
+    skipped = 0
+
     try:
-        registry.clear()
-        argv = [
-            "behave",
-            workspace,
-            "--no-capture",
-            "--no-logcapture",
-            "--no-summary",
-            "--format",
-            "null",
-        ]
-        if dry_run:
-            argv.append("--dry-run")
+        with _temporary_gitlab_env(
+            token=token,
+            gitlab_url=gitlab_url,
+            project=project,
+            group=group,
+        ):
+            registry.clear()
+            argv = [
+                "behave",
+                workspace,
+                "--no-capture",
+                "--no-logcapture",
+                "--no-summary",
+                "--format",
+                "null",
+            ]
+            if dry_run:
+                argv.append("--dry-run")
 
-        config = Configuration(argv)
-        config.paths = [workspace]
-        config.userdata = {
-            "pipeline": os.path.abspath(pipeline_file),
-            "include_nested": "true" if include_nested else "false",
-            "gitlab_url": gitlab_url or "",
-            "token": token or "",
-            "project": project or "",
-            "group": group or "",
-            "strict": "true" if strict else "false",
-        }
+            config = Configuration(argv)
+            config.paths = [workspace]
+            config.userdata = {
+                "pipeline": os.path.abspath(pipeline_file),
+                "include_nested": "true" if include_nested else "false",
+                "gitlab_url": gitlab_url or "",
+                "project": project or "",
+                "group": group or "",
+                "strict": "true" if strict else "false",
+            }
 
-        runner = Runner(config)
-        exit_code = runner.run()
-        scenario_results = _collect_scenario_results(runner, policy_catalog)
-        features = len(runner.features)
-        scenarios = sum(len(feature.scenarios) for feature in runner.features)
-        passed = sum(
-            1 for feature in runner.features for scenario in feature.scenarios
-            if scenario.status.name == "passed"
-        )
-        failed_count = sum(
-            1 for feature in runner.features for scenario in feature.scenarios
-            if scenario.status.name == "failed"
-        )
-        skipped = sum(
-            1 for feature in runner.features for scenario in feature.scenarios
-            if scenario.status.name == "skipped"
-        )
+            runner = Runner(config)
+            exit_code = runner.run()
+            scenario_results = _collect_scenario_results(runner, policy_catalog)
+            features = len(runner.features)
+            scenarios = sum(len(feature.scenarios) for feature in runner.features)
+            passed = sum(
+                1 for feature in runner.features for scenario in feature.scenarios
+                if scenario.status.name == "passed"
+            )
+            failed_count = sum(
+                1 for feature in runner.features for scenario in feature.scenarios
+                if scenario.status.name == "failed"
+            )
+            skipped = sum(
+                1 for feature in runner.features for scenario in feature.scenarios
+                if scenario.status.name == "skipped"
+            )
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 

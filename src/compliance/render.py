@@ -23,9 +23,9 @@ def _status_icon(status: str, for_mr: bool = False) -> str:
 
 
 def _group_by_status(result: ComplianceResult) -> dict[str, list]:
-    grouped = {"passed": [], "failed": [], "skipped": []}
+    grouped: dict[str, list] = {"passed": [], "failed": [], "skipped": []}
     for scenario in result.scenario_results:
-        grouped.get(scenario.status, grouped["passed"]).append(scenario)
+        grouped.setdefault(scenario.status, []).append(scenario)
     return grouped
 
 
@@ -100,14 +100,16 @@ def render_compliance_mr_comment(
         lines.append("#### Failed policies")
         lines.append("")
         for scenario in grouped["failed"]:
-            summary = f"<code>{scenario.policy_id or scenario.feature}</code> — {scenario.title or scenario.name}"
+            label = html.escape(scenario.policy_id or scenario.feature)
+            title = html.escape(scenario.title or scenario.name)
+            summary = f"<code>{label}</code> — {title}"
             lines.extend([
                 "<details>",
                 f"<summary>{summary}</summary>",
                 "",
             ])
             if scenario.description:
-                lines.extend([scenario.description, ""])
+                lines.extend([html.escape(scenario.description), ""])
             lines.extend([
                 "```text",
                 scenario.message or "Scenario failed.",

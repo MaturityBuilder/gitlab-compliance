@@ -152,6 +152,17 @@ def _parse_job(name: str, config: dict, source_file: str = "", line: int = 0) ->
     }
 
 
+def _resolve_local_include_path(config_file: str, local_path: str) -> str | None:
+    base_dir = os.path.realpath(os.path.dirname(os.path.abspath(config_file)))
+    candidate = os.path.realpath(os.path.normpath(os.path.join(base_dir, local_path.lstrip("/"))))
+    try:
+        if os.path.commonpath([base_dir, candidate]) != base_dir:
+            return None
+    except ValueError:
+        return None
+    return candidate if os.path.exists(candidate) else None
+
+
 def collect_pipeline_data(
     config_file: str,
     detailed: bool = False,
@@ -205,8 +216,8 @@ def collect_pipeline_data(
                 if parsed:
                     data["includes"].append(parsed)
                     if include_nested and parsed["include_type"] == "local":
-                        sub_config = parsed["project"].lstrip("/")
-                        if os.path.exists(sub_config):
+                        sub_config = _resolve_local_include_path(config_file, parsed["project"])
+                        if sub_config:
                             nested = collect_pipeline_data(
                                 sub_config,
                                 detailed=detailed,

@@ -29,8 +29,7 @@ logger = MockLogger()
 @when('I update the marked block with "{text}"')
 def step_when_update_block(context, text):
     dry = getattr(context, "dry", False)
-    update_marked_block._dry_mode = dry
-    update_marked_block(str(context.file_path), text)
+    update_marked_block(str(context.file_path), text, dry=dry)
 # Step definitions
 @given('I have a test environment set up')
 def step_setup_test_env(context):
