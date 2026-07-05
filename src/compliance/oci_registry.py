@@ -5,11 +5,12 @@ from __future__ import annotations
 import os
 import re
 import shutil
+import tarfile
 import tempfile
 from pathlib import Path
 
 import oras.client
-from oras.utils import extract_targz, make_targz
+from oras.utils import make_targz
 
 POLICY_BUNDLE_MEDIA_TYPE = "application/vnd.gitlab-docs.policy.bundle.v1+tar+gzip"
 OCI_SCHEME = "oci://"
@@ -49,10 +50,36 @@ def bundle_policies_dir(features_dir: str) -> str:
     return make_targz(features_dir, bundle_path)
 
 
+def _is_within_directory(directory: str, target: str) -> bool:
+    directory = os.path.realpath(directory)
+    resolved = os.path.realpath(os.path.join(directory, target))
+    return resolved == directory or resolved.startswith(directory + os.sep)
+
+
 def extract_policy_bundle(bundle_path: str, output_dir: str) -> str:
+    # Policy bundles are pulled from remote OCI registries and are therefore
+    # untrusted input. Extract them ourselves so we can reject entries that
+    # would escape ``output_dir`` (path traversal / "tar slip") instead of
+    # relying on the archive library's default behaviour.
+    output_dir = os.path.abspath(output_dir)
     os.makedirs(output_dir, exist_ok=True)
-    extract_targz(bundle_path, output_dir)
-    return os.path.abspath(output_dir)
+
+    with tarfile.open(bundle_path, "r:gz") as tar:
+        for member in tar.getmembers():
+            if member.name.startswith("/") or os.path.isabs(member.name):
+                raise ValueError(f"Refusing to extract absolute path from bundle: {member.name}")
+            if not _is_within_directory(output_dir, member.name):
+                raise ValueError(f"Refusing to extract unsafe path from bundle: {member.name}")
+            if (member.issym() or member.islnk()) and not _is_within_directory(output_dir, member.linkname):
+                raise ValueError(f"Refusing to extract unsafe link from bundle: {member.name}")
+        try:
+            tar.extractall(output_dir, filter="data")
+        except TypeError:
+            # ``filter`` keyword is unavailable on older Python; the explicit
+            # per-member validation above still prevents traversal.
+            tar.extractall(output_dir)
+
+    return output_dir
 
 
 def _client() -> oras.client.OrasClient:
