@@ -31,19 +31,6 @@ def get_jobs(
     file = common.read_yml(GLDOCS_CONFIG_FILE)
     add_between_markers(file_path=OUTPUT_FILE, content="## Jobs")
     for jobs in file:
-        # Create file lock against output md file
-        # f = open(OUTPUT_FILE, "a")
-        # if not DISABLE_TITLE:
-        #     add_between_markers(file_path=OUTPUT_FILE, content="\n")
-        #     GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n")
-        #     add_between_markers(file_path=OUTPUT_FILE, content=GLDOCS_CONFIG_FILE_HEADING)
-        # if not DISABLE_TYPE_HEADING:
-            # add_between_markers(file_path=OUTPUT_FILE, content="\n")
-            # add_between_markers(file_path=OUTPUT_FILE, content=str("## " + "Jobs" + "\n"))
-            # add_between_markers(file_path=OUTPUT_FILE, content="\n")
-
-        # logger.trace(type(jobs))
-
         for j in jobs:
             if j in exclude_keywords and not j.startswith("."):
                 logger.debug("Key is reserved for gitlab: " + j)
