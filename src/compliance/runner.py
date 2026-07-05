@@ -88,14 +88,18 @@ def _build_behave_workspace(features_dir: str) -> str:
 
     for feature_file in feature_files:
         _assert_within_directory(features_dir, feature_file)
-        rel_path = os.path.relpath(os.path.realpath(feature_file), os.path.realpath(features_dir))
+        rel_path = os.path.relpath(
+            os.path.realpath(feature_file), os.path.realpath(features_dir)
+        )
         if rel_path.startswith(".."):
             raise ValueError(f"Feature file escapes policies directory: {feature_file}")
         target = os.path.join(workspace, rel_path)
         os.makedirs(os.path.dirname(target), exist_ok=True)
         os.symlink(os.path.realpath(feature_file), target)
 
-    with open(os.path.join(workspace, "environment.py"), "w", encoding="utf-8") as handle:
+    with open(
+        os.path.join(workspace, "environment.py"), "w", encoding="utf-8"
+    ) as handle:
         handle.write(ENVIRONMENT_STUB)
 
     os.symlink(
@@ -217,15 +221,21 @@ def run_compliance(
             features = len(runner.features)
             scenarios = sum(len(feature.scenarios) for feature in runner.features)
             passed = sum(
-                1 for feature in runner.features for scenario in feature.scenarios
+                1
+                for feature in runner.features
+                for scenario in feature.scenarios
                 if scenario.status.name == "passed"
             )
             failed_count = sum(
-                1 for feature in runner.features for scenario in feature.scenarios
+                1
+                for feature in runner.features
+                for scenario in feature.scenarios
                 if scenario.status.name == "failed"
             )
             skipped = sum(
-                1 for feature in runner.features for scenario in feature.scenarios
+                1
+                for feature in runner.features
+                for scenario in feature.scenarios
                 if scenario.status.name == "skipped"
             )
     finally:

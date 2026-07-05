@@ -34,7 +34,9 @@ def _include_entity(index: int, include: dict) -> dict:
     }
 
 
-def _variable_entity(key: str, value: Any, source_file: str = "", line: int = 0) -> dict:
+def _variable_entity(
+    key: str, value: Any, source_file: str = "", line: int = 0
+) -> dict:
     return {
         "address": f"variable.{key}",
         "type": "variable",
@@ -47,7 +49,9 @@ def _variable_entity(key: str, value: Any, source_file: str = "", line: int = 0)
     }
 
 
-def _workflow_rule_entity(index: int, rule: Any, source_file: str = "", line: int = 0) -> dict:
+def _workflow_rule_entity(
+    index: int, rule: Any, source_file: str = "", line: int = 0
+) -> dict:
     return {
         "address": f"workflow.rule.{index}",
         "type": "workflow_rule",
@@ -78,7 +82,12 @@ def load_yaml_entities(
 
     entities: dict[str, list[dict]] = {
         "jobs": [
-            _job_entity(job["name"], _job_values(job), job.get("source_file", pipeline_file), job.get("line", 0))
+            _job_entity(
+                job["name"],
+                _job_values(job),
+                job.get("source_file", pipeline_file),
+                job.get("line", 0),
+            )
             for job in pipeline_data["jobs"]
         ],
         "includes": [
@@ -99,7 +108,11 @@ def load_yaml_entities(
                 index,
                 rule,
                 pipeline_file,
-                workflow_rule_lines[index - 1] if index - 1 < len(workflow_rule_lines) else 0,
+                (
+                    workflow_rule_lines[index - 1]
+                    if index - 1 < len(workflow_rule_lines)
+                    else 0
+                ),
             )
             for index, rule in enumerate(pipeline_data["workflow_rules"], 1)
         ],
@@ -134,7 +147,8 @@ def load_pipeline_entities(
     project: str | None = None,
     group: str | None = None,
 ) -> dict[str, list[dict]]:
-    from src.compliance.api_config import resolve_group, resolve_project, resolve_token
+    from src.compliance.api_config import (resolve_group, resolve_project,
+                                           resolve_token)
 
     entities = load_yaml_entities(pipeline_file, include_nested=include_nested)
 
@@ -156,7 +170,9 @@ def load_pipeline_entities(
             group=resolved_group,
         )
         entities["project_settings"].extend(api_entities.get("project_settings", []))
-        entities["project_ci_variables"].extend(api_entities.get("project_ci_variables", []))
+        entities["project_ci_variables"].extend(
+            api_entities.get("project_ci_variables", [])
+        )
         entities["group_settings"].extend(api_entities.get("group_settings", []))
 
     return entities

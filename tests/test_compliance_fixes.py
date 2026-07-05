@@ -1,3 +1,4 @@
+# nosec
 import os
 import tempfile
 

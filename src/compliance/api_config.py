@@ -52,7 +52,9 @@ def _missing_connection_message(scope: ApiScope, label: str) -> str:
 
 def require_api_connection(context, scope: ApiScope, label: str) -> bool:
     userdata = context.config.userdata
-    ready = project_api_ready(userdata) if scope == "project" else group_api_ready(userdata)
+    ready = (
+        project_api_ready(userdata) if scope == "project" else group_api_ready(userdata)
+    )
     if ready:
         return True
 

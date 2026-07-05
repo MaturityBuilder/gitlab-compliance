@@ -49,7 +49,9 @@ def property_matches_regex(entity: dict, property_name: str, pattern: str) -> bo
     try:
         return re.search(pattern, value) is not None
     except re.error as exc:
-        raise ValueError(f"Invalid regex pattern for property '{property_name}': {pattern}") from exc
+        raise ValueError(
+            f"Invalid regex pattern for property '{property_name}': {pattern}"
+        ) from exc
 
 
 def property_not_matches_regex(entity: dict, property_name: str, pattern: str) -> bool:
@@ -70,7 +72,9 @@ def extends_includes(entity: dict, template: str) -> bool:
     return False
 
 
-def filter_entities(entities: list[dict], predicate: Callable[[dict], bool]) -> list[dict]:
+def filter_entities(
+    entities: list[dict], predicate: Callable[[dict], bool]
+) -> list[dict]:
     return [entity for entity in entities if predicate(entity)]
 
 
@@ -84,7 +88,11 @@ def format_entity_ref(entity: dict) -> str:
     return address
 
 
-def assert_all(entities: list[dict], predicate: Callable[[dict], bool], message: str) -> None:
-    failures = [format_entity_ref(entity) for entity in entities if not predicate(entity)]
+def assert_all(
+    entities: list[dict], predicate: Callable[[dict], bool], message: str
+) -> None:
+    failures = [
+        format_entity_ref(entity) for entity in entities if not predicate(entity)
+    ]
     if failures:
         raise AssertionError(f"{message}: {', '.join(failures)}")

@@ -35,7 +35,9 @@ def _include_valid_version(version: str, file: str, include: str) -> bool:
         return False
 
 
-def _parse_include_entry(entry: Any, source_file: str = "", line: int = 0) -> dict | None:
+def _parse_include_entry(
+    entry: Any, source_file: str = "", line: int = 0
+) -> dict | None:
     include = _normalize_include(entry)
     for include_type, value in include.items():
         if include_type == "project":
@@ -44,7 +46,9 @@ def _parse_include_entry(entry: Any, source_file: str = "", line: int = 0) -> di
                 "include_type": include_type,
                 "project": value,
                 "version": version,
-                "valid_version": _include_valid_version(version, include.get("file", ""), value),
+                "valid_version": _include_valid_version(
+                    version, include.get("file", ""), value
+                ),
                 "file": include.get("file", ""),
                 "variables": include.get("variables", {}),
                 "rules": include.get("rules", []),
@@ -99,7 +103,9 @@ def _parse_input_entry(key: str, value: Any) -> dict:
     }
 
 
-def _parse_variable_entry(key: str, value: Any, source_file: str = "", line: int = 0) -> dict:
+def _parse_variable_entry(
+    key: str, value: Any, source_file: str = "", line: int = 0
+) -> dict:
     description = ""
     options: Any = ""
     expand = True
@@ -154,7 +160,9 @@ def _parse_job(name: str, config: dict, source_file: str = "", line: int = 0) ->
 
 def _resolve_local_include_path(config_file: str, local_path: str) -> str | None:
     base_dir = os.path.realpath(os.path.dirname(os.path.abspath(config_file)))
-    candidate = os.path.realpath(os.path.normpath(os.path.join(base_dir, local_path.lstrip("/"))))
+    candidate = os.path.realpath(
+        os.path.normpath(os.path.join(base_dir, local_path.lstrip("/")))
+    )
     try:
         if os.path.commonpath([base_dir, candidate]) != base_dir:
             return None
@@ -212,11 +220,15 @@ def collect_pipeline_data(
                     if index < len(line_index["includes"])
                     else 0
                 )
-                parsed = _parse_include_entry(entry, source_file=config_file, line=include_line)
+                parsed = _parse_include_entry(
+                    entry, source_file=config_file, line=include_line
+                )
                 if parsed:
                     data["includes"].append(parsed)
                     if include_nested and parsed["include_type"] == "local":
-                        sub_config = _resolve_local_include_path(config_file, parsed["project"])
+                        sub_config = _resolve_local_include_path(
+                            config_file, parsed["project"]
+                        )
                         if sub_config:
                             nested = collect_pipeline_data(
                                 sub_config,

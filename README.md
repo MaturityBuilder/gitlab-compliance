@@ -254,13 +254,15 @@ Example Markdown file: `release_notes_group_project_since_v1.0.0.md`
 
 [comment]: <> (gitlab-docs-opening-auto-generated)
 
-# GITLAB DOCS - .gitlab-ci.yml
+            <h1><span class="badge text-bg-primary">GITLAB DOCS - .gitlab-ci.yml</span></h1>
+
 
 ## Inputs
 
 |    Key    |        Value        | Description | Options  | Expand |
 | :-------: | :-----------------: | :---------: | :------: | :----: |
 | job-stage | {'default': 'test'} |   &#x274c;  | &#x274c; |  true  |
+
 
 
 ## Variables
@@ -270,107 +272,103 @@ Example Markdown file: `release_notes_group_project_since_v1.0.0.md`
 | APPLICATION |  gitlab-docs   |   &#x274c;  | &#x274c; |  true  |
 | OUTPUT_FILE | GITLAB-DOCS.md |   &#x274c;  | &#x274c; |  true  |
 
-## Jobs
+
+
+## .gitlab-ci.yml
+<h4><span class="badge text-bg-info">SPEC</span></h4>
+
+<hr>
+
+| **Property** |           **Value**            |
+| :----------: | :----------------------------: |
+|  **inputs**  | 'job-stage': 'default': 'test' |
+
+
+## .gitlab-ci.yml
 <h4><span class="badge text-bg-secondary">.TEST:RULES</span></h4>
 
 <hr>
 
-| **Attribute** | **Value** |
-| :-----------: | :-------: |
-|   **stage**   |    test   |
-
-| Rule # |                      if                      |  when |
-| :----: | :------------------------------------------: | :---: |
-|   1    |                $CI_COMMIT_TAG                | never |
-|   2    | $CI_PIPELINE_SOURCE == "merge_request_event" |       |
-|   3    |   $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH    |       |
-
+| **Property** |                       **Value**                       |
+| :----------: | :---------------------------------------------------: |
+|  **rules**   |                ['if': '$CI_COMMIT_TAG'                |
+|              |                     'when': 'never'                   |
+|              |  'if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
+|              |    'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH']   |
+|  **stage**   |                          test                         |
 <h4><span class="badge text-bg-info">MEGALINTER</span></h4>
 
 <hr>
 
-|   **Attribute**   |           **Value**            |
+|    **Property**   |           **Value**            |
 | :---------------: | :----------------------------: |
 | **allow_failure** |              True              |
-|    **extends**    |         1. .test:rules         |
+|    **extends**    |        ['.test:rules']         |
 |     **image**     | oxsecurity/megalinter-ci_light |
 
-| <span class="badge text-bg-danger">Attribute</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
-| :-------------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
-|                      variables                      |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
-
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                      when                      |                      always                      |
+|                   artifacts                    |                     paths                      |              ['megalinter-reports']              |
+|                   artifacts                    |                   expire_in                    |                      1 week                      |
+|                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
 
 <h4><span class="badge text-bg-info">BEHAVE-TESTS</span></h4>
 
 <hr>
 
-| **Attribute** |   **Value**    |
-| :-----------: | :------------: |
-|  **extends**  | 1. .test:rules |
+| **Property** |    **Value**    |
+| :----------: | :-------------: |
+| **extends**  | ['.test:rules'] |
 
-| <span class="badge text-bg-danger">Attribute</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
-| :-------------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
-|                      variables                      |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
-
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
 
 <h4><span class="badge text-bg-info">BUMP-VERSION</span></h4>
 
 <hr>
 
-| **Attribute** |   **Value**    |
-| :-----------: | :------------: |
-|   **image**   | python:3.12.11 |
-|   **stage**   |    publish     |
-
-| Rule # |              if             |
-| :----: | :-------------------------: |
-|   1    | $CI_COMMIT_BRANCH == "main" |
-
+| **Property** |               **Value**               |
+| :----------: | :-----------------------------------: |
+|  **image**   |             python:3.12.11            |
+|  **rules**   | ['if': '$CI_COMMIT_BRANCH == "main"'] |
+|  **stage**   |                publish                |
 <h4><span class="badge text-bg-secondary">.BUILD:PYTHON</span></h4>
 
 <hr>
 
-|  **Attribute**  | **Value** |
+|   **Property**  | **Value** |
 | :-------------: | :-------: |
 | **environment** |  release  |
 |    **stage**    |   build   |
-
 <h4><span class="badge text-bg-info">TEST-BUILD</span></h4>
 
 <hr>
 
-| **Attribute** |    **Value**     |
-| :-----------: | :--------------: |
-|  **extends**  | 1. .build:python |
-|               |  2. .test:rules  |
-
+| **Property** |    **Value**     |
+| :----------: | :--------------: |
+| **extends**  | ['.build:python' |
+|              |  '.test:rules']  |
 <h4><span class="badge text-bg-info">PUBLISH</span></h4>
 
 <hr>
 
-|  **Attribute**  | **Value** |
-| :-------------: | :-------: |
-|    **cache**    |     []    |
-| **environment** |  release  |
-|    **stage**    |  publish  |
-
-| Rule # |       if       |
-| :----: | :------------: |
-|   1    | $CI_COMMIT_TAG |
-
+|   **Property**  |        **Value**         |
+| :-------------: | :----------------------: |
+|    **cache**    |            []            |
+| **environment** |         release          |
+|    **rules**    | ['if': '$CI_COMMIT_TAG'] |
+|    **stage**    |         publish          |
 <h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
 
 <hr>
 
-| **Attribute** |      **Value**       |
-| :-----------: | :------------------: |
-|   **image**   |    docker:latest     |
-|  **services** |    1. docker:dind    |
-|   **stage**   |        build         |
-|    **tags**   | 1. gitlab-org-docker |
-
-| Rule # |                   if                  |
-| :----: | :-----------------------------------: |
-|   1    | $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG |
-
+| **Property** |                    **Value**                    |
+| :----------: | :---------------------------------------------: |
+|  **image**   |                  docker:latest                  |
+|  **rules**   | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
+| **services** |                 ['docker:dind']                 |
+|  **stage**   |                      build                      |
+|   **tags**   |              ['gitlab-org-docker']              |
 [comment]: <> (gitlab-docs-closing-auto-generated)

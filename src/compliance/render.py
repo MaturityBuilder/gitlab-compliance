@@ -59,7 +59,9 @@ def render_compliance_markdown(
             continue
         lines.extend([f"## {status.title()} scenarios", ""])
         for scenario in scenarios:
-            lines.append(f"### {scenario.policy_id or scenario.feature} — {scenario.title or scenario.name}")
+            lines.append(
+                f"### {scenario.policy_id or scenario.feature} — {scenario.title or scenario.name}"
+            )
             lines.append("")
             lines.append(f"- **Status:** {_status_icon(scenario.status)}")
             if scenario.policy_id:
@@ -79,7 +81,11 @@ def render_compliance_mr_comment(
     features_dir: str,
 ) -> str:
     grouped = _group_by_status(result)
-    overall = ":white_check_mark: **Compliance passed**" if result.success else ":x: **Compliance failed**"
+    overall = (
+        ":white_check_mark: **Compliance passed**"
+        if result.success
+        else ":x: **Compliance failed**"
+    )
     lines = [
         f"### GitLab CI Compliance Report",
         "",
@@ -103,21 +109,25 @@ def render_compliance_mr_comment(
             label = html.escape(scenario.policy_id or scenario.feature)
             title = html.escape(scenario.title or scenario.name)
             summary = f"<code>{label}</code> — {title}"
-            lines.extend([
-                "<details>",
-                f"<summary>{summary}</summary>",
-                "",
-            ])
+            lines.extend(
+                [
+                    "<details>",
+                    f"<summary>{summary}</summary>",
+                    "",
+                ]
+            )
             if scenario.description:
                 lines.extend([html.escape(scenario.description), ""])
-            lines.extend([
-                "```text",
-                scenario.message or "Scenario failed.",
-                "```",
-                "",
-                "</details>",
-                "",
-            ])
+            lines.extend(
+                [
+                    "```text",
+                    scenario.message or "Scenario failed.",
+                    "```",
+                    "",
+                    "</details>",
+                    "",
+                ]
+            )
 
     if grouped["skipped"]:
         lines.append("#### Skipped policies")
@@ -129,11 +139,13 @@ def render_compliance_mr_comment(
             lines.append(f"- `{label}` — {title}: {reason}")
 
     if not result.success:
-        lines.extend([
-            "",
-            "---",
-            "*Merge is blocked until failing compliance policies are resolved.*",
-        ])
+        lines.extend(
+            [
+                "",
+                "---",
+                "*Merge is blocked until failing compliance policies are resolved.*",
+            ]
+        )
 
     return "\n".join(lines).rstrip() + "\n"
 
@@ -161,7 +173,8 @@ def render_compliance_html(
                 "</tr>"
                 + (
                     f"<tr><td colspan='4'><pre>{html.escape(scenario.message)}</pre></td></tr>"
-                    if scenario.message else ""
+                    if scenario.message
+                    else ""
                 )
             )
         return "".join(rows)
