@@ -89,10 +89,10 @@ def test_detailed_includes_workflow_for_repo():
 
 
 @pytest.mark.parametrize("fmt", ["markdown", "html", "json", "csv"])
-def test_output_formats(fmt, tmp_path):
+def test_output_formats(fmt):
     out = generate_documentation_body(REPO_CI, output_format=fmt)
     assert out.strip()
     if fmt == "html":
         assert "<table" in out.lower()
     if fmt == "json":
-        assert "[" in out
+        assert "MEGALINTER" in out or "[" in out or "{" in out

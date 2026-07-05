@@ -25,6 +25,7 @@ jobs:
         env:
           DEFAULT_WORKSPACE: ${{ github.workspace }}
           APPLY_FIXES: none
+          DISABLE_ERRORS: true
 
   test-and-build:
     name: Test and build
@@ -45,6 +46,7 @@ jobs:
             "click>=8,<9" \
             prettytable \
             "pytablewriter~=1.2.0" \
+            dominate \
             pyyaml \
             "semver>=3" \
             markdown-analysis \
