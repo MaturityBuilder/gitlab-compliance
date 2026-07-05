@@ -1,0 +1,78 @@
+name: Publish to PyPI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - f-code-for-includes-docs
+    tags:
+      - "v*"
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: PyPI index
+        required: true
+        default: pypi
+        type: choice
+        options:
+          - pypi
+          - testpypi
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish package
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'testpypi' && 'testpypi' || 'pypi' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry poetry-bumpversion
+
+      - name: Install project dependencies
+        run: poetry install --no-interaction
+
+      - name: Run tests
+        run: poetry run pytest -q
+
+      - name: Bump patch version on default-branch publish
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/')
+        run: |
+          poetry version patch
+          echo "Publishing version $(poetry version -s)"
+
+      - name: Build distributions
+        run: poetry build
+
+      - name: Publish to TestPyPI (trusted publishing)
+        if: >-
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'testpypi')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+      - name: Publish to PyPI (trusted publishing)
+        if: >-
+          github.event_name != 'workflow_dispatch' ||
+          github.event.inputs.target == 'pypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true

@@ -16,6 +16,10 @@ pip3 install --user gitlab-docs
 docker run -v ${PWD}:/gitlab-docs charlieasmith93/gitlab-docs
 ```
 
+### GitHub Actions
+
+CI, PyPI trusted publishing, and container builds run via GitHub Actions. See [.github/workflows/README.md](.github/workflows/README.md) for PyPI publisher setup and workflow triggers.
+
 ## Using gitlab-docs
 
 This writes documentation from `.gitlab-ci.yml` (and nested `local` includes) to `GITLAB-DOCS.md` by default. Re-runs replace only the block between the `gitlab-docs-opening-auto-generated` and `gitlab-docs-closing-auto-generated` HTML comments, so you can keep hand-written content above or below the generated section.
