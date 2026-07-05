@@ -45,8 +45,7 @@ jobs:
           pip install poetry-core build \
             "click>=8,<9" \
             prettytable \
-            "pytablewriter~=1.2.0" \
-            dominate \
+            "pytablewriter[html]~=1.2.0" \
             pyyaml \
             "semver>=3" \
             markdown-analysis \
@@ -57,6 +56,7 @@ jobs:
         run: |
           python scripts/ci_test.py
           pytest -q
+
       - name: Build package
         run: python -m build
 

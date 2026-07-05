@@ -28,10 +28,19 @@ def render_table(table: DocTable, output_format: str = "markdown") -> str:
         return ""
 
     if fmt == "markdown":
-        from prettytable import MARKDOWN, PrettyTable
+        from prettytable import PrettyTable
+
+        try:
+            from prettytable import TableStyle
+
+            table_style = TableStyle.MARKDOWN
+        except ImportError:
+            from prettytable import MARKDOWN
+
+            table_style = MARKDOWN
 
         writer = PrettyTable()
-        writer.set_style(MARKDOWN)
+        writer.set_style(table_style)
         writer.field_names = table.headers
         for row in table.rows:
             writer.add_row(row)

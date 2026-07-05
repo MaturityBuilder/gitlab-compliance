@@ -47,7 +47,7 @@ jobs:
           pip install poetry poetry-core build \
             "click>=8,<9" \
             prettytable \
-            "pytablewriter~=1.2.0" \
+            "pytablewriter[html]~=1.2.0" \
             pyyaml \
             "semver>=3" \
             markdown-analysis \

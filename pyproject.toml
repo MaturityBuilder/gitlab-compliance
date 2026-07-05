@@ -18,7 +18,7 @@ packages = [{include = "gitlab_docs"}]
 [tool.poetry.dependencies]
 python = ">=3.12"
 prettytable = "*"
-pytablewriter = "~1.2.0"
+pytablewriter = {version = "~1.2.0", extras = ["html"]}
 pyyaml = "*"
 semver = "^3.0.2"
 markdown-analysis = "*"
