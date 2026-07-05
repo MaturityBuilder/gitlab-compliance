@@ -217,6 +217,19 @@ compliance:
 | `markdown` | Docs, wikis, artifacts | `--format markdown -o COMPLIANCE-REPORT.md` |
 | `html` | Human-readable report | `--format html -o COMPLIANCE-REPORT.html` |
 | `mr-comment` | Post as GitLab MR note | `--format mr-comment -o compliance-mr-comment.md` |
+| `codequality` | GitLab Code Quality MR/pipeline report | `--format codequality -o gl-code-quality-report.json` |
+
+Publish Code Quality findings in CI:
+
+```yaml
+compliance:
+  script:
+    - pip install gitlab-docs
+    - gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format codequality -o gl-code-quality-report.json
+  artifacts:
+    reports:
+      codequality: gl-code-quality-report.json
+```
 
 Post MR comment in CI:
 

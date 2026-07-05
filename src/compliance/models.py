@@ -14,6 +14,7 @@ class ScenarioResult:
     policy_id: str = ""
     title: str = ""
     description: str = ""
+    severity: str = ""
 
 
 @dataclass

@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import sys
@@ -42,11 +43,15 @@ def step_generate_policy_catalog(context, policy_dir, output_path):
     'I run compliance with format "{output_format}" on "{pipeline}" '
     'policies "{policy_dir}" to "{output_path}"'
 )
-def step_run_compliance_with_format(context, pipeline, policy_dir, output_format, output_path):
+def step_run_compliance_with_format(
+    context, pipeline, policy_dir, output_format, output_path
+):
     _run_compliance(context, pipeline, policy_dir, output_format, output_path)
 
 
-def _run_compliance(context, pipeline, policy_dir, output_format=None, output_path=None, strict=False):
+def _run_compliance(
+    context, pipeline, policy_dir, output_format=None, output_path=None, strict=False
+):
     command = [
         sys.executable,
         "-m",
@@ -101,3 +106,31 @@ def step_report_contains(context, expected_text):
     with open(context.report_path, encoding="utf-8") as handle:
         content = handle.read()
     assert expected_text in content, content
+
+
+@then("the report file should be valid Code Quality JSON")
+def step_report_valid_code_quality_json(context):
+    with open(context.report_path, encoding="utf-8") as handle:
+        content = handle.read()
+    assert not content.startswith(
+        "\ufeff"
+    ), "Code Quality report must not include a BOM"
+    payload = json.loads(content)
+    assert isinstance(payload, list), content
+    assert payload, "Expected at least one Code Quality finding"
+    required = {"description", "check_name", "fingerprint", "severity", "location"}
+    for finding in payload:
+        assert required.issubset(finding), finding
+        assert "path" in finding["location"], finding
+        assert finding["location"]["path"], finding
+        assert not finding["location"]["path"].startswith("./"), finding
+        lines = finding["location"].get("lines", {})
+        assert "begin" in lines, finding
+
+
+@then('the Code Quality report should contain finding for "{expected_path}"')
+def step_code_quality_contains_path(context, expected_path):
+    with open(context.report_path, encoding="utf-8") as handle:
+        payload = json.loads(handle.read())
+    paths = [finding["location"]["path"] for finding in payload]
+    assert any(expected_path in path for path in paths), paths

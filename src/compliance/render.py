@@ -2,10 +2,24 @@
 
 from __future__ import annotations
 
+import hashlib
 import html
+import json
+import os
+import re
 from datetime import datetime, timezone
 
-from src.compliance.models import ComplianceResult
+from src.compliance.models import ComplianceResult, ScenarioResult
+
+LOCATION_RE = re.compile(r"\(([^():]+):(\d+)\)")
+GITLAB_SEVERITIES = frozenset({"info", "minor", "major", "critical", "blocker"})
+METADATA_SEVERITY_MAP = {
+    "blocker": "blocker",
+    "critical": "critical",
+    "high": "major",
+    "medium": "minor",
+    "low": "info",
+}
 
 
 def _status_icon(status: str, for_mr: bool = False) -> str:
@@ -237,6 +251,97 @@ def render_compliance_html(
 """
 
 
+def _normalize_repo_path(path: str) -> str:
+    normalized = path.replace("\\", "/").lstrip("./")
+    return normalized
+
+
+def _check_name_for_scenario(scenario: ScenarioResult) -> str:
+    if scenario.policy_id:
+        return scenario.policy_id
+    feature_slug = re.sub(r"[^a-zA-Z0-9]+", "-", scenario.feature).strip("-").lower()
+    name_slug = re.sub(r"[^a-zA-Z0-9]+", "-", scenario.name).strip("-").lower()
+    return f"compliance/{feature_slug}/{name_slug}"
+
+
+def _map_severity(status: str, metadata_severity: str) -> str:
+    if status == "skipped":
+        return "info"
+    normalized = metadata_severity.strip().lower()
+    if normalized in GITLAB_SEVERITIES:
+        return normalized
+    if normalized in METADATA_SEVERITY_MAP:
+        return METADATA_SEVERITY_MAP[normalized]
+    return "major"
+
+
+def _fingerprint(check_name: str, path: str, line: int, description: str) -> str:
+    payload = f"{check_name}|{path}|{line}|{description}"
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _description_for_scenario(scenario: ScenarioResult) -> str:
+    if scenario.message:
+        return scenario.message
+    if scenario.status == "skipped":
+        return (
+            scenario.description
+            or f"Scenario skipped: {scenario.title or scenario.name}"
+        )
+    return (
+        scenario.description
+        or f"Compliance check failed: {scenario.title or scenario.name}"
+    )
+
+
+def _parse_locations(message: str, fallback_path: str) -> list[tuple[str, int]]:
+    locations = [
+        (_normalize_repo_path(path), int(line))
+        for path, line in LOCATION_RE.findall(message)
+    ]
+    if locations:
+        return locations
+    return [(_normalize_repo_path(fallback_path), 1)]
+
+
+def _findings_for_scenario(scenario: ScenarioResult, pipeline_file: str) -> list[dict]:
+    check_name = _check_name_for_scenario(scenario)
+    description = _description_for_scenario(scenario)
+    severity = _map_severity(scenario.status, scenario.severity)
+    fallback_path = _normalize_repo_path(
+        os.path.relpath(os.path.abspath(pipeline_file))
+    )
+
+    findings = []
+    for path, line in _parse_locations(scenario.message, fallback_path):
+        findings.append(
+            {
+                "description": description,
+                "check_name": check_name,
+                "fingerprint": _fingerprint(check_name, path, line, description),
+                "severity": severity,
+                "location": {
+                    "path": path,
+                    "lines": {"begin": line},
+                },
+            }
+        )
+    return findings
+
+
+def render_compliance_code_quality(
+    result: ComplianceResult,
+    pipeline_file: str,
+) -> str:
+    """Render failed and skipped scenarios as a GitLab Code Quality JSON report."""
+    findings: list[dict] = []
+    for scenario in result.scenario_results:
+        if scenario.status not in ("failed", "skipped"):
+            continue
+        findings.extend(_findings_for_scenario(scenario, pipeline_file))
+    return json.dumps(findings, indent=2) + "\n"
+
+
 def render_compliance_report(
     result: ComplianceResult,
     pipeline_file: str,
@@ -250,4 +355,6 @@ def render_compliance_report(
         return render_compliance_html(result, pipeline_file, features_dir)
     if fmt == "mr-comment":
         return render_compliance_mr_comment(result, pipeline_file, features_dir)
+    if fmt == "codequality":
+        return render_compliance_code_quality(result, pipeline_file)
     return None

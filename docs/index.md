@@ -13,7 +13,7 @@ GitLab Docs is a portable Python CLI for documenting GitLab CI/CD pipelines and 
 | Compliance | Run Gherkin policies against `.gitlab-ci.yml` and GitLab API settings |
 | Policy catalog | Index policies with Conftest-style `# METADATA` (ID, title, description) |
 | OCI registries | Push and pull versioned policy packs like Conftest |
-| Reports | Console (Rich), Markdown, HTML, and GitLab MR comment formats |
+| Reports | Console (Rich), Markdown, HTML, GitLab MR comment, and Code Quality JSON formats |
 | Failure detail | Violations include pipeline file line numbers (`path:line`) |
 
 ## Installation
@@ -76,6 +76,7 @@ gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --strict
 gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format markdown -o COMPLIANCE-REPORT.md
 gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format html -o COMPLIANCE-REPORT.html
 gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format mr-comment -o COMPLIANCE-MR-COMMENT.md
+gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format codequality -o gl-code-quality-report.json
 ```
 
 ### Policy metadata (Conftest-style)
@@ -177,7 +178,7 @@ gitlab-docs compliance [OPTIONS]
 |--------|-------------|
 | `-f, --features` | Policy directory or `oci://registry/repo:tag` (**required**) |
 | `-p, --pipeline` | Pipeline YAML file (default: `.gitlab-ci.yml`) |
-| `--format` | `console`, `markdown`, `html`, `mr-comment` (default: `console`) |
+| `--format` | `console`, `markdown`, `html`, `mr-comment`, `codequality` (default: `console`) |
 | `-o, --output-file` | Write report to file (non-console formats) |
 | `--include-nested / --no-include-nested` | Resolve nested local includes (default: on) |
 | `--token` | GitLab API token (or `GITLAB_TOKEN` / `CI_JOB_TOKEN`) |

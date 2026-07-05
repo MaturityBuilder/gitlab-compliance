@@ -135,6 +135,7 @@ def _collect_scenario_results(runner: Runner, policy_catalog) -> list[ScenarioRe
         feature_file = _feature_file_path(feature)
         for scenario in feature.scenarios:
             annotation = policy_catalog.lookup_scenario(feature_file, scenario.name)
+            custom = annotation.custom if annotation else {}
             results.append(
                 ScenarioResult(
                     feature=feature_name,
@@ -144,6 +145,7 @@ def _collect_scenario_results(runner: Runner, policy_catalog) -> list[ScenarioRe
                     policy_id=annotation.policy_id if annotation else "",
                     title=annotation.title if annotation else scenario.name,
                     description=annotation.description if annotation else "",
+                    severity=str(custom.get("severity", "")) if custom else "",
                 )
             )
     return results

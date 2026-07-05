@@ -5,12 +5,13 @@ DEFAULT_OUTPUT_FILES = {
     "html": "GITLAB-DOCS.html",
 }
 
-COMPLIANCE_OUTPUT_FORMATS = ("console", "markdown", "html", "mr-comment")
+COMPLIANCE_OUTPUT_FORMATS = ("console", "markdown", "html", "mr-comment", "codequality")
 
 COMPLIANCE_DEFAULT_OUTPUT_FILES = {
     "markdown": "COMPLIANCE-REPORT.md",
     "html": "COMPLIANCE-REPORT.html",
     "mr-comment": "COMPLIANCE-MR-COMMENT.md",
+    "codequality": "gl-code-quality-report.json",
 }
 
 POLICY_DOC_OUTPUT_FORMATS = ("markdown", "html")

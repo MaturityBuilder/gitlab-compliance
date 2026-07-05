@@ -21,3 +21,9 @@ Feature: Compliance report output formats
     When I run compliance with format "html" on "sample-files/.gitlab-ci.yml" policies "tests/compliance_policies/passing" to "/tmp/compliance-report.html"
     Then the report file should exist
     And the report file should contain "Compliance Passed"
+
+  Scenario: Code Quality JSON report is generated for a failing policy run
+    When I run compliance with format "codequality" on "sample-files/.gitlab-ci.yml" policies "tests/compliance_policies/failing" to "/tmp/compliance-codequality.json"
+    Then the report file should exist
+    And the report file should be valid Code Quality JSON
+    And the Code Quality report should contain finding for ".gitlab-ci.yml"
