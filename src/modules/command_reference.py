@@ -138,7 +138,7 @@ def dumps(**kwargs):
     try:
         # Import the base command (group of command) function inside the module
         command_ = getattr(module_, base_command)
-    except:
+    except AttributeError:
         click.echo(f'Could not find command {base_command} on module {base_module}')
         return
 
