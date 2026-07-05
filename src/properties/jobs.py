@@ -52,7 +52,8 @@ def get_jobs(
               
                 job_config_table = common.table_design(headers=["**Attribute**", "**Value**"])
                 variable_table = common.table_design(headers=['<span class="badge text-bg-danger">Attribute</span>','<span class="badge text-bg-warning">Key</span>','<span class="badge text-bg-success">Value</span>'])
-                try: 
+                rules_table = None
+                try:
                     if experimental is True:
                         if detailed is True and j["rules"]:
                             
@@ -67,40 +68,40 @@ def get_jobs(
                     if jobs[j]:
                         for key in sorted(jobs[j]):
                             job_Attribute = "**" + key + "**"
-                            value = (
-                                str(jobs[j][key])
-                                .replace(",", "\n")
-                                .replace("{", "")
-                                .replace("}", "")
-                            )
+                            attribute_value = jobs[j][key]
                             # job_config_table_headers.append(key)
-                            if key in ["variables"]:
+                            if key == "rules" and isinstance(attribute_value, list):
+                                rules_table = common.build_dict_list_table(attribute_value)
+                            elif key in ["variables"]:
                                 # print(json.dumps(jobs[j]["variables"].keys()))
                                 # print(key)
-                                var = jobs[j][key].keys()
+                                var = attribute_value.keys()
                                 # print(var)
                                 # var=json.dumps(jobs[j][key])
                                 # # .iteritems()
                                 for item_key in var:
-                                    value = jobs[j][key][item_key]
+                                    value = attribute_value[item_key]
                                     value_counter = value_counter + 1
                                     variable_table.add_row([key,item_key, value])
                             elif key in ["artifacts"] and type(key).__name__ != str:
-                                var = jobs[j][key].keys()
+                                var = attribute_value.keys()
                                 for item_key in var:
-                                    value = jobs[j][key][item_key]
+                                    value = attribute_value[item_key]
                                     value_counter = value_counter + 1
                                     variable_table.add_row([key,item_key, value])
                                 # print(type(key).__name__)
                             elif key in ["needs"]:
                                 # print("found extends")
                                 # logger.warning(len(jobs[j][key]))
-                                for x in jobs[j][key]:
+                                for x in attribute_value:
                                     value_counter = value_counter + 1
                                     # print([key,"Hidden Job", x])
                                     variable_table.add_row([key,"", x])
                             else:
-                                job_config_table.add_row([job_Attribute, value])
+                                job_config_table.add_row([
+                                    job_Attribute,
+                                    common.format_value(attribute_value),
+                                ])
                             # job_config.append([key,jobs[j][key]])
                             logger.debug(jobs[j][key])
 
@@ -120,6 +121,10 @@ def get_jobs(
                         # add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
                         add_between_markers(file_path=OUTPUT_FILE, content=str(job_config_table))
                         # print(variable_table)
+
+                        if rules_table is not None:
+                            add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+                            add_between_markers(file_path=OUTPUT_FILE, content=str(rules_table))
 
                         if value_counter > 0:
                             # print(variable_table)

@@ -38,6 +38,27 @@ def recursive_help(cmd, parent=None):
             yield helpdct
 
 
+def _param_metadata(param):
+    if isinstance(param, click.Argument):
+        return {
+            "usage": param.name,
+            "required": param.required,
+            "default": param.default,
+            "help": getattr(param, "help", None),
+            "type": str(param.type),
+            "kind": "argument",
+        }
+    return {
+        "usage": "\n".join(param.opts),
+        "prompt": getattr(param, "prompt", None),
+        "required": param.required,
+        "default": param.default,
+        "help": getattr(param, "help", None),
+        "type": str(param.type),
+        "kind": "option",
+    }
+
+
 def dump_helper(base_command, docs_dir):
     """ Dumping help usage files from Click Help files into an md """
     docs_path = pathlib.Path(docs_dir)
@@ -47,14 +68,7 @@ def dump_helper(base_command, docs_dir):
         usage = helpdct.get("usage")
         parent = helpdct.get("parent", "") or ''
         options = {
-            opt.name: {
-                "usage": '\n'.join(opt.opts),
-                "prompt": opt.prompt,
-                "required": opt.required,
-                "default": opt.default,
-                "help": opt.help,
-                "type": str(opt.type)
-            }
+            opt.name: _param_metadata(opt)
             for opt in helpdct.get('params', [])
         }
         full_command = f"{str(parent) + ' ' if parent else ''}{str(command.name)}".replace("gitlab-docs","")
@@ -67,7 +81,7 @@ def dump_helper(base_command, docs_dir):
             description=command.help,
             usage=usage,
             options="\n".join([
-                f"* `{opt_name}`{' (REQUIRED)' if opt.get('required') else ''}: \n"
+                f"* `{opt_name}`{' (REQUIRED)' if opt.get('required') else ''}{' [argument]' if opt.get('kind') == 'argument' else ''}: \n"
                 f"  * Type: {opt.get('type')} \n"
                 f"  * Default: `{str(opt.get('default')).lower()}`\n"
                 f"  * Usage: `{opt.get('usage')}`\n"

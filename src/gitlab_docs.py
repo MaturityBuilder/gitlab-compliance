@@ -6,6 +6,7 @@ Author: Charlie Smith
 ## Import Thirdparty Libraries
 import os
 import click
+import shutil
 from datetime import datetime
 import src.properties.includes as includes
 import src.properties.jobs as jobs
@@ -18,6 +19,87 @@ from src.modules.doc_controller import update_marked_block, add_between_markers,
 from src.modules.command_reference import dumps
 from src.properties.extract_job_attribute import get_job_attribute
 from src.modules.release import release_notes
+from src.modules.pipeline_data import collect_pipeline_data
+from src.modules.swagger_html import render_swagger_html
+from src.compliance.runner import run_compliance
+from src.compliance.render import render_compliance_report
+from src.compliance.metadata import build_policy_catalog
+from src.compliance.policy_doc import render_policy_catalog
+from src.compliance.oci_registry import (
+    DEFAULT_POLICY_DIR,
+    is_oci_reference,
+    pull_policies,
+    push_policies,
+    resolve_features_dir,
+)
+from src.modules.constants import (
+    SUPPORTED_OUTPUT_FORMATS,
+    DEFAULT_OUTPUT_FILES,
+    COMPLIANCE_OUTPUT_FORMATS,
+    COMPLIANCE_DEFAULT_OUTPUT_FILES,
+    POLICY_DOC_OUTPUT_FORMATS,
+    POLICY_DOC_DEFAULT_OUTPUT_FILES,
+)
+
+def _generate_markdown(
+    OUTPUT_FILE,
+    GLDOCS_CONFIG_FILE,
+    detailed=False,
+):
+    ENABLE_WORKFLOW_DOCUMENTATION = detailed
+    update_marked_block(file_path=OUTPUT_FILE, content="\n")
+    bootstrap = f"""# GITLAB DOCS - {GLDOCS_CONFIG_FILE}"""
+    add_between_markers(file_path=OUTPUT_FILE, content=bootstrap)
+    inputs.document_inputs(
+        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+        DISABLE_TITLE=True,
+        OUTPUT_FILE=OUTPUT_FILE,
+    )
+    variables.document_variables(
+        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+        DISABLE_TITLE=True,
+        OUTPUT_FILE=OUTPUT_FILE,
+    )
+    includes.document_includes(
+        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+        DISABLE_TITLE=True,
+        DISABLE_TYPE_HEADING=False,
+        OUTPUT_FILE=OUTPUT_FILE,
+    )
+    if ENABLE_WORKFLOW_DOCUMENTATION is True:
+        workflows.document_workflows(
+            GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+            DISABLE_TITLE=True,
+            OUTPUT_FILE=OUTPUT_FILE,
+        )
+    jobs.get_jobs(
+        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+        DISABLE_TITLE=True,
+        DISABLE_TYPE_HEADING=False,
+        OUTPUT_FILE=OUTPUT_FILE,
+        detailed=detailed,
+    )
+
+
+def _generate_html(
+    OUTPUT_FILE,
+    GLDOCS_CONFIG_FILE,
+    detailed=False,
+):
+    pipeline_data = collect_pipeline_data(
+        config_file=GLDOCS_CONFIG_FILE,
+        detailed=detailed,
+    )
+    html_output = render_swagger_html(pipeline_data)
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as output_file:
+        output_file.write(html_output)
+
+
+def _resolve_output_file(output_format, output_file):
+    if output_file:
+        return output_file
+    return DEFAULT_OUTPUT_FILES[output_format]
+
 @click.group()
 def gitlab_docs():
     """
@@ -90,6 +172,15 @@ def get_attributes(OUTPUT_FILE,GLDOCS_CONFIG_FILE,attributes,json_format):
 )
 
 @click.option(
+    "--format",
+    "-f",
+    "output_format",
+    required=False,
+    type=click.Choice(SUPPORTED_OUTPUT_FORMATS, case_sensitive=False),
+    default="markdown",
+    help="Output format for generated documentation.",
+)
+@click.option(
     "--dry-mode",
     "-d",
     "DRY_MODE",
@@ -103,9 +194,8 @@ def get_attributes(OUTPUT_FILE,GLDOCS_CONFIG_FILE,attributes,json_format):
     "-o",
     "OUTPUT_FILE",
     required=False,
-    help="Output location of the markdown documentation.",
-
-    default="README.md"
+    help="Output location of the generated documentation.",
+    default=None,
 )
 @click.option(
     "--input-config",
@@ -115,55 +205,339 @@ def get_attributes(OUTPUT_FILE,GLDOCS_CONFIG_FILE,attributes,json_format):
     help="The Gitlab CI Input configuration file to generated documentation from.",
     default=".gitlab-ci.yml"
 )
-def generate(detailed,OUTPUT_FILE,DRY_MODE,GLDOCS_CONFIG_FILE):
+def generate(detailed, output_format, OUTPUT_FILE, DRY_MODE, GLDOCS_CONFIG_FILE):
     """
-    Will scan through your gitlab-ci yml and build a markdown document from  the yml.
+    Will scan through your gitlab-ci yml and build documentation from the yml.
     """
-    # if not no_generate:
-    ENABLE_WORKFLOW_DOCUMENTATION = detailed
+    output_format = output_format.lower()
+    OUTPUT_FILE = _resolve_output_file(output_format, OUTPUT_FILE)
     logger.success("Welcome to Gitlab Docs")
-    update_marked_block(file_path=OUTPUT_FILE, content="\n")
-    # <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    bootstrap =  f"""# GITLAB DOCS - {GLDOCS_CONFIG_FILE}"""
-    add_between_markers(file_path=OUTPUT_FILE,content=bootstrap)
-    inputs.document_inputs(
-        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
-        DISABLE_TITLE=True,
-        OUTPUT_FILE=OUTPUT_FILE,
-    )
-    variables.document_variables(
-        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
-        DISABLE_TITLE=True,
-        OUTPUT_FILE=OUTPUT_FILE,
-    )
-    includes.document_includes(
-        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
-        DISABLE_TITLE=True,
-        DISABLE_TYPE_HEADING=False,
-        OUTPUT_FILE=OUTPUT_FILE,
-    )
-    if ENABLE_WORKFLOW_DOCUMENTATION is True:
-        workflows.document_workflows(
-            GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
-            DISABLE_TITLE=True,
-            OUTPUT_FILE=OUTPUT_FILE,
-        )
-    jobs.get_jobs(
-        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
 
-        DISABLE_TITLE=True,
-        DISABLE_TYPE_HEADING=False,
+    if DRY_MODE:
+        logger.info(
+            f"Dry mode enabled; skipping write for {GLDOCS_CONFIG_FILE} ({output_format})"
+        )
+        return
+
+    if output_format == "html":
+        _generate_html(
+            OUTPUT_FILE=OUTPUT_FILE,
+            GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+            detailed=detailed,
+        )
+    else:
+        _generate_markdown(
+            OUTPUT_FILE=OUTPUT_FILE,
+            GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+            detailed=detailed,
+        )
+
+    logger.info(
+        f"Successfully generated {output_format} documentation for "
+        f"{GLDOCS_CONFIG_FILE} here: {OUTPUT_FILE}"
+    )
+
+@click.command(
+    hidden=True,
+    deprecated=True,
+    help="Deprecated: use `generate --format html` instead.",
+)
+@click.option(
+    "--detailed",
+    required=False,
+    help="Will include workflow and rules from jobs.",
+    is_flag=True,
+    default=False,
+)
+@click.option(
+    "--output-file",
+    "-o",
+    "OUTPUT_FILE",
+    required=False,
+    help="Output location of the HTML documentation.",
+    default="GITLAB-DOCS.html",
+)
+@click.option(
+    "--input-config",
+    "-i",
+    "GLDOCS_CONFIG_FILE",
+    required=False,
+    help="The Gitlab CI Input configuration file to generated documentation from.",
+    default=".gitlab-ci.yml",
+)
+def generate_html(detailed, OUTPUT_FILE, GLDOCS_CONFIG_FILE):
+    """
+    Generate a Swagger-style HTML page from your gitlab-ci yml.
+    """
+    ctx = click.get_current_context(silent=True)
+    if ctx is not None:
+        ctx.invoke(
+            generate,
+            detailed=detailed,
+            output_format="html",
+            OUTPUT_FILE=OUTPUT_FILE,
+            DRY_MODE=False,
+            GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+        )
+        return
+
+    OUTPUT_FILE = _resolve_output_file("html", OUTPUT_FILE)
+    logger.success("Welcome to GitLab Docs HTML")
+    _generate_html(
         OUTPUT_FILE=OUTPUT_FILE,
+        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
         detailed=detailed,
     )
-    # remove_duplicate_headings(file_path=OUTPUT_FILE,output_file=OUTPUT_FILE)
-    # resets markdown output file and adds GITLAB DOCS closing marker
-    # md_writer.gitlab_docs_reset_writer(OUTPUT_FILE=OUTPUT_FILE, MODE="CLOSING")
-    logger.info(f"Successfully generated documentation for {GLDOCS_CONFIG_FILE} here: {OUTPUT_FILE}")
+    logger.info(
+        f"Successfully generated html documentation for "
+        f"{GLDOCS_CONFIG_FILE} here: {OUTPUT_FILE}"
+    )
+
+def _resolve_compliance_output(output_format, output_file):
+    if output_file:
+        return output_file
+    if output_format in COMPLIANCE_DEFAULT_OUTPUT_FILES:
+        return COMPLIANCE_DEFAULT_OUTPUT_FILES[output_format]
+    return None
+
+
+def _resolve_policies_dir(features_dir: str, policy_cache_dir: str | None = None) -> tuple[str, str]:
+    if os.path.isdir(features_dir):
+        resolved = os.path.abspath(features_dir)
+        return resolved, resolved
+    resolved = resolve_features_dir(features_dir, cache_dir=policy_cache_dir)
+    return resolved, features_dir
+
+
+@click.command()
+@click.option(
+    "--features",
+    "-f",
+    "features_dir",
+    required=True,
+    help="Directory containing compliance policy .feature files or an OCI reference (oci://registry.example.com/policies:1.0.0).",
+)
+@click.option(
+    "--pipeline",
+    "-p",
+    "pipeline_file",
+    required=False,
+    default=".gitlab-ci.yml",
+    help="Path to the GitLab CI pipeline YAML file.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    required=False,
+    type=click.Choice(COMPLIANCE_OUTPUT_FORMATS, case_sensitive=False),
+    default="console",
+    help="Output format for the compliance report.",
+)
+@click.option(
+    "--output-file",
+    "-o",
+    "output_file",
+    required=False,
+    default=None,
+    help="Write rendered report to this file (markdown, html, mr-comment).",
+)
+@click.option(
+    "--include-nested/--no-include-nested",
+    default=True,
+    help="Resolve nested local include files into the compliance stash.",
+)
+@click.option(
+    "--gitlab-url",
+    default=None,
+    help="GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).",
+)
+@click.option(
+    "--token",
+    default=None,
+    help="GitLab API token (default: GITLAB_TOKEN or CI_JOB_TOKEN).",
+)
+@click.option(
+    "--project",
+    default=None,
+    help="GitLab project path or ID for API-backed policy checks.",
+)
+@click.option(
+    "--group",
+    default=None,
+    help="GitLab group path or ID for API-backed policy checks.",
+)
+@click.option(
+    "--strict",
+    is_flag=True,
+    default=False,
+    help="Fail API-backed scenarios when connection info is missing (default: skip).",
+)
+@click.option(
+    "--update",
+    is_flag=True,
+    default=False,
+    help="Pull the latest policies from an OCI registry before running checks.",
+)
+@click.option(
+    "--policy-cache-dir",
+    default=None,
+    help="Directory used when pulling OCI policy bundles (default: system temp).",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Parse and list scenarios without asserting.",
+)
+def compliance(
+    features_dir,
+    pipeline_file,
+    output_format,
+    output_file,
+    include_nested,
+    gitlab_url,
+    token,
+    project,
+    group,
+    strict,
+    update,
+    policy_cache_dir,
+    dry_run,
+):
+    """
+    Run Gherkin compliance policies against GitLab CI YAML and optional API settings.
+    """
+    output_format = output_format.lower()
+    logger.success("GitLab Docs Compliance")
+    if update and is_oci_reference(features_dir) and policy_cache_dir and os.path.isdir(policy_cache_dir):
+        shutil.rmtree(policy_cache_dir)
+    result = run_compliance(
+        features_dir=features_dir,
+        pipeline_file=pipeline_file,
+        include_nested=include_nested,
+        gitlab_url=gitlab_url,
+        token=token,
+        project=project,
+        group=group,
+        strict=strict,
+        dry_run=dry_run,
+        output_format=output_format,
+        policies_source=features_dir,
+        policy_cache_dir=policy_cache_dir,
+    )
+
+    if output_format != "console":
+        report = render_compliance_report(
+            result=result,
+            pipeline_file=pipeline_file,
+            features_dir=features_dir,
+            output_format=output_format,
+        )
+        target = _resolve_compliance_output(output_format, output_file)
+        if target:
+            with open(target, "w", encoding="utf-8") as handle:
+                handle.write(report)
+            logger.info(f"Compliance report written to {target}")
+        else:
+            click.echo(report)
+
+    if result.success:
+        logger.info(f"Compliance passed for {pipeline_file}")
+    else:
+        logger.error(f"Compliance failed for {pipeline_file}")
+    raise SystemExit(result.exit_code)
+
+def _resolve_policy_doc_output(output_format, output_file):
+    if output_file:
+        return output_file
+    if output_format in POLICY_DOC_DEFAULT_OUTPUT_FILES:
+        return POLICY_DOC_DEFAULT_OUTPUT_FILES[output_format]
+    return None
+
+@click.command("compliance-doc")
+@click.option(
+    "--features",
+    "-f",
+    "features_dir",
+    required=True,
+    help="Directory containing compliance policy .feature files.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    required=False,
+    type=click.Choice(POLICY_DOC_OUTPUT_FORMATS, case_sensitive=False),
+    default="markdown",
+    help="Output format for the policy catalog.",
+)
+@click.option(
+    "--output-file",
+    "-o",
+    "output_file",
+    required=False,
+    default=None,
+    help="Write the policy catalog to this file.",
+)
+def compliance_doc(features_dir, output_format, output_file):
+    """
+    Generate a searchable policy catalog from Conftest-style # METADATA annotations.
+    """
+    output_format = output_format.lower()
+    resolved_dir, _source = _resolve_policies_dir(features_dir)
+    catalog = build_policy_catalog(resolved_dir)
+    report = render_policy_catalog(catalog, _source, output_format)
+    target = _resolve_policy_doc_output(output_format, output_file)
+    if target:
+        with open(target, "w", encoding="utf-8") as handle:
+            handle.write(report)
+        logger.info(f"Policy catalog written to {target}")
+    else:
+        click.echo(report)
+
+@click.command("compliance-push")
+@click.option(
+    "--features",
+    "-f",
+    "features_dir",
+    required=True,
+    help="Directory containing compliance policy .feature files to publish.",
+)
+@click.argument("target")
+def compliance_push(features_dir, target):
+    """
+    Push a compliance policy bundle to an OCI registry (Conftest-style).
+    """
+    digest = push_policies(features_dir, target)
+    logger.success(f"Pushed policy bundle to {target}")
+    if digest:
+        logger.info(f"Digest: {digest}")
+
+
+@click.command("compliance-pull")
+@click.argument("target")
+@click.option(
+    "--output-dir",
+    "-o",
+    "output_dir",
+    default=DEFAULT_POLICY_DIR,
+    show_default=True,
+    help="Directory to extract pulled policies into.",
+)
+def compliance_pull(target, output_dir):
+    """
+    Pull a compliance policy bundle from an OCI registry.
+    """
+    pulled_to = pull_policies(target, output_dir=output_dir)
+    logger.success(f"Pulled policies to {pulled_to}")
 
 gitlab_docs.add_command(get_attributes)
 gitlab_docs.add_command(dumps)
 gitlab_docs.add_command(generate)
+gitlab_docs.add_command(generate_html)
+gitlab_docs.add_command(compliance)
+gitlab_docs.add_command(compliance_doc)
+gitlab_docs.add_command(compliance_push)
+gitlab_docs.add_command(compliance_pull)
 gitlab_docs.add_command(release_notes)
 if __name__ == "__main__":
     gitlab_docs(obj={})
