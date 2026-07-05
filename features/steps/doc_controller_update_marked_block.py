@@ -2,7 +2,6 @@ import os
 import tempfile
 import shutil
 from behave import given, when, then
-from unittest.mock import MagicMock
 import stat
 from src.modules.doc_controller import update_marked_block
 
@@ -135,19 +134,6 @@ def step_file_properly_formatted(context):
     marker_end = "[comment]: <> (gitlab-docs-closing-auto-generated)"
     assert marker_start in content, "Should contain opening marker"
     assert marker_end in content, "Should contain closing marker"
-
-def after_scenario(context, scenario):
-    """Cleanup after each scenario"""
-    if hasattr(context, 'test_dir') and os.path.exists(context.test_dir):
-        # Reset permissions and cleanup
-        for root, dirs, files in os.walk(context.test_dir):
-            for file in files:
-                try:
-                    file_path = os.path.join(root, file)
-                    os.chmod(file_path, stat.S_IWRITE | stat.S_IREAD)
-                except:
-                    pass
-        shutil.rmtree(context.test_dir, ignore_errors=True)
 
 # features/environment.py
 def after_scenario(context, scenario):
