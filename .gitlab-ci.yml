@@ -60,7 +60,10 @@ behave-tests:
     - .test:rules
     # - .poetry:install
   script:
+    - poetry run coverage erase
     - poetry run coverage run -m behave
+    - poetry run coverage run -a -m pytest tests/ -v
+    - poetry run coverage report -m
     - poetry run coverage report --fail-under 67
 
 bump-version:
@@ -119,7 +122,7 @@ bump-version:
   script:
     - poetry build
     - pip3 install -q $(ls ./dist/*.tar.gz)
-    - gitlab-docs
+    - gitlab-docs generate -i .gitlab-ci.yml -o GITLAB-DOCS.md
 
 test-build:
   extends:

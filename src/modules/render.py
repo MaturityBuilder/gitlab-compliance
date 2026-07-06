@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from src.modules.constants import SUPPORTED_OUTPUT_FORMATS
+from src.modules.constants import TABLE_RENDER_FORMATS
 
 
 @dataclass
@@ -18,10 +18,10 @@ class DocTable:
 
 def render_table(table: DocTable, output_format: str = "markdown") -> str:
     fmt = output_format.lower()
-    if fmt not in SUPPORTED_OUTPUT_FORMATS:
+    if fmt not in TABLE_RENDER_FORMATS:
         raise ValueError(
             f"Unsupported format {output_format!r}; choose from "
-            f"{', '.join(sorted(SUPPORTED_OUTPUT_FORMATS))}"
+            f"{', '.join(sorted(TABLE_RENDER_FORMATS))}"
         )
 
     if not table.headers:

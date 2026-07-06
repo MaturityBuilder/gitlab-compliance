@@ -42,14 +42,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install poetry-core build \
-            "click>=8,<9" \
-            prettytable \
-            "pytablewriter[html]~=1.2.0" \
-            pyyaml \
-            "semver>=3" \
-            markdown-analysis \
-            pytest
+          pip install poetry-core build pytest
           pip install -e .
 
       - name: Run tests
@@ -63,7 +56,7 @@ jobs:
       - name: Verify CLI (gitlab-docs)
         run: |
           pip install dist/*.whl
-          gitlab-docs
+          gitlab-docs generate -i .gitlab-ci.yml -o GITLAB-DOCS.md
           test -f GITLAB-DOCS.md
 
       - name: Upload build artifacts

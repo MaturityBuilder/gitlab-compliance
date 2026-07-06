@@ -1,183 +1,224 @@
 #!/usr/bin/env python3
+import re
+from collections import defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+
 import click
 import gitlab
-from datetime import datetime
+import semver
 from rich.console import Console
 from rich.table import Table
-from dateutil import parser as dateparser
-from pathlib import Path
-import sys
-
 
 console = Console()
 
-def summarize_file(
-    body,
-    model_name: str = "facebook/bart-large-cnn",
-    max_length: int = 373,
-    min_length: int = 100
-) -> str:
-    """
-    Summarize the contents of a text file using a transformer model.
+COMMIT_TYPE_RE = re.compile(
+    r"^(feat|fix|chore|docs|refactor|perf|ci|build)(\([^)]+\))?!?:",
+    re.IGNORECASE,
+)
 
-    Args:
-        body: text to summarize.
-        model_name: Hugging Face model ID for summarization.
-        max_length: Maximum length of the summary.
-        min_length: Minimum length of the summary.
+SUMMARY_BUCKETS = ("feat", "fix", "chore", "other")
+BUCKET_LABELS = {
+    "feat": "Features",
+    "fix": "Fixes",
+    "chore": "Chores",
+    "other": "Other",
+}
 
-    Returns:
-        str: A short summary of the file content.
-    """
-    # Load summarization model
-    # summarizer = pipeline("text-generation", model=model_name, truncation=True)
+PREVIEW_LIMIT = 10
 
 
-    with open("changelog.md", "r", encoding="utf-8") as f:
-        text = f.read()[:900]  #
-    from copilot_api import Copilot
+def parse_gitlab_date(value: str) -> datetime:
+    """Parse an ISO-8601 timestamp from the GitLab API."""
+    normalized = value.replace("Z", "+00:00")
+    parsed = datetime.fromisoformat(normalized)
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed
 
-    # Initialize Copilot
-    copilot = Copilot()
 
-    # Basic chat example
-    messages = [
-        {"role": "system", "content": text}
-    ]
+def classify_commit(title: str) -> str:
+    """Classify a commit title into feat, fix, chore, or other."""
+    match = COMMIT_TYPE_RE.match(title.strip())
+    if not match:
+        return "other"
+    commit_type = match.group(1).lower()
+    if commit_type in ("feat", "fix", "chore"):
+        return commit_type
+    return "other"
 
-    # Stream responses
-    for response in copilot.create_completion(
-        model="Copilot",
-        messages=messages,
-        stream=True
-    ):
-        if isinstance(response, str):
-            print(response, end='', flush=True)
-    # console.print(len(text))
-    # exit(1)
-    # Some models have input length limits, so we handle long text
-    if len(text) > 4000:
-        text = text[:4000]  # truncate to keep inference fast
-    text=f"{text}"
-    # Generate summary
-    result = summarizer(text, max_length=max_length, min_length=min_length)
-    summary = result
+
+def summarize_commits(commits) -> dict[str, int]:
+    """Count commits by conventional-commit bucket."""
+    summary = {bucket: 0 for bucket in SUMMARY_BUCKETS}
+    for commit in commits:
+        summary[classify_commit(commit.title)] += 1
     return summary
 
-def get_commits_since_last_tag(gl, project_id):
-    """Fetch commits since last tag for a GitLab project."""
-    project = gl.projects.get(project_id)
-    tags = project.tags.list(get_all=True)
+
+def _tag_committed_date(tag) -> datetime:
+    committed_date = tag.commit["committed_date"]
+    try:
+        return parse_gitlab_date(committed_date)
+    except ValueError as exc:
+        console.print(
+            f"[red]Warning:[/red] could not parse tag date '{committed_date}': {exc}"
+        )
+        return datetime.fromtimestamp(0, tz=timezone.utc)
+
+
+def _semver_sort_key(tag_name: str) -> tuple[int, semver.Version | None]:
+    cleaned = tag_name.lstrip("vV")
+    if semver.Version.is_valid(cleaned):
+        return (1, semver.Version.parse(cleaned))
+    return (0, None)
+
+
+def sort_tags(tags: list) -> list:
+    """Sort tags by semver when possible, otherwise by commit date descending."""
+    semver_tags = [tag for tag in tags if _semver_sort_key(tag.name)[1] is not None]
+    if semver_tags:
+        return sorted(
+            semver_tags,
+            key=lambda tag: _semver_sort_key(tag.name)[1],
+            reverse=True,
+        )
+
+    return sorted(tags, key=lambda tag: _tag_committed_date(tag), reverse=True)
+
+
+def resolve_baseline_tag(tags: list, since_tag: str | None = None) -> tuple[str, datetime, str | None]:
+    """Return baseline tag name, date, and commit SHA."""
+    if since_tag:
+        for tag in tags:
+            if tag.name == since_tag:
+                return tag.name, _tag_committed_date(tag), tag.commit["id"]
+        raise ValueError(f"Tag '{since_tag}' not found")
 
     if not tags:
-        last_tag_date = datetime.fromtimestamp(0)  # Unix epoch if no tag exists
-        tag_name = "No previous tag"
-    else:
-        last_tag = tags[0]
-        tag_name = last_tag.name
-        committed_date = last_tag.commit["committed_date"]
-        try:
-            last_tag_date = dateparser.parse(committed_date)
-        except Exception as e:
-            console.print(f"[red]Warning:[/red] could not parse tag date '{committed_date}': {e}")
-            last_tag_date = datetime.fromtimestamp(0)
+        return "No previous tag", datetime.fromtimestamp(0, tz=timezone.utc), None
+
+    ordered = sort_tags(tags)
+    baseline = ordered[0]
+    return baseline.name, _tag_committed_date(baseline), baseline.commit["id"]
+
+
+def filter_commits_since_tag(commits, tag_sha: str | None) -> list:
+    """Drop the baseline tag commit from the result set when present."""
+    if not tag_sha:
+        return list(commits)
+    return [commit for commit in commits if commit.id != tag_sha]
+
+
+def get_commits_since_last_tag(gl, project_id: str, since_tag: str | None = None):
+    """Fetch commits since the baseline tag for a GitLab project."""
+    project = gl.projects.get(project_id)
+    tags = project.tags.list(get_all=True, order_by="version", sort="desc")
+    tag_name, last_tag_date, tag_sha = resolve_baseline_tag(tags, since_tag=since_tag)
 
     commits = project.commits.list(
         since=last_tag_date.isoformat(),
         all=True,
         order_by="created_at",
-        sort="desc"
+        sort="desc",
     )
-
-    return tag_name, commits
-
-
-def summarize_commits(commits):
-    """Group commits by type prefix (e.g., feat:, fix:, chore:)"""
-    summary = {"feat": 0, "fix": 0, "chore": 0, "other": 0}
-    for c in commits:
-        msg = c.title.lower()
-        if msg.startswith("feat"):
-            summary["feat"] += 1
-        elif msg.startswith("fix"):
-            summary["fix"] += 1
-        elif msg.startswith("chore"):
-            summary["chore"] += 1
-        else:
-            summary["other"] += 1
-    return summary
+    filtered = filter_commits_since_tag(commits, tag_sha)
+    return project, tag_name, last_tag_date, filtered
 
 
-def generate_markdown(project_id, tag_name, commits, summary, output_dir):
-    """Generate markdown release notes for a single project."""
-    project_slug = project_id.replace("/", "_")
-    timestamp = datetime.now().strftime("%Y-%m-%d")
-    filename = Path(output_dir) / f"release_notes_{project_slug}_{timestamp}.md"
+def _format_tag_date(tag_date: datetime) -> str:
+    if tag_date.timestamp() == 0:
+        return "n/a"
+    return tag_date.strftime("%Y-%m-%d")
 
-    lines = []
-    lines.append(f"# Release Notes for {project_id}")
-    lines.append(f"**Date:** {timestamp}")
-    lines.append(f"**Since tag:** {tag_name}")
+
+def _commit_line(commit) -> str:
+    author = getattr(commit, "author_name", None)
+    author_suffix = f" — {author}" if author else ""
+    web_url = getattr(commit, "web_url", None)
+    if web_url:
+        return f"- [{commit.title}]({web_url}) (`{commit.short_id}`){author_suffix}"
+    return f"- {commit.title} (`{commit.short_id}`){author_suffix}"
+
+
+def build_markdown(
+    project_id: str,
+    tag_name: str,
+    tag_date: datetime,
+    commits,
+    summary: dict[str, int],
+    project_web_url: str | None = None,
+) -> str:
+    """Build grouped markdown release notes for a single project."""
+    generated = datetime.now().strftime("%Y-%m-%d")
+    lines = [f"# Release Notes — {project_id}"]
+    if project_web_url:
+        lines.append(f"**Project:** [{project_id}]({project_web_url})")
+    lines.append(f"**Generated:** {generated}")
+    lines.append(f"**Since tag:** {tag_name} ({_format_tag_date(tag_date)})")
+    lines.append(f"**Commits:** {len(commits)}")
     lines.append("")
     lines.append("## Summary")
     lines.append("")
-    lines.append(f"- Features: {summary['feat']}")
-    lines.append(f"- Fixes: {summary['fix']}")
-    lines.append(f"- Chores: {summary['chore']}")
-    lines.append(f"- Other: {summary['other']}")
-    lines.append(f"- Total commits: {len(commits)}")
-    lines.append("")
-    lines.append("## Commits")
+    lines.append(
+        " | ".join(
+            f"{BUCKET_LABELS[bucket]}: {summary[bucket]}" for bucket in SUMMARY_BUCKETS
+        )
+    )
     lines.append("")
 
-    for c in commits:
-        lines.append(f"- {c.title} ({c.short_id})")
+    grouped: dict[str, list] = defaultdict(list)
+    for commit in commits:
+        grouped[classify_commit(commit.title)].append(commit)
 
-    filename.write_text("\n".join(lines), encoding="utf-8")
-    console.print(f"[green]✅ Markdown written:[/green] {filename}")
+    for bucket in SUMMARY_BUCKETS:
+        bucket_commits = grouped[bucket]
+        if not bucket_commits:
+            continue
+        lines.append(f"## {BUCKET_LABELS[bucket]}")
+        lines.append("")
+        for commit in bucket_commits:
+            lines.append(_commit_line(commit))
+        lines.append("")
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _sanitize_filename_part(value: str) -> str:
+    return re.sub(r"[^A-Za-z0-9._-]+", "_", value)
+
+
+def generate_markdown(
+    project_id: str,
+    tag_name: str,
+    tag_date: datetime,
+    commits,
+    summary: dict[str, int],
+    output_dir: Path,
+    project_web_url: str | None = None,
+) -> Path:
+    """Write markdown release notes for a single project."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    project_slug = _sanitize_filename_part(project_id.replace("/", "_"))
+    tag_slug = _sanitize_filename_part(tag_name)
+    filename = output_dir / f"release_notes_{project_slug}_since_{tag_slug}.md"
+    filename.write_text(
+        build_markdown(
+            project_id,
+            tag_name,
+            tag_date,
+            commits,
+            summary,
+            project_web_url=project_web_url,
+        ),
+        encoding="utf-8",
+    )
+    console.print(f"[green]Markdown written:[/green] {filename}")
     return filename
 
 
-
-@click.command()
-@click.option("--token", envvar="GITLAB_TOKEN", required=True, help="GitLab personal access token")
-@click.option("--url", envvar="GITLAB_URL", default="https://gitlab.com", show_default=True, help="GitLab instance URL")
-@click.option("--projects", required=True, multiple=True, help="List of GitLab project IDs or full paths")
-@click.option("--markdown", "markdown_dir", default=".", type=click.Path(file_okay=False, path_type=Path), help="Directory to output Markdown release notes")
-def release_notes(token, url, projects, markdown_dir):
-    """
-    Generate release notes for multiple GitLab projects based on commits since the last tag.
-    Optionally outputs Markdown files.
-    """
-    gl = gitlab.Gitlab(url, private_token=token)
-    all_summaries = []
-    markdown_dir="./"
-    # if markdown_dir:
-    #     console.print(f"[cyan]Markdown output enabled in:[/cyan] {markdown_dir}\n")
-
-    for project_id in projects:
-        console.rule(f"[bold blue]Processing project: {project_id}")
-        try:
-            tag_name, commits = get_commits_since_last_tag(gl, project_id)
-
-            console.print(f"Last tag: [green]{tag_name}[/green]")
-            console.print(f"Found [yellow]{len(commits)}[/yellow] commits since last tag.\n")
-
-            summary = summarize_commits(commits)
-            all_summaries.append((project_id, summary, commits))
-
-            console.print("[bold underline]Release Notes Preview:[/bold underline]")
-            for c in commits[:10]:
-                console.print(f"- {c.title} ({c.short_id})")
-            console.print("\n")
-
-            if markdown_dir:
-                generate_markdown(project_id, tag_name, commits, summary, markdown_dir)
-
-        except Exception as e:
-            console.print(f"[red]Error processing {project_id}: {e}[/red]", file=sys.stderr)
-
-    console.rule("[bold green]Summary across all projects")
+def render_summary_table(all_summaries: list[tuple[str, dict[str, int], list]]) -> Table:
+    """Build a Rich table summarizing all processed projects."""
     table = Table(show_header=True, header_style="bold magenta")
     table.add_column("Project")
     table.add_column("Features")
@@ -185,17 +226,97 @@ def release_notes(token, url, projects, markdown_dir):
     table.add_column("Chores")
     table.add_column("Other")
     table.add_column("Total")
-    overview=summarize_file(str(commits))
+
     for project_id, summary, commits in all_summaries:
-        total = len(commits)
         table.add_row(
             project_id,
             str(summary["feat"]),
             str(summary["fix"]),
             str(summary["chore"]),
             str(summary["other"]),
-            str(total)
+            str(len(commits)),
         )
-    console.print(f"[bold blue]{overview}")
-    console.print(table)
+    return table
 
+
+def print_release_preview(commits) -> None:
+    """Print a short console preview of commits."""
+    if not commits:
+        console.print("[yellow]No commits since the baseline tag.[/yellow]\n")
+        return
+
+    console.print("[bold underline]Release Notes Preview:[/bold underline]")
+    for commit in commits[:PREVIEW_LIMIT]:
+        console.print(f"- {commit.title} (`{commit.short_id}`)")
+    remaining = len(commits) - PREVIEW_LIMIT
+    if remaining > 0:
+        console.print(f"... and {remaining} more commits")
+    console.print("")
+
+
+@click.command()
+@click.option("--token", envvar="GITLAB_TOKEN", required=True, help="GitLab personal access token")
+@click.option("--url", envvar="GITLAB_URL", default="https://gitlab.com", show_default=True, help="GitLab instance URL")
+@click.option("--projects", required=True, multiple=True, help="List of GitLab project IDs or full paths")
+@click.option(
+    "--since-tag",
+    default=None,
+    help="Baseline tag name (default: latest semver tag, else most recent by date)",
+)
+@click.option(
+    "--markdown",
+    "markdown_dir",
+    default=".",
+    type=click.Path(file_okay=False, path_type=Path),
+    help="Directory to output Markdown release notes",
+)
+@click.option("--no-write", is_flag=True, help="Skip writing Markdown files")
+def release_notes(token, url, projects, since_tag, markdown_dir, no_write):
+    """
+    Generate release notes for multiple GitLab projects based on commits since the last tag.
+    Optionally outputs Markdown files.
+    """
+    gl = gitlab.Gitlab(url, private_token=token)
+    gl.auth()
+
+    all_summaries: list[tuple[str, dict[str, int], list]] = []
+    failures = 0
+
+    for project_id in projects:
+        console.rule(f"[bold blue]Processing project: {project_id}")
+        try:
+            project, tag_name, tag_date, commits = get_commits_since_last_tag(
+                gl, project_id, since_tag=since_tag
+            )
+
+            console.print(f"Last tag: [green]{tag_name}[/green] ({_format_tag_date(tag_date)})")
+            console.print(f"Found [yellow]{len(commits)}[/yellow] commits since last tag.\n")
+
+            summary = summarize_commits(commits)
+            all_summaries.append((project_id, summary, commits))
+            print_release_preview(commits)
+
+            if not no_write:
+                generate_markdown(
+                    project_id,
+                    tag_name,
+                    tag_date,
+                    commits,
+                    summary,
+                    markdown_dir,
+                    project_web_url=getattr(project, "web_url", None),
+                )
+
+        except Exception as exc:
+            failures += 1
+            console.print(f"[red]Error processing {project_id}: {exc}[/red]")
+
+    if not all_summaries:
+        console.print("[yellow]No projects processed successfully.[/yellow]")
+        raise SystemExit(1 if failures else 0)
+
+    console.rule("[bold green]Summary across all projects")
+    console.print(render_summary_table(all_summaries))
+
+    if failures:
+        raise SystemExit(1)

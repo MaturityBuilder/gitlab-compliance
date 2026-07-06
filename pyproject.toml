@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "gitlab-docs"
 version = "1.0.7"
-description = "A tool that automatically generates gitlab documentation from yaml files"
+description = "GitLab CI pipeline documentation and Gherkin-based compliance checks"
 authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
 readme = ["docs/index.md", "docs/command-reference.md", "docs/output-example.md"]
 packages = [{ include = "src" }]
@@ -9,22 +9,25 @@ packages = [{ include = "src" }]
 [tool.poetry.dependencies]
 python = "<3.13,>=3.12"
 prettytable = "*"
-pytablewriter = { version = "~1.2.0", extras = ["html"] }
-pyyaml = "^6.0.2"
-semver = "^3.0.2"
-markdown-analysis = "*"
-click = "^8.1.0"
+pytablewriter = { version = "1.2.0", extras = ["html"] }
 oyaml = "*"
-typer = "^0.10.0"
-setuptools = "*"
-jq = "^1.8.0"
+typer = "0.10.0"
+markdown-analysis = "0.1.5"
+setuptools = "83.0.0"
+urllib3 = "2.7.0"
+jq = "1.8.0"
+click = "8.0.0"
+semver = "3.0.2"
+pyyaml = "6.0.2"
 loguru = "0.7.0"
-python-gitlab = "^7.0.0"
-rich = "^14.2.0"
-copilot-api = "^1.0.0"
-
+python-gitlab = "7.0.0"
+rich = "14.2.0"
+oras = "0.2.42"
+idna = "3.15"
+requests = "2.34.2"
 [tool.poetry.scripts]
-gitlab-docs = 'src.gitlab_docs:gitlab_docs'
+gitlab-compliance = 'src.gitlab_docs:gitlab_compliance'
+gitlab-docs = 'src.gitlab_docs:gitlab_compliance'
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"

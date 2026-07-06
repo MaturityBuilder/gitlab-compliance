@@ -17,16 +17,24 @@ def document_workflows(
             if "workflow" in data:
                 workflow = data["workflow"]
 
-                workflow_table = common.table_design(field_names = ["Rules #", "Workflow Rules"])
+                if isinstance(workflow, dict) and "rules" in workflow:
+                    workflow_rules = workflow["rules"]
+                elif isinstance(workflow, list):
+                    workflow_rules = workflow
+                else:
+                    workflow_rules = [workflow]
+
+                workflow_table = common.build_dict_list_table(
+                    workflow_rules,
+                    row_label="Rules #",
+                )
+                if workflow_table is None:
+                    workflow_table = common.table_design(
+                        field_names=["Rules #", "Workflow Rules"]
+                    )
+                    for count, rule in enumerate(workflow_rules, 1):
+                        workflow_table.add_row([count, common.format_value(rule)])
                 logger.debug(workflow)
-                count = 0
-                for w in workflow:
-                    count = count + 1
-                    # logger.trace("count: " + str(count))
-                    # if isinstance(w, (str)):
-                    value = str(w).replace("{", "").replace("}", "")
-                    logger.trace(value)
-                    workflow_table.add_row([count, str(value)])
 
                 # f = open(OUTPUT_FILE, "a")
                 if not DISABLE_TITLE:
