@@ -3,15 +3,7 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from src.gitlab_docs import (
-    compliance,
-    compliance_doc,
-    compliance_push,
-    compliance_pull,
-    generate,
-    generate_html,
-    get_attributes,
-)
+from src.gitlab_docs import compliance, compliance_doc, generate, get_attributes
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SAMPLE_PIPELINE = REPO_ROOT / "sample-files" / ".gitlab-ci.yml"
