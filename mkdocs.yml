@@ -1,5 +1,5 @@
-site_name: GitLab Docs
-site_description: Developer documentation for GitLab CI/CD pipelines and compliance policies
+site_name: GitLab Compliance
+site_description: Document GitLab CI/CD pipelines and run Gherkin compliance policies
 docs_dir: docs
 site_dir: public
 repo_url: https://github.com/MaturityBuilder/gitlab-compliance
