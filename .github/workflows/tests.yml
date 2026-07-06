@@ -43,11 +43,14 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction
 
-      - name: Run Behave with coverage
-        run: poetry run coverage run -m behave
+      - name: Run tests with coverage
+        run: |
+          poetry run coverage erase
+          poetry run coverage run -m behave
+          poetry run coverage run -a -m pytest tests/ -v
+
+      - name: Coverage report
+        run: poetry run coverage report -m
 
       - name: Check coverage threshold
         run: poetry run coverage report --fail-under 67
-
-      - name: Run pytest
-        run: poetry run pytest tests/ -v

@@ -68,7 +68,10 @@ behave-tests:
     - .test:rules
     # - .poetry:install
   script:
+    - poetry run coverage erase
     - poetry run coverage run -m behave
+    - poetry run coverage run -a -m pytest tests/ -v
+    - poetry run coverage report -m
     - poetry run coverage report --fail-under 67
 
 bump-version:

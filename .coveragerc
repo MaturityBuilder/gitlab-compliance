@@ -1,5 +1,6 @@
 # .coveragerc
 [run]
+source = src
 omit =
     features/steps/*
     features/environment.py
