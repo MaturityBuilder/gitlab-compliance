@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from gitlab_docs.constants import SUPPORTED_OUTPUT_FORMATS
+from src.modules.constants import SUPPORTED_OUTPUT_FORMATS
 
 
 @dataclass

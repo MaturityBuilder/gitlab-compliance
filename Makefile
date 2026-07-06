@@ -23,4 +23,4 @@ publish:
 	poetry publish --build
 install_package:
 	python3 -m pip uninstall gitlab-docs -q
-	python3 -m pip install --index-url https://test.pypi.org/simple/ gitlab-docs --no-cache-dir
+	python3 -m pip install --index-url https://pypi.org/simple/ gitlab-docs --no-cache-dir

@@ -1,0 +1,7 @@
+# .coveragerc
+[run]
+omit =
+    features/steps/*
+    features/environment.py
+    */features/steps/*
+    */tests/behave/*

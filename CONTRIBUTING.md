@@ -5,6 +5,8 @@ Thank you for contributing to **gitlab-docs**. This project uses [Conventional C
 ## Before you open a pull request
 
 1. Open a GitHub **issue** using the [**User story** template](.github/ISSUE_TEMPLATE/user_story.yml) (blank issues are disabled—use the template).
+
+**Open pull requests against `main`.** The PR diff should be `main...your-branch`.
 2. Create a branch from the default branch using the naming rules below.
 3. Make commits that follow Conventional Commits.
 4. Open a PR whose **title** is a conventional commit message and whose **description** links the issue (`Closes #123`).

@@ -1,37 +1,49 @@
+[tool.poetry]
+name = "gitlab-docs"
+version = "1.0.7"
+description = "A tool that automatically generates gitlab documentation from yaml files"
+authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
+readme = ["docs/index.md", "docs/command-reference.md", "docs/output-example.md"]
+packages = [{ include = "src" }]
+
+[tool.poetry.dependencies]
+python = "<3.13,>=3.12"
+prettytable = "*"
+pytablewriter = { version = "~1.2.0", extras = ["html"] }
+pyyaml = "^6.0.2"
+semver = "^3.0.2"
+markdown-analysis = "*"
+click = "^8.1.0"
+oyaml = "*"
+typer = "^0.10.0"
+setuptools = "*"
+jq = "^1.8.0"
+loguru = "0.7.0"
+python-gitlab = "^7.0.0"
+rich = "^14.2.0"
+copilot-api = "^1.0.0"
+
+[tool.poetry.scripts]
+gitlab-docs = 'src.gitlab_docs:gitlab_docs'
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+behave = "^1.2.6"
+coverage = "^7.9.2"
+md-click = "^1.0.1"
+pre-commit = "^4.0.0"
+
 [project]
 name = "gitlab-docs"
+dynamic = ["readme"]
+
 [project.urls]
 "Home Page" = "https://pypi.org/manage/project/gitlab-docs"
 DOCUMENTATION = "https://pypi.org/manage/project/gitlab-docs"
 Repository = "https://gitlab.com/charlieasmith/gitlab-docs"
-Gitlab     = "https://gitlab.com/charlieasmith/gitlab-docs"
+Gitlab = "https://gitlab.com/charlieasmith/gitlab-docs"
 
-[tool.poetry_bumpversion.file."gitlab_docs/__init__.py"]
-[tool.poetry]
-name = "gitlab-docs"
-version = "0.2.0"
-description = "A tool that automatically generates gitlab documentation from yaml files"
-authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
-readme = "README.md"
-packages = [{include = "gitlab_docs"}]
-
-[tool.poetry.dependencies]
-python = ">=3.12"
-prettytable = "*"
-pytablewriter = {version = "~1.2.0", extras = ["html"]}
-pyyaml = "*"
-semver = "^3.0.2"
-markdown-analysis = "*"
-click = "^8.1.0"
-
-
-
-[tool.poetry.scripts]
-gitlab-docs = 'gitlab_docs.app:gitlab_docs'
-
-[tool.poetry.group.dev.dependencies]
-md-click = "^1.0.1"
-pytest = "^8.0.0"
+[tool.poetry_bumpversion.file."src/__init__.py"]
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]

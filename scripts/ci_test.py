@@ -33,12 +33,12 @@ def _check(name: str, fn) -> bool:
 
 
 def main() -> int:
-    from gitlab_docs.constants import GLDOCS_CLOSING_MARKER, GLDOCS_OPENING_MARKER
-    from gitlab_docs.pipeline import generate_documentation_body
-    from gitlab_docs.render import DocTable, render_table
-    from gitlab_docs.reset_docs import merge_markdown_output
-    from gitlab_docs.variables import build_variables_section
-    from gitlab_docs.workflows import build_workflows_section
+    from src.modules.constants import GLDOCS_CLOSING_MARKER, GLDOCS_OPENING_MARKER
+    from src.modules.pipeline import generate_documentation_body
+    from src.modules.render import DocTable, render_table
+    from src.modules.reset_docs import merge_markdown_output
+    from src.properties.sections.variables import build_variables_section
+    from src.properties.sections.workflows import build_workflows_section
 
     repo_ci = ROOT / ".gitlab-ci.yml"
     sample_ci = ROOT / "sample-files" / ".gitlab-ci.yml"

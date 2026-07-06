@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - master
-      - f-code-for-includes-docs
     tags:
       - "v*"
   release:
@@ -47,11 +46,7 @@ jobs:
           pip install poetry poetry-core build \
             "click>=8,<9" \
             prettytable \
-<<<<<<< HEAD
             "pytablewriter[html]~=1.2.0" \
-=======
-            "pytablewriter~=1.2.0" \
->>>>>>> origin/f-code-for-includes-docs
             pyyaml \
             "semver>=3" \
             markdown-analysis \

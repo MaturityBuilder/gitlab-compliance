@@ -1,12 +1,7 @@
-services:
-  gitlab-docs:
-    build:
-      dockerfile: dockerfile
-      context: .
-    container_name: gitlab-docs
-    # environment:
-    #   - MOUNT_PATH=
-    volumes:
-      - ${PWD}/sample-files:/gitlab-project
-      - ${PWD}/src:/gitlab-docs
-      - /etc/ssl/certs/ca-certs.pem:/etc/ssl/certs/ca-certs.pem
+# .pre-commit-hooks.yaml
+- id: gitlab-docs
+  name: Run GitLab Docs
+  description: Automatically update GitLab pipeline documentation in README.md
+  entry: gitlab-docs
+  language: system
+  pass_filenames: false

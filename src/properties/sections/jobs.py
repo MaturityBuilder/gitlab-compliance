@@ -2,8 +2,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from gitlab_docs.constants import RESERVED_CI_KEYS
-from gitlab_docs.render import DocTable, render_table
+from src.modules.constants import RESERVED_CI_KEYS
+from src.modules.render import DocTable, render_table
 
 logger = logging.getLogger("gitlab_docs.jobs")
 
@@ -51,7 +51,7 @@ def build_jobs_section(
     disable_title: bool = False,
     disable_type_heading: bool = False,
 ) -> str:
-    from gitlab_docs.yaml_load import load_ci_config
+    from src.modules.yaml_load import load_ci_config
 
     if data is None:
         data = load_ci_config(config_file)
@@ -90,7 +90,7 @@ def get_jobs(
     detailed=False,
     experimental=False,
 ):
-    from gitlab_docs.reset_docs import write_documentation
+    from src.modules.reset_docs import write_documentation
 
     body = build_jobs_section(
         Path(GLDOCS_CONFIG_FILE),

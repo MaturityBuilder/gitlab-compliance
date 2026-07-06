@@ -1,11 +1,22 @@
-FROM python:3.12-slim
+FROM python:3.12.11-slim AS builder
+RUN pip3 install -q poetry==2.1.3
+RUN mkdir -p /build && mkdir -p /build/src
+WORKDIR /build
+COPY pyproject.toml poetry.lock README.md ./
+COPY ./src ./src/
+COPY ./docs ./docs/
+RUN poetry install
+RUN poetry build
+
+FROM python:3.12.11-alpine AS gitlab-docs
+RUN mkdir -p /gitlab-docs/
 WORKDIR /gitlab-docs
-RUN mkdir -p dist
-COPY dist/* dist/
-# Disables installing from pypi instead the docker will copy in locally built package and install
-# RUN pip install -q gitlab-docs
-RUN pip3 install -q $(ls ./dist/*.tar.gz)
-RUN rm -rf dist
-RUN useradd -d /home/gitlab-docs -m -s /bin/bash gitlab-docs
-# USER gitlab-docs
+COPY --from=builder build/dist/* .
+RUN pip3 install -q $(ls *.tar.gz) && rm -rf *.tar.gz
+RUN pip3 cache purge
+# Create a group and user
+RUN addgroup -S app && adduser -S gitlab-docs -G app
+# Tell docker that all future commands should run as the gitlab-docs user
+USER gitlab-docs
+
 ENTRYPOINT ["gitlab-docs"]

@@ -1,8 +1,10 @@
 - id: gitlab-docs
   name: gitlab-docs
-  description: Documents Gitlab CI Yaml
-  types: [file, yaml]
-  language: docker_image
-  pass_filenames: true
-  # args: [ 'test', '--only-k8s-files' ]
-  entry: --user root charlieasmith93/gitlab-docs:latest
+  description: Automatically update GitLab pipeline documentation in README.md
+  entry: gitlab-docs
+  additional_dependencies:
+    - gitlab_docs
+
+  language_version: python3.12.11
+  pass_filenames: false
+  files: \.(yml|yaml)$

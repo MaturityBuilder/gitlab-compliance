@@ -5,11 +5,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-import gitlab_docs.includes as includes
-import gitlab_docs.jobs as jobs
-import gitlab_docs.variables as variables
-import gitlab_docs.workflows as workflows
-from gitlab_docs.yaml_load import load_ci_config
+from src.modules.yaml_load import load_ci_config
+from src.properties.sections import includes, jobs, variables, workflows
 
 logger = logging.getLogger("gitlab_docs.pipeline")
 

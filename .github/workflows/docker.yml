@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - master
-      - f-code-for-includes-docs
     tags:
       - "v*"
   workflow_dispatch:

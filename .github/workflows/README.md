@@ -26,8 +26,8 @@ No long-lived `PYPI_API_TOKEN` secret is required when trusted publishing is con
 
 ## Triggers
 
-- **CI**: every branch push (except tags) and pull requests.
-- **PyPI**: push to `main`, `master`, or `f-code-for-includes-docs`; version tags `v*`; GitHub Releases; manual **workflow_dispatch**.
+- **CI** and **PR policy**: every branch push (except tags) and pull requests targeting `main`.
+- **PyPI**: push to `main` or `master`; version tags `v*`; GitHub Releases; manual **workflow_dispatch**.
 - **Docker**: same branches/tags as PyPI, plus manual dispatch.
 
 ## Version bumps

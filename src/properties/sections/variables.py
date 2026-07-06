@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from gitlab_docs.render import DocTable, render_table
+from src.modules.render import DocTable, render_table
 
 logger = logging.getLogger("gitlab_docs.variables")
 
@@ -45,8 +45,8 @@ def build_variables_section(data: dict, *, output_format: str = "markdown") -> s
 
 def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, WRITE_MODE, DISABLE_TITLE):
     """Legacy entry point; prefer pipeline.generate_documentation_body."""
-    from gitlab_docs.yaml_load import load_ci_config
-    from gitlab_docs.reset_docs import write_documentation
+    from src.modules.yaml_load import load_ci_config
+    from src.modules.reset_docs import write_documentation
 
     data = load_ci_config(GLDOCS_CONFIG_FILE)
     body = build_variables_section(data)

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from gitlab_docs.constants import GLDOCS_CLOSING_MARKER, GLDOCS_OPENING_MARKER
+from src.modules.constants import GLDOCS_CLOSING_MARKER, GLDOCS_OPENING_MARKER
 
 
 def strip_generation_markers(content: str) -> str:

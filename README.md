@@ -4,9 +4,23 @@
 
 Branch names, commit messages, and PR titles follow [Conventional Commits](https://www.conventionalcommits.org/). Every pull request must link a **user story** GitHub issue (`Closes #123`). See [CONTRIBUTING.md](CONTRIBUTING.md), [AGENTS.md](AGENTS.md), and the [user story issue template](.github/ISSUE_TEMPLATE/user_story.yml).
 
-## How to install
+**Pull requests should target `main`.**
 
-Gitlab Docs is portable utility based in python so any system that supports python3 you will be able to install it.
+## 📖 Overview
+
+GitLab Docs is your portable, Python-powered sidekick for keeping GitLab CI/CD pipelines well-documented.
+If your system supports Python 3, you can install it instantly — no complex setup, no platform restrictions.
+
+### 💡 Why it matters
+
+Code documentation is crucial. Pipeline documentation is critical. As pipelines grow, the what, when, and where of your workflows often get lost. GitLab Docs automatically generates and updates documentation for your pipelines, right alongside your code.
+
+### ✨ Key Features
+
+- Portable — works anywhere Python 3.12 runs
+- Markdown, HTML, JSON, and CSV output (see `generate` and pipeline APIs)
+- Auto-update mode — refresh documentation between customizable markers
+- Multi-command CLI — `generate`, `get-attributes`, `dumps`, `release-notes`
 
 ### Python
 
@@ -14,96 +28,31 @@ Gitlab Docs is portable utility based in python so any system that supports pyth
 pip3 install --user gitlab-docs
 ```
 
-### Docker
+### Docker / Podman
 
 ```bash
 docker run -v ${PWD}:/gitlab-docs charlieasmith93/gitlab-docs
 ```
 
-### GitHub Actions
-
-CI, PyPI trusted publishing, and container builds run via GitHub Actions. See [.github/workflows/README.md](.github/workflows/README.md) for PyPI publisher setup and workflow triggers.
-
-## Using gitlab-docs
-
-This writes documentation from `.gitlab-ci.yml` (and nested `local` includes) to `GITLAB-DOCS.md` by default. Re-runs replace only the block between the `gitlab-docs-opening-auto-generated` and `gitlab-docs-closing-auto-generated` HTML comments, so you can keep hand-written content above or below the generated section.
-
 ```bash
-gitlab-docs
-gitlab-docs --detailed
-gitlab-docs -c .gitlab-ci.yml -o docs/ci.md
-gitlab-docs --format html -o docs/ci.html
-gitlab-docs --format json -o docs/ci.json
+podman run -it -v $(PWD):/gitlab-docs charlieasmith93/gitlab-docs
 ```
 
-| Flag | Description |
-| ---- | ----------- |
-| `--detailed` | Include workflow rules and per-job `rules` |
-| `-c`, `--config` | CI config file (overrides `GLDOCS_CONFIG_FILE`) |
-| `-o`, `--output` | Output path (overrides `OUTPUT_FILE`) |
-| `--format` | `markdown` (default), `html`, `json`, or `csv` |
+### GitHub Actions
 
-# ENVIRONMENT VARIABLES
+CI, PR policy, PyPI trusted publishing, and container builds run via GitHub Actions. See [.github/workflows/README.md](.github/workflows/README.md).
 
-| Key                           | Default Value    | Description                                                                                          |
-| ----------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------- |
-| GLDOCS_CONFIG_FILE            | .gitlab-ci.yml   | The gitlab configuration file you want to generate documentation on                                  |
-| OUTPUT_FILE                   | ./GITLAB-DOCS.md | The file to output documentation to                                                                  |
-| OUTPUT_FORMAT                 | markdown         | Output format: markdown, html, json, or csv (non-markdown writes the full file, without merge markers) |
-| LOG_LEVEL                     | INFO             | Determines the verbosity of the logging when you run gitlab-docs                                     |
-| ENABLE_WORKFLOW_DOCUMENTATION | false            | When true, documents `workflow` (same as `--detailed` for workflows; job `rules` still need `--detailed`) |
+### Documentation
 
-## Example of what's generated
-## .gitlab-ci.yml
+- [docs/index.md](docs/index.md) — overview and generated example
+- [docs/command-reference.md](docs/command-reference.md) — CLI reference
+- [docs/output-example.md](docs/output-example.md) — sample output
 
-## Jobs
+### Quick start
 
-### MEGALINTER
-
-|    **Key**    |               **Value**                |
-| :-----------: | :------------------------------------: |
-| **artifacts** |            'when': 'always'            |
-|               |    'paths': ['megalinter-reports']     |
-|               |         'expire_in': '1 week'          |
-|   **image**   |  oxsecurity/megalinter-python:v8.0.0   |
-|   **stage**   |              code-quality              |
-| **variables** | 'DEFAULT_WORKSPACE': '$CI_PROJECT_DIR' |
-
-### .BUILD:PYTHON
-
-|     **Key**     |           **Value**            |
-| :-------------: | :----------------------------: |
-|  **artifacts**  |        'when': 'always'        |
-|                 |  'paths': ['./dist/*.tar.gz']  |
-|                 |     'expire_in': '1 hour'      |
-| **environment** |            release             |
-|  **id_tokens**  | 'PYPI_ID_TOKEN': 'aud': 'pypi' |
-|    **needs**    |               []               |
-|    **stage**    |              .pre              |
-
-### BUILD
-
-|   **Key**   |     **Value**     |
-| :---------: | :---------------: |
-| **extends** | ['.build:python'] |
-
-### BUILD:DOCKER
-
-|     **Key**      |       **Value**       |
-| :--------------: | :-------------------: |
-| **dependencies** |       ['build']       |
-|    **image**     |     docker:latest     |
-|   **services**   |    ['docker:dind']    |
-|    **stage**     |         build         |
-|     **tags**     | ['gitlab-org-docker'] |
-
-### DOCKER-BUILD-MASTER
-
-|     **Key**      |    **Value**    |
-| :--------------: | :-------------: |
-| **dependencies** |    ['build']    |
-|    **image**     |  docker:latest  |
-|   **services**   | ['docker:dind'] |
-|    **stage**     |     promote     |
-
-[comment]: <> (gitlab-docs-closing-auto-generated)
+```bash
+poetry install
+poetry run gitlab-docs generate --help
+poetry run gitlab-docs generate -i .gitlab-ci.yml -o README.md --detailed
+pytest -q
+```

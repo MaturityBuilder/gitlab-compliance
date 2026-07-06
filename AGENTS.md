@@ -4,7 +4,7 @@ Follow [CONTRIBUTING.md](CONTRIBUTING.md) for this repository.
 
 ## Before you change code
 
-1. **Issue first** — Ensure work is tracked with a [user story issue](.github/ISSUE_TEMPLATE/user_story.yml). If none exists, ask to create one (or create it via `gh issue create` using that template) before large or user-visible changes.
+1. **Issue first** — Ensure work is tracked with a [user story issue](.github/ISSUE_TEMPLATE/user_story.yml). Target branch for PRs is **`main`**.
 2. **User story format** — Issues must include:
    - **As a** \<role\>**, I want** \<capability\>**, so that** \<outcome\>.
    - **Acceptance criteria** as a checklist.

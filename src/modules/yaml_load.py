@@ -5,7 +5,7 @@ from typing import Any
 
 import yaml
 
-import gitlab_docs.common as common
+import src.modules.common as common
 
 
 def load_ci_config(path: str | Path) -> dict[str, Any]:

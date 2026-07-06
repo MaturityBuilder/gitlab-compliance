@@ -4,10 +4,10 @@ from typing import Any
 
 import semver
 
-from gitlab_docs import jobs as jobs_module
-from gitlab_docs.constants import NON_SEMVER_REFS
-from gitlab_docs.render import DocTable, render_table
-from gitlab_docs.yaml_load import load_ci_config
+from src.properties.sections import jobs as jobs_module
+from src.modules.constants import NON_SEMVER_REFS
+from src.modules.render import DocTable, render_table
+from src.modules.yaml_load import load_ci_config
 
 logger = logging.getLogger("gitlab_docs.includes")
 
@@ -205,7 +205,7 @@ def document_includes(
     DISABLE_TITLE=False,
     DISABLE_TYPE_HEADING=True,
 ):
-    from gitlab_docs.reset_docs import write_documentation
+    from src.modules.reset_docs import write_documentation
 
     body = build_includes_section(
         Path(GLDOCS_CONFIG_FILE),
