@@ -122,6 +122,8 @@ class TestMetadataAndPolicyDoc:
         )
         parsed = parse_feature_policies(str(feature))
         assert parsed.feature_name == "Meta"
+
+    def test_parse_minimal_feature(self, tmp_path):
         feature = tmp_path / "minimal.feature"
         feature.write_text("Feature: Minimal\n  Scenario: One\n    Given x\n", encoding="utf-8")
         parsed = parse_feature_policies(str(feature))
