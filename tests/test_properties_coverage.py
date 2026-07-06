@@ -130,7 +130,7 @@ class TestJobsAndProperties:
 
     def test_document_inputs(self, tmp_path):
         out = self._prepare_output(tmp_path)
-        document_inputs(str(out), str(SAMPLE))
+        document_inputs(str(out), str(SAMPLE), DISABLE_TITLE=True)
 
     def test_document_workflows_list_form(self, tmp_path):
         cfg = tmp_path / "ci.yml"
