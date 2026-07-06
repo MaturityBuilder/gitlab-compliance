@@ -19,9 +19,8 @@ class TestDualCliEntryPoints:
         runner = CliRunner()
         result = runner.invoke(gitlab_compliance, ["--help"], prog_name="gitlab-docs")
         assert result.exit_code == 0
-        combined = f"{result.output}\n{getattr(result, 'stderr', '')}"
-        assert "deprecated" in combined.lower()
-        assert "gitlab-compliance" in combined
+        assert "deprecated" in result.output.lower()
+        assert "gitlab-compliance" in result.output
 
     def test_module_alias_points_at_shared_group(self):
         assert gitlab_docs_module.gitlab_docs is gitlab_compliance
