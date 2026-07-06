@@ -1,4 +1,5 @@
 import importlib
+import os
 import pathlib
 
 import click
@@ -122,33 +123,34 @@ def cli():
 @cli.command("dumps", hidden=True)
 @click.option(
     "--baseModule",
+    "base_module",
     help="The base command module path to import",
     required=True,
     default="src.gitlab_docs",
 )
 @click.option(
     "--baseCommand",
+    "base_command",
     help="The base command function to import",
     required=True,
-    default="gitlab_docs",
+    default="gitlab_compliance",
 )
 @click.option(
     "--docsPath",
+    "docs_path",
     help="The docs dir path to write the md files",
     required=True,
     default="docs/",
 )
-def dumps(**kwargs):
+def dumps(base_module, base_command, docs_path):
     """
     # Click-md
     Create md files per each command, in format of `parent-command`, under the `--docsPath` directory.
     """
-    base_module = kwargs.get("basemodule")
-    base_command = kwargs.get("basecommand")
-    docs_path = kwargs.get("docspath")
-    md_file_path = docs_path + "/" + ("command-reference.md")
-    # full_command.replace(' ', '-').lower() + '.md')
-    with open(md_file_path, "w") as md_file:
+    docs_path = str(docs_path)
+    pathlib.Path(docs_path).mkdir(parents=True, exist_ok=True)
+    md_file_path = os.path.join(docs_path, "command-reference.md")
+    with open(md_file_path, "w", encoding="utf-8") as md_file:
         md_file.write("# Command Reference")
     click.secho(
         f"Creating a new documents from {base_module}.{base_command} into {docs_path}",

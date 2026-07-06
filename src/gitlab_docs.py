@@ -5,6 +5,7 @@ Author: Charlie Smith
 
 ## Import Thirdparty Libraries
 import os
+import sys
 import click
 import shutil
 from datetime import datetime
@@ -104,16 +105,21 @@ def _resolve_output_file(output_format, output_file):
 _LEGACY_CLI_NAME = "gitlab-docs"
 
 
+def _invoked_via_legacy_cli() -> bool:
+    """True when the process was started via the ``gitlab-docs`` console script."""
+    prog = os.path.basename(sys.argv[0]).removesuffix(".exe")
+    return prog == _LEGACY_CLI_NAME
+
+
 class _DualBrandCliGroup(click.Group):
     """Shared CLI group; warns when invoked via the legacy ``gitlab-docs`` script name."""
 
     def invoke(self, ctx):
-        if ctx.info_name == _LEGACY_CLI_NAME:
+        if _invoked_via_legacy_cli():
             click.secho(
                 "Note: `gitlab-docs` is deprecated in favor of `gitlab-compliance`. "
                 "The `gitlab-docs` command will be removed in a future release.",
                 fg="yellow",
-                err=True,
             )
         return super().invoke(ctx)
 
