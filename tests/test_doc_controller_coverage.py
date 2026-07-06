@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from src.modules.doc_controller import (
     add_between_markers,
     remove_duplicate_headings,
