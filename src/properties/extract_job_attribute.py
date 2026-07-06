@@ -28,7 +28,7 @@ def get_job_attribute(
     for a in attributes:
         attribute_tb_headers.append(a)
         if a in exclude_keywords:
-            exclude_keywords.pop(a)
+            exclude_keywords.remove(a)
 
     attribute_table = common.table_design(field_names=attribute_tb_headers)
     file = common.read_yml(GLDOCS_CONFIG_FILE)

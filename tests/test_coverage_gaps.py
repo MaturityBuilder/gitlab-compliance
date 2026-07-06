@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 
 import click
 import pytest
-import yaml
 from click.testing import CliRunner
 
 from src.compliance.api_config import require_api_connection
@@ -140,12 +139,14 @@ class TestPropertiesExtra:
         document_variables(str(out), str(cfg), DISABLE_TITLE=False)
 
     def test_document_variables_yaml_error(self, tmp_path, monkeypatch):
+        import src.properties.variables as variables_mod
+
         out = _markers_file(tmp_path)
         cfg = tmp_path / "ci.yml"
         cfg.write_text("variables:\n  X: 1\n", encoding="utf-8")
 
         def raise_yaml(*_args, **_kwargs):
-            raise yaml.YAMLError("bad")
+            raise variables_mod.yaml.YAMLError("bad")
 
         monkeypatch.setattr("src.properties.variables.add_between_markers", raise_yaml)
         document_variables(str(out), str(cfg), DISABLE_TITLE=True)
@@ -193,12 +194,12 @@ class TestPropertiesExtra:
         out = _markers_file(tmp_path)
         get_jobs(str(out), str(cfg), detailed=True)
 
-    def test_get_job_attribute_multiple_attributes(self, tmp_path):
+    def test_get_job_attribute_reserved_attribute_removed(self, tmp_path):
         out = _markers_file(tmp_path)
         get_job_attribute(
             str(out),
             str(SAMPLE),
-            attributes="stage,image",
+            attributes="include,stage",
         )
 
     def test_document_variables_malformed_dict(self, tmp_path):
@@ -228,6 +229,8 @@ class TestPropertiesExtra:
             document_variables(str(out), str(cfg), DISABLE_TITLE=True)
 
     def test_document_inputs_yaml_error(self, tmp_path, monkeypatch):
+        import src.properties.inputs as inputs_mod
+
         out = _markers_file(tmp_path)
         cfg = tmp_path / "ci.yml"
         cfg.write_text(
@@ -236,18 +239,20 @@ class TestPropertiesExtra:
         )
 
         def raise_yaml(*_args, **_kwargs):
-            raise yaml.YAMLError("bad")
+            raise inputs_mod.yaml.YAMLError("bad")
 
         monkeypatch.setattr("src.properties.inputs.add_between_markers", raise_yaml)
         document_inputs(str(out), str(cfg), DISABLE_TITLE=True)
 
     def test_document_workflows_yaml_error(self, tmp_path, monkeypatch):
+        import src.properties.workflows as workflows_mod
+
         out = _markers_file(tmp_path)
         cfg = tmp_path / "ci.yml"
         cfg.write_text("workflow:\n  - when: always\n", encoding="utf-8")
 
         def raise_yaml(*_args, **_kwargs):
-            raise yaml.YAMLError("bad")
+            raise workflows_mod.yaml.YAMLError("bad")
 
         monkeypatch.setattr("src.properties.workflows.add_between_markers", raise_yaml)
         document_workflows(str(out), str(cfg))
@@ -497,25 +502,27 @@ class TestModelMetadataPolicy:
 
 class TestGitlabDocsCliExtra:
     def test_legacy_brand_notice_on_invoke(self):
-        runner = CliRunner(mix_stderr=False)
+        runner = CliRunner()
         result = runner.invoke(
             gitlab_compliance,
             ["--help"],
             prog_name="gitlab-docs",
         )
         assert result.exit_code == 0
-        combined = f"{result.output}\n{result.stderr}"
-        assert "deprecated" in combined.lower()
+        assert "deprecated" in result.output.lower()
 
     def test_compliance_doc_stdout(self, monkeypatch):
-        monkeypatch.setattr("src.gitlab_docs.POLICY_DOC_DEFAULT_OUTPUT_FILES", {})
+        monkeypatch.setattr(
+            "src.gitlab_docs._resolve_policy_doc_output",
+            lambda _fmt, _out: None,
+        )
         runner = CliRunner()
         result = runner.invoke(
             compliance_doc,
             ["--features", str(ANNOTATED), "--format", "markdown"],
         )
         assert result.exit_code == 0
-        assert "Policy" in result.output or "policy" in result.output.lower()
+        assert "Catalog" in result.output or "catalog" in result.output.lower()
 
     def test_compliance_push_without_digest(self, monkeypatch):
         monkeypatch.setattr("src.gitlab_docs.push_policies", lambda _f, _t: "")
