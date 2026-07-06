@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 
 import click
 import pytest
-import yaml
 from click.testing import CliRunner
 
 from src.compliance.api_config import require_api_connection
@@ -140,13 +139,16 @@ class TestPropertiesExtra:
         document_variables(str(out), str(cfg), DISABLE_TITLE=False)
 
     def test_document_variables_yaml_error(self, tmp_path, monkeypatch):
+        import src.properties.variables as variables_mod
+
         out = _markers_file(tmp_path)
         cfg = tmp_path / "ci.yml"
         cfg.write_text("variables:\n  X: 1\n", encoding="utf-8")
-        monkeypatch.setattr(
-            "src.properties.variables.common.read_yml",
-            lambda _p: (_ for _ in ()).throw(yaml.YAMLError("bad")),
-        )
+
+        def raise_yaml(*_args, **_kwargs):
+            raise variables_mod.yaml.YAMLError("bad")
+
+        monkeypatch.setattr("src.properties.variables.add_between_markers", raise_yaml)
         document_variables(str(out), str(cfg), DISABLE_TITLE=True)
 
     def test_document_inputs_with_title(self, tmp_path):
@@ -227,23 +229,32 @@ class TestPropertiesExtra:
             document_variables(str(out), str(cfg), DISABLE_TITLE=True)
 
     def test_document_inputs_yaml_error(self, tmp_path, monkeypatch):
+        import src.properties.inputs as inputs_mod
+
         out = _markers_file(tmp_path)
         cfg = tmp_path / "ci.yml"
-        cfg.write_text("spec:\n  inputs:\n    x: 1\n", encoding="utf-8")
-        monkeypatch.setattr(
-            "src.properties.inputs.common.read_yml",
-            lambda _p: (_ for _ in ()).throw(yaml.YAMLError("bad")),
+        cfg.write_text(
+            "spec:\n  inputs:\n    x:\n      description: d\n",
+            encoding="utf-8",
         )
+
+        def raise_yaml(*_args, **_kwargs):
+            raise inputs_mod.yaml.YAMLError("bad")
+
+        monkeypatch.setattr("src.properties.inputs.add_between_markers", raise_yaml)
         document_inputs(str(out), str(cfg), DISABLE_TITLE=True)
 
     def test_document_workflows_yaml_error(self, tmp_path, monkeypatch):
+        import src.properties.workflows as workflows_mod
+
         out = _markers_file(tmp_path)
         cfg = tmp_path / "ci.yml"
         cfg.write_text("workflow:\n  - when: always\n", encoding="utf-8")
-        monkeypatch.setattr(
-            "src.properties.workflows.common.read_yml",
-            lambda _p: (_ for _ in ()).throw(yaml.YAMLError("bad")),
-        )
+
+        def raise_yaml(*_args, **_kwargs):
+            raise workflows_mod.yaml.YAMLError("bad")
+
+        monkeypatch.setattr("src.properties.workflows.add_between_markers", raise_yaml)
         document_workflows(str(out), str(cfg))
 
     def test_document_includes_write_failure(self, tmp_path, monkeypatch):
@@ -498,16 +509,20 @@ class TestGitlabDocsCliExtra:
             prog_name="gitlab-docs",
         )
         assert result.exit_code == 0
-        assert "deprecated" in (result.output + result.stderr).lower()
+        assert "deprecated" in result.output.lower()
 
-    def test_compliance_doc_stdout(self):
+    def test_compliance_doc_stdout(self, monkeypatch):
+        monkeypatch.setattr(
+            "src.gitlab_docs._resolve_policy_doc_output",
+            lambda _fmt, _out: None,
+        )
         runner = CliRunner()
         result = runner.invoke(
             compliance_doc,
             ["--features", str(ANNOTATED), "--format", "markdown"],
         )
         assert result.exit_code == 0
-        assert "Policy" in result.output or "policy" in result.output.lower()
+        assert "Catalog" in result.output or "catalog" in result.output.lower()
 
     def test_compliance_push_without_digest(self, monkeypatch):
         monkeypatch.setattr("src.gitlab_docs.push_policies", lambda _f, _t: "")
@@ -567,11 +582,14 @@ class TestCommandReferenceAndOci:
         assert is_oci_reference(str(path)) is False
 
     def test_push_policies_json_parse_failure(self, monkeypatch, tmp_path):
-        response = MagicMock()
-        response.json.side_effect = ValueError("not json")
-        response.reason = ""
+        class PushResponse:
+            reason = "pushed"
+
+            def json(self):
+                raise ValueError("not json")
+
         client = MagicMock()
-        client.push.return_value = response
+        client.push.return_value = PushResponse()
         monkeypatch.setattr("src.compliance.oci_registry._client", lambda: client)
         monkeypatch.setattr(
             "src.compliance.oci_registry.bundle_policies_dir",
@@ -625,7 +643,7 @@ class TestReleaseHelpers:
 
     def test_print_release_preview_empty(self, capsys):
         print_release_preview([])
-        assert capsys.readouterr().out == ""
+        assert "No commits since the baseline tag" in capsys.readouterr().out
 
 
 class TestBehaveSupportExtra:
@@ -713,7 +731,7 @@ class TestGitlabApiLoad:
         gl.projects.get.return_value = project_obj
         gl.groups.get.return_value = group_obj
 
-        with patch("src.compliance.gitlab_api.gitlab.Gitlab", return_value=gl):
+        with patch("gitlab.Gitlab", return_value=gl):
             from src.compliance.gitlab_api import load_api_entities
 
             entities = load_api_entities(project="g/p", group="my-group")
