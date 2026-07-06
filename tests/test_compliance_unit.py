@@ -46,7 +46,6 @@ class TestStash:
 
         entity = {
             "name": "build",
-            "image": "alpine:3",
             "values": {"stage": "test", "image": {"name": "docker:24"}},
             "source_file": "/proj/.gitlab-ci.yml",
             "line": 10,
