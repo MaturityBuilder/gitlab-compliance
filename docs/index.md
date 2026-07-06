@@ -252,6 +252,7 @@ Example Markdown file: `release_notes_group_project_since_v1.0.0.md`
 - [Command reference](command-reference.md) — full Click-generated option details
 - [Compliance security examples](compliance-security-examples.md) — policy patterns and CI integration
 - [Output example](output-example.md) — sample generated documentation
+- [Site build & publish](site-documentation.md) — MkDocs Material site, GitLab Pages, and GitHub Pages
 
 [comment]: <> (gitlab-docs-opening-auto-generated)
 

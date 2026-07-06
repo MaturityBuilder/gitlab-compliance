@@ -1,34 +1,48 @@
 site_name: GitLab Docs
-site_description: Developer documentation for GitLab projects
+site_description: Developer documentation for GitLab CI/CD pipelines and compliance policies
 docs_dir: docs
-# theme:
-#   name: material
-#   language: en
-#   features:
-#     - navigation.tabs
-#     - navigation.top
-#     - content.code.copy
-#     - content.action.edit
-#     - content.action.edit
-#     - search.suggest
-#     - search.highlight
-#   palette:
-#     - scheme: default
-#       primary: indigo
-#       accent: indigo
-#     - scheme: slate
-#       primary: indigo
-#       accent: indigo
-#       toggle:
-#         icon: material/weather-night
-#         name: Switch to dark mode
-#   font:
-#     text: Roboto
-#     code: Roboto Mono
-  # logo: assets/images/logo.png  # optional
-  # favicon: assets/images/favicon.ico  # optional
+site_dir: public
+repo_url: https://github.com/MaturityBuilder/gitlab-compliance
+repo_name: MaturityBuilder/gitlab-compliance
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
 
 nav:
-  - Home: ./index.md
-  - Output Example: ./output-example.md
-  - Command Reference: ./command-reference.md
+  - Home: index.md
+  - Output Example: output-example.md
+  - Command Reference: command-reference.md
+  - Compliance Examples: compliance-security-examples.md
+  - Site build & publish: site-documentation.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - tables
+  - toc:
+      permalink: true

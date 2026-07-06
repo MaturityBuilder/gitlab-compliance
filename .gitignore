@@ -2,6 +2,8 @@
 sample-files/*.md
 gitlab-docs/
 dist/
+public/
+site/
 gitlab_docs/__pycache__/
 megalinter-reports
 __pycache__

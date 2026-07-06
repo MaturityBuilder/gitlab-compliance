@@ -136,6 +136,32 @@ test-build:
   extends:
     - .build:python
     - .test:rules
+
+.docs:mkdocs:
+  before_script:
+    - pip install -q "mkdocs>=1.6" "mkdocs-material>=9.6"
+  script:
+    - mkdocs build --strict
+
+docs:build:
+  extends:
+    - .docs:mkdocs
+    - .test:rules
+  stage: build
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 week
+
+pages:
+  extends: .docs:mkdocs
+  stage: publish
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 publish:
   cache: []
   # extends:
