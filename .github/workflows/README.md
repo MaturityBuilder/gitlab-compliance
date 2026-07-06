@@ -4,6 +4,7 @@
 
 | Workflow | File | Purpose |
 | -------- | ---- | ------- |
+| PR policy | `pr-policy.yml` | Conventional PR title, branch name, and linked issue on every PR |
 | CI | `ci.yml` | MegaLinter (non-blocking), pytest, `poetry build`, smoke-test `gitlab-docs` |
 | Publish to PyPI | `pypi-publish.yml` | Trusted publishing to PyPI / TestPyPI |
 | Docker | `docker.yml` | Build image (requires `dist/` from Poetry) and push to `ghcr.io` |

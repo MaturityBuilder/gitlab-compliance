@@ -1,0 +1,78 @@
+name: PR policy
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  conventional-and-issue:
+    name: Conventional PR and linked issue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          conventional='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)/[a-z0-9._-]+$'
+          cursor='^cursor/[a-z0-9._/-]+$'
+          if echo "$BRANCH" | grep -Eq "$conventional"; then
+            echo "Branch name OK: $BRANCH"
+            exit 0
+          fi
+          if echo "$BRANCH" | grep -Eq "$cursor"; then
+            echo "Allowed agent branch: $BRANCH"
+            exit 0
+          fi
+          echo "::error::Branch '$BRANCH' must match type/description (e.g. feat/my-change). See CONTRIBUTING.md."
+          exit 1
+
+      - name: Validate PR title (Conventional Commits)
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            PR subject must not start with an uppercase letter after the type (use imperative, lowercase start).
+
+      - name: Require linked GitHub issue
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PR_BODY:-}" ]; then
+            echo "::error::PR description is empty. Add 'Closes #<issue>' per CONTRIBUTING.md."
+            exit 1
+          fi
+          if echo "$PR_BODY" | grep -Eiq '(close[sd]?|fix(e[sd])?|resolve[sd]?)\s*:#?[[:space:]]*#[0-9]+'; then
+            echo "Found closing keyword + issue reference."
+            exit 0
+          fi
+          if echo "$PR_BODY" | grep -Eq '#[0-9]+'; then
+            echo "Found issue reference (#number)."
+            exit 0
+          fi
+          if echo "$PR_BODY" | grep -Eiq 'github\.com/[^/]+/[^/]+/issues/[0-9]+'; then
+            echo "Found issue URL."
+            exit 0
+          fi
+          echo "::error::Link an issue in the PR body (e.g. Closes #123). See CONTRIBUTING.md and the PR template."
+          exit 1

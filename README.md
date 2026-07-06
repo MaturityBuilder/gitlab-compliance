@@ -1,5 +1,9 @@
 # Gitlab Docs
 
+## Contributing
+
+Branch names, commit messages, and PR titles follow [Conventional Commits](https://www.conventionalcommits.org/). Every pull request must link a GitHub issue (`Closes #123`). See [CONTRIBUTING.md](CONTRIBUTING.md) and the [pull request template](.github/pull_request_template.md).
+
 ## How to install
 
 Gitlab Docs is portable utility based in python so any system that supports python3 you will be able to install it.
