@@ -108,7 +108,16 @@ class TestPipelineAndYaml:
 
 class TestSwaggerHtml:
     def test_render_empty_pipeline(self):
-        html = render_swagger_html({"jobs": [], "includes": [], "variables": [], "workflow_rules": []})
+        html = render_swagger_html(
+            {
+                "config_file": ".gitlab-ci.yml",
+                "jobs": [],
+                "includes": [],
+                "variables": [],
+                "inputs": [],
+                "workflow_rules": [],
+            }
+        )
         assert "html" in html.lower()
 
 
