@@ -10,7 +10,7 @@ from click.testing import CliRunner
 from src.compliance.behave_support import environment as behave_env
 from src.compliance.behave_support.steps import given_steps, then_steps, when_steps
 from src.compliance.runner import _assert_within_directory, _temporary_gitlab_env
-from src.gitlab_docs import compliance, generate_html, gitlab_compliance
+from src.gitlab_docs import compliance, generate_html
 from src.modules.command_reference import dumps
 from src.modules.logging import configure_logger
 from src.modules.pipeline_data import collect_pipeline_data
