@@ -12,7 +12,6 @@ from src.compliance.api_config import (
     resolve_token,
 )
 from src.compliance.metadata import (
-    PolicyCatalog,
     build_policy_catalog,
     parse_feature_policies,
 )
