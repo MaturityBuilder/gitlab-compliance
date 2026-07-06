@@ -107,15 +107,25 @@ _LEGACY_CLI_NAME = "gitlab-docs"
 class _DualBrandCliGroup(click.Group):
     """Shared CLI group; warns when invoked via the legacy ``gitlab-docs`` script name."""
 
-    def invoke(self, ctx):
+    _LEGACY_NOTICE = (
+        "Note: `gitlab-docs` is deprecated in favor of `gitlab-compliance`. "
+        "The `gitlab-docs` command will be removed in a future release."
+    )
+
+    def _emit_legacy_notice(self, ctx) -> None:
         if ctx.info_name == _LEGACY_CLI_NAME:
-            click.secho(
-                "Note: `gitlab-docs` is deprecated in favor of `gitlab-compliance`. "
-                "The `gitlab-docs` command will be removed in a future release.",
-                fg="yellow",
-                err=True,
-            )
+            click.secho(self._LEGACY_NOTICE, fg="yellow", err=True)
+
+    def invoke(self, ctx):
+        self._emit_legacy_notice(ctx)
         return super().invoke(ctx)
+
+    def format_help(self, ctx, formatter):
+        if ctx.info_name == _LEGACY_CLI_NAME:
+            formatter.write(
+                click.style(f"{self._LEGACY_NOTICE}\n\n", fg="yellow")
+            )
+        return super().format_help(ctx, formatter)
 
 
 @click.group(cls=_DualBrandCliGroup)

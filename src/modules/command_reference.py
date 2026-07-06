@@ -1,4 +1,5 @@
 import importlib
+import os
 import pathlib
 
 import click
@@ -103,8 +104,7 @@ def dump_helper(base_command, docs_dir):
         )
 
         if not docs_path.exists():
-            # Create md file dir if needed
-            docs_path.mkdir(parents=True, exist_ok=False)
+            docs_path.mkdir(parents=True, exist_ok=True)
 
         md_file_path = docs_path.joinpath("command-reference.md").absolute()
         # full_command.replace(' ', '-').lower() + '.md')
@@ -122,33 +122,33 @@ def cli():
 @cli.command("dumps", hidden=True)
 @click.option(
     "--baseModule",
+    "base_module",
     help="The base command module path to import",
     required=True,
     default="src.gitlab_docs",
 )
 @click.option(
     "--baseCommand",
+    "base_command",
     help="The base command function to import",
     required=True,
-    default="gitlab_docs",
+    default="gitlab_compliance",
 )
 @click.option(
     "--docsPath",
+    "docs_path",
     help="The docs dir path to write the md files",
     required=True,
     default="docs/",
 )
-def dumps(**kwargs):
+def dumps(base_module, base_command, docs_path):
     """
     # Click-md
     Create md files per each command, in format of `parent-command`, under the `--docsPath` directory.
     """
-    base_module = kwargs.get("basemodule")
-    base_command = kwargs.get("basecommand")
-    docs_path = kwargs.get("docspath")
-    md_file_path = docs_path + "/" + ("command-reference.md")
-    # full_command.replace(' ', '-').lower() + '.md')
-    with open(md_file_path, "w") as md_file:
+    md_file_path = os.path.join(docs_path, "command-reference.md")
+    os.makedirs(docs_path, exist_ok=True)
+    with open(md_file_path, "w", encoding="utf-8") as md_file:
         md_file.write("# Command Reference")
     click.secho(
         f"Creating a new documents from {base_module}.{base_command} into {docs_path}",
@@ -156,14 +156,12 @@ def dumps(**kwargs):
     )
 
     try:
-        # Import the module
         module_ = importlib.import_module(base_module)
     except Exception as e:
         click.echo(f"Could not find module: {base_module}. Error: {str(e)}")
         return
 
     try:
-        # Import the base command (group of command) function inside the module
         command_ = getattr(module_, base_command)
     except AttributeError:
         click.echo(f"Could not find command {base_command} on module {base_module}")
@@ -175,8 +173,6 @@ def dumps(**kwargs):
     except Exception as e:
         click.secho(f"Dumps command failed: {str(e)}", color="red")
         raise
-
-    return
 
 
 cli.add_command(cli)
