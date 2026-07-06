@@ -28,7 +28,7 @@ class TestFeatureFileGuards:
         feature = policies / "ok.feature"
         feature.write_text("Feature: ok\n", encoding="utf-8")
 
-        def broken_commonpath(_a, _b):
+        def broken_commonpath(_paths):
             raise ValueError("bad path")
 
         monkeypatch.setattr("src.compliance.runner.os.path.commonpath", broken_commonpath)
