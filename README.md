@@ -20,8 +20,17 @@ GitLab Docs is a portable Python CLI for documenting GitLab CI/CD pipelines and 
 
 ### Python
 
+Install the package (PyPI name remains `gitlab-docs` for now). Two equivalent CLI commands are provided:
+
+| Command | Status |
+|---------|--------|
+| `gitlab-compliance` | **Preferred** — same tool, compliance-first naming |
+| `gitlab-docs` | **Deprecated** — will be removed in a future release |
+
 ```bash
 pip3 install --user gitlab-docs
+gitlab-compliance --help
+# or: gitlab-docs --help  (shows a deprecation notice)
 ```
 
 ### Docker
@@ -122,12 +131,12 @@ See [example-policies/security/](example-policies/security/) and [docs/complianc
 
 Full auto-generated reference: [docs/command-reference.md](docs/command-reference.md).
 
-### `gitlab-docs`
+### `gitlab-compliance` (legacy: `gitlab-docs`)
 
-Top-level CLI group.
+Top-level CLI group. **`gitlab-compliance`** is the preferred command name; **`gitlab-docs`** is deprecated and will be removed in a future release.
 
 ```bash
-gitlab-docs --help
+gitlab-compliance --help
 ```
 
 | Command | Description |

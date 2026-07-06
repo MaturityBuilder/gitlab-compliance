@@ -100,12 +100,37 @@ def _resolve_output_file(output_format, output_file):
         return output_file
     return DEFAULT_OUTPUT_FILES[output_format]
 
-@click.group()
-def gitlab_docs():
+
+_LEGACY_CLI_NAME = "gitlab-docs"
+
+
+class _DualBrandCliGroup(click.Group):
+    """Shared CLI group; warns when invoked via the legacy ``gitlab-docs`` script name."""
+
+    def invoke(self, ctx):
+        if ctx.info_name == _LEGACY_CLI_NAME:
+            click.secho(
+                "Note: `gitlab-docs` is deprecated in favor of `gitlab-compliance`. "
+                "The `gitlab-docs` command will be removed in a future release.",
+                fg="yellow",
+                err=True,
+            )
+        return super().invoke(ctx)
+
+
+@click.group(cls=_DualBrandCliGroup)
+def gitlab_compliance():
     """
-    A command line tool to convert your gitlab-ci yml into markdown documentation.
+    GitLab CI compliance and pipeline documentation.
+
+    Run Gherkin policies against .gitlab-ci.yml (and optional GitLab API settings),
+    or generate Markdown/HTML documentation from pipeline YAML.
     """
     pass
+
+
+# Backward-compatible alias for imports and ``python -m src.gitlab_docs``.
+gitlab_docs = gitlab_compliance
 # ENABLE_WORKFLOW_DOCUMENTATION = os.getenv("ENABLE_WORKFLOW_DOCUMENTATION", False)
 @click.command()
 @click.option(
@@ -530,14 +555,14 @@ def compliance_pull(target, output_dir):
     pulled_to = pull_policies(target, output_dir=output_dir)
     logger.success(f"Pulled policies to {pulled_to}")
 
-gitlab_docs.add_command(get_attributes)
-gitlab_docs.add_command(dumps)
-gitlab_docs.add_command(generate)
-gitlab_docs.add_command(generate_html)
-gitlab_docs.add_command(compliance)
-gitlab_docs.add_command(compliance_doc)
-gitlab_docs.add_command(compliance_push)
-gitlab_docs.add_command(compliance_pull)
-gitlab_docs.add_command(release_notes)
+gitlab_compliance.add_command(get_attributes)
+gitlab_compliance.add_command(dumps)
+gitlab_compliance.add_command(generate)
+gitlab_compliance.add_command(generate_html)
+gitlab_compliance.add_command(compliance)
+gitlab_compliance.add_command(compliance_doc)
+gitlab_compliance.add_command(compliance_push)
+gitlab_compliance.add_command(compliance_pull)
+gitlab_compliance.add_command(release_notes)
 if __name__ == "__main__":
-    gitlab_docs(obj={})
+    gitlab_compliance(obj={})
