@@ -6,3 +6,7 @@ omit =
     features/environment.py
     */features/steps/*
     */tests/behave/*
+
+[report]
+exclude_lines =
+    pragma: no cover

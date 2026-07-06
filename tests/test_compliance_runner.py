@@ -22,6 +22,19 @@ class TestFeatureFileGuards:
         with pytest.raises(ValueError, match="escapes policies directory"):
             _assert_within_directory(str(policies), str(outside))
 
+    def test_invalid_commonpath_raises(self, tmp_path, monkeypatch):
+        policies = tmp_path / "policies"
+        policies.mkdir()
+        feature = policies / "ok.feature"
+        feature.write_text("Feature: ok\n", encoding="utf-8")
+
+        def broken_commonpath(_a, _b):
+            raise ValueError("bad path")
+
+        monkeypatch.setattr("src.compliance.runner.os.path.commonpath", broken_commonpath)
+        with pytest.raises(ValueError, match="Invalid feature file path"):
+            _assert_within_directory(str(policies), str(feature))
+
     def test_collect_feature_files_finds_nested(self, tmp_path):
         nested = tmp_path / "security"
         nested.mkdir()

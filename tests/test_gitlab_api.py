@@ -46,3 +46,10 @@ class TestLoadApiEntities:
         assert entities["project_settings"]
         assert entities["project_ci_variables"][0]["name"] == "FOO"
         assert entities["group_settings"]
+
+    def test_load_without_project_or_group(self):
+        with patch("gitlab.Gitlab") as gitlab_cls:
+            gl = MagicMock()
+            gitlab_cls.return_value = gl
+            entities = load_api_entities(token="secret", gitlab_url="https://gitlab.example.com")
+        assert entities["project_settings"] == []
