@@ -17,6 +17,12 @@ megalinter:
 build:
 	poetry build
 
+docs-serve:
+	poetry run mkdocs serve
+
+docs-build:
+	poetry run mkdocs build --strict
+
 publish:
 	poetry publish --build
 install_package:
