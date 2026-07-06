@@ -1,4 +1,5 @@
 import importlib
+import os
 import pathlib
 
 import click
@@ -103,8 +104,7 @@ def dump_helper(base_command, docs_dir):
         )
 
         if not docs_path.exists():
-            # Create md file dir if needed
-            docs_path.mkdir(parents=True, exist_ok=False)
+            docs_path.mkdir(parents=True, exist_ok=True)
 
         md_file_path = docs_path.joinpath("command-reference.md").absolute()
         # full_command.replace(' ', '-').lower() + '.md')
@@ -146,8 +146,9 @@ def dumps(base_module, base_command, docs_path):
     # Click-md
     Create md files per each command, in format of `parent-command`, under the `--docsPath` directory.
     """
-    md_file_path = docs_path + "/" + ("command-reference.md")
-    with open(md_file_path, "w") as md_file:
+    md_file_path = os.path.join(docs_path, "command-reference.md")
+    os.makedirs(docs_path, exist_ok=True)
+    with open(md_file_path, "w", encoding="utf-8") as md_file:
         md_file.write("# Command Reference")
     click.secho(
         f"Creating a new documents from {base_module}.{base_command} into {docs_path}",

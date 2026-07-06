@@ -3,7 +3,13 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from src.gitlab_docs import compliance, compliance_doc, generate, get_attributes
+from src.gitlab_docs import (
+    compliance,
+    compliance_doc,
+    generate,
+    get_attributes,
+    gitlab_compliance,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SAMPLE_PIPELINE = REPO_ROOT / "sample-files" / ".gitlab-ci.yml"
@@ -85,8 +91,9 @@ class TestGenerateHtmlCli:
         output_file = tmp_path / "legacy.html"
         runner = CliRunner()
         result = runner.invoke(
-            generate_html,
+            gitlab_compliance,
             [
+                "generate-html",
                 "--input-config",
                 str(SAMPLE_PIPELINE),
                 "--output-file",
@@ -223,8 +230,9 @@ class TestComplianceOciCli:
         )
         runner = CliRunner()
         result = runner.invoke(
-            compliance_push,
+            gitlab_compliance,
             [
+                "compliance-push",
                 "--features",
                 str(PASSING_POLICIES),
                 "registry.example.com/org/policies:1.0.0",
@@ -242,8 +250,9 @@ class TestComplianceOciCli:
         monkeypatch.setattr("src.gitlab_docs.pull_policies", _fake_pull)
         runner = CliRunner()
         result = runner.invoke(
-            compliance_pull,
+            gitlab_compliance,
             [
+                "compliance-pull",
                 "registry.example.com/org/policies:1.0.0",
                 "--output-dir",
                 str(out_dir),
