@@ -1,8 +1,6 @@
 import os
 from pathlib import Path
 
-import pytest
-
 from src.properties.includes import (
     check_include_version_is_sema_version,
     document_includes,
