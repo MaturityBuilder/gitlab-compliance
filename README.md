@@ -361,6 +361,35 @@ Example Markdown file: `release_notes_group_project_since_v1.0.0.md`
 | :----------: | :--------------: |
 | **extends**  | ['.build:python' |
 |              |  '.test:rules']  |
+<h4><span class="badge text-bg-info">DOCS:BUILD</span></h4>
+
+<hr>
+
+| **Property** |    **Value**    |
+| :----------: | :-------------: |
+| **extends**  | ['.docs:mkdocs' |
+|              |  '.test:rules'] |
+|  **stage**   |      build      |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                     paths                      |                    ['public']                    |
+|                   artifacts                    |                   expire_in                    |                      1 week                      |
+
+<h4><span class="badge text-bg-info">PAGES</span></h4>
+
+<hr>
+
+| **Property** |                     **Value**                     |
+| :----------: | :-----------------------------------------------: |
+| **extends**  |                    .docs:mkdocs                   |
+|  **rules**   | ['if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'] |
+|  **stage**   |                      publish                      |
+
+| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                   artifacts                    |                     paths                      |                    ['public']                    |
+
 <h4><span class="badge text-bg-info">PUBLISH</span></h4>
 
 <hr>
