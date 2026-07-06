@@ -3,7 +3,15 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from src.gitlab_docs import compliance, compliance_doc, generate, get_attributes
+from src.gitlab_docs import (
+    compliance,
+    compliance_doc,
+    compliance_push,
+    compliance_pull,
+    generate,
+    generate_html,
+    get_attributes,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SAMPLE_PIPELINE = REPO_ROOT / "sample-files" / ".gitlab-ci.yml"
@@ -44,6 +52,57 @@ class TestGenerateCli:
         assert result.exit_code == 0, result.output
         content = output_file.read_text(encoding="utf-8")
         assert "gitlab-docs-opening-auto-generated" in content or len(content) > 0
+
+    def test_html_format_writes_file(self, tmp_path):
+        output_file = tmp_path / "docs.html"
+        runner = CliRunner()
+        result = runner.invoke(
+            generate,
+            [
+                "--input-config",
+                str(SAMPLE_PIPELINE),
+                "--output-file",
+                str(output_file),
+                "--format",
+                "html",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        html = output_file.read_text(encoding="utf-8")
+        assert "html" in html.lower()
+
+    def test_detailed_markdown_generation(self, tmp_path):
+        output_file = tmp_path / "detailed.md"
+        runner = CliRunner()
+        result = runner.invoke(
+            generate,
+            [
+                "--input-config",
+                str(SAMPLE_PIPELINE),
+                "--output-file",
+                str(output_file),
+                "--detailed",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert output_file.stat().st_size > 0
+
+
+class TestGenerateHtmlCli:
+    def test_deprecated_generate_html_delegates_to_generate(self, tmp_path):
+        output_file = tmp_path / "legacy.html"
+        runner = CliRunner()
+        result = runner.invoke(
+            generate_html,
+            [
+                "--input-config",
+                str(SAMPLE_PIPELINE),
+                "--output-file",
+                str(output_file),
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert output_file.is_file()
 
 
 class TestGetAttributesCli:
@@ -114,6 +173,91 @@ class TestComplianceCli:
         payload = json.loads(report_path.read_text(encoding="utf-8"))
         assert isinstance(payload, list)
         assert payload, "expected at least one word finding"
+
+    def test_dry_run_lists_scenarios_without_failing(self):
+        runner = CliRunner()
+        result = runner.invoke(
+            compliance,
+            [
+                "--features",
+                str(FAILING_POLICIES),
+                "--pipeline",
+                str(SAMPLE_PIPELINE),
+                "--dry-run",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+
+    def test_markdown_report_to_file(self, tmp_path):
+        report_path = tmp_path / "report.md"
+        runner = CliRunner()
+        result = runner.invoke(
+            compliance,
+            [
+                "--features",
+                str(FAILING_POLICIES),
+                "--pipeline",
+                str(SAMPLE_PIPELINE),
+                "--format",
+                "markdown",
+                "--output-file",
+                str(report_path),
+            ],
+        )
+        assert result.exit_code != 0, result.output
+        assert "GitLab CI Compliance Report" in report_path.read_text(encoding="utf-8")
+
+    def test_strict_api_missing_fails(self):
+        api_missing = REPO_ROOT / "tests" / "compliance_policies" / "api-missing"
+        runner = CliRunner()
+        result = runner.invoke(
+            compliance,
+            [
+                "--features",
+                str(api_missing),
+                "--pipeline",
+                str(SAMPLE_PIPELINE),
+                "--strict",
+            ],
+        )
+        assert result.exit_code != 0, result.output
+
+
+class TestComplianceOciCli:
+    def test_push_policies_mocked(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            "src.gitlab_docs.push_policies",
+            lambda features_dir, target: "sha256:abc",
+        )
+        runner = CliRunner()
+        result = runner.invoke(
+            compliance_push,
+            [
+                "--features",
+                str(PASSING_POLICIES),
+                "registry.example.com/org/policies:1.0.0",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert "Pushed policy bundle" in result.output or result.exit_code == 0
+
+    def test_pull_policies_mocked(self, tmp_path, monkeypatch):
+        out_dir = tmp_path / "policies"
+
+        def _fake_pull(_target, output_dir=None):
+            return str(out_dir)
+
+        monkeypatch.setattr("src.gitlab_docs.pull_policies", _fake_pull)
+        runner = CliRunner()
+        result = runner.invoke(
+            compliance_pull,
+            [
+                "registry.example.com/org/policies:1.0.0",
+                "--output-dir",
+                str(out_dir),
+            ],
+        )
+        assert result.exit_code == 0, result.output
 
 
 class TestComplianceDocCli:
