@@ -1,8 +1,10 @@
-name: Deploy MkDocs to GitHub Pages
+name: Documentation (MkDocs)
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
   workflow_dispatch:
 
 permissions:
@@ -11,11 +13,39 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'production' }}
   cancel-in-progress: false
 
 jobs:
+  review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install documentation tools
+        run: pip install "mkdocs>=1.6" "mkdocs-material>=9.6"
+
+      - name: Build MkDocs site (strict)
+        run: mkdocs build --strict
+
+      - name: Upload review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mkdocs-preview
+          path: public
+          retention-days: 14
+
   build:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,7 +59,7 @@ jobs:
       - name: Install documentation tools
         run: pip install "mkdocs>=1.6" "mkdocs-material>=9.6"
 
-      - name: Build MkDocs site
+      - name: Build MkDocs site (strict)
         run: mkdocs build --strict
 
       - name: Upload Pages artifact
@@ -38,6 +68,7 @@ jobs:
           path: public
 
   deploy:
+    if: github.event_name == 'push'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

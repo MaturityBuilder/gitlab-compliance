@@ -143,7 +143,7 @@ test-build:
   script:
     - mkdocs build --strict
 
-docs:build:
+docs:review:
   extends:
     - .docs:mkdocs
     - .test:rules

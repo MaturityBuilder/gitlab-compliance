@@ -1,8 +1,8 @@
-# Gitlab Docs
+# GitLab Compliance
 
-## Overview
+**GitLab Compliance** (PyPI package [`gitlab-docs`](https://pypi.org/project/gitlab-docs/)) is a portable CLI for documenting GitLab CI/CD pipelines and enforcing configuration policies. It generates Markdown or HTML from `.gitlab-ci.yml`, and includes a Gherkin-based compliance engine (similar to [terraform-compliance](https://github.com/terraform-compliance/cli) and [Conftest](https://www.conftest.dev/)) for YAML and API-backed checks.
 
-GitLab Docs is a portable Python CLI for documenting GitLab CI/CD pipelines and enforcing configuration policies. It generates Markdown or HTML documentation from `.gitlab-ci.yml`, and includes a Gherkin-based compliance engine (similar to [terraform-compliance](https://github.com/terraform-compliance/cli) and [Conftest](https://www.conftest.dev/)) for YAML and API-backed checks.
+Source code: [MaturityBuilder/gitlab-compliance](https://github.com/MaturityBuilder/gitlab-compliance).
 
 ## Key features
 
@@ -18,241 +18,115 @@ GitLab Docs is a portable Python CLI for documenting GitLab CI/CD pipelines and 
 
 ## Installation
 
-### Python
+### Python (recommended)
+
+Install from PyPI. Two CLI entry points are available; prefer **`gitlab-compliance`** for new usage.
+
+| Command | Status |
+|---------|--------|
+| `gitlab-compliance` | **Preferred** — compliance-first naming |
+| `gitlab-docs` | **Deprecated** — same tool; shows a deprecation notice |
 
 ```bash
-pip3 install --user gitlab-docs
+pip install --user gitlab-docs
+gitlab-compliance --help
+```
+
+From a clone of this repository (development):
+
+```bash
+poetry install
+poetry run gitlab-compliance --help
 ```
 
 ### Docker
 
 ```bash
-docker run -v ${PWD}:/gitlab-docs charlieasmith93/gitlab-docs
+docker run -v "${PWD}:/gitlab-docs" charlieasmith93/gitlab-docs
 ```
 
 ```bash
-podman run -it -v $(PWD):/gitlab-docs charlieasmith93/gitlab-docs
+podman run -it -v "$(pwd):/gitlab-docs" charlieasmith93/gitlab-docs
 ```
 
-## Pipeline documentation
+Mount your project directory at `/gitlab-docs` so the container can read `.gitlab-ci.yml` and write reports.
 
-Generate documentation from your pipeline file:
+## How to use
+
+### 1. Document a pipeline
+
+Generate reference documentation from your pipeline file:
 
 ```bash
-# Markdown (default) into README markers
-gitlab-docs generate -i .gitlab-ci.yml -o README.md
+# Markdown into README markers (default)
+gitlab-compliance generate -i .gitlab-ci.yml -o README.md
 
 # Swagger-style HTML
-gitlab-docs generate -i .gitlab-ci.yml --format html -o GITLAB-DOCS.html
+gitlab-compliance generate -i .gitlab-ci.yml --format html -o GITLAB-DOCS.html
 
-# Preview without writing files
-gitlab-docs generate -i .gitlab-ci.yml --dry-mode
+# Preview in the terminal without writing files
+gitlab-compliance generate -i .gitlab-ci.yml --dry-mode
 
-# Include workflow rules and job rules
-gitlab-docs generate -i .gitlab-ci.yml --detailed -o README.md
+# Include workflow rules and per-job rules
+gitlab-compliance generate -i .gitlab-ci.yml --detailed -o README.md
 ```
 
-Document specific attributes only:
+Export selected job attributes only:
 
 ```bash
-gitlab-docs get-attributes -i .gitlab-ci.yml -a stage,image,rules -o JOBS.md
+gitlab-compliance get-attributes -i .gitlab-ci.yml -a stage,image,rules -o JOBS.md
 ```
 
-## Compliance policies
+### 2. Run compliance policies
 
-Run policies from a local directory or OCI registry against your pipeline:
+Policies are Gherkin `.feature` files. Run them against local YAML or combine with the GitLab API for project settings.
 
 ```bash
-# YAML-only checks (offline)
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml
+# Offline YAML checks
+gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml
 
-# API-backed checks (project settings, CI variables)
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --project $CI_PROJECT_PATH
+# API-backed checks (CI variables, project settings)
+export GITLAB_TOKEN="<token>"
+gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --project my-group/my-project
 
-# Strict mode: fail when API connection info is missing (default: skip)
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --strict
+# Fail when API scenarios cannot run (default: skip)
+gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --strict
 
-# Reports
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format markdown -o COMPLIANCE-REPORT.md
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format html -o COMPLIANCE-REPORT.html
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format mr-comment -o COMPLIANCE-MR-COMMENT.md
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format codequality -o gl-code-quality-report.json
+# Reports for CI and merge requests
+gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --format markdown -o COMPLIANCE-REPORT.md
+gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --format mr-comment -o COMPLIANCE-MR-COMMENT.md
+gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --format codequality -o gl-code-quality-report.json
 ```
 
-### Policy metadata (Conftest-style)
-
-Annotate `.feature` files with `# METADATA` blocks for IDs, titles, and descriptions:
-
-```gherkin
-# METADATA
-# title: Disallow latest image tags
-# description: Prevents jobs from using mutable latest tags.
-# custom:
-#   id: GLCI-IMAGE-PINNING-001
-#   severity: HIGH
-  Scenario: Job images must not use the latest tag
-    Given I have any job defined
-    When it has image
-    Then its image must not match ":latest$"
-```
-
-Generate a searchable policy catalog:
+Generate a policy catalog from `# METADATA` annotations:
 
 ```bash
-gitlab-docs compliance-doc -f policies/ -o COMPLIANCE-POLICIES.md
+gitlab-compliance compliance-doc -f policies/ -o COMPLIANCE-POLICIES.md
 ```
 
-### OCI policy registries
-
-Publish and consume policy packs from any OCI-compliant registry (GitLab CR, GHCR, ACR, ECR, etc.):
+### 3. Share policies via OCI
 
 ```bash
 docker login registry.example.com
 
-gitlab-docs compliance-push -f policies/ registry.example.com/org/gitlab-ci-policies:1.0.0
-gitlab-docs compliance-pull oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/
-gitlab-docs compliance -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update
+gitlab-compliance compliance-push -f policies/ registry.example.com/org/gitlab-ci-policies:1.0.0
+gitlab-compliance compliance-pull oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/
+gitlab-compliance compliance -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update
 ```
 
-### Example policy packs
+### Example policies
 
-See [example-policies/security/](../example-policies/security/) and [compliance-security-examples.md](compliance-security-examples.md) for pinning images, components, fragments, services, rules, templates, and API hardening.
+Browse the [security example policy pack](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/example-policies/security) in the repository, and see [Compliance security examples](compliance-security-examples.md) for pinning images, components, fragments, services, rules, templates, and API hardening.
 
 ## Command reference
 
-Full auto-generated reference: [command-reference.md](command-reference.md).
-
-### `gitlab-docs`
-
-Top-level CLI group.
-
-```bash
-gitlab-docs --help
-```
-
-| Command | Description |
-|---------|-------------|
-| `generate` | Build Markdown or HTML documentation from pipeline YAML |
-| `get-attributes` | Document selected YAML attributes as a table |
-| `compliance` | Run Gherkin compliance policies |
-| `compliance-doc` | Generate policy catalog from `# METADATA` annotations |
-| `compliance-push` | Push policy bundle to an OCI registry |
-| `compliance-pull` | Pull policy bundle from an OCI registry |
-| `release-notes` | Generate release notes from GitLab project commits |
-| `generate-html` | Deprecated — use `generate --format html` |
-
-### `generate`
-
-```bash
-gitlab-docs generate [OPTIONS]
-```
-
-| Option | Description |
-|--------|-------------|
-| `-i, --input-config` | Pipeline YAML file (default: `.gitlab-ci.yml`) |
-| `-o, --output-file` | Output file path |
-| `-f, --format` | `markdown` or `html` (default: `markdown`) |
-| `--detailed` | Include workflow and job rules |
-| `-d, --dry-mode` | Preview without writing files |
-
-### `get-attributes`
-
-```bash
-gitlab-docs get-attributes [OPTIONS]
-```
-
-| Option | Description |
-|--------|-------------|
-| `-i, --input-config` | Pipeline YAML file |
-| `-o, --output-file` | Output file path |
-| `-a, --attributes` | Comma-separated attribute list |
-| `-j, --json` | Return JSON instead of Markdown |
-
-### `compliance`
-
-```bash
-gitlab-docs compliance [OPTIONS]
-```
-
-| Option | Description |
-|--------|-------------|
-| `-f, --features` | Policy directory or `oci://registry/repo:tag` (**required**) |
-| `-p, --pipeline` | Pipeline YAML file (default: `.gitlab-ci.yml`) |
-| `--format` | `console`, `markdown`, `html`, `mr-comment`, `codequality` (default: `console`) |
-| `-o, --output-file` | Write report to file (non-console formats) |
-| `--include-nested / --no-include-nested` | Resolve nested local includes (default: on) |
-| `--token` | GitLab API token (or `GITLAB_TOKEN` / `CI_JOB_TOKEN`) |
-| `--project` | Project path or ID for API checks (or `CI_PROJECT_PATH`) |
-| `--group` | Group path or ID for API checks |
-| `--strict` | Fail API scenarios when connection info is missing |
-| `--update` | Re-pull policies from OCI before running |
-| `--policy-cache-dir` | Cache directory for OCI pulls |
-| `--dry-run` | List scenarios without asserting |
-
-### `compliance-doc`
-
-```bash
-gitlab-docs compliance-doc [OPTIONS]
-```
-
-| Option | Description |
-|--------|-------------|
-| `-f, --features` | Policy directory or OCI reference (**required**) |
-| `--format` | `markdown` or `html` (default: `markdown`) |
-| `-o, --output-file` | Output file path |
-
-### `compliance-push`
-
-```bash
-gitlab-docs compliance-push -f <policies-dir> <registry/repo:tag>
-```
-
-| Argument / option | Description |
-|-------------------|-------------|
-| `TARGET` | OCI registry reference (e.g. `registry.example.com/org/policies:1.0.0`) |
-| `-f, --features` | Local policies directory to publish (**required**) |
-
-### `compliance-pull`
-
-```bash
-gitlab-docs compliance-pull <registry/repo:tag> [-o <dir>]
-```
-
-| Argument / option | Description |
-|-------------------|-------------|
-| `TARGET` | OCI registry reference |
-| `-o, --output-dir` | Extract destination (default: `policy/`) |
-
-### `release-notes`
-
-Generate release notes from commits since the latest tag (or a chosen baseline tag). Commits are classified using conventional-commit prefixes (`feat`, `fix`, `chore`, and others bucketed as Other). Markdown output groups commits by type and links to GitLab when URLs are available.
-
-```bash
-gitlab-docs release-notes \
-  --token <token> \
-  --projects <id-or-path> \
-  [--since-tag v1.0.0] \
-  [--markdown <dir>] \
-  [--no-write]
-```
-
-| Argument / option | Description |
-|-------------------|-------------|
-| `--token` | GitLab personal access token (`GITLAB_TOKEN`) |
-| `--url` | GitLab instance URL (default: `https://gitlab.com`) |
-| `--projects` | Project ID or path (repeatable) |
-| `--since-tag` | Baseline tag name (default: latest semver tag, else most recent by date) |
-| `--markdown` | Output directory for Markdown files (default: `.`) |
-| `--no-write` | Console preview only; skip Markdown files |
-
-Example Markdown file: `release_notes_group_project_since_v1.0.0.md`
+Full option lists and subcommands: [Command reference](command-reference.md).
 
 ## Further reading
 
-- [Command reference](command-reference.md) — full Click-generated option details
 - [Compliance security examples](compliance-security-examples.md) — policy patterns and CI integration
-- [Output example](output-example.md) — sample generated documentation
-- [Site build & publish](site-documentation.md) — MkDocs Material site, GitLab Pages, and GitHub Pages
+- [Output example](output-example.md) — sample generated pipeline documentation
+- [Site build & publish](site-documentation.md) — MkDocs site, review builds, and Pages deployment
 
 [comment]: <> (gitlab-docs-opening-auto-generated)
 

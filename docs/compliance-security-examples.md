@@ -1,6 +1,6 @@
 # GitLab Compliance Security Examples
 
-This guide shows how to use `gitlab-docs compliance` the same way [terraform-compliance](https://github.com/terraform-compliance/cli) enforces infrastructure policies — but for GitLab CI YAML and project settings.
+This guide shows how to use `gitlab-compliance` (PyPI package `gitlab-docs`) the same way [terraform-compliance](https://github.com/terraform-compliance/cli) enforces infrastructure policies — but for GitLab CI YAML and project settings.
 
 ## Policy documentation annotations
 
@@ -29,8 +29,8 @@ Feature: Container images must be pinned
 Generate a searchable catalog:
 
 ```bash
-gitlab-docs compliance-doc -f policies/ -o COMPLIANCE-POLICIES.md
-gitlab-docs compliance-doc -f policies/ --format html -o COMPLIANCE-POLICIES.html
+gitlab-compliance compliance-doc -f policies/ -o COMPLIANCE-POLICIES.md
+gitlab-compliance compliance-doc -f policies/ --format html -o COMPLIANCE-POLICIES.html
 ```
 
 If `custom.id` is omitted, IDs are generated automatically (for example `GLCI-IMAGE-PINNING-001`). Compliance reports include policy IDs and titles in console, markdown, HTML, and MR comment output.
@@ -44,16 +44,16 @@ Like [Conftest](https://www.conftest.dev/sharing/), policy packs can be stored i
 docker login registry.example.com
 
 # Publish a policy pack
-gitlab-docs compliance-push -f policies/ registry.example.com/org/gitlab-ci-policies:1.0.0
+gitlab-compliance compliance-push -f policies/ registry.example.com/org/gitlab-ci-policies:1.0.0
 
 # Pull policies locally (default directory: policy/)
-gitlab-docs compliance-pull oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/
+gitlab-compliance compliance-pull oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/
 
 # Run compliance directly from the registry
-gitlab-docs compliance -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml
+gitlab-compliance compliance -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml
 
 # Force a fresh pull before running
-gitlab-docs compliance -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update
+gitlab-compliance compliance -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update
 ```
 
 Policy bundles are published as `application/vnd.gitlab-docs.policy.bundle.v1+tar+gzip` OCI artifacts containing your `.feature` files.
@@ -65,10 +65,10 @@ Policy bundles are published as `application/vnd.gitlab-docs.policy.bundle.v1+ta
 cp -r example-policies/security/ policies/
 
 # Run against your pipeline (offline, YAML only)
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml
+gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml
 
 # Gate merge requests with API-backed checks
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --project $CI_PROJECT_PATH
+gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --project $CI_PROJECT_PATH
 ```
 
 ## Security risks and policies
@@ -172,13 +172,13 @@ API-backed scenarios are **skipped by default** when connection info is missing 
 
 ```bash
 # Offline YAML checks only; API scenarios skipped
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml
+gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml
 
 # Fail if API connection info is missing
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --strict
+gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --strict
 
 # Full checks with API
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --project $CI_PROJECT_PATH
+gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --project $CI_PROJECT_PATH
 ```
 
 ```gherkin
@@ -200,8 +200,8 @@ compliance:
   image: python:3.12
   script:
     - pip install gitlab-docs
-    - gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --project $CI_PROJECT_PATH
-    - gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format mr-comment -o compliance-mr-comment.md
+    - gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --project $CI_PROJECT_PATH
+    - gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --format mr-comment -o compliance-mr-comment.md
   artifacts:
     reports:
       dotenv: compliance-mr-comment.md
@@ -213,7 +213,7 @@ compliance:
 
 | Format | Use case | Example |
 |--------|----------|---------|
-| `console` | Local dev / CI logs (default, Rich tables) | `gitlab-docs compliance -f policies/ -p .gitlab-ci.yml` |
+| `console` | Local dev / CI logs (default, Rich tables) | `gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml` |
 | `markdown` | Docs, wikis, artifacts | `--format markdown -o COMPLIANCE-REPORT.md` |
 | `html` | Human-readable report | `--format html -o COMPLIANCE-REPORT.html` |
 | `mr-comment` | Post as GitLab MR note | `--format mr-comment -o compliance-mr-comment.md` |
@@ -225,7 +225,7 @@ Publish Code Quality findings in CI:
 compliance:
   script:
     - pip install gitlab-docs
-    - gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format codequality -o gl-code-quality-report.json
+    - gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --format codequality -o gl-code-quality-report.json
   artifacts:
     reports:
       codequality: gl-code-quality-report.json
@@ -237,7 +237,7 @@ Post MR comment in CI:
 comment-compliance:
   script:
     - pip install gitlab-docs
-    - gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format mr-comment -o comment.md || true
+    - gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --format mr-comment -o comment.md || true
     - |
       curl --request POST \
         --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
