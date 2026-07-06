@@ -1,0 +1,56 @@
+name: User story
+description: Record a change or piece of work before implementation (required for PRs)
+title: "feat: "
+labels:
+  - user-story
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Open this issue **before** a branch or PR. Link it from the PR with `Closes #<number>`.
+        Use a [Conventional Commits](https://www.conventionalcommits.org/) type in the title when it fits (`feat`, `fix`, `docs`, `chore`, `ci`, etc.).
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: User story
+      description: Who benefits, what they need, and why.
+      placeholder: |
+        As a **GitLab CI maintainer**, I want **generated docs to support HTML export**, so that **I can publish CI reference pages outside Markdown**.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: Testable outcomes that define "done".
+      placeholder: |
+        - [ ] `gitlab-docs --format html` writes valid HTML tables
+        - [ ] Tests cover HTML rendering
+        - [ ] README documents the flag
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context / notes
+      description: Links, screenshots, related issues, or out-of-scope items.
+      placeholder: Optional background for humans and Cursor agents.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: change-type
+    attributes:
+      label: Change type
+      options:
+        - Feature
+        - Bug fix
+        - Documentation
+        - CI / tooling
+        - Refactor
+        - Chore
+    validations:
+      required: true

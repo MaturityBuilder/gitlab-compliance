@@ -4,10 +4,22 @@ Thank you for contributing to **gitlab-docs**. This project uses [Conventional C
 
 ## Before you open a pull request
 
-1. Open or find a GitHub **issue** that describes the work (bug, feature, chore).
+1. Open a GitHub **issue** using the [**User story** template](.github/ISSUE_TEMPLATE/user_story.yml) (blank issues are disabled—use the template).
 2. Create a branch from the default branch using the naming rules below.
 3. Make commits that follow Conventional Commits.
-4. Open a PR whose **title** is a conventional commit message and whose **description** links the issue (so it can auto-close on merge when you use `Closes #123`).
+4. Open a PR whose **title** is a conventional commit message and whose **description** links the issue (`Closes #123`).
+
+### User stories
+
+Record *what* and *why* in the issue before coding:
+
+```text
+As a <role>, I want <capability>, so that <outcome>.
+```
+
+Add **acceptance criteria** as a checklist. The PR should satisfy those items (or update the issue if scope changes).
+
+**Cursor agents:** see [AGENTS.md](AGENTS.md) for the same rules in agent-oriented form.
 
 ## Branch names
 
