@@ -43,7 +43,7 @@ Zensical only validates links to files under `docs/`. Link to repository paths o
 
 Download the **`docs:review`** job artifact on merge requests to preview HTML locally (open `public/index.html`).
 
-PyPI release jobs (`publish` on tags) are unchanged and independent of the documentation site.
+PyPI and Docker Hub publish (on semver tags via [`release.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/release.yml)) are independent of the documentation site.
 
 ## GitHub Actions
 
@@ -52,7 +52,8 @@ PyPI release jobs (`publish` on tags) are unchanged and independent of the docum
 | [`tests.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/tests.yml) | PR + push | behave, pytest, coverage |
 | [`pre-commit.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/pre-commit.yml) | PR + push | pre-commit hooks |
 | [`danger.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/danger.yml) | PR | Danger PR review |
-| [`docker.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/docker.yml) | PR + push | Build, Trivy scan, Docker Hub publish |
+| [`docker.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/docker.yml) | PR + push | Build, Trivy scan, smoke test (no push) |
+| [`release.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/release.yml) | push `main` / tags `v*` | release-please; PyPI + Docker Hub on tags |
 | [`zensical-gh-pages.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/zensical-gh-pages.yml) | PR + push | Zensical build and GitHub Pages |
 
 See [GitHub Actions CI/CD](ci-cd/github-actions.md) for consumer examples (pip vs container) and Docker Hub publish setup.

@@ -1,6 +1,6 @@
 # GitHub Actions
 
-Run **gitlab-compliance** in GitHub Actions to gate pull requests and default-branch builds. This repository also ships workflows for pre-commit, Danger PR review, tests, documentation, and Docker publish.
+Run **gitlab-compliance** in GitHub Actions to gate pull requests and default-branch builds. This repository also ships workflows for pre-commit, Danger PR review, tests, documentation, release-please, and tag-gated PyPI and Docker publish.
 
 ## Quick start (consumer projects)
 
@@ -45,10 +45,11 @@ cp -r examples/example-policies/security policies/security
 
 | Workflow | File | When | Purpose |
 |----------|------|------|---------|
-| Tests | [`.github/workflows/tests.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/tests.yml) | PR + push | behave + pytest, 70% coverage gate |
+| Tests | [`.github/workflows/tests.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/tests.yml) | PR + push | behave + pytest, 95% coverage gate |
 | Pre-commit | [`.github/workflows/pre-commit.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/pre-commit.yml) | PR + push | `pre-commit run --all-files` |
 | Danger | [`.github/workflows/danger.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/danger.yml) | PR | PR review comments via [`dangerfile.py`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/dangerfile.py) |
-| Docker | [`.github/workflows/docker.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/docker.yml) | PR + push | Build, Trivy scan; push on `main` / semver tags |
+| Docker | [`.github/workflows/docker.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/docker.yml) | PR + push | Build, Trivy scan, smoke test (no push) |
+| Release | [`.github/workflows/release.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/release.yml) | push `main` / tags `v*` | release-please; PyPI + Docker Hub on tags |
 | Documentation | [`.github/workflows/zensical-gh-pages.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/zensical-gh-pages.yml) | PR + push | Zensical build and GitHub Pages deploy |
 
 ## Pre-commit (local and CI)
@@ -74,43 +75,61 @@ Configuration: [`.pre-commit-config.yaml`](https://github.com/MaturityBuilder/gi
 
 Enable **Settings → Actions → General → Workflow permissions → Read and write** so `GITHUB_TOKEN` can post PR comments.
 
-## Docker build, scan, and publish
+## Release (release-please, PyPI, Docker Hub)
+
+Releases are automated with [release-please](https://github.com/googleapis/release-please). Configuration lives in [`release-please-config.json`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/release-please-config.json) and [`.release-please-manifest.json`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.release-please-manifest.json).
+
+### Release flow
+
+1. Merge conventional commits (`feat:`, `fix:`, `BREAKING CHANGE:`) to `main`.
+2. The **release-please** job opens or updates a Release PR (version bump in `pyproject.toml` and `src/__init__.py`, plus `CHANGELOG.md`).
+3. Merge the Release PR — release-please creates a GitHub Release and tag `vX.Y.Z`.
+4. The tag push runs **test**, then **publish-pypi** and **publish-docker** in parallel.
+
+If CI does not run on release-please PRs, switch the release-please step to a personal access token (`MY_RELEASE_PLEASE_TOKEN`) per the [release-please-action credentials docs](https://github.com/googleapis/release-please-action#github-credentials).
+
+### One-time publish setup
+
+#### PyPI (OIDC trusted publishing)
+
+PyPI publish uses [trusted publishing](https://docs.pypi.org/trusted-publishers/) (OIDC) — no long-lived `PYPI_TOKEN` secret is required.
+
+1. On [PyPI](https://pypi.org/manage/project/gitlab-compliance/settings/publishing/), add a **trusted publisher** for GitHub Actions:
+
+   | Field | Value |
+   |-------|-------|
+   | Owner | `MaturityBuilder` |
+   | Repository | `gitlab-compliance` |
+   | Workflow name | `release.yml` |
+   | Environment name | `pypi` |
+
+2. In GitHub **Settings → Environments**, create a **`pypi`** environment (optional but recommended for deployment protection).
+
+The **publish-pypi** job runs `poetry build`, then uploads with [`pypa/gh-action-pypi-publish`](https://github.com/pypa/gh-action-pypi-publish) using `id-token: write`.
+
+#### Docker Hub
+
+Add these in GitHub **Settings → Secrets and variables → Actions**:
+
+| Name | Type | Value |
+|------|------|-------|
+| `DOCKERHUB_USERNAME` | Variable | Docker Hub username or org name (`maturitybuilder`) |
+| `DOCKERHUB_TOKEN` | Secret | Docker Hub access token with **Read & Write** scope ([create token](https://docs.docker.com/docker-hub/access-tokens/)) |
+
+Docker publish tags semver releases as `X.Y.Z`, `X.Y`, and `latest` (only on tagged releases, not on every `main` push). Builds include provenance and SBOM attestations.
+
+## Docker build and scan
 
 Image: **`maturitybuilder/gitlab-compliance`**
 
-### Pull requests and branches
-
-The `build-and-scan` job:
+The `build-and-scan` job in [`docker.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/docker.yml) runs on pull requests and pushes to `main` / `master`:
 
 1. Builds from [`dockerfile`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/dockerfile) (no push)
 2. Runs Trivy filesystem and image scans (`CRITICAL`, `HIGH` severities fail the job)
 3. Uploads image scan SARIF to the Security tab
 4. Smoke-tests `gitlab-compliance --help`
 
-### Publish (main, master, and `v*.*.*` tags)
-
-The `publish` job pushes to Docker Hub using a **personal access token** (PAT).
-
-#### One-time Docker Hub setup
-
-1. In [Docker Hub](https://hub.docker.com), create an [access token](https://docs.docker.com/docker-hub/access-tokens/) with **Read & Write** scope for the **maturitybuilder** namespace.
-2. In GitHub **Settings → Secrets and variables → Actions**, add:
-
-   | Name | Type | Value |
-   |------|------|-------|
-   | `DOCKERHUB_USERNAME` | Variable | Docker Hub username or org name (`maturitybuilder`) |
-   | `DOCKERHUB_TOKEN` | Secret | Docker Hub access token (not your account password) |
-
-The workflow logs in with:
-
-```yaml
-- uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4
-  with:
-    username: ${{ vars.DOCKERHUB_USERNAME }}
-    password: ${{ secrets.DOCKERHUB_TOKEN }}
-```
-
-Tags include `latest` (default branch), `sha-<short>`, branch name, and semver tags when you push `v*.*.*` git tags. Builds include provenance and SBOM attestations.
+Docker Hub push happens only from the **publish-docker** job in [`release.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/release.yml) when a semver tag is created.
 
 ## API-backed policies
 
