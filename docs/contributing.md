@@ -30,19 +30,19 @@ Hooks are defined in [`.pre-commit-config.yaml`](https://github.com/MaturityBuil
 
 ## Documentation
 
-Docs are built with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/). Structure mirrors [terraform-compliance.com](https://terraform-compliance.com/).
+Docs are built with [Zensical](https://zensical.org/). Structure mirrors [terraform-compliance.com](https://terraform-compliance.com/).
 
 ```bash
 poetry install --with docs
-poetry run mkdocs serve
-poetry run mkdocs build --strict
+poetry run zensical serve
+poetry run zensical build --strict
 ```
 
 When adding pages:
 
 1. Create Markdown under `docs/`
 2. Register the page in `nav` inside `mkdocs.yml`
-3. Run `mkdocs build --strict` before opening a pull request
+3. Run `zensical build --strict` before opening a pull request
 
 ## Policy and BDD changes
 

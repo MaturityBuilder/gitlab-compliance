@@ -72,7 +72,7 @@ gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --format markdown -o
 | `compliance-pull` | Pull a policy bundle from an OCI registry |
 | `release-notes` | Generate release notes from GitLab commits |
 
-Auto-generated option details: [Command Reference](command-reference.md) (one page per subcommand).
+Auto-generated option details: [Command Reference](reference/command-reference.md) (one page per subcommand).
 
 ## Quick start
 

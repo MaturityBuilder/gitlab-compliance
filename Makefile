@@ -18,10 +18,10 @@ build:
 	poetry build
 
 docs-serve:
-	poetry run mkdocs serve
+	poetry run zensical serve
 
 docs-build:
-	poetry run mkdocs build --strict
+	poetry run zensical build --strict
 
 publish:
 	poetry publish --build

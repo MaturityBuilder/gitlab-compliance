@@ -98,4 +98,4 @@ gitlab-compliance compliance-push -f policies/ registry.example.com/org/policies
 gitlab-compliance compliance-pull oci://registry.example.com/org/policies:1.0.0 -o policies/
 ```
 
-Full generated reference: [Command Reference](command-reference.md).
+Full generated reference: [Command Reference](reference/command-reference.md).

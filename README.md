@@ -261,7 +261,7 @@ Example Markdown file: `release_notes_group_project_since_v1.0.0.md`
 - [Command reference](docs/command-reference.md) — full Click-generated option details
 - [Compliance security examples](docs/compliance-security-examples.md) — policy patterns and CI integration
 - [Output example](docs/output-example.md) — sample generated documentation
-- [Site build & publish](docs/site-documentation.md) — MkDocs Material site, GitLab Pages, and GitHub Pages
+- [Site build & publish](docs/site-documentation.md) — Zensical site, GitLab Pages, and GitHub Pages
 
 [comment]: <> (gitlab-compliance-opening-auto-generated)
 

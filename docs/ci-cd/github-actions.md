@@ -49,7 +49,7 @@ cp -r examples/example-policies/security policies/security
 | Pre-commit | [`.github/workflows/pre-commit.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/pre-commit.yml) | PR + push | `pre-commit run --all-files` |
 | Danger | [`.github/workflows/danger.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/danger.yml) | PR | PR review comments via [`dangerfile.py`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/dangerfile.py) |
 | Docker | [`.github/workflows/docker.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/docker.yml) | PR + push | Build, Trivy scan; push on `main` / semver tags |
-| Documentation | [`.github/workflows/mkdocs-gh-pages.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/mkdocs-gh-pages.yml) | PR + push | MkDocs build and GitHub Pages deploy |
+| Documentation | [`.github/workflows/zensical-gh-pages.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/zensical-gh-pages.yml) | PR + push | Zensical build and GitHub Pages deploy |
 
 ## Pre-commit (local and CI)
 

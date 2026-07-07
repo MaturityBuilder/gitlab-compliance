@@ -152,15 +152,15 @@ test-build:
     - .build:python
     - .test:rules
 
-.docs:mkdocs:
+.docs:zensical:
   before_script:
-    - pip install -q "mkdocs>=1.6" "mkdocs-material>=9.6"
+    - pip install -q "zensical>=0.0.47"
   script:
-    - mkdocs build --strict
+    - zensical build --strict
 
 docs:review:
   extends:
-    - .docs:mkdocs
+    - .docs:zensical
     - .test:rules
   stage: build
   artifacts:
@@ -169,7 +169,7 @@ docs:review:
     expire_in: 1 week
 
 pages:
-  extends: .docs:mkdocs
+  extends: .docs:zensical
   stage: publish
   artifacts:
     paths:
