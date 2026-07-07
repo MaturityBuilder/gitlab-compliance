@@ -10,7 +10,7 @@ from datetime import datetime
 
 import click
 
-import src.gitlab_compliance as _gitlab_docs
+import src.gitlab_docs as _gitlab_docs
 import src.modules.doc_controller as md_writer
 import src.properties.includes as includes
 import src.properties.inputs as inputs
@@ -69,18 +69,6 @@ __all__ = [
     "resolve_features_dir",
     "run_compliance",
 ]
-
-
-def __getattr__(name: str):
-    import src.gitlab_compliance as mod
-
-    if name == "gitlab_docs":
-        return mod.gitlab_compliance
-    return getattr(mod, name)
-
-
-def __dir__():
-    return sorted(set(__all__) | set(globals().keys()))
 
 
 def _generate_markdown(
