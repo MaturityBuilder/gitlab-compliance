@@ -567,11 +567,37 @@ class TestFinalCoverageLines:
 
         feature = tmp_path / "meta.feature"
         feature.write_text(
-            "# METADATA\n# title: T\n# custom:\n#   severity: high\n"
             "Feature: Meta\n  Scenario: S\n    Given x\n",
             encoding="utf-8",
         )
-        catalog = build_policy_catalog(str(tmp_path))
+        scenario = PolicyAnnotation(
+            policy_id="GLCI-META-001",
+            title="S",
+            description="",
+            scope="scenario",
+            feature_file=str(feature),
+            line=6,
+            feature_name="Meta",
+            scenario_name="S",
+            custom={"severity": "high"},
+        )
+        catalog = PolicyCatalog(
+            features=[
+                FeaturePolicies(
+                    feature_file=str(feature),
+                    feature_name="Meta",
+                    annotation=PolicyAnnotation(
+                        policy_id="GLCI-META",
+                        title="Meta",
+                        feature_file=str(feature),
+                        line=5,
+                        feature_name="Meta",
+                        scope="feature",
+                    ),
+                    scenarios=[scenario],
+                )
+            ]
+        )
         assert "- **Custom:**" in render_policy_catalog(catalog, str(tmp_path), "markdown")
         html = render_policy_catalog(catalog, str(tmp_path), "html")
         assert "severity" in html
