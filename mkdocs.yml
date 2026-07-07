@@ -36,7 +36,6 @@ nav:
     - Installing via pip: installation/pip.md
     - Installing via Docker: installation/docker.md
   - Command Reference:
-    - Command Reference: usage/reference/command-reference.md
     - Compliance:
       - Check: usage/reference/check.md
       - Policies:

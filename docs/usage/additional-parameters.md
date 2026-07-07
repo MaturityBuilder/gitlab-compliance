@@ -97,5 +97,3 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml \
 gitlab-compliance policies push -f policies/ registry.example.com/org/policies:1.0.0
 gitlab-compliance policies pull oci://registry.example.com/org/policies:1.0.0 -o policies/
 ```
-
-Full generated reference: [Command Reference](reference/command-reference.md).
