@@ -55,8 +55,7 @@ def get_jobs(
                 rules_table = None
                 try:
                     if experimental is True:
-                        if detailed is True and j["rules"]:
-                            
+                        if detailed is True and jobs[j].get("rules"):
                             jobs[j].pop("rules", None)
                     jobs[j].pop("before_script", None)
                     jobs[j].pop("script", None)
@@ -83,13 +82,12 @@ def get_jobs(
                                     value = attribute_value[item_key]
                                     value_counter = value_counter + 1
                                     variable_table.add_row([key,item_key, value])
-                            elif key in ["artifacts"] and type(key).__name__ != str:
+                            elif key == "artifacts" and isinstance(attribute_value, dict):
                                 var = attribute_value.keys()
                                 for item_key in var:
                                     value = attribute_value[item_key]
                                     value_counter = value_counter + 1
-                                    variable_table.add_row([key,item_key, value])
-                                # print(type(key).__name__)
+                                    variable_table.add_row([key, item_key, value])
                             elif key in ["needs"]:
                                 # print("found extends")
                                 # logger.warning(len(jobs[j][key]))

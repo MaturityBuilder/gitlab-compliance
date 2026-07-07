@@ -129,8 +129,8 @@ def add_between_markers(
             ]
 
         if dry:
-            logger.logger("[Dry Run] Would write the following to file:")
-            logger.logger("".join(lines))
+            logger.info("[Dry Run] Would write the following to file:")
+            logger.info("".join(lines))
         else:
             with open(file_path, "w", encoding="utf-8") as f:
                 f.writelines(lines)

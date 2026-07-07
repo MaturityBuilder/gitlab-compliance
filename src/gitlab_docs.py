@@ -574,5 +574,5 @@ gitlab_compliance.add_command(compliance_doc)
 gitlab_compliance.add_command(compliance_push)
 gitlab_compliance.add_command(compliance_pull)
 gitlab_compliance.add_command(release_notes)
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     gitlab_compliance(obj={})

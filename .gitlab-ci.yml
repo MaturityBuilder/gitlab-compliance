@@ -72,7 +72,7 @@ behave-tests:
     - poetry run coverage run -m behave
     - poetry run coverage run -a -m pytest tests/ -v
     - poetry run coverage report -m
-    - poetry run coverage report --fail-under 70
+    - poetry run coverage report --fail-under 95
 
 bump-version:
   stage: publish

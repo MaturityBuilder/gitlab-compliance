@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -21,6 +22,19 @@ class TestFeatureFileGuards:
         outside.write_text("Feature: x\n", encoding="utf-8")
         with pytest.raises(ValueError, match="escapes policies directory"):
             _assert_within_directory(str(policies), str(outside))
+
+    def test_invalid_commonpath_raises(self, tmp_path):
+        policies = tmp_path / "policies"
+        policies.mkdir()
+        feature = policies / "ok.feature"
+        feature.write_text("Feature: ok\n", encoding="utf-8")
+
+        with patch(
+            "src.compliance.runner.os.path.commonpath",
+            side_effect=ValueError("bad path"),
+        ):
+            with pytest.raises(ValueError, match="Invalid feature file path"):
+                _assert_within_directory(str(policies), str(feature))
 
     def test_collect_feature_files_finds_nested(self, tmp_path):
         nested = tmp_path / "security"
