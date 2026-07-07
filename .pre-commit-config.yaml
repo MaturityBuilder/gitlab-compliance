@@ -3,7 +3,7 @@ repos:
     hooks:
       - id: gitlab-compliance
         name: Run compliance smoke check
-        entry: bash -c 'poetry run gitlab-compliance compliance -f tests/compliance_policies/passing -p examples/sample-files/.gitlab-ci.yml'
+        entry: bash -c 'poetry run gitlab-compliance check -f tests/compliance_policies/passing -p examples/sample-files/.gitlab-ci.yml'
         language: system
         pass_filenames: false
         files: \.(yml|yaml)$

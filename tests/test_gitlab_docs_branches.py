@@ -5,7 +5,7 @@ from unittest.mock import patch
 from click.testing import CliRunner
 
 from src.compliance.models import ComplianceResult
-from src.gitlab_compliance import compliance
+from src.gitlab_compliance import check
 
 
 class TestComplianceCacheUpdate:
@@ -15,11 +15,11 @@ class TestComplianceCacheUpdate:
         (cache / "old.feature").write_text("Feature: X\n", encoding="utf-8")
 
         monkeypatch.setattr(
-            "src.gitlab_compliance.is_oci_reference",
+            "src.gitlab_docs.is_oci_reference",
             lambda _value: True,
         )
         monkeypatch.setattr(
-            "src.gitlab_compliance.run_compliance",
+            "src.gitlab_docs.run_compliance",
             lambda **kwargs: ComplianceResult(
                 success=True,
                 exit_code=0,
@@ -33,14 +33,14 @@ class TestComplianceCacheUpdate:
 
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 "oci://registry.example.com/policies:1.0.0",
                 "--pipeline",
                 os.fspath(
                     __import__("pathlib").Path(__file__).resolve().parents[1]
-                    / "sample-files"
+                    / "examples/sample-files"
                     / ".gitlab-ci.yml"
                 ),
                 "--update",

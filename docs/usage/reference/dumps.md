@@ -1,6 +1,6 @@
 # dumps
 
-Create one markdown file per top-level subcommand under --docsPath.
+Create one markdown file per subcommand under --docsPath.
 
 ### Usage
 
@@ -43,7 +43,7 @@ Usage: gitlab-compliance dumps [OPTIONS]
 ```
 Usage: gitlab-compliance dumps [OPTIONS]
 
-  Create one markdown file per top-level subcommand under --docsPath.
+  Create one markdown file per subcommand under --docsPath.
 
 Options:
   --baseModule TEXT   The base command module path to import  [required]

@@ -6,7 +6,7 @@ Sample policies for common GitLab CI/CD compliance checks. Full files are in the
 
 ```bash
 cp -r examples/example-policies/security/ policies/
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 ```
 
 ## Policy index

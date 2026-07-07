@@ -51,10 +51,7 @@ from src.properties.extract_job_attribute import get_job_attribute
 __all__ = [
     "DEFAULT_POLICY_DIR",
     "build_policy_catalog",
-    "compliance",
-    "compliance_doc",
-    "compliance_pull",
-    "compliance_push",
+    "check",
     "dumps",
     "generate",
     "generate_html",
@@ -62,6 +59,10 @@ __all__ = [
     "gitlab_compliance",
     "gitlab_docs",
     "is_oci_reference",
+    "policies",
+    "policies_doc",
+    "policies_pull",
+    "policies_push",
     "pull_policies",
     "push_policies",
     "release_notes",
@@ -131,7 +132,7 @@ def _resolve_output_file(output_format, output_file):
     return DEFAULT_OUTPUT_FILES[output_format]
 
 
-_LEGACY_CLI_NAME = "gitlab-compliance"
+_LEGACY_CLI_NAME = "gitlab-docs"
 
 
 class _DualBrandCliGroup(click.Group):
@@ -161,8 +162,9 @@ def gitlab_compliance():
     """
     GitLab CI compliance and pipeline documentation.
 
-    Run Gherkin policies against .gitlab-ci.yml (and optional GitLab API settings),
-    or generate Markdown/HTML documentation from pipeline YAML.
+    Run Gherkin policies with ``check`` (and optional GitLab API settings),
+    manage policy bundles with ``policies``, or generate Markdown/HTML
+    documentation from pipeline YAML.
     """
     pass
 
@@ -379,7 +381,7 @@ def _resolve_policies_dir(
     return resolved, features_dir
 
 
-@click.command()
+@click.command("check")
 @click.option(
     "--features",
     "-f",
@@ -465,7 +467,7 @@ def _resolve_policies_dir(
     default=False,
     help="Auto-fix outdated include refs and pin container images to sha256 digests.",
 )
-def compliance(
+def check(
     features_dir,
     pipeline_file,
     output_format,
@@ -539,7 +541,13 @@ def _resolve_policy_doc_output(output_format, output_file):
     return None
 
 
-@click.command("compliance-doc")
+@click.group()
+def policies():
+    """Manage compliance policy bundles (catalog, OCI push/pull)."""
+    pass
+
+
+@policies.command("doc")
 @click.option(
     "--features",
     "-f",
@@ -563,7 +571,7 @@ def _resolve_policy_doc_output(output_format, output_file):
     default=None,
     help="Write the policy catalog to this file.",
 )
-def compliance_doc(features_dir, output_format, output_file):
+def policies_doc(features_dir, output_format, output_file):
     """
     Generate a searchable policy catalog from Conftest-style # METADATA annotations.
     """
@@ -580,7 +588,7 @@ def compliance_doc(features_dir, output_format, output_file):
         click.echo(report)
 
 
-@click.command("compliance-push")
+@policies.command("push")
 @click.option(
     "--features",
     "-f",
@@ -589,7 +597,7 @@ def compliance_doc(features_dir, output_format, output_file):
     help="Directory containing compliance policy .feature files to publish.",
 )
 @click.argument("target")
-def compliance_push(features_dir, target):
+def policies_push(features_dir, target):
     """
     Push a compliance policy bundle to an OCI registry (Conftest-style).
     """
@@ -599,7 +607,7 @@ def compliance_push(features_dir, target):
         logger.info(f"Digest: {digest}")
 
 
-@click.command("compliance-pull")
+@policies.command("pull")
 @click.argument("target")
 @click.option(
     "--output-dir",
@@ -609,7 +617,7 @@ def compliance_push(features_dir, target):
     show_default=True,
     help="Directory to extract pulled policies into.",
 )
-def compliance_pull(target, output_dir):
+def policies_pull(target, output_dir):
     """
     Pull a compliance policy bundle from an OCI registry.
     """
@@ -621,10 +629,8 @@ gitlab_compliance.add_command(get_attributes)
 gitlab_compliance.add_command(dumps)
 gitlab_compliance.add_command(generate)
 gitlab_compliance.add_command(generate_html)
-gitlab_compliance.add_command(compliance)
-gitlab_compliance.add_command(compliance_doc)
-gitlab_compliance.add_command(compliance_push)
-gitlab_compliance.add_command(compliance_pull)
+gitlab_compliance.add_command(check)
+gitlab_compliance.add_command(policies)
 gitlab_compliance.add_command(release_notes)
 if __name__ == "__main__":  # pragma: no cover
     gitlab_compliance(obj={})

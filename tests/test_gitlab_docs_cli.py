@@ -4,11 +4,11 @@ from pathlib import Path
 from click.testing import CliRunner
 
 from src.gitlab_compliance import (
-    compliance,
-    compliance_doc,
+    check,
     generate,
     get_attributes,
     gitlab_compliance,
+    policies_doc,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -128,7 +128,7 @@ class TestComplianceCli:
     def test_passing_policies_exit_zero(self):
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 str(PASSING_POLICIES),
@@ -141,7 +141,7 @@ class TestComplianceCli:
     def test_failing_policies_exit_nonzero(self):
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 str(FAILING_POLICIES),
@@ -155,7 +155,7 @@ class TestComplianceCli:
         report_path = tmp_path / "gl-code-quality-report.json"
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 str(FAILING_POLICIES),
@@ -176,7 +176,7 @@ class TestComplianceCli:
     def test_dry_run_lists_scenarios_without_failing(self):
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 str(FAILING_POLICIES),
@@ -191,7 +191,7 @@ class TestComplianceCli:
         report_path = tmp_path / "report.md"
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 str(FAILING_POLICIES),
@@ -210,7 +210,7 @@ class TestComplianceCli:
         api_missing = REPO_ROOT / "tests" / "compliance_policies" / "api-missing"
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 str(api_missing),
@@ -225,14 +225,15 @@ class TestComplianceCli:
 class TestComplianceOciCli:
     def test_push_policies_mocked(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "src.gitlab_compliance.push_policies",
+            "src.gitlab_docs.push_policies",
             lambda features_dir, target: "sha256:abc",
         )
         runner = CliRunner()
         result = runner.invoke(
             gitlab_compliance,
             [
-                "compliance-push",
+                "policies",
+                "push",
                 "--features",
                 str(PASSING_POLICIES),
                 "registry.example.com/org/policies:1.0.0",
@@ -247,12 +248,13 @@ class TestComplianceOciCli:
         def _fake_pull(_target, output_dir=None):
             return str(out_dir)
 
-        monkeypatch.setattr("src.gitlab_compliance.pull_policies", _fake_pull)
+        monkeypatch.setattr("src.gitlab_docs.pull_policies", _fake_pull)
         runner = CliRunner()
         result = runner.invoke(
             gitlab_compliance,
             [
-                "compliance-pull",
+                "policies",
+                "pull",
                 "registry.example.com/org/policies:1.0.0",
                 "--output-dir",
                 str(out_dir),
@@ -266,7 +268,7 @@ class TestComplianceDocCli:
         output_path = tmp_path / "catalog.md"
         runner = CliRunner()
         result = runner.invoke(
-            compliance_doc,
+            policies_doc,
             [
                 "--features",
                 str(ANNOTATED_POLICIES),

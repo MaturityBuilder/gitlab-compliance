@@ -88,3 +88,28 @@ class TestPoliciesRequireApiEnrichment:
         assert reqs.enrich_includes is False
         assert reqs.enrich_images is False
         assert reqs.load_api_entities is False
+
+    def test_non_directory_returns_empty_requirements(self):
+        reqs = policies_require_api_enrichment(
+            "oci://registry.example.com/org/policies:1.0.0"
+        )
+
+        assert reqs.enrich_includes is False
+        assert reqs.enrich_images is False
+        assert reqs.load_api_entities is False
+
+    def test_ignores_non_feature_files(self, tmp_path):
+        policies = tmp_path / "policies"
+        policies.mkdir()
+        policies.joinpath("notes.txt").write_text("ignore me", encoding="utf-8")
+        policies.joinpath("api.feature").write_text(
+            "Feature: API\n"
+            "  Scenario: Public jobs disabled\n"
+            '    Given I have project setting "public_jobs" defined\n'
+            "    Then its value must be false\n",
+            encoding="utf-8",
+        )
+
+        reqs = policies_require_api_enrichment(str(policies))
+
+        assert reqs.load_api_entities is True

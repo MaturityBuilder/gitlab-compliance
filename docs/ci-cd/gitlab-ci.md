@@ -12,7 +12,7 @@ compliance:
   stage: test
   script:
     - pip install gitlab-compliance
-    - gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml
+    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -94,7 +94,7 @@ compliance:includes:
   image: python:3.12
   script:
     - pip install gitlab-compliance
-    - gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml
+    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```
@@ -121,7 +121,7 @@ comment-compliance:
   image: python:3.12
   script:
     - pip install gitlab-compliance
-    - gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml
+    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
         --format mr-comment -o comment.md || true
     - |
       curl --request POST \

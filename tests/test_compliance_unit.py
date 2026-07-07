@@ -34,7 +34,7 @@ from src.compliance.stash import (
 )
 
 REPO_ROOT = __import__("pathlib").Path(__file__).resolve().parents[1]
-SAMPLE = REPO_ROOT / "sample-files" / ".gitlab-ci.yml"
+SAMPLE = REPO_ROOT / "examples/sample-files" / ".gitlab-ci.yml"
 ANNOTATED = REPO_ROOT / "tests" / "compliance_policies" / "annotated"
 
 
@@ -152,10 +152,11 @@ class TestModel:
             "project_ci_variables": [],
             "group_settings": [],
         }
-        with patch(
-            "src.compliance.gitlab_api.load_api_entities", return_value=api_payload
-        ):
-            entities = load_pipeline_entities(str(SAMPLE), token="t", project="g/p")
+        with patch("gitlab.Gitlab", return_value=MagicMock()):
+            with patch(
+                "src.compliance.gitlab_api.load_api_entities", return_value=api_payload
+            ):
+                entities = load_pipeline_entities(str(SAMPLE), token="t", project="g/p")
         assert entities["project_settings"]
 
 

@@ -21,18 +21,18 @@
 .compliance:offline:
   extends: .compliance:base
   script:
-    - gitlab-compliance compliance -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
+    - gitlab-compliance check -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
 
 .compliance:api:
   extends: .compliance:base
   script:
-    - gitlab-compliance compliance -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
+    - gitlab-compliance check -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
         --project "$CI_PROJECT_PATH" --strict
 
 .compliance:codequality:
   extends: .compliance:base
   script:
-    - gitlab-compliance compliance -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
+    - gitlab-compliance check -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
         --format codequality -o gl-code-quality-report.json
   artifacts:
     reports:
@@ -43,4 +43,4 @@
   variables:
     COMPLIANCE_OCI: oci://registry.example.com/org/gitlab-ci-policies:1.0.0
   script:
-    - gitlab-compliance compliance -f "$COMPLIANCE_OCI" -p .gitlab-ci.yml --update
+    - gitlab-compliance check -f "$COMPLIANCE_OCI" -p .gitlab-ci.yml --update

@@ -139,7 +139,7 @@ policy::gitlab-compliance:
   image: python:3.12
   script:
     - pip install --quiet gitlab-compliance
-    - gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml
+    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
         --project "$CI_PROJECT_PATH" --strict
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -154,7 +154,7 @@ Full walkthrough: [Pipeline Execution Policy](../ci-cd/pipeline-execution-policy
 
 ```bash
 cp -r examples/example-policies/security/ policies/security/
-gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
 Back to [Examples](index.md).

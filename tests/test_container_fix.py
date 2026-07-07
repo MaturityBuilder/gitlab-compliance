@@ -1,5 +1,6 @@
 from src.compliance.container_fix import (
     ContainerImageFix,
+    _apply_fix_to_file,
     apply_container_image_fixes,
     collect_container_image_fixes,
 )
@@ -24,6 +25,55 @@ class TestCollectContainerImageFixes:
         fixes = collect_container_image_fixes(entities)
         assert len(fixes) == 1
         assert fixes[0].fixed_image == "python@sha256:abc123"
+
+    def test_skips_missing_digest_or_image(self):
+        entities = {
+            "container_images": [
+                {"image": "", "latest_digest": "abc"},
+                {"image": "python:3.12.0", "latest_digest": ""},
+            ]
+        }
+        assert collect_container_image_fixes(entities) == []
+
+    def test_skips_already_digest_pinned_images(self):
+        entities = {
+            "container_images": [
+                {
+                    "image": "python@sha256:abc123",
+                    "latest_digest": "def456",
+                }
+            ]
+        }
+        assert collect_container_image_fixes(entities) == []
+
+    def test_uses_repository_without_tag_suffix(self):
+        entities = {
+            "container_images": [
+                {
+                    "image": "alpine",
+                    "latest_digest": "abc123",
+                    "source_file": "ci.yml",
+                    "line": 1,
+                    "parent_job": "scan",
+                    "image_source": "job",
+                }
+            ]
+        }
+        fixes = collect_container_image_fixes(entities)
+        assert fixes[0].fixed_image == "alpine@sha256:abc123"
+
+    def test_skips_when_fixed_image_matches_current(self):
+        digest = "abc123"
+        image = f"python@sha256:{digest}"
+        entities = {
+            "container_images": [
+                {
+                    "image": image,
+                    "latest_digest": digest,
+                }
+            ]
+        }
+        assert collect_container_image_fixes(entities) == []
 
 
 class TestApplyContainerImageFixes:
@@ -155,3 +205,106 @@ class TestApplyContainerImageFixes:
         assert f'  image: "docker@sha256:{DIGEST}"\n' in pipeline.read_text(
             encoding="utf-8"
         )
+
+    def test_patches_service_using_name_key(self, tmp_path):
+        pipeline = tmp_path / ".gitlab-ci.yml"
+        pipeline.write_text(
+            "build:\n"
+            "  services:\n"
+            '    name: "postgres:15"\n'
+            "  script:\n"
+            "    - echo build\n",
+            encoding="utf-8",
+        )
+        fixes = [
+            ContainerImageFix(
+                source_file=str(pipeline),
+                line=1,
+                parent_job="build",
+                image_source="service",
+                current_image="postgres:15",
+                fixed_image=f"postgres@sha256:{DIGEST}",
+            )
+        ]
+        applied = apply_container_image_fixes(fixes)
+        assert applied
+        assert f'name: "postgres@sha256:{DIGEST}"' in pipeline.read_text(
+            encoding="utf-8"
+        )
+
+    def test_skips_fix_with_empty_source_file(self, tmp_path):
+        fixes = [
+            ContainerImageFix(
+                source_file="",
+                line=1,
+                parent_job="scan",
+                image_source="job",
+                current_image="python:3.12.0",
+                fixed_image="python@sha256:abc",
+            )
+        ]
+        assert apply_container_image_fixes(fixes) == []
+
+    def test_apply_fix_rejects_invalid_line_and_job_header(self, tmp_path):
+        pipeline = tmp_path / ".gitlab-ci.yml"
+        pipeline.write_text("scan:\n  image: python:3.12.0\n", encoding="utf-8")
+        invalid_line = ContainerImageFix(
+            source_file=str(pipeline),
+            line=0,
+            parent_job="scan",
+            image_source="job",
+            current_image="python:3.12.0",
+            fixed_image="python@sha256:abc",
+        )
+        wrong_job = ContainerImageFix(
+            source_file=str(pipeline),
+            line=1,
+            parent_job="other",
+            image_source="job",
+            current_image="python:3.12.0",
+            fixed_image="python@sha256:abc",
+        )
+        with open(pipeline, encoding="utf-8") as handle:
+            lines = handle.readlines()
+        assert _apply_fix_to_file(invalid_line, lines) is False
+        assert _apply_fix_to_file(wrong_job, lines) is False
+
+    def test_apply_fix_stops_at_next_job(self, tmp_path):
+        pipeline = tmp_path / ".gitlab-ci.yml"
+        pipeline.write_text(
+            "scan:\nother:\n  image: python:3.12.0\n",
+            encoding="utf-8",
+        )
+        fix = ContainerImageFix(
+            source_file=str(pipeline),
+            line=1,
+            parent_job="scan",
+            image_source="job",
+            current_image="python:3.12.0",
+            fixed_image="python@sha256:abc",
+        )
+        with open(pipeline, encoding="utf-8") as handle:
+            lines = handle.readlines()
+        assert _apply_fix_to_file(fix, lines) is False
+
+    def test_apply_fix_ignores_non_matching_service_entry(self, tmp_path):
+        pipeline = tmp_path / ".gitlab-ci.yml"
+        pipeline.write_text(
+            "build:\n"
+            "  services:\n"
+            "    - alias: db\n"
+            "  script:\n"
+            "    - echo build\n",
+            encoding="utf-8",
+        )
+        fix = ContainerImageFix(
+            source_file=str(pipeline),
+            line=1,
+            parent_job="build",
+            image_source="service",
+            current_image="postgres:15",
+            fixed_image=f"postgres@sha256:{DIGEST}",
+        )
+        with open(pipeline, encoding="utf-8") as handle:
+            lines = handle.readlines()
+        assert _apply_fix_to_file(fix, lines) is False

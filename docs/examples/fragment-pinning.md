@@ -51,7 +51,7 @@ Pair with [Include Versions](include-versions.md) when you also want API-backed 
 ## Run locally
 
 ```bash
-gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
 Back to [Examples](index.md).

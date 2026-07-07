@@ -15,7 +15,7 @@ compliance:
       with:
         python-version: "3.12"
     - run: pip install gitlab-compliance
-    - run: gitlab-compliance compliance -f policies/security -p .gitlab-ci.yml
+    - run: gitlab-compliance check -f policies/security -p .gitlab-ci.yml
 ```
 
 Full example: [`examples/example-github-actions/compliance-pip.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-github-actions/compliance-pip.yml).
@@ -118,7 +118,7 @@ For GitLab project settings and CI variable checks, pass a token and project pat
 
 ```yaml
 - run: |
-    gitlab-compliance compliance \
+    gitlab-compliance check \
       -f policies/security \
       -p .gitlab-ci.yml \
       --project my-group/my-project \

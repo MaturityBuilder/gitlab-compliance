@@ -45,7 +45,7 @@ Usage: gitlab-compliance generate-html [OPTIONS]
 ```
 Usage: gitlab-compliance generate-html [OPTIONS]
 
-  (Deprecated) Deprecated: use `generate --format html` instead.
+  Deprecated: use `generate --format html` instead. (DEPRECATED)
 
 Options:
   --detailed               Will include workflow and rules from jobs.

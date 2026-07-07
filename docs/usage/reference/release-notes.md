@@ -1,7 +1,7 @@
 # release-notes
 
 Generate release notes for multiple GitLab projects based on commits since the last tag.
-Optionally outputs Markdown files.
+    Optionally outputs Markdown files.
 
 ### Usage
 
@@ -12,7 +12,7 @@ Usage: gitlab-compliance release-notes [OPTIONS]
 ### Options
 * `token` (REQUIRED):
   * Type: STRING
-  * Default: `none`
+  * Default: `sentinel.unset`
   * Usage: `--token`
 
   GitLab personal access token
@@ -26,7 +26,7 @@ Usage: gitlab-compliance release-notes [OPTIONS]
 
 * `projects` (REQUIRED):
   * Type: STRING
-  * Default: `none`
+  * Default: `sentinel.unset`
   * Usage: `--projects`
 
   List of GitLab project IDs or full paths
@@ -39,7 +39,7 @@ Usage: gitlab-compliance release-notes [OPTIONS]
   Baseline tag name (default: latest semver tag, else most recent by date)
 
 * `markdown_dir`:
-  * Type: <click.types.Path object at 0x7590e51ed640>
+  * Type: <click.types.Path object at 0x7620168db1a0>
   * Default: `.`
   * Usage: `--markdown`
 

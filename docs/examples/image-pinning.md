@@ -55,7 +55,7 @@ Registry-backed checks resolve tags from Docker Hub (public images) and GitLab C
 Pin job and service images to sha256 digests for the currently referenced tag:
 
 ```bash
-gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml --fix
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
 ```
 
 ## Consume in GitLab CI
@@ -84,7 +84,7 @@ compliance:
   extends: .compliance:api
   script:
     - pip install --quiet gitlab-compliance
-    - gitlab-compliance compliance -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
+    - gitlab-compliance check -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
         --project "$CI_PROJECT_PATH" --strict --fix
 ```
 
@@ -92,7 +92,7 @@ compliance:
 
 ```bash
 cp -r examples/example-policies/security/ policies/security/
-gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
 Back to [Examples](index.md).

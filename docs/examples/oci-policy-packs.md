@@ -6,15 +6,15 @@ Publish and consume policy bundles from OCI-compliant registries (GitLab Contain
 
 ```bash
 docker login registry.example.com
-gitlab-compliance compliance-push -f policies/ registry.example.com/org/gitlab-ci-policies:1.0.0
+gitlab-compliance policies push -f policies/ registry.example.com/org/gitlab-ci-policies:1.0.0
 ```
 
 ## Pull and run
 
 ```bash
-gitlab-compliance compliance-pull oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/
-gitlab-compliance compliance -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml
-gitlab-compliance compliance -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update
+gitlab-compliance policies pull oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/
+gitlab-compliance check -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml
+gitlab-compliance check -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update
 ```
 
 Bundles use media type `application/vnd.gitlab-compliance.policy.bundle.v1+tar+gzip`.
@@ -24,7 +24,7 @@ Bundles use media type `application/vnd.gitlab-compliance.policy.bundle.v1+tar+g
 Index policies with [Policy Metadata](../bdd-reference/metadata.md):
 
 ```bash
-gitlab-compliance compliance-doc -f policies/ -o COMPLIANCE-POLICIES.md
+gitlab-compliance policies doc -f policies/ -o COMPLIANCE-POLICIES.md
 ```
 
 ## Consume in GitLab CI
@@ -61,7 +61,7 @@ compliance:
 ## Run locally
 
 ```bash
-gitlab-compliance compliance -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 \
+gitlab-compliance check -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 \
   -p .gitlab-ci.yml --update
 ```
 

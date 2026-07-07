@@ -73,19 +73,19 @@ Run policies from a local directory or OCI registry against your pipeline:
 
 ```bash
 # YAML-only checks (offline)
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 
 # API-backed checks (project settings, CI variables)
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --project $CI_PROJECT_PATH
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project $CI_PROJECT_PATH
 
 # Strict mode: fail when API connection info is missing (default: skip)
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --strict
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --strict
 
 # Reports
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --format markdown -o COMPLIANCE-REPORT.md
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --format html -o COMPLIANCE-REPORT.html
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --format mr-comment -o COMPLIANCE-MR-COMMENT.md
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --format codequality -o gl-code-quality-report.json
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format markdown -o COMPLIANCE-REPORT.md
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format html -o COMPLIANCE-REPORT.html
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format mr-comment -o COMPLIANCE-MR-COMMENT.md
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format codequality -o gl-code-quality-report.json
 ```
 
 ### Policy metadata (Conftest-style)
@@ -108,7 +108,7 @@ Annotate `.feature` files with `# METADATA` blocks for IDs, titles, and descript
 Generate a searchable policy catalog:
 
 ```bash
-gitlab-compliance compliance-doc -f policies/ -o COMPLIANCE-POLICIES.md
+gitlab-compliance policies doc -f policies/ -o COMPLIANCE-POLICIES.md
 ```
 
 ### OCI policy registries
@@ -118,9 +118,9 @@ Publish and consume policy packs from any OCI-compliant registry (GitLab CR, GHC
 ```bash
 docker login registry.example.com
 
-gitlab-compliance compliance-push -f policies/ registry.example.com/org/gitlab-ci-policies:1.0.0
-gitlab-compliance compliance-pull oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/
-gitlab-compliance compliance -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update
+gitlab-compliance policies push -f policies/ registry.example.com/org/gitlab-ci-policies:1.0.0
+gitlab-compliance policies pull oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/
+gitlab-compliance check -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update
 ```
 
 ### Example policy packs
@@ -143,10 +143,10 @@ gitlab-compliance --help
 |---------|-------------|
 | `generate` | Build Markdown or HTML documentation from pipeline YAML |
 | `get-attributes` | Document selected YAML attributes as a table |
-| `compliance` | Run Gherkin compliance policies |
-| `compliance-doc` | Generate policy catalog from `# METADATA` annotations |
-| `compliance-push` | Push policy bundle to an OCI registry |
-| `compliance-pull` | Pull policy bundle from an OCI registry |
+| `check` | Run Gherkin compliance policies |
+| `policies doc` | Generate policy catalog from `# METADATA` annotations |
+| `policies push` | Push policy bundle to an OCI registry |
+| `policies pull` | Pull policy bundle from an OCI registry |
 | `release-notes` | Generate release notes from GitLab project commits |
 | `generate-html` | Deprecated — use `generate --format html` |
 
@@ -177,10 +177,10 @@ gitlab-compliance get-attributes [OPTIONS]
 | `-a, --attributes` | Comma-separated attribute list |
 | `-j, --json` | Return JSON instead of Markdown |
 
-### `compliance`
+### `check`
 
 ```bash
-gitlab-compliance compliance [OPTIONS]
+gitlab-compliance check [OPTIONS]
 ```
 
 | Option | Description |
@@ -198,10 +198,10 @@ gitlab-compliance compliance [OPTIONS]
 | `--policy-cache-dir` | Cache directory for OCI pulls |
 | `--dry-run` | List scenarios without asserting |
 
-### `compliance-doc`
+### `policies doc`
 
 ```bash
-gitlab-compliance compliance-doc [OPTIONS]
+gitlab-compliance policies doc [OPTIONS]
 ```
 
 | Option | Description |
@@ -210,10 +210,10 @@ gitlab-compliance compliance-doc [OPTIONS]
 | `--format` | `markdown` or `html` (default: `markdown`) |
 | `-o, --output-file` | Output file path |
 
-### `compliance-push`
+### `policies push`
 
 ```bash
-gitlab-compliance compliance-push -f <policies-dir> <registry/repo:tag>
+gitlab-compliance policies push -f <policies-dir> <registry/repo:tag>
 ```
 
 | Argument / option | Description |
@@ -221,10 +221,10 @@ gitlab-compliance compliance-push -f <policies-dir> <registry/repo:tag>
 | `TARGET` | OCI registry reference (e.g. `registry.example.com/org/policies:1.0.0`) |
 | `-f, --features` | Local policies directory to publish (**required**) |
 
-### `compliance-pull`
+### `policies pull`
 
 ```bash
-gitlab-compliance compliance-pull <registry/repo:tag> [-o <dir>]
+gitlab-compliance policies pull <registry/repo:tag> [-o <dir>]
 ```
 
 | Argument / option | Description |

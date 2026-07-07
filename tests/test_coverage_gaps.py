@@ -30,8 +30,8 @@ from src.compliance.runner import _temporary_gitlab_env, run_compliance
 from src.compliance.stash import assert_all, entity_has_property, format_entity_ref
 from src.gitlab_compliance import (
     _resolve_policies_dir,
-    compliance_doc,
     gitlab_compliance,
+    policies_doc,
 )
 from src.modules.command_reference import _param_metadata, dumps
 from src.modules.doc_controller import (
@@ -57,19 +57,35 @@ from src.properties.variables import document_variables
 from src.properties.workflows import document_workflows
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SAMPLE = REPO_ROOT / "sample-files" / ".gitlab-ci.yml"
+SAMPLE = REPO_ROOT / "examples/sample-files" / ".gitlab-ci.yml"
 PASSING = REPO_ROOT / "tests" / "compliance_policies" / "passing"
 SKIP_POLICIES = REPO_ROOT / "tests" / "compliance_policies" / "skip"
 ANNOTATED = REPO_ROOT / "tests" / "compliance_policies" / "annotated"
 
-MARKER_START = "[comment]: <> (gitlab-docs-opening-auto-generated)"
-MARKER_END = "[comment]: <> (gitlab-docs-closing-auto-generated)"
+MARKER_START = "[comment]: <> (gitlab-compliance-opening-auto-generated)"
+MARKER_END = "[comment]: <> (gitlab-compliance-closing-auto-generated)"
 
 
 def _markers_file(tmp_path):
     out = tmp_path / "out.md"
     out.write_text(f"{MARKER_START}\n{MARKER_END}\n", encoding="utf-8")
     return out
+
+
+_GITLAB_ENV_KEYS = (
+    "GITLAB_TOKEN",
+    "CI_JOB_TOKEN",
+    "CI_PROJECT_PATH",
+    "GITLAB_GROUP_PATH",
+    "CI_SERVER_URL",
+    "GITLAB_URL",
+)
+
+
+@pytest.fixture
+def clear_gitlab_env(monkeypatch):
+    for key in _GITLAB_ENV_KEYS:
+        monkeypatch.delenv(key, raising=False)
 
 
 class TestYamlMdTableBranches:
@@ -326,7 +342,7 @@ class TestPipelineAndSwagger:
             raise RuntimeError("semver unavailable")
 
         monkeypatch.setattr(
-            "src.modules.pipeline_data.semver.Version.is_valid",
+            "semver.Version.is_valid",
             boom,
         )
         data = collect_pipeline_data(str(cfg))
@@ -413,7 +429,7 @@ class TestComplianceRenderAndConsole:
                     feature="other.feature",
                     name="No id",
                     status="failed",
-                    message="(sample-files/.gitlab-ci.yml:1)",
+                    message="(examples/sample-files/.gitlab-ci.yml:1)",
                     severity="weird-severity",
                 ),
             ],
@@ -498,6 +514,7 @@ class TestModelMetadataPolicy:
         assert "<html" in html.lower()
 
 
+@pytest.mark.usefixtures("clear_gitlab_env")
 class TestGitlabDocsCliExtra:
     def test_legacy_brand_notice_on_invoke(self):
         runner = CliRunner()
@@ -509,26 +526,27 @@ class TestGitlabDocsCliExtra:
         assert result.exit_code == 0
         assert "deprecated" in result.output.lower()
 
-    def test_compliance_doc_stdout(self, monkeypatch):
+    def test_policies_doc_stdout(self, monkeypatch):
         monkeypatch.setattr(
             "src.gitlab_compliance._resolve_policy_doc_output",
             lambda _fmt, _out: None,
         )
         runner = CliRunner()
         result = runner.invoke(
-            compliance_doc,
+            policies_doc,
             ["--features", str(ANNOTATED), "--format", "markdown"],
         )
         assert result.exit_code == 0
         assert "Catalog" in result.output or "catalog" in result.output.lower()
 
-    def test_compliance_push_without_digest(self, monkeypatch):
-        monkeypatch.setattr("src.gitlab_compliance.push_policies", lambda _f, _t: "")
+    def test_policies_push_without_digest(self, monkeypatch):
+        monkeypatch.setattr("src.gitlab_docs.push_policies", lambda _f, _t: "")
         runner = CliRunner()
         result = runner.invoke(
             gitlab_compliance,
             [
-                "compliance-push",
+                "policies",
+                "push",
                 "--features",
                 str(PASSING),
                 "registry.example.com/p:1",
@@ -538,7 +556,7 @@ class TestGitlabDocsCliExtra:
 
     def test_resolve_policies_dir_oci(self, monkeypatch):
         monkeypatch.setattr(
-            "src.gitlab_compliance.resolve_features_dir",
+            "src.gitlab_docs.resolve_features_dir",
             lambda ref, cache_dir=None: "/tmp/policies",
         )
         resolved, source = _resolve_policies_dir(
@@ -696,6 +714,7 @@ class TestBehaveSupportExtra:
         assert os.environ["GITLAB_TOKEN"] == "original"
 
 
+@pytest.mark.usefixtures("clear_gitlab_env")
 class TestRunnerSkipPolicy:
     def test_run_compliance_skip_policies(self):
         result = run_compliance(

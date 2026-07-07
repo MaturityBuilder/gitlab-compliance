@@ -20,7 +20,7 @@ Example in CI (GitLab):
 compliance:
   script:
     - pip install gitlab-compliance
-    - gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --project $CI_PROJECT_PATH
+    - gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project $CI_PROJECT_PATH
 ```
 
 Locally:
@@ -28,7 +28,7 @@ Locally:
 ```bash
 export GITLAB_TOKEN="glpat-..."
 export CI_PROJECT_PATH="my-group/my-project"
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 ```
 
 !!! note "Token safety"

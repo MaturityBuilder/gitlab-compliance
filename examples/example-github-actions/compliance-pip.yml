@@ -25,7 +25,7 @@ jobs:
 
       - name: Run offline compliance policies
         run: |
-          gitlab-compliance compliance \
+          gitlab-compliance check \
             -f policies/security \
             -p .gitlab-ci.yml
 
@@ -34,7 +34,7 @@ jobs:
       #   env:
       #     GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
       #   run: |
-      #     gitlab-compliance compliance \
+      #     gitlab-compliance check \
       #       -f policies/security \
       #       -p .gitlab-ci.yml \
       #       --project ${{ github.repository }} \

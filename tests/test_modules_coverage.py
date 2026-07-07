@@ -16,7 +16,7 @@ from src.compliance.oci_registry import (
 )
 from src.compliance.render import _status_icon, render_compliance_report
 from src.compliance.runner import _assert_within_directory, _temporary_gitlab_env
-from src.gitlab_compliance import compliance, generate_html
+from src.gitlab_compliance import check, generate_html
 from src.modules.command_reference import dumps
 from src.modules.logging import configure_logger
 from src.modules.pipeline_data import collect_pipeline_data
@@ -26,7 +26,7 @@ from src.modules.yaml_lines import index_yaml_file
 from src.modules.yaml_md_table import generate_markdown_table
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SAMPLE = REPO_ROOT / "sample-files" / ".gitlab-ci.yml"
+SAMPLE = REPO_ROOT / "examples/sample-files" / ".gitlab-ci.yml"
 PASSING = REPO_ROOT / "tests" / "compliance_policies" / "passing"
 
 
@@ -57,11 +57,14 @@ class TestGitlabDocsBranches:
         )
         monkeypatch.setattr(gd, "run_compliance", lambda **kwargs: result)
         monkeypatch.setattr(gd, "render_compliance_report", lambda **kwargs: "# report")
-        monkeypatch.setattr(gd, "_resolve_compliance_output", lambda fmt, out: None)
+        monkeypatch.setattr(
+            "src.gitlab_compliance._resolve_compliance_output",
+            lambda fmt, out: None,
+        )
 
         runner = CliRunner()
         invoke_result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 str(PASSING),

@@ -1,6 +1,6 @@
 # Additional Parameters
 
-Options beyond the core `-f` and `-p` flags on `gitlab-compliance compliance`.
+Options beyond the core `-f` and `-p` flags on `gitlab-compliance check`.
 
 ## `--include-nested` / `--no-include-nested`
 
@@ -9,7 +9,7 @@ Options beyond the core `-f` and `-p` flags on `gitlab-compliance compliance`.
 When enabled, `include:` entries that reference local project files are merged into the compliance entity stash so policies can see jobs and variables from included fragments.
 
 ```bash
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --no-include-nested
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --no-include-nested
 ```
 
 ## `--strict`
@@ -19,7 +19,7 @@ gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --no-include-nested
 When enabled, API-backed `Given` steps fail instead of skipping if `GITLAB_TOKEN` / `CI_JOB_TOKEN` and `--project` or `--group` are not available.
 
 ```bash
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --strict
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --strict
 ```
 
 Use `--strict` in CI jobs that must enforce API checks.
@@ -29,7 +29,7 @@ Use `--strict` in CI jobs that must enforce API checks.
 Parse scenarios and list them without running assertions.
 
 ```bash
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --dry-run
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --dry-run
 ```
 
 ## `--fix`
@@ -42,7 +42,7 @@ Auto-remediate supply-chain issues before running policies:
 Requires a GitLab token (`--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`). Cannot be combined with `--dry-run`.
 
 ```bash
-gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml --fix
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
 ```
 
 ## `--update`
@@ -50,7 +50,7 @@ gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml --fix
 With an OCI `-f` reference, pull the latest policy bundle before executing checks.
 
 ```bash
-gitlab-compliance compliance -f oci://registry.example.com/org/policies:1.0.0 -p .gitlab-ci.yml --update
+gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p .gitlab-ci.yml --update
 ```
 
 ## `--policy-cache-dir`
@@ -58,7 +58,7 @@ gitlab-compliance compliance -f oci://registry.example.com/org/policies:1.0.0 -p
 Directory used when extracting OCI policy bundles (default: system temp directory).
 
 ```bash
-gitlab-compliance compliance -f oci://registry.example.com/org/policies:1.0.0 \
+gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 \
   -p .gitlab-ci.yml --policy-cache-dir /tmp/policy-cache
 ```
 
@@ -67,7 +67,7 @@ gitlab-compliance compliance -f oci://registry.example.com/org/policies:1.0.0 \
 GitLab instance URL for API checks. Defaults to `CI_SERVER_URL` or `https://gitlab.com`.
 
 ```bash
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml \
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml \
   --gitlab-url https://gitlab.example.com --project my-group/my-project
 ```
 
@@ -83,7 +83,7 @@ gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml \
 | `--detailed` | Include workflow and per-job `rules` |
 | `--dry-mode` | Print to stdout without writing a file |
 
-### `compliance-doc`
+### `policies doc`
 
 | Option | Description |
 |--------|-------------|
@@ -91,11 +91,11 @@ gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml \
 | `--format` | `markdown` (default) or `html` |
 | `-o` / `--output-file` | Catalog output path |
 
-### `compliance-push` / `compliance-pull`
+### `policies push` / `policies pull`
 
 ```bash
-gitlab-compliance compliance-push -f policies/ registry.example.com/org/policies:1.0.0
-gitlab-compliance compliance-pull oci://registry.example.com/org/policies:1.0.0 -o policies/
+gitlab-compliance policies push -f policies/ registry.example.com/org/policies:1.0.0
+gitlab-compliance policies pull oci://registry.example.com/org/policies:1.0.0 -o policies/
 ```
 
 Full generated reference: [Command Reference](reference/command-reference.md).

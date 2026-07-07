@@ -31,8 +31,6 @@ def collect_container_image_fixes(entities: dict) -> list[ContainerImageFix]:
         else:
             base = repository_part
         fixed_image = f"{base}@sha256:{digest}"
-        if fixed_image == current:
-            continue
         fixes.append(
             ContainerImageFix(
                 source_file=str(image.get("source_file", "")),

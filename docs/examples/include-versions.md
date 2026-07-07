@@ -140,7 +140,7 @@ Bump outdated project/component includes to the latest semver tag detected via G
 
 ```bash
 export GITLAB_TOKEN="<token>"
-gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml --fix
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
 ```
 
 ## Consume in GitLab CI
@@ -168,7 +168,7 @@ The `.compliance:api` template passes `--project $CI_PROJECT_PATH --strict` for 
 
 ```bash
 export GITLAB_TOKEN="<token>"
-gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
 Full example pack: [`security/include-versions.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/include-versions.feature).

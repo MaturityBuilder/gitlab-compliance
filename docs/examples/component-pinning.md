@@ -43,7 +43,7 @@ The job runs all policies under `policies/security/`, including `component-pinni
 ## Run locally
 
 ```bash
-gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
 Scenarios skip when the pipeline has no `component:` includes (not applicable).

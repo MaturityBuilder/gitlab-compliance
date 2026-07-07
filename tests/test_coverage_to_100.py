@@ -39,7 +39,7 @@ from src.gitlab_compliance import (
     _resolve_compliance_output,
     _resolve_output_file,
     _resolve_policy_doc_output,
-    compliance,
+    check,
     gitlab_compliance,
 )
 from src.modules.command_reference import cli, dump_helper
@@ -60,10 +60,10 @@ from src.properties.variables import document_variables
 from src.properties.workflows import document_workflows
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SAMPLE = REPO_ROOT / "sample-files" / ".gitlab-ci.yml"
+SAMPLE = REPO_ROOT / "examples/sample-files" / ".gitlab-ci.yml"
 PASSING = REPO_ROOT / "tests" / "compliance_policies" / "passing"
-MARKER_START = "[comment]: <> (gitlab-docs-opening-auto-generated)"
-MARKER_END = "[comment]: <> (gitlab-docs-closing-auto-generated)"
+MARKER_START = "[comment]: <> (gitlab-compliance-opening-auto-generated)"
+MARKER_END = "[comment]: <> (gitlab-compliance-closing-auto-generated)"
 
 
 def _markers_file(tmp_path):
@@ -252,7 +252,7 @@ class TestOciRegistryFull:
 
 class TestPipelineAndYaml:
     def test_parse_include_unknown_returns_none(self):
-        assert _parse_include_entry({"remote": "https://x/ci.yml"}) is None
+        assert _parse_include_entry({"custom": "x"}) is None
 
     def test_collect_skips_non_dict_jobs_and_commonpath_value_error(
         self, tmp_path, monkeypatch
@@ -366,7 +366,7 @@ class TestGitlabDocsHelpers:
         )
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             ["--features", str(PASSING), "--pipeline", str(SAMPLE)],
             prog_name="gitlab-docs",
         )
@@ -491,7 +491,7 @@ class TestCommandReferenceAndRelease:
 
     def test_cli_group_pass(self):
         runner = CliRunner()
-        result = runner.invoke(cli, [])
+        result = runner.invoke(cli, ["--help"])
         assert result.exit_code == 0
 
     def test_print_release_preview_truncation(self, capsys):

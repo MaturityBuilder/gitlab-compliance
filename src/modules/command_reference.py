@@ -78,58 +78,87 @@ def _format_options(options: dict) -> str:
     )
 
 
-def _render_command_page(helpdct: dict) -> str:
+def _render_command_page(helpdct: dict, title: str | None = None) -> str:
     command = helpdct["command"]
     options = {opt.name: _param_metadata(opt) for opt in helpdct.get("params", [])}
     description = (command.help or "").strip()
+    heading = title or command.name
     body = md_base_template.format(
         usage=helpdct.get("usage"),
         options=_format_options(options),
         help=helpdct.get("help"),
     )
     if description:
-        return f"# {command.name}\n\n{description}\n{body}"
-    return f"# {command.name}\n{body}"
+        return f"# {heading}\n\n{description}\n{body}"
+    return f"# {heading}\n{body}"
 
 
-def _command_filename(command_name: str) -> str:
-    safe_name = re.sub(r"[^\w.-]+", "-", command_name).strip("-").lower()
-    return f"{safe_name}.md"
+def _command_doc_slug(path: tuple[str, ...]) -> str:
+    safe_parts = [
+        re.sub(r"[^\w.-]+", "-", segment).strip("-").lower() for segment in path
+    ]
+    return "-".join(part for part in safe_parts if part)
+
+
+def _command_doc_filename(path: tuple[str, ...]) -> str:
+    return f"{_command_doc_slug(path)}.md"
+
+
+def _iter_command_docs(base_command):
+    def walk(cmd, parent_ctx, path: tuple[str, ...]):
+        ctx = click.core.Context(cmd, info_name=cmd.name, parent=parent_ctx)
+        helpdct = {
+            "command": cmd,
+            "help": cmd.get_help(ctx),
+            "parent": parent_ctx.info_name if parent_ctx else "",
+            "usage": cmd.get_usage(ctx),
+            "params": cmd.get_params(ctx),
+            "options": cmd.collect_usage_pieces(ctx),
+        }
+
+        if cmd is not base_command:
+            full_path = path + (cmd.name,)
+            yield helpdct, full_path
+
+        if isinstance(cmd, click.Group):
+            child_path = path + (cmd.name,) if cmd is not base_command else path
+            for sub in cmd.commands.values():
+                yield from walk(sub, ctx, child_path)
+
+    yield from walk(base_command, None, ())
 
 
 def dump_helper(base_command, docs_dir) -> list[str]:
-    """Write one markdown file per top-level subcommand."""
+    """Write one markdown file per CLI subcommand (including nested groups)."""
     docs_path = pathlib.Path(docs_dir)
     docs_path.mkdir(parents=True, exist_ok=True)
 
     root_name = base_command.name
-    written: list[str] = []
+    written: list[tuple[str, ...]] = []
 
-    for helpdct in recursive_help(base_command):
-        command = helpdct["command"]
-        parent = helpdct.get("parent", "") or ""
-
-        if command is base_command or parent != root_name:
-            continue
-
-        filename = _command_filename(command.name)
+    for helpdct, command_path in _iter_command_docs(base_command):
+        display_name = " ".join(command_path)
+        filename = _command_doc_filename(command_path)
         (docs_path / filename).write_text(
-            _render_command_page(helpdct),
+            _render_command_page(helpdct, title=display_name),
             encoding="utf-8",
         )
-        written.append(command.name)
+        written.append(command_path)
 
     index_lines = [
         "# Command Reference\n",
         f"Auto-generated reference for `{root_name}` subcommands.\n",
     ]
-    for name in sorted(written):
-        index_lines.append(f"- [{name}]({_command_filename(name)})\n")
+    for command_path in sorted(written, key=_command_doc_slug):
+        display_name = " ".join(command_path)
+        index_lines.append(
+            f"- [{display_name}]({_command_doc_filename(command_path)})\n"
+        )
     (docs_path / "command-reference.md").write_text(
         "".join(index_lines), encoding="utf-8"
     )
 
-    return written
+    return [" ".join(path) for path in written]
 
 
 @click.group()
@@ -161,7 +190,7 @@ def cli():
 )
 def dumps(base_module, base_command, docs_path):
     """
-    Create one markdown file per top-level subcommand under --docsPath.
+    Create one markdown file per subcommand under --docsPath.
     """
     click.secho(
         f"Creating command docs from {base_module}.{base_command} into {docs_path}",
@@ -189,6 +218,3 @@ def dumps(base_module, base_command, docs_path):
     except Exception as e:
         click.secho(f"Dumps command failed: {str(e)}", color="red")
         raise
-
-
-cli.add_command(cli)

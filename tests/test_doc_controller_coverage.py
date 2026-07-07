@@ -4,8 +4,8 @@ from src.modules.doc_controller import (
     update_marked_block,
 )
 
-MARKER_START = "[comment]: <> (gitlab-docs-opening-auto-generated)"
-MARKER_END = "[comment]: <> (gitlab-docs-closing-auto-generated)"
+MARKER_START = "[comment]: <> (gitlab-compliance-opening-auto-generated)"
+MARKER_END = "[comment]: <> (gitlab-compliance-closing-auto-generated)"
 
 
 class TestUpdateMarkedBlock:

@@ -8,20 +8,20 @@ Regardless of how you [install](../installation/index.md) `gitlab-compliance`, t
 4. Fail the job on violations (default exit code `1`)
 
 ```bash
-gitlab-compliance compliance -h
+gitlab-compliance check -h
 ```
 
 ## CLI reference
 
 ### `-f` / `--features`
 
-**Required** for `compliance`, `compliance-doc`, and `compliance-push`.
+**Required** for `check`, `policies doc`, and `policies push`.
 
 Directory of `.feature` policy files, or an OCI reference:
 
 ```bash
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml
-gitlab-compliance compliance -f oci://registry.example.com/org/policies:1.0.0 -p .gitlab-ci.yml
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml
+gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p .gitlab-ci.yml
 ```
 
 Use `--update` with OCI references to pull the latest bundle before running.
@@ -31,7 +31,7 @@ Use `--update` with OCI references to pull the latest bundle before running.
 Path to the GitLab CI pipeline YAML (default: `.gitlab-ci.yml`).
 
 ```bash
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 ```
 
 ### `--project` / `--group`
@@ -40,7 +40,7 @@ Enable API-backed scenarios against project or group settings. Requires a GitLab
 
 ```bash
 export GITLAB_TOKEN="<token>"
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --project my-group/my-project
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project my-group/my-project
 ```
 
 API scenarios are **skipped** when connection info is missing unless you pass `--strict`.
@@ -58,18 +58,19 @@ Report format and output file:
 | `codequality` | GitLab Code Quality JSON (`gl-code-quality-report.json`) |
 
 ```bash
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml --format markdown -o COMPLIANCE-REPORT.md
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format markdown -o COMPLIANCE-REPORT.md
 ```
 
 ### Other commands
 
 | Command | Description |
 |---------|-------------|
+| `check` | Run Gherkin compliance policies against pipeline YAML |
 | `generate` | Build Markdown or HTML documentation from pipeline YAML |
 | `get-attributes` | Export selected job attributes as a table |
-| `compliance-doc` | Generate a policy catalog from `# METADATA` annotations |
-| `compliance-push` | Publish a policy bundle to an OCI registry |
-| `compliance-pull` | Pull a policy bundle from an OCI registry |
+| `policies doc` | Generate a policy catalog from `# METADATA` annotations |
+| `policies push` | Publish a policy bundle to an OCI registry |
+| `policies pull` | Pull a policy bundle from an OCI registry |
 | `release-notes` | Generate release notes from GitLab commits |
 
 Auto-generated option details: [Command Reference](reference/command-reference.md) (one page per subcommand).
@@ -79,7 +80,7 @@ Auto-generated option details: [Command Reference](reference/command-reference.m
 ```bash
 pip install gitlab-compliance
 cp -r examples/example-policies/security/ policies/
-gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 ```
 
 See also [Additional Parameters](additional-parameters.md) and [Environment Variables](environment-variables.md).

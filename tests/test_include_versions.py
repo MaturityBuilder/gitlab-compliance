@@ -5,7 +5,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.compliance.include_versions import (
+    _latest_semver_tag,
     _semver_tags_descending,
+    _tag_committed_date,
     compute_latest_release_age_days,
     compute_release_lag_days,
     compute_version_tag_rank,
@@ -13,6 +15,7 @@ from src.compliance.include_versions import (
     enrich_include_release_metadata,
     enrich_includes_with_releases,
     fetch_latest_semver_version,
+    fetch_semver_tag_dates,
     include_update_available,
     is_valid_semver_version,
     resolve_include_project_path,
@@ -40,6 +43,16 @@ class TestSemverValidation:
         assert is_valid_semver_version("main") is False
         assert is_valid_semver_version("") is False
 
+    def test_rejects_invalid_semver_on_exception(self, monkeypatch):
+        def boom(_version):
+            raise RuntimeError("semver broken")
+
+        monkeypatch.setattr(
+            "src.compliance.include_versions.semver.Version.is_valid",
+            boom,
+        )
+        assert is_valid_semver_version("1.0.0") is False
+
 
 class TestResolveIncludeProjectPath:
     def test_project_include_uses_path_directly(self):
@@ -62,12 +75,25 @@ class TestResolveIncludeProjectPath:
     def test_local_include_returns_none(self):
         assert resolve_include_project_path("local", "ci/child.yml") is None
 
+    def test_empty_project_path_returns_none(self):
+        assert resolve_include_project_path("project", "") is None
+
+    def test_strips_git_suffix(self):
+        assert (
+            resolve_include_project_path("project", "https://gitlab.com/org/repo.git")
+            == "org/repo"
+        )
+
 
 class TestReleaseComparison:
     def test_detects_newer_release(self):
         assert include_update_available("1.0.0", "1.1.0") is True
         assert include_update_available("1.1.0", "1.1.0") is False
         assert include_update_available("main", "1.1.0") is True
+
+    def test_rejects_empty_or_invalid_latest(self):
+        assert include_update_available("1.0.0", "") is False
+        assert include_update_available("1.0.0", "main") is False
 
 
 class TestDayCalculations:
@@ -85,6 +111,10 @@ class TestDayCalculations:
         latest = datetime(2024, 1, 1, tzinfo=timezone.utc)
         now = datetime(2024, 2, 1, tzinfo=timezone.utc)
         assert compute_latest_release_age_days(latest, now=now) == 31
+
+    def test_compute_helpers_return_none_for_missing_dates(self):
+        assert compute_release_lag_days(None, datetime.now(timezone.utc)) is None
+        assert compute_latest_release_age_days(None) is None
 
 
 class TestStashAgePredicates:
@@ -154,6 +184,26 @@ class TestFetchLatestSemverVersion:
         gl.projects.get.return_value = project
 
         assert fetch_latest_semver_version(gl, "platform/ci-templates") == "1.2.0"
+
+    def test_latest_semver_tag_returns_none_without_semver_tags(self):
+        assert _latest_semver_tag(["main", "develop"]) is None
+
+
+class TestTagCommittedDate:
+    def test_reads_commit_object_and_invalid_dates(self):
+        tag = SimpleNamespace(
+            name="1.0.0", commit=SimpleNamespace(committed_date="bad")
+        )
+        assert _tag_committed_date(tag) is None
+
+        tag = SimpleNamespace(name="1.0.0", commit={"committed_date": "bad-date"})
+        assert _tag_committed_date(tag) is None
+
+        tag = SimpleNamespace(name="1.0.0", commit={})
+        assert _tag_committed_date(tag) is None
+
+        tag = _tag("1.0.0", "2024-01-01T00:00:00Z")
+        assert _tag_committed_date(tag) is not None
 
 
 class TestEnrichIncludeReleaseMetadata:
@@ -235,6 +285,48 @@ class TestEnrichIncludeReleaseMetadata:
         assert enriched["latest_version"] == "2.0.0"
         assert enriched["update_available"] is True
         assert enriched["release_metadata_resolved"] is True
+
+    def test_returns_early_when_project_path_unresolved(self):
+        enriched = enrich_include_release_metadata(
+            {"include_type": "local", "project": "ci/child.yml", "version": "main"},
+            gitlab_url="https://gitlab.example.com",
+            token="secret",
+        )
+        assert enriched["release_metadata_resolved"] is False
+
+    def test_returns_early_when_api_raises(self):
+        gl = MagicMock()
+        gl.projects.get.side_effect = RuntimeError("api down")
+
+        enriched = enrich_include_release_metadata(
+            {
+                "include_type": "project",
+                "project": "platform/ci-templates",
+                "version": "1.0.0",
+            },
+            gitlab_url="https://gitlab.example.com",
+            token="secret",
+            gl=gl,
+        )
+        assert enriched["release_metadata_resolved"] is False
+
+    def test_returns_early_when_no_semver_tags(self):
+        project = MagicMock()
+        project.tags.list.return_value = [_tag("main")]
+        gl = MagicMock()
+        gl.projects.get.return_value = project
+
+        enriched = enrich_include_release_metadata(
+            {
+                "include_type": "project",
+                "project": "platform/ci-templates",
+                "version": "1.0.0",
+            },
+            gitlab_url="https://gitlab.example.com",
+            token="secret",
+            gl=gl,
+        )
+        assert enriched["release_metadata_resolved"] is False
 
 
 class TestLoadYamlEntities:
@@ -321,3 +413,23 @@ class TestEnrichIncludesWithReleases:
         assert project.tags.list.call_count == 1
         assert enriched[0]["latest_version"] == "1.2.0"
         assert enriched[1]["latest_version"] == "1.2.0"
+
+    def test_fetch_semver_tag_dates_uses_cache(self):
+        from src.compliance.release_cache import ReleaseMetadataCache
+
+        cache = ReleaseMetadataCache()
+        cached_dates = {"1.0.0": datetime(2024, 1, 1, tzinfo=timezone.utc)}
+        cache.set_gitlab_tag_dates(
+            "https://gitlab.example.com", "platform/ci-templates", cached_dates
+        )
+        gl = MagicMock()
+
+        dates = fetch_semver_tag_dates(
+            gl,
+            "platform/ci-templates",
+            gitlab_url="https://gitlab.example.com",
+            cache=cache,
+        )
+
+        gl.projects.get.assert_not_called()
+        assert dates == cached_dates

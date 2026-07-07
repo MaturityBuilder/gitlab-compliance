@@ -5,7 +5,7 @@ A pre-built docker image built on python alpine linux.
 `gitlab-compliance` is published on [Docker Hub](https://hub.docker.com/_/gitlab-compliance/) as the `gitlab-compliance` package.
 
 ```bash
-docker run -it -v $PWD:/src -w /src -e GITLAB_TOKEN=$GITLAB_TOKEN -e  maturitybuilder/gitlab-compliance compliance -f example-policies --include-nested --project <my gitlab project path>
+docker run -it -v $PWD:/src -w /src -e GITLAB_TOKEN=$GITLAB_TOKEN -e  maturitybuilder/gitlab-compliance check -f example-policies --include-nested --project <my gitlab project path>
 ```
 
 ## Audit Pipeline Yaml
@@ -13,7 +13,7 @@ docker run -it -v $PWD:/src -w /src -e GITLAB_TOKEN=$GITLAB_TOKEN -e  maturitybu
 gitlab-compliance:
     image: maturitybuilder/gitlab-compliance
     script:
-        - gitlab-compliance compliance -f example-policies --include-nested --project <my gitlab project path>
+        - gitlab-compliance check -f example-policies --include-nested --project <my gitlab project path>
 
 ```
 

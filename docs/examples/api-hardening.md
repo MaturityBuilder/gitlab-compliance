@@ -53,7 +53,7 @@ compliance:report:
 
 ```bash
 export GITLAB_TOKEN="<token>"
-gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml \
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
   --project my-group/my-project --strict
 ```
 

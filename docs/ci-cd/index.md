@@ -12,7 +12,7 @@ Typical workflow:
 
 1. Copy or reference policies from [`examples/example-policies/security/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-policies/security)
 2. Add a compliance job (or inject one via Pipeline Execution Policy)
-3. Run `gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml`
+3. Run `gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml`
 4. Optionally pass `--project` for API checks and `--format codequality` for GitLab reports
 5. Fail the job on non-zero exit code
 

@@ -31,8 +31,8 @@ Metadata can appear at the **Feature** level (applies to the file) or immediatel
 Generate a searchable index from annotations:
 
 ```bash
-gitlab-compliance compliance-doc -f policies/ -o COMPLIANCE-POLICIES.md
-gitlab-compliance compliance-doc -f policies/ --format html -o COMPLIANCE-POLICIES.html
+gitlab-compliance policies doc -f policies/ -o COMPLIANCE-POLICIES.md
+gitlab-compliance policies doc -f policies/ --format html -o COMPLIANCE-POLICIES.html
 ```
 
 Compliance reports (console, markdown, HTML, MR comment, Code Quality) include policy IDs and titles when metadata is present.

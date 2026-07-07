@@ -463,3 +463,55 @@ class TestComponentPinningPolicies:
 
         assert result.success is False
         assert result.failed == 1
+
+
+class TestRunComplianceFix:
+    def test_fix_with_dry_run_raises(self):
+        with pytest.raises(ValueError, match="--fix cannot be used with --dry-run"):
+            run_compliance(
+                features_dir=str(PASSING_POLICIES),
+                pipeline_file=str(SAMPLE_PIPELINE),
+                fix=True,
+                dry_run=True,
+            )
+
+    def test_fix_without_token_raises(self, monkeypatch):
+        monkeypatch.delenv("GITLAB_TOKEN", raising=False)
+        monkeypatch.delenv("CI_JOB_TOKEN", raising=False)
+        with pytest.raises(ValueError, match="--fix requires a GitLab token"):
+            run_compliance(
+                features_dir=str(PASSING_POLICIES),
+                pipeline_file=str(SAMPLE_PIPELINE),
+                fix=True,
+            )
+
+    def test_fix_invokes_supply_chain_fixes(self, monkeypatch):
+        monkeypatch.setenv("GITLAB_TOKEN", "secret")
+        with (
+            patch(
+                "src.compliance.supply_chain_fix.apply_supply_chain_fixes",
+                return_value=[
+                    "Fixed include platform/ci-templates: 1.0.0 -> 2.0.0 (ci.yml:2)"
+                ],
+            ) as apply_fixes,
+            patch("src.compliance.runner.Runner") as mock_runner_cls,
+        ):
+            mock_runner_cls.return_value.run.return_value = 0
+            mock_runner_cls.return_value.features = []
+            result = run_compliance(
+                features_dir=str(PASSING_POLICIES),
+                pipeline_file=str(SAMPLE_PIPELINE),
+                fix=True,
+                token="secret",
+                output_format="markdown",
+            )
+
+        assert result.success is True
+        apply_fixes.assert_called_once_with(
+            pipeline_file=str(SAMPLE_PIPELINE),
+            include_nested=True,
+            gitlab_url=None,
+            token="secret",
+            project=None,
+            group=None,
+        )

@@ -36,7 +36,7 @@ compliance:
 ## Run locally
 
 ```bash
-gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
 Back to [Examples](index.md).
