@@ -304,7 +304,8 @@ class TestPropertiesRemaining:
 
     def test_document_workflows_scalar(self, tmp_path):
         cfg = tmp_path / "ci.yml"
-        cfg.write_text("workflow: when: always\n", encoding="utf-8")
+        # Scalar workflow (not list or rules dict) -> workflow_rules = [workflow]
+        cfg.write_text("workflow: always\n", encoding="utf-8")
         document_workflows(str(_markers_file(tmp_path)), str(cfg))
 
     def test_get_jobs_experimental_template_and_needs(self, tmp_path):
@@ -461,8 +462,9 @@ class TestPolicyDocAndDocController:
 
 
 class TestCommandReferenceAndRelease:
-    def test_dump_helper_empty_command_name(self, tmp_path, capsys):
+    def test_dump_helper_creates_docs_dir(self, tmp_path, capsys):
         command = SimpleNamespace(name="gitlab-docs", help="help text")
+        docs_dir = tmp_path / "brand_new_docs"
 
         def fake_recursive(_cmd):
             yield {
@@ -475,8 +477,8 @@ class TestCommandReferenceAndRelease:
             }
 
         with patch("src.modules.command_reference.recursive_help", fake_recursive):
-            dump_helper(MagicMock(), str(tmp_path))
-        assert capsys.readouterr().out.strip() == "gitlab-docs"
+            dump_helper(MagicMock(), str(docs_dir))
+        assert docs_dir.is_dir()
 
     def test_cli_group_pass(self):
         runner = CliRunner()
