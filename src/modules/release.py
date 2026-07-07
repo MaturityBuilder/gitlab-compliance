@@ -220,7 +220,7 @@ def generate_markdown(
 
 
 def render_summary_table(
-    all_summaries: list[tuple[str, dict[str, int], list]]
+    all_summaries: list[tuple[str, dict[str, int], list]],
 ) -> Table:
     """Build a Rich table summarizing all processed projects."""
     table = Table(show_header=True, header_style="bold magenta")

@@ -1,11 +1,11 @@
 import os
 from pathlib import Path
 
+from src.properties.extract_job_attribute import get_job_attribute
 from src.properties.includes import (
     check_include_version_is_sema_version,
     document_includes,
 )
-from src.properties.extract_job_attribute import get_job_attribute
 from src.properties.inputs import document_inputs
 from src.properties.jobs import get_jobs
 from src.properties.variables import document_variables
@@ -49,7 +49,9 @@ class TestIncludes:
 
     def test_unknown_include_type(self, tmp_path):
         cfg = tmp_path / "ci.yml"
-        cfg.write_text("include:\n  - remote: https://example.com/ci.yml\n", encoding="utf-8")
+        cfg.write_text(
+            "include:\n  - remote: https://example.com/ci.yml\n", encoding="utf-8"
+        )
         out = tmp_path / "out.md"
         out.write_text(
             "[comment]: <> (gitlab-docs-opening-auto-generated)\n"

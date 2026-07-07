@@ -11,11 +11,13 @@ from src.compliance.api_config import (
     resolve_project,
     resolve_token,
 )
+from src.compliance.console import render_compliance_console
 from src.compliance.metadata import (
     build_policy_catalog,
     parse_feature_policies,
 )
 from src.compliance.model import load_pipeline_entities, load_yaml_entities
+from src.compliance.models import ComplianceResult, ScenarioResult
 from src.compliance.policy_doc import render_policy_catalog
 from src.compliance.stash import (
     assert_all,
@@ -30,8 +32,6 @@ from src.compliance.stash import (
     property_matches_regex,
     property_not_matches_regex,
 )
-from src.compliance.console import render_compliance_console
-from src.compliance.models import ComplianceResult, ScenarioResult
 
 REPO_ROOT = __import__("pathlib").Path(__file__).resolve().parents[1]
 SAMPLE = REPO_ROOT / "sample-files" / ".gitlab-ci.yml"
@@ -123,7 +123,9 @@ class TestMetadataAndPolicyDoc:
 
     def test_parse_minimal_feature(self, tmp_path):
         feature = tmp_path / "minimal.feature"
-        feature.write_text("Feature: Minimal\n  Scenario: One\n    Given x\n", encoding="utf-8")
+        feature.write_text(
+            "Feature: Minimal\n  Scenario: One\n    Given x\n", encoding="utf-8"
+        )
         parsed = parse_feature_policies(str(feature))
         assert parsed.feature_name == "Minimal"
 
@@ -150,7 +152,9 @@ class TestModel:
             "project_ci_variables": [],
             "group_settings": [],
         }
-        with patch("src.compliance.gitlab_api.load_api_entities", return_value=api_payload):
+        with patch(
+            "src.compliance.gitlab_api.load_api_entities", return_value=api_payload
+        ):
             entities = load_pipeline_entities(str(SAMPLE), token="t", project="g/p")
         assert entities["project_settings"]
 

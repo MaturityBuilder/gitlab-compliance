@@ -95,7 +95,9 @@ def get_jobs(
                                     value = attribute_value[item_key]
                                     value_counter = value_counter + 1
                                     variable_table.add_row([key, item_key, value])
-                            elif key == "artifacts" and isinstance(attribute_value, dict):
+                            elif key == "artifacts" and isinstance(
+                                attribute_value, dict
+                            ):
                                 var = attribute_value.keys()
                                 for item_key in var:
                                     value = attribute_value[item_key]

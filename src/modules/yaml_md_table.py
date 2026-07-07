@@ -14,9 +14,7 @@ def generate_markdown_table(data):
             if "local" in item:
                 table.add_row(["local", item["local"], "n/a"])
             elif "project" in item:
-                table.add_row(
-                    ["project", item.get("project", ""), item.get("ref", "")]
-                )
+                table.add_row(["project", item.get("project", ""), item.get("ref", "")])
             elif "component" in item:
                 component = item["component"]
                 if "@" in component:
