@@ -3,28 +3,20 @@ gitlab-compliance entrypoint to auto generate gitlab-ci documentation from yml c
 Author: Charlie Smith
 """
 
-## Import Thirdparty Libraries
+# Import Thirdparty Libraries
 import os
-import click
 import shutil
 from datetime import datetime
+
+import click
+
+import src.modules.doc_controller as md_writer
 import src.properties.includes as includes
+import src.properties.inputs as inputs
 import src.properties.jobs as jobs
 import src.properties.variables as variables
-import src.properties.inputs as inputs
 import src.properties.workflows as workflows
-from src.modules.logging import logger
-import src.modules.doc_controller as md_writer
-from src.modules.doc_controller import update_marked_block, add_between_markers, remove_duplicate_headings
-from src.modules.command_reference import dumps
-from src.properties.extract_job_attribute import get_job_attribute
-from src.modules.release import release_notes
-from src.modules.pipeline_data import collect_pipeline_data
-from src.modules.swagger_html import render_swagger_html
-from src.compliance.runner import run_compliance
-from src.compliance.render import render_compliance_report
 from src.compliance.metadata import build_policy_catalog
-from src.compliance.policy_doc import render_policy_catalog
 from src.compliance.oci_registry import (
     DEFAULT_POLICY_DIR,
     is_oci_reference,
@@ -32,14 +24,29 @@ from src.compliance.oci_registry import (
     push_policies,
     resolve_features_dir,
 )
+from src.compliance.policy_doc import render_policy_catalog
+from src.compliance.render import render_compliance_report
+from src.compliance.runner import run_compliance
+from src.modules.command_reference import dumps
 from src.modules.constants import (
-    SUPPORTED_OUTPUT_FORMATS,
-    DEFAULT_OUTPUT_FILES,
-    COMPLIANCE_OUTPUT_FORMATS,
     COMPLIANCE_DEFAULT_OUTPUT_FILES,
-    POLICY_DOC_OUTPUT_FORMATS,
+    COMPLIANCE_OUTPUT_FORMATS,
+    DEFAULT_OUTPUT_FILES,
     POLICY_DOC_DEFAULT_OUTPUT_FILES,
+    POLICY_DOC_OUTPUT_FORMATS,
+    SUPPORTED_OUTPUT_FORMATS,
 )
+from src.modules.doc_controller import (
+    add_between_markers,
+    remove_duplicate_headings,
+    update_marked_block,
+)
+from src.modules.logging import logger
+from src.modules.pipeline_data import collect_pipeline_data
+from src.modules.release import release_notes
+from src.modules.swagger_html import render_swagger_html
+from src.properties.extract_job_attribute import get_job_attribute
+
 
 def _generate_markdown(
     OUTPUT_FILE,
@@ -48,7 +55,7 @@ def _generate_markdown(
 ):
     ENABLE_WORKFLOW_DOCUMENTATION = detailed
     update_marked_block(file_path=OUTPUT_FILE, content="\n")
-    bootstrap = f"""# GITLAB DOCS - {GLDOCS_CONFIG_FILE}"""
+    bootstrap = f"""# GITLAB COMPLIANCE - {GLDOCS_CONFIG_FILE}"""
     add_between_markers(file_path=OUTPUT_FILE, content=bootstrap)
     inputs.document_inputs(
         GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
@@ -122,9 +129,7 @@ class _DualBrandCliGroup(click.Group):
 
     def format_help(self, ctx, formatter):
         if ctx.info_name == _LEGACY_CLI_NAME:
-            formatter.write(
-                click.style(f"{self._LEGACY_NOTICE}\n\n", fg="yellow")
-            )
+            formatter.write(click.style(f"{self._LEGACY_NOTICE}\n\n", fg="yellow"))
         return super().format_help(ctx, formatter)
 
 
@@ -139,8 +144,10 @@ def gitlab_compliance():
     pass
 
 
-# Backward-compatible alias for imports and ``python -m src.gitlab_docs``.
-gitlab_docs = gitlab_compliance
+# Backward-compatible alias for imports and ``python -m src.gitlab_compliance``.
+gitlab_compliance = gitlab_compliance
+
+
 # ENABLE_WORKFLOW_DOCUMENTATION = os.getenv("ENABLE_WORKFLOW_DOCUMENTATION", False)
 @click.command()
 @click.option(
@@ -149,7 +156,7 @@ gitlab_docs = gitlab_compliance
     "attributes",
     required=False,
     help="Pass a comma seperated list of gitlab ci yml attributes",
-    default="README.md"
+    default="README.md",
 )
 @click.option(
     "--output-file",
@@ -157,8 +164,7 @@ gitlab_docs = gitlab_compliance
     "OUTPUT_FILE",
     required=False,
     help="Output location of the markdown documentation.",
-
-    default="README.md"
+    default="README.md",
 )
 @click.option(
     "--input-config",
@@ -166,7 +172,7 @@ gitlab_docs = gitlab_compliance
     "GLDOCS_CONFIG_FILE",
     required=False,
     help="The Gitlab CI Input configuration file to generated documentation from.",
-    default=".gitlab-ci.yml"
+    default=".gitlab-ci.yml",
 )
 @click.option(
     "--json",
@@ -177,7 +183,7 @@ gitlab_docs = gitlab_compliance
     type=bool,
     help="Return results in json format.",
 )
-def get_attributes(OUTPUT_FILE,GLDOCS_CONFIG_FILE,attributes,json_format):
+def get_attributes(OUTPUT_FILE, GLDOCS_CONFIG_FILE, attributes, json_format):
     """
     Compared to the generate command, the get-attribute command allows you to pass the properties you wish to document and produces a markdown table.
     Args:
@@ -187,15 +193,16 @@ def get_attributes(OUTPUT_FILE,GLDOCS_CONFIG_FILE,attributes,json_format):
         json (_type_): _description_
     """
     logger.info(f"Discovering attributes {attributes} from your gitlab-ci yml.")
-    
+
     get_job_attribute(
         GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
         DISABLE_TITLE=False,
         DISABLE_TYPE_HEADING=False,
         OUTPUT_FILE=OUTPUT_FILE,
         attributes=attributes,
-        json_format=json_format
+        json_format=json_format,
     )
+
 
 @click.command()
 @click.option(
@@ -203,9 +210,8 @@ def get_attributes(OUTPUT_FILE,GLDOCS_CONFIG_FILE,attributes,json_format):
     required=False,
     help="Will include workflow and rules from jobs.",
     is_flag=True,
-    default=False
+    default=False,
 )
-
 @click.option(
     "--format",
     "-f",
@@ -222,7 +228,7 @@ def get_attributes(OUTPUT_FILE,GLDOCS_CONFIG_FILE,attributes,json_format):
     required=False,
     help="If set will disable documentation from being written",
     is_flag=True,
-    default=False
+    default=False,
 )
 @click.option(
     "--output-file",
@@ -238,7 +244,7 @@ def get_attributes(OUTPUT_FILE,GLDOCS_CONFIG_FILE,attributes,json_format):
     "GLDOCS_CONFIG_FILE",
     required=False,
     help="The Gitlab CI Input configuration file to generated documentation from.",
-    default=".gitlab-ci.yml"
+    default=".gitlab-ci.yml",
 )
 def generate(detailed, output_format, OUTPUT_FILE, DRY_MODE, GLDOCS_CONFIG_FILE):
     """
@@ -246,7 +252,7 @@ def generate(detailed, output_format, OUTPUT_FILE, DRY_MODE, GLDOCS_CONFIG_FILE)
     """
     output_format = output_format.lower()
     OUTPUT_FILE = _resolve_output_file(output_format, OUTPUT_FILE)
-    logger.success("Welcome to Gitlab Docs")
+    logger.success("Welcome to Gitlab Compliance")
 
     if DRY_MODE:
         logger.info(
@@ -271,6 +277,7 @@ def generate(detailed, output_format, OUTPUT_FILE, DRY_MODE, GLDOCS_CONFIG_FILE)
         f"Successfully generated {output_format} documentation for "
         f"{GLDOCS_CONFIG_FILE} here: {OUTPUT_FILE}"
     )
+
 
 @click.command(
     hidden=True,
@@ -328,6 +335,7 @@ def generate_html(detailed, OUTPUT_FILE, GLDOCS_CONFIG_FILE):
         f"{GLDOCS_CONFIG_FILE} here: {OUTPUT_FILE}"
     )
 
+
 def _resolve_compliance_output(output_format, output_file):
     if output_file:
         return output_file
@@ -336,7 +344,9 @@ def _resolve_compliance_output(output_format, output_file):
     return None
 
 
-def _resolve_policies_dir(features_dir: str, policy_cache_dir: str | None = None) -> tuple[str, str]:
+def _resolve_policies_dir(
+    features_dir: str, policy_cache_dir: str | None = None
+) -> tuple[str, str]:
     if os.path.isdir(features_dir):
         resolved = os.path.abspath(features_dir)
         return resolved, resolved
@@ -451,7 +461,12 @@ def compliance(
     """
     output_format = output_format.lower()
 
-    if update and is_oci_reference(features_dir) and policy_cache_dir and os.path.isdir(policy_cache_dir):
+    if (
+        update
+        and is_oci_reference(features_dir)
+        and policy_cache_dir
+        and os.path.isdir(policy_cache_dir)
+    ):
         shutil.rmtree(policy_cache_dir)
     result = run_compliance(
         features_dir=features_dir,
@@ -490,12 +505,14 @@ def compliance(
         logger.error(f"Compliance failed for {pipeline_file}")
     raise SystemExit(result.exit_code)
 
+
 def _resolve_policy_doc_output(output_format, output_file):
     if output_file:
         return output_file
     if output_format in POLICY_DOC_DEFAULT_OUTPUT_FILES:
         return POLICY_DOC_DEFAULT_OUTPUT_FILES[output_format]
     return None
+
 
 @click.command("compliance-doc")
 @click.option(
@@ -537,6 +554,7 @@ def compliance_doc(features_dir, output_format, output_file):
     else:
         click.echo(report)
 
+
 @click.command("compliance-push")
 @click.option(
     "--features",
@@ -572,6 +590,7 @@ def compliance_pull(target, output_dir):
     """
     pulled_to = pull_policies(target, output_dir=output_dir)
     logger.success(f"Pulled policies to {pulled_to}")
+
 
 gitlab_compliance.add_command(get_attributes)
 gitlab_compliance.add_command(dumps)

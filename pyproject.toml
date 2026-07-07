@@ -2,10 +2,9 @@
 name = "gitlab-compliance"
 dynamic = [ "readme" ]
 [project.urls]
-"Home Page" = "https://pypi.org/manage/project/gitlab-compliance"
-DOCUMENTATION = "https://pypi.org/manage/project/gitlab-compliance"
-Repository = "https://gitlab.com/charlieasmith/gitlab-compliance"
-Gitlab     = "https://gitlab.com/charlieasmith/gitlab-compliance"
+"Home Page" = "https://maturitybuilder.github.io/gitlab-compliance/"
+DOCUMENTATION = "https://maturitybuilder.github.io/gitlab-compliance/"
+Repository = "https://github.com/MaturityBuilder/gitlab-compliance"
 
 [tool.poetry_bumpversion.file."src/__init__.py"]
 
@@ -46,9 +45,20 @@ gitlab-compliance = 'src.gitlab_compliance:gitlab_compliance'
 [tool.poetry.group.dev.dependencies]
 setuptools = "83.0.0"
 pytest = "^8.4.1"
+pre-commit = "^4.2.0"
 
 pyyaml = "^6.0.2"
 coverage = "^7.9.2"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.6.0"

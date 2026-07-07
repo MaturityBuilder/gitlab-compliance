@@ -12,9 +12,15 @@ from src.compliance.runner import (
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SAMPLE_PIPELINE = REPO_ROOT / "examples/sample-files" / ".gitlab-ci.yml"
 PASSING_POLICIES = REPO_ROOT / "tests" / "compliance_policies" / "passing"
-INCLUDE_VERSION_PASSING = REPO_ROOT / "tests" / "compliance_policies" / "include-versions" / "passing.feature"
-INCLUDE_VERSION_POLICIES = REPO_ROOT / "tests" / "compliance_policies" / "include-versions"
-INCLUDE_VERSION_PIPELINE = REPO_ROOT / "examples/sample-files" / "gitlab-ci" / "includes_with_keys.yml"
+INCLUDE_VERSION_PASSING = (
+    REPO_ROOT / "tests" / "compliance_policies" / "include-versions" / "passing.feature"
+)
+INCLUDE_VERSION_POLICIES = (
+    REPO_ROOT / "tests" / "compliance_policies" / "include-versions"
+)
+INCLUDE_VERSION_PIPELINE = (
+    REPO_ROOT / "examples/sample-files" / "gitlab-ci" / "includes_with_keys.yml"
+)
 
 
 class TestFeatureFileGuards:
@@ -366,7 +372,10 @@ class TestIncludeVersionPolicies:
 
 
 COMPONENT_PINNING_FEATURE = (
-    REPO_ROOT / "examples/examples/example-policies" / "security" / "component-pinning.feature"
+    REPO_ROOT
+    / "examples/examples/example-policies"
+    / "security"
+    / "component-pinning.feature"
 )
 
 
@@ -435,7 +444,7 @@ class TestComponentPinningPolicies:
         policies.joinpath("component.feature").write_text(
             "Feature: Component branch\n"
             "  Scenario: Component includes must not track a branch\n"
-            "    Given I have include type \"component\" defined\n"
+            '    Given I have include type "component" defined\n'
             '    Then its version must not match "^(main|master|develop)$"\n',
             encoding="utf-8",
         )

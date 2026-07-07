@@ -30,10 +30,7 @@ class TestApplyContainerImageFixes:
     def test_patches_job_image_to_digest(self, tmp_path):
         pipeline = tmp_path / ".gitlab-ci.yml"
         pipeline.write_text(
-            "scan:\n"
-            "  image: python:3.12.0\n"
-            "  script:\n"
-            "    - echo scan\n",
+            "scan:\n" "  image: python:3.12.0\n" "  script:\n" "    - echo scan\n",
             encoding="utf-8",
         )
         fixes = [
@@ -140,10 +137,7 @@ class TestApplyContainerImageFixes:
     def test_patches_quoted_image_value(self, tmp_path):
         pipeline = tmp_path / ".gitlab-ci.yml"
         pipeline.write_text(
-            'scan:\n'
-            '  image: "docker:latest"\n'
-            "  script:\n"
-            "    - echo scan\n",
+            "scan:\n" '  image: "docker:latest"\n' "  script:\n" "    - echo scan\n",
             encoding="utf-8",
         )
         fixes = [

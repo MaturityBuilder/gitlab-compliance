@@ -6,7 +6,10 @@ from src.compliance.container_fix import (
     apply_container_image_fixes,
     collect_container_image_fixes,
 )
-from src.compliance.include_fix import apply_include_version_fixes, collect_include_version_fixes
+from src.compliance.include_fix import (
+    apply_include_version_fixes,
+    collect_include_version_fixes,
+)
 from src.compliance.model import load_pipeline_entities
 from src.modules.logging import logger
 

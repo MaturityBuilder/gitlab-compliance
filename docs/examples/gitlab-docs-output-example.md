@@ -1,7 +1,7 @@
 
 [comment]: <> (gitlab-compliance-opening-auto-generated)
 
-# GITLAB DOCS - .gitlab-ci.yml
+# GITLAB COMPLIANCE - .gitlab-ci.yml
 
 ## Inputs
 

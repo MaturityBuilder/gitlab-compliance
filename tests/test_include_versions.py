@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.compliance.include_versions import (
+    _semver_tags_descending,
     compute_latest_release_age_days,
     compute_release_lag_days,
     compute_version_tag_rank,
@@ -16,7 +17,6 @@ from src.compliance.include_versions import (
     is_valid_semver_version,
     resolve_include_project_path,
     version_within_latest_tags,
-    _semver_tags_descending,
 )
 from src.compliance.model import load_yaml_entities
 from src.compliance.stash import (
@@ -48,14 +48,16 @@ class TestResolveIncludeProjectPath:
         )
 
     def test_component_include_strips_host(self):
-        assert resolve_include_project_path(
-            "component", "gitlab.com/org/pipeline"
-        ) == "org/pipeline"
+        assert (
+            resolve_include_project_path("component", "gitlab.com/org/pipeline")
+            == "org/pipeline"
+        )
 
     def test_component_include_strips_url(self):
-        assert resolve_include_project_path(
-            "component", "https://gitlab.com/org/pipeline"
-        ) == "org/pipeline"
+        assert (
+            resolve_include_project_path("component", "https://gitlab.com/org/pipeline")
+            == "org/pipeline"
+        )
 
     def test_local_include_returns_none(self):
         assert resolve_include_project_path("local", "ci/child.yml") is None
@@ -93,9 +95,12 @@ class TestStashAgePredicates:
         }
         assert include_newer_release_older_than_days(entity, 30) is True
         assert include_newer_release_older_than_days(entity, 45) is False
-        assert include_newer_release_older_than_days(
-            {"update_available": False, "latest_release_age_days": 45}, 30
-        ) is False
+        assert (
+            include_newer_release_older_than_days(
+                {"update_available": False, "latest_release_age_days": 45}, 30
+            )
+            is False
+        )
 
     def test_lag_predicate_requires_update_and_lag(self):
         entity = {

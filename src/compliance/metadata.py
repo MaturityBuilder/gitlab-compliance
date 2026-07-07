@@ -37,7 +37,9 @@ class FeaturePolicies:
 class PolicyCatalog:
     features: list[FeaturePolicies] = field(default_factory=list)
 
-    def lookup_scenario(self, feature_file: str, scenario_name: str) -> PolicyAnnotation | None:
+    def lookup_scenario(
+        self, feature_file: str, scenario_name: str
+    ) -> PolicyAnnotation | None:
         normalized = os.path.realpath(feature_file)
         for feature in self.features:
             if os.path.realpath(feature.feature_file) != normalized:
@@ -175,7 +177,11 @@ def parse_feature_policies(feature_file: str) -> FeaturePolicies:
         if stripped.startswith("Scenario:"):
             scenario_name = stripped.split(":", 1)[1].strip()
             scenario_index += 1
-            feature_id = feature_annotation.policy_id if feature_annotation else _auto_feature_id(feature_path)
+            feature_id = (
+                feature_annotation.policy_id
+                if feature_annotation
+                else _auto_feature_id(feature_path)
+            )
             scenarios.append(
                 _annotation_from_raw(
                     pending_metadata,

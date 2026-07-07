@@ -52,7 +52,9 @@ def _replace_ref_line(line: str, latest_version: str) -> str | None:
     return f"{prefix}{latest_version}{suffix}\n"
 
 
-def _replace_component_line(line: str, current_version: str, latest_version: str) -> str | None:
+def _replace_component_line(
+    line: str, current_version: str, latest_version: str
+) -> str | None:
     if "component:" not in line and "component :" not in line:
         return None
     pattern = re.compile(
@@ -86,7 +88,9 @@ def _apply_fix_to_file(fix: IncludeVersionFix, lines: list[str]) -> bool:
     return False
 
 
-def apply_include_version_fixes(fixes: list[IncludeVersionFix]) -> list[IncludeVersionFix]:
+def apply_include_version_fixes(
+    fixes: list[IncludeVersionFix],
+) -> list[IncludeVersionFix]:
     applied: list[IncludeVersionFix] = []
     by_file: dict[str, list[IncludeVersionFix]] = {}
     for fix in fixes:

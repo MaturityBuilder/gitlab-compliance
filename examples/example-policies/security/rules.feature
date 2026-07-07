@@ -4,4 +4,3 @@ Feature: Pipeline execution controls
     Given I have any job defined
     When its stage is deploy
     Then it must contain rules
-

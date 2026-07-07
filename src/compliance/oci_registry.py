@@ -15,8 +15,7 @@ POLICY_BUNDLE_MEDIA_TYPE = "application/vnd.gitlab-compliance.policy.bundle.v1+t
 OCI_SCHEME = "oci://"
 DEFAULT_POLICY_DIR = "policy"
 REGISTRY_REFERENCE = re.compile(
-    r"^(?:oci://)?"
-    r"(?:localhost(?::\d+)?|[\w.-]+\.[a-zA-Z]{2,})(?::\d+)?/"
+    r"^(?:oci://)?" r"(?:localhost(?::\d+)?|[\w.-]+\.[a-zA-Z]{2,})(?::\d+)?/"
 )
 
 
@@ -45,7 +44,9 @@ def bundle_policies_dir(features_dir: str) -> str:
     if not feature_files:
         raise FileNotFoundError(f"No .feature files found in {features_dir}")
 
-    bundle_path = os.path.join(tempfile.mkdtemp(prefix="gitlab-compliance-policy-bundle-"), "policies.tar.gz")
+    bundle_path = os.path.join(
+        tempfile.mkdtemp(prefix="gitlab-compliance-policy-bundle-"), "policies.tar.gz"
+    )
     return make_targz(features_dir, bundle_path)
 
 
@@ -97,7 +98,10 @@ def pull_policies(target: str, output_dir: str | None = None) -> str:
         pulled_files = client.pull(
             target=target,
             outdir=temp_root,
-            allowed_media_type=[POLICY_BUNDLE_MEDIA_TYPE, "application/vnd.oci.image.layer.v1.tar+gzip"],
+            allowed_media_type=[
+                POLICY_BUNDLE_MEDIA_TYPE,
+                "application/vnd.oci.image.layer.v1.tar+gzip",
+            ],
             overwrite=True,
         )
         bundle_path = _find_bundle_file(temp_root, pulled_files)
@@ -131,7 +135,9 @@ def resolve_features_dir(features_dir: str, cache_dir: str | None = None) -> str
         return os.path.abspath(features_dir)
 
     if is_oci_reference(features_dir):
-        cache_dir = cache_dir or os.path.join(tempfile.gettempdir(), "gitlab-compliance-policies")
+        cache_dir = cache_dir or os.path.join(
+            tempfile.gettempdir(), "gitlab-compliance-policies"
+        )
         os.makedirs(cache_dir, exist_ok=True)
         return pull_policies(features_dir, output_dir=cache_dir)
 

@@ -6,16 +6,16 @@ from behave import when
 
 from src.compliance.behave_support.environment import _skip_remaining_steps
 from src.compliance.stash import (
+    container_image_has_newer_release,
+    container_image_newer_release_older_than_days,
+    container_image_not_within_latest_tags,
+    container_image_release_lag_exceeds_days,
     entity_has_property,
     filter_entities,
     include_has_newer_release,
     include_newer_release_older_than_days,
     include_not_within_latest_tags,
     include_release_lag_exceeds_days,
-    container_image_has_newer_release,
-    container_image_newer_release_older_than_days,
-    container_image_not_within_latest_tags,
-    container_image_release_lag_exceeds_days,
     name_starts_with,
     property_matches,
     property_matches_regex,
@@ -34,14 +34,20 @@ def _apply_filter(context, entities: list[dict], reason: str):
 
 @when("it has {property_name}")
 def when_it_has(context, property_name):
-    filtered = filter_entities(context.stash, lambda e: entity_has_property(e, property_name))
+    filtered = filter_entities(
+        context.stash, lambda e: entity_has_property(e, property_name)
+    )
     _apply_filter(context, filtered, f"No entities with property '{property_name}'")
 
 
 @when("it does not have {property_name}")
 def when_it_does_not_have(context, property_name):
-    filtered = filter_entities(context.stash, lambda e: not entity_has_property(e, property_name))
-    _apply_filter(context, filtered, f"All entities already have property '{property_name}'")
+    filtered = filter_entities(
+        context.stash, lambda e: not entity_has_property(e, property_name)
+    )
+    _apply_filter(
+        context, filtered, f"All entities already have property '{property_name}'"
+    )
 
 
 @when("its {property_name} is {expected}")
@@ -59,7 +65,9 @@ def when_property_matches(context, property_name, pattern):
         context.stash,
         lambda e: property_matches_regex(e, property_name, pattern),
     )
-    _apply_filter(context, filtered, f"No entities where {property_name} matches {pattern}")
+    _apply_filter(
+        context, filtered, f"No entities where {property_name} matches {pattern}"
+    )
 
 
 @when('its name does not start with "{prefix}"')
@@ -116,7 +124,9 @@ def when_not_within_latest_tags(context, count):
 @when("a newer image release is available")
 def when_newer_image_release_available(context):
     filtered = filter_entities(context.stash, container_image_has_newer_release)
-    _apply_filter(context, filtered, "No container images with a newer release available")
+    _apply_filter(
+        context, filtered, "No container images with a newer release available"
+    )
 
 
 @when("a newer image release is available for more than {days:d} days")

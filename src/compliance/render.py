@@ -101,7 +101,7 @@ def render_compliance_mr_comment(
         else ":x: **Compliance failed**"
     )
     lines = [
-        f"### GitLab CI Compliance Report",
+        "### GitLab CI Compliance Report",
         "",
         overall,
         "",

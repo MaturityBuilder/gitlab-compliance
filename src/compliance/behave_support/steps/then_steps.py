@@ -6,6 +6,11 @@ from behave import then
 
 from src.compliance.stash import (
     assert_all,
+    container_image_has_newer_release,
+    container_image_newer_release_older_than_days,
+    container_image_release_lag_exceeds_days,
+    container_image_uses_sha256,
+    container_image_within_latest_tags,
     entity_has_property,
     extends_includes,
     get_property,
@@ -15,11 +20,6 @@ from src.compliance.stash import (
     include_release_lag_exceeds_days,
     include_version_is_latest,
     include_within_latest_tags,
-    container_image_has_newer_release,
-    container_image_newer_release_older_than_days,
-    container_image_release_lag_exceeds_days,
-    container_image_uses_sha256,
-    container_image_within_latest_tags,
     normalize_value,
     property_matches,
     property_matches_regex,

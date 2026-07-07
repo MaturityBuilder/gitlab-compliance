@@ -2,12 +2,11 @@ repos:
   - repo: local
     hooks:
       - id: gitlab-compliance
-        name: Run GitLab Docs
-        entry: gitlab-compliance
-        language: python
-        additional_dependencies:
-          - gitlab-compliance
+        name: Run compliance smoke check
+        entry: bash -c 'poetry run gitlab-compliance compliance -f tests/compliance_policies/passing -p examples/sample-files/.gitlab-ci.yml'
+        language: system
         pass_filenames: false
+        files: \.(yml|yaml)$
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -21,19 +20,26 @@ repos:
     rev: 24.3.0
     hooks:
       - id: black
+        files: ^(src|tests)/
 
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
       - id: isort
+        files: ^(src|tests)/
 
   - repo: https://github.com/pycqa/flake8
     rev: 6.1.0
     hooks:
       - id: flake8
+        files: ^(src|tests)/
+        args:
+          - --max-line-length=88
+          - --extend-ignore=E203,W503,F401,F841,E501
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.7
     hooks:
       - id: bandit
-        args: ["-r", "gitlab_docs"]
+        args: ["-r", "src", "-s", "B101"]
+        pass_filenames: false

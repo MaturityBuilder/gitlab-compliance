@@ -1,6 +1,6 @@
 build-container:
 	docker build -t gitlab-compliance .
-	docker run -v ${PWD}:/gitlab-compliance charlieasmith93/gitlab-compliance
+	docker run -v ${PWD}:/gitlab-compliance maturitybuilder/gitlab-compliance
 init:
 	brew install poetry
 	echo 'PATH=$HOME/.local/bin:$HOME/.poetry/bin:$PATH' >> ~/.bash_profile

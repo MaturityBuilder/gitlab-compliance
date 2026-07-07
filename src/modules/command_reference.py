@@ -125,7 +125,9 @@ def dump_helper(base_command, docs_dir) -> list[str]:
     ]
     for name in sorted(written):
         index_lines.append(f"- [{name}]({_command_filename(name)})\n")
-    (docs_path / "command-reference.md").write_text("".join(index_lines), encoding="utf-8")
+    (docs_path / "command-reference.md").write_text(
+        "".join(index_lines), encoding="utf-8"
+    )
 
     return written
 
@@ -141,7 +143,7 @@ def cli():
     "base_module",
     help="The base command module path to import",
     required=True,
-    default="src.gitlab_docs",
+    default="src.gitlab_compliance",
 )
 @click.option(
     "--baseCommand",

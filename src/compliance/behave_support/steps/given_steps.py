@@ -34,10 +34,13 @@ def given_any_job(context):
 @given('I have job "{name}" defined')
 def given_named_job(context, name):
     jobs = [
-        job for job in context.compliance_entities.get("jobs", [])
+        job
+        for job in context.compliance_entities.get("jobs", [])
         if job.get("name") == name
     ]
-    _set_stash_or_skip(context, jobs, skip_reason=f'No job named "{name}" found in pipeline')
+    _set_stash_or_skip(
+        context, jobs, skip_reason=f'No job named "{name}" found in pipeline'
+    )
 
 
 @given("I have any include defined")
@@ -126,7 +129,8 @@ def given_project_setting(context, name):
     if not require_api_connection(context, "project", "project setting checks"):
         return
     settings = [
-        setting for setting in context.compliance_entities.get("project_settings", [])
+        setting
+        for setting in context.compliance_entities.get("project_settings", [])
         if setting.get("name") == name
     ]
     _set_stash_or_skip(

@@ -43,7 +43,7 @@ nav:
   - Installation:
     - installation/index.md
     - Installing via pip: installation/pip.md
-  - Command Reference: 
+  - Command Reference:
 
     - Compliance:
 
@@ -54,14 +54,14 @@ nav:
       - Environment Variables: usage/environment-variables.md
     - Generate Documentation:
       - Generate Pipeline Documentation: usage/reference/generate.md
-      - Get Specific Documentation About Attributes: usage/reference/get-attributes.md 
+      - Get Specific Documentation About Attributes: usage/reference/get-attributes.md
     - Release Notes Commands:
-      - Release Notes: usage/reference/release-notes.md 
+      - Release Notes: usage/reference/release-notes.md
   - Usage:
-    - usage/index.md 
+    - usage/index.md
     - Additional Parameters: usage/additional-parameters.md
-    
-    
+
+
   - BDD Reference:
     - bdd-reference/index.md
     - Overview of Scenario Flow: bdd-reference/overview.md
@@ -88,6 +88,7 @@ nav:
   - Using in CI/CD:
     - ci-cd/index.md
     - GitLab CI/CD: ci-cd/gitlab-ci.md
+    - GitHub Actions: ci-cd/github-actions.md
     - Pipeline Execution Policy: ci-cd/pipeline-execution-policy.md
   - Contributing:
     - contributing.md

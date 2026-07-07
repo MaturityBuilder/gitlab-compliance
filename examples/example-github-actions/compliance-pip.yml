@@ -1,0 +1,41 @@
+# Example: compliance via pip install (GitHub Actions)
+
+name: Compliance (pip)
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install gitlab-compliance
+        run: pip install gitlab-compliance
+
+      - name: Run offline compliance policies
+        run: |
+          gitlab-compliance compliance \
+            -f policies/security \
+            -p .gitlab-ci.yml
+
+      # Optional: GitLab API-backed policies (requires secrets)
+      # - name: Run API-backed policies
+      #   env:
+      #     GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+      #   run: |
+      #     gitlab-compliance compliance \
+      #       -f policies/security \
+      #       -p .gitlab-ci.yml \
+      #       --project ${{ github.repository }} \
+      #       --strict

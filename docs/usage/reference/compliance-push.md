@@ -9,23 +9,23 @@ Usage: gitlab-compliance compliance-push [OPTIONS] TARGET
 ```
 
 ### Options
-* `features_dir` (REQUIRED): 
-  * Type: STRING 
+* `features_dir` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--features
 -f`
 
   Directory containing compliance policy .feature files to publish.
 
-* `target` (REQUIRED) [argument]: 
-  * Type: STRING 
+* `target` (REQUIRED) [argument]:
+  * Type: STRING
   * Default: `none`
   * Usage: `target`
 
-  
 
-* `help`: 
-  * Type: BOOL 
+
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 

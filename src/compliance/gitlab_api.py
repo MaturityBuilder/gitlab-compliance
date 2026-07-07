@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from typing import Any
 
-
 PROJECT_SETTING_KEYS = [
     "public_jobs",
     "auto_devops_enabled",
@@ -50,7 +49,12 @@ def load_api_entities(
     group: str | None = None,
     gl: Any | None = None,
 ) -> dict[str, list[dict]]:
-    gitlab_url = gitlab_url or os.getenv("CI_SERVER_URL") or os.getenv("GITLAB_URL") or "https://gitlab.com"
+    gitlab_url = (
+        gitlab_url
+        or os.getenv("CI_SERVER_URL")
+        or os.getenv("GITLAB_URL")
+        or "https://gitlab.com"
+    )
     token = token or os.getenv("GITLAB_TOKEN") or os.getenv("CI_JOB_TOKEN")
 
     if not token:

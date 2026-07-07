@@ -3,7 +3,7 @@ import os
 from behave import given, then, when
 from click.testing import CliRunner
 
-from src.gitlab_docs import generate
+from src.gitlab_compliance import generate
 from src.modules.pipeline_data import collect_pipeline_data
 from src.modules.swagger_html import render_swagger_html
 

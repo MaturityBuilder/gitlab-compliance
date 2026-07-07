@@ -8,7 +8,12 @@ from src.modules.pipeline_data import (
     collect_pipeline_data,
 )
 
-FIXTURE = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "includes-all-types.yml"
+FIXTURE = (
+    Path(__file__).resolve().parents[1]
+    / "tests"
+    / "fixtures"
+    / "includes-all-types.yml"
+)
 
 
 class TestParseRemoteUrlVersion:
@@ -48,6 +53,8 @@ class TestCollectPipelineData:
         assert include_types >= {"project", "component", "template", "remote", "local"}
         assert len(data["container_images"]) >= 2
         job_images = [
-            image for image in data["container_images"] if image["image_source"] == "job"
+            image
+            for image in data["container_images"]
+            if image["image_source"] == "job"
         ]
         assert any(image["image"] == "python:3.12.0" for image in job_images)

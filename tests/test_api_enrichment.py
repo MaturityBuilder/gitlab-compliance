@@ -1,8 +1,6 @@
 from pathlib import Path
 
-from src.compliance.api_enrichment import (
-    policies_require_api_enrichment,
-)
+from src.compliance.api_enrichment import policies_require_api_enrichment
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -60,10 +58,10 @@ class TestPoliciesRequireApiEnrichment:
         policies = tmp_path / "policies"
         policies.mkdir()
         policies.joinpath("api.feature").write_text(
-            'Feature: API\n'
-            '  Scenario: Public jobs disabled\n'
+            "Feature: API\n"
+            "  Scenario: Public jobs disabled\n"
             '    Given I have project setting "public_jobs" defined\n'
-            '    Then its value must be false\n',
+            "    Then its value must be false\n",
             encoding="utf-8",
         )
 
@@ -74,7 +72,12 @@ class TestPoliciesRequireApiEnrichment:
     def test_execution_policy_pack_is_yaml_only(self, tmp_path):
         policies = tmp_path / "policies"
         policies.mkdir()
-        source = REPO_ROOT / "examples/examples/example-policies" / "security" / "execution-policy.feature"
+        source = (
+            REPO_ROOT
+            / "examples/examples/example-policies"
+            / "security"
+            / "execution-policy.feature"
+        )
         policies.joinpath("execution-policy.feature").write_text(
             source.read_text(encoding="utf-8"),
             encoding="utf-8",

@@ -63,7 +63,9 @@ def _replace_image_line(line: str, current_image: str, fixed_image: str) -> str 
     return result + ("\n" if line.endswith("\n") else "")
 
 
-def _replace_service_entry(line: str, current_image: str, fixed_image: str) -> str | None:
+def _replace_service_entry(
+    line: str, current_image: str, fixed_image: str
+) -> str | None:
     escaped = re.escape(current_image)
     stripped = line.rstrip("\n")
     newline = "\n" if line.endswith("\n") else ""

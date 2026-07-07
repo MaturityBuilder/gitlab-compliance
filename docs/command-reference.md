@@ -13,8 +13,8 @@ Usage: gitlab-compliance [OPTIONS] COMMAND [ARGS]...
 ```
 
 ### Options
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -62,8 +62,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
 ```
 
 ### Options
-* `attributes`: 
-  * Type: STRING 
+* `attributes`:
+  * Type: STRING
   * Default: `readme.md`
   * Usage: `--attributes
 -a`
@@ -71,8 +71,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
   Pass a comma seperated list of gitlab ci yml attributes
 
 
-* `OUTPUT_FILE`: 
-  * Type: STRING 
+* `OUTPUT_FILE`:
+  * Type: STRING
   * Default: `readme.md`
   * Usage: `--output-file
 -o`
@@ -80,8 +80,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
   Output location of the markdown documentation.
 
 
-* `GLDOCS_CONFIG_FILE`: 
-  * Type: STRING 
+* `GLDOCS_CONFIG_FILE`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--input-config
 -i`
@@ -89,8 +89,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
   The Gitlab CI Input configuration file to generated documentation from.
 
 
-* `json_format`: 
-  * Type: BOOL 
+* `json_format`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--json
 -j`
@@ -98,8 +98,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
   Return results in json format.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -141,32 +141,32 @@ Usage: gitlab-compliance dumps [OPTIONS]
 ```
 
 ### Options
-* `base_module` (REQUIRED): 
-  * Type: STRING 
-  * Default: `src.gitlab_docs`
+* `base_module` (REQUIRED):
+  * Type: STRING
+  * Default: `src.gitlab_compliance`
   * Usage: `--baseModule`
 
   The base command module path to import
 
 
-* `base_command` (REQUIRED): 
-  * Type: STRING 
+* `base_command` (REQUIRED):
+  * Type: STRING
   * Default: `gitlab_compliance`
   * Usage: `--baseCommand`
 
   The base command function to import
 
 
-* `docs_path` (REQUIRED): 
-  * Type: STRING 
+* `docs_path` (REQUIRED):
+  * Type: STRING
   * Default: `docs/`
   * Usage: `--docsPath`
 
   The docs dir path to write the md files
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -201,16 +201,16 @@ Usage: gitlab-compliance generate [OPTIONS]
 ```
 
 ### Options
-* `detailed`: 
-  * Type: BOOL 
+* `detailed`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--detailed`
 
   Will include workflow and rules from jobs.
 
 
-* `output_format`: 
-  * Type: Choice(['markdown', 'html']) 
+* `output_format`:
+  * Type: Choice(['markdown', 'html'])
   * Default: `markdown`
   * Usage: `--format
 -f`
@@ -218,8 +218,8 @@ Usage: gitlab-compliance generate [OPTIONS]
   Output format for generated documentation.
 
 
-* `DRY_MODE`: 
-  * Type: BOOL 
+* `DRY_MODE`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--dry-mode
 -d`
@@ -227,8 +227,8 @@ Usage: gitlab-compliance generate [OPTIONS]
   If set will disable documentation from being written
 
 
-* `OUTPUT_FILE`: 
-  * Type: STRING 
+* `OUTPUT_FILE`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--output-file
 -o`
@@ -236,8 +236,8 @@ Usage: gitlab-compliance generate [OPTIONS]
   Output location of the generated documentation.
 
 
-* `GLDOCS_CONFIG_FILE`: 
-  * Type: STRING 
+* `GLDOCS_CONFIG_FILE`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--input-config
 -i`
@@ -245,8 +245,8 @@ Usage: gitlab-compliance generate [OPTIONS]
   The Gitlab CI Input configuration file to generated documentation from.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -285,16 +285,16 @@ Usage: gitlab-compliance generate-html [OPTIONS]
 ```
 
 ### Options
-* `detailed`: 
-  * Type: BOOL 
+* `detailed`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--detailed`
 
   Will include workflow and rules from jobs.
 
 
-* `OUTPUT_FILE`: 
-  * Type: STRING 
+* `OUTPUT_FILE`:
+  * Type: STRING
   * Default: `gitlab-compliance.html`
   * Usage: `--output-file
 -o`
@@ -302,8 +302,8 @@ Usage: gitlab-compliance generate-html [OPTIONS]
   Output location of the HTML documentation.
 
 
-* `GLDOCS_CONFIG_FILE`: 
-  * Type: STRING 
+* `GLDOCS_CONFIG_FILE`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--input-config
 -i`
@@ -311,8 +311,8 @@ Usage: gitlab-compliance generate-html [OPTIONS]
   The Gitlab CI Input configuration file to generated documentation from.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -347,8 +347,8 @@ Usage: gitlab-compliance compliance [OPTIONS]
 ```
 
 ### Options
-* `features_dir` (REQUIRED): 
-  * Type: STRING 
+* `features_dir` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--features
 -f`
@@ -356,8 +356,8 @@ Usage: gitlab-compliance compliance [OPTIONS]
   Directory containing compliance policy .feature files or an OCI reference (oci://registry.example.com/policies:1.0.0).
 
 
-* `pipeline_file`: 
-  * Type: STRING 
+* `pipeline_file`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--pipeline
 -p`
@@ -365,16 +365,16 @@ Usage: gitlab-compliance compliance [OPTIONS]
   Path to the GitLab CI pipeline YAML file.
 
 
-* `output_format`: 
-  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality']) 
+* `output_format`:
+  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality'])
   * Default: `console`
   * Usage: `--format`
 
   Output format for the compliance report.
 
 
-* `output_file`: 
-  * Type: STRING 
+* `output_file`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--output-file
 -o`
@@ -382,80 +382,80 @@ Usage: gitlab-compliance compliance [OPTIONS]
   Write rendered report to this file (markdown, html, mr-comment).
 
 
-* `include_nested`: 
-  * Type: BOOL 
+* `include_nested`:
+  * Type: BOOL
   * Default: `true`
   * Usage: `--include-nested`
 
   Resolve nested local include files into the compliance stash.
 
 
-* `gitlab_url`: 
-  * Type: STRING 
+* `gitlab_url`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--gitlab-url`
 
   GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).
 
 
-* `token`: 
-  * Type: STRING 
+* `token`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--token`
 
   GitLab API token (default: GITLAB_TOKEN or CI_JOB_TOKEN).
 
 
-* `project`: 
-  * Type: STRING 
+* `project`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--project`
 
   GitLab project path or ID for API-backed policy checks.
 
 
-* `group`: 
-  * Type: STRING 
+* `group`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--group`
 
   GitLab group path or ID for API-backed policy checks.
 
 
-* `strict`: 
-  * Type: BOOL 
+* `strict`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--strict`
 
   Fail API-backed scenarios when connection info is missing (default: skip).
 
 
-* `update`: 
-  * Type: BOOL 
+* `update`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--update`
 
   Pull the latest policies from an OCI registry before running checks.
 
 
-* `policy_cache_dir`: 
-  * Type: STRING 
+* `policy_cache_dir`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--policy-cache-dir`
 
   Directory used when pulling OCI policy bundles (default: system temp).
 
 
-* `dry_run`: 
-  * Type: BOOL 
+* `dry_run`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--dry-run`
 
   Parse and list scenarios without asserting.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -514,8 +514,8 @@ Usage: gitlab-compliance compliance-doc [OPTIONS]
 ```
 
 ### Options
-* `features_dir` (REQUIRED): 
-  * Type: STRING 
+* `features_dir` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--features
 -f`
@@ -523,16 +523,16 @@ Usage: gitlab-compliance compliance-doc [OPTIONS]
   Directory containing compliance policy .feature files.
 
 
-* `output_format`: 
-  * Type: Choice(['markdown', 'html']) 
+* `output_format`:
+  * Type: Choice(['markdown', 'html'])
   * Default: `markdown`
   * Usage: `--format`
 
   Output format for the policy catalog.
 
 
-* `output_file`: 
-  * Type: STRING 
+* `output_file`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--output-file
 -o`
@@ -540,8 +540,8 @@ Usage: gitlab-compliance compliance-doc [OPTIONS]
   Write the policy catalog to this file.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -577,8 +577,8 @@ Usage: gitlab-compliance compliance-push [OPTIONS] TARGET
 ```
 
 ### Options
-* `features_dir` (REQUIRED): 
-  * Type: STRING 
+* `features_dir` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--features
 -f`
@@ -586,16 +586,16 @@ Usage: gitlab-compliance compliance-push [OPTIONS] TARGET
   Directory containing compliance policy .feature files to publish.
 
 
-* `target` (REQUIRED) [argument]: 
-  * Type: STRING 
+* `target` (REQUIRED) [argument]:
+  * Type: STRING
   * Default: `none`
   * Usage: `target`
 
-  
 
 
-* `help`: 
-  * Type: BOOL 
+
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -628,16 +628,16 @@ Usage: gitlab-compliance compliance-pull [OPTIONS] TARGET
 ```
 
 ### Options
-* `target` (REQUIRED) [argument]: 
-  * Type: STRING 
+* `target` (REQUIRED) [argument]:
+  * Type: STRING
   * Default: `none`
   * Usage: `target`
 
-  
 
 
-* `output_dir`: 
-  * Type: STRING 
+
+* `output_dir`:
+  * Type: STRING
   * Default: `policy`
   * Usage: `--output-dir
 -o`
@@ -645,8 +645,8 @@ Usage: gitlab-compliance compliance-pull [OPTIONS] TARGET
   Directory to extract pulled policies into.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -680,56 +680,56 @@ Usage: gitlab-compliance release-notes [OPTIONS]
 ```
 
 ### Options
-* `token` (REQUIRED): 
-  * Type: STRING 
+* `token` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--token`
 
   GitLab personal access token
 
 
-* `url`: 
-  * Type: STRING 
+* `url`:
+  * Type: STRING
   * Default: `https://gitlab.com`
   * Usage: `--url`
 
   GitLab instance URL
 
 
-* `projects` (REQUIRED): 
-  * Type: STRING 
+* `projects` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--projects`
 
   List of GitLab project IDs or full paths
 
 
-* `since_tag`: 
-  * Type: STRING 
+* `since_tag`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--since-tag`
 
   Baseline tag name (default: latest semver tag, else most recent by date)
 
 
-* `markdown_dir`: 
-  * Type: <click.types.Path object at 0x727a0f461040> 
+* `markdown_dir`:
+  * Type: <click.types.Path object at 0x727a0f461040>
   * Default: `.`
   * Usage: `--markdown`
 
   Directory to output Markdown release notes
 
 
-* `no_write`: 
-  * Type: BOOL 
+* `no_write`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--no-write`
 
   Skip writing Markdown files
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -771,8 +771,8 @@ Usage: gitlab-compliance [OPTIONS] COMMAND [ARGS]...
 ```
 
 ### Options
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -820,8 +820,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
 ```
 
 ### Options
-* `attributes`: 
-  * Type: STRING 
+* `attributes`:
+  * Type: STRING
   * Default: `readme.md`
   * Usage: `--attributes
 -a`
@@ -829,8 +829,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
   Pass a comma seperated list of gitlab ci yml attributes
 
 
-* `OUTPUT_FILE`: 
-  * Type: STRING 
+* `OUTPUT_FILE`:
+  * Type: STRING
   * Default: `readme.md`
   * Usage: `--output-file
 -o`
@@ -838,8 +838,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
   Output location of the markdown documentation.
 
 
-* `GLDOCS_CONFIG_FILE`: 
-  * Type: STRING 
+* `GLDOCS_CONFIG_FILE`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--input-config
 -i`
@@ -847,8 +847,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
   The Gitlab CI Input configuration file to generated documentation from.
 
 
-* `json_format`: 
-  * Type: BOOL 
+* `json_format`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--json
 -j`
@@ -856,8 +856,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
   Return results in json format.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -899,32 +899,32 @@ Usage: gitlab-compliance dumps [OPTIONS]
 ```
 
 ### Options
-* `base_module` (REQUIRED): 
-  * Type: STRING 
-  * Default: `src.gitlab_docs`
+* `base_module` (REQUIRED):
+  * Type: STRING
+  * Default: `src.gitlab_compliance`
   * Usage: `--baseModule`
 
   The base command module path to import
 
 
-* `base_command` (REQUIRED): 
-  * Type: STRING 
+* `base_command` (REQUIRED):
+  * Type: STRING
   * Default: `gitlab_compliance`
   * Usage: `--baseCommand`
 
   The base command function to import
 
 
-* `docs_path` (REQUIRED): 
-  * Type: STRING 
+* `docs_path` (REQUIRED):
+  * Type: STRING
   * Default: `docs/`
   * Usage: `--docsPath`
 
   The docs dir path to write the md files
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -959,16 +959,16 @@ Usage: gitlab-compliance generate [OPTIONS]
 ```
 
 ### Options
-* `detailed`: 
-  * Type: BOOL 
+* `detailed`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--detailed`
 
   Will include workflow and rules from jobs.
 
 
-* `output_format`: 
-  * Type: Choice(['markdown', 'html']) 
+* `output_format`:
+  * Type: Choice(['markdown', 'html'])
   * Default: `markdown`
   * Usage: `--format
 -f`
@@ -976,8 +976,8 @@ Usage: gitlab-compliance generate [OPTIONS]
   Output format for generated documentation.
 
 
-* `DRY_MODE`: 
-  * Type: BOOL 
+* `DRY_MODE`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--dry-mode
 -d`
@@ -985,8 +985,8 @@ Usage: gitlab-compliance generate [OPTIONS]
   If set will disable documentation from being written
 
 
-* `OUTPUT_FILE`: 
-  * Type: STRING 
+* `OUTPUT_FILE`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--output-file
 -o`
@@ -994,8 +994,8 @@ Usage: gitlab-compliance generate [OPTIONS]
   Output location of the generated documentation.
 
 
-* `GLDOCS_CONFIG_FILE`: 
-  * Type: STRING 
+* `GLDOCS_CONFIG_FILE`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--input-config
 -i`
@@ -1003,8 +1003,8 @@ Usage: gitlab-compliance generate [OPTIONS]
   The Gitlab CI Input configuration file to generated documentation from.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -1043,16 +1043,16 @@ Usage: gitlab-compliance generate-html [OPTIONS]
 ```
 
 ### Options
-* `detailed`: 
-  * Type: BOOL 
+* `detailed`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--detailed`
 
   Will include workflow and rules from jobs.
 
 
-* `OUTPUT_FILE`: 
-  * Type: STRING 
+* `OUTPUT_FILE`:
+  * Type: STRING
   * Default: `gitlab-compliance.html`
   * Usage: `--output-file
 -o`
@@ -1060,8 +1060,8 @@ Usage: gitlab-compliance generate-html [OPTIONS]
   Output location of the HTML documentation.
 
 
-* `GLDOCS_CONFIG_FILE`: 
-  * Type: STRING 
+* `GLDOCS_CONFIG_FILE`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--input-config
 -i`
@@ -1069,8 +1069,8 @@ Usage: gitlab-compliance generate-html [OPTIONS]
   The Gitlab CI Input configuration file to generated documentation from.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -1105,8 +1105,8 @@ Usage: gitlab-compliance compliance [OPTIONS]
 ```
 
 ### Options
-* `features_dir` (REQUIRED): 
-  * Type: STRING 
+* `features_dir` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--features
 -f`
@@ -1114,8 +1114,8 @@ Usage: gitlab-compliance compliance [OPTIONS]
   Directory containing compliance policy .feature files or an OCI reference (oci://registry.example.com/policies:1.0.0).
 
 
-* `pipeline_file`: 
-  * Type: STRING 
+* `pipeline_file`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--pipeline
 -p`
@@ -1123,16 +1123,16 @@ Usage: gitlab-compliance compliance [OPTIONS]
   Path to the GitLab CI pipeline YAML file.
 
 
-* `output_format`: 
-  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality']) 
+* `output_format`:
+  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality'])
   * Default: `console`
   * Usage: `--format`
 
   Output format for the compliance report.
 
 
-* `output_file`: 
-  * Type: STRING 
+* `output_file`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--output-file
 -o`
@@ -1140,80 +1140,80 @@ Usage: gitlab-compliance compliance [OPTIONS]
   Write rendered report to this file (markdown, html, mr-comment).
 
 
-* `include_nested`: 
-  * Type: BOOL 
+* `include_nested`:
+  * Type: BOOL
   * Default: `true`
   * Usage: `--include-nested`
 
   Resolve nested local include files into the compliance stash.
 
 
-* `gitlab_url`: 
-  * Type: STRING 
+* `gitlab_url`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--gitlab-url`
 
   GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).
 
 
-* `token`: 
-  * Type: STRING 
+* `token`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--token`
 
   GitLab API token (default: GITLAB_TOKEN or CI_JOB_TOKEN).
 
 
-* `project`: 
-  * Type: STRING 
+* `project`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--project`
 
   GitLab project path or ID for API-backed policy checks.
 
 
-* `group`: 
-  * Type: STRING 
+* `group`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--group`
 
   GitLab group path or ID for API-backed policy checks.
 
 
-* `strict`: 
-  * Type: BOOL 
+* `strict`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--strict`
 
   Fail API-backed scenarios when connection info is missing (default: skip).
 
 
-* `update`: 
-  * Type: BOOL 
+* `update`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--update`
 
   Pull the latest policies from an OCI registry before running checks.
 
 
-* `policy_cache_dir`: 
-  * Type: STRING 
+* `policy_cache_dir`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--policy-cache-dir`
 
   Directory used when pulling OCI policy bundles (default: system temp).
 
 
-* `dry_run`: 
-  * Type: BOOL 
+* `dry_run`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--dry-run`
 
   Parse and list scenarios without asserting.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -1272,8 +1272,8 @@ Usage: gitlab-compliance compliance-doc [OPTIONS]
 ```
 
 ### Options
-* `features_dir` (REQUIRED): 
-  * Type: STRING 
+* `features_dir` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--features
 -f`
@@ -1281,16 +1281,16 @@ Usage: gitlab-compliance compliance-doc [OPTIONS]
   Directory containing compliance policy .feature files.
 
 
-* `output_format`: 
-  * Type: Choice(['markdown', 'html']) 
+* `output_format`:
+  * Type: Choice(['markdown', 'html'])
   * Default: `markdown`
   * Usage: `--format`
 
   Output format for the policy catalog.
 
 
-* `output_file`: 
-  * Type: STRING 
+* `output_file`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--output-file
 -o`
@@ -1298,8 +1298,8 @@ Usage: gitlab-compliance compliance-doc [OPTIONS]
   Write the policy catalog to this file.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -1335,8 +1335,8 @@ Usage: gitlab-compliance compliance-push [OPTIONS] TARGET
 ```
 
 ### Options
-* `features_dir` (REQUIRED): 
-  * Type: STRING 
+* `features_dir` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--features
 -f`
@@ -1344,16 +1344,16 @@ Usage: gitlab-compliance compliance-push [OPTIONS] TARGET
   Directory containing compliance policy .feature files to publish.
 
 
-* `target` (REQUIRED) [argument]: 
-  * Type: STRING 
+* `target` (REQUIRED) [argument]:
+  * Type: STRING
   * Default: `none`
   * Usage: `target`
 
-  
 
 
-* `help`: 
-  * Type: BOOL 
+
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -1386,16 +1386,16 @@ Usage: gitlab-compliance compliance-pull [OPTIONS] TARGET
 ```
 
 ### Options
-* `target` (REQUIRED) [argument]: 
-  * Type: STRING 
+* `target` (REQUIRED) [argument]:
+  * Type: STRING
   * Default: `none`
   * Usage: `target`
 
-  
 
 
-* `output_dir`: 
-  * Type: STRING 
+
+* `output_dir`:
+  * Type: STRING
   * Default: `policy`
   * Usage: `--output-dir
 -o`
@@ -1403,8 +1403,8 @@ Usage: gitlab-compliance compliance-pull [OPTIONS] TARGET
   Directory to extract pulled policies into.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -1438,56 +1438,56 @@ Usage: gitlab-compliance release-notes [OPTIONS]
 ```
 
 ### Options
-* `token` (REQUIRED): 
-  * Type: STRING 
+* `token` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--token`
 
   GitLab personal access token
 
 
-* `url`: 
-  * Type: STRING 
+* `url`:
+  * Type: STRING
   * Default: `https://gitlab.com`
   * Usage: `--url`
 
   GitLab instance URL
 
 
-* `projects` (REQUIRED): 
-  * Type: STRING 
+* `projects` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--projects`
 
   List of GitLab project IDs or full paths
 
 
-* `since_tag`: 
-  * Type: STRING 
+* `since_tag`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--since-tag`
 
   Baseline tag name (default: latest semver tag, else most recent by date)
 
 
-* `markdown_dir`: 
-  * Type: <click.types.Path object at 0x7c762baed760> 
+* `markdown_dir`:
+  * Type: <click.types.Path object at 0x7c762baed760>
   * Default: `.`
   * Usage: `--markdown`
 
   Directory to output Markdown release notes
 
 
-* `no_write`: 
-  * Type: BOOL 
+* `no_write`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--no-write`
 
   Skip writing Markdown files
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -1529,8 +1529,8 @@ Usage: gitlab-compliance [OPTIONS] COMMAND [ARGS]...
 ```
 
 ### Options
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -1578,8 +1578,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
 ```
 
 ### Options
-* `attributes`: 
-  * Type: STRING 
+* `attributes`:
+  * Type: STRING
   * Default: `readme.md`
   * Usage: `--attributes
 -a`
@@ -1587,8 +1587,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
   Pass a comma seperated list of gitlab ci yml attributes
 
 
-* `OUTPUT_FILE`: 
-  * Type: STRING 
+* `OUTPUT_FILE`:
+  * Type: STRING
   * Default: `readme.md`
   * Usage: `--output-file
 -o`
@@ -1596,8 +1596,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
   Output location of the markdown documentation.
 
 
-* `GLDOCS_CONFIG_FILE`: 
-  * Type: STRING 
+* `GLDOCS_CONFIG_FILE`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--input-config
 -i`
@@ -1605,8 +1605,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
   The Gitlab CI Input configuration file to generated documentation from.
 
 
-* `json_format`: 
-  * Type: BOOL 
+* `json_format`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--json
 -j`
@@ -1614,8 +1614,8 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
   Return results in json format.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -1657,32 +1657,32 @@ Usage: gitlab-compliance dumps [OPTIONS]
 ```
 
 ### Options
-* `base_module` (REQUIRED): 
-  * Type: STRING 
-  * Default: `src.gitlab_docs`
+* `base_module` (REQUIRED):
+  * Type: STRING
+  * Default: `src.gitlab_compliance`
   * Usage: `--baseModule`
 
   The base command module path to import
 
 
-* `base_command` (REQUIRED): 
-  * Type: STRING 
+* `base_command` (REQUIRED):
+  * Type: STRING
   * Default: `gitlab_compliance`
   * Usage: `--baseCommand`
 
   The base command function to import
 
 
-* `docs_path` (REQUIRED): 
-  * Type: STRING 
+* `docs_path` (REQUIRED):
+  * Type: STRING
   * Default: `docs/`
   * Usage: `--docsPath`
 
   The docs dir path to write the md files
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -1717,16 +1717,16 @@ Usage: gitlab-compliance generate [OPTIONS]
 ```
 
 ### Options
-* `detailed`: 
-  * Type: BOOL 
+* `detailed`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--detailed`
 
   Will include workflow and rules from jobs.
 
 
-* `output_format`: 
-  * Type: Choice(['markdown', 'html']) 
+* `output_format`:
+  * Type: Choice(['markdown', 'html'])
   * Default: `markdown`
   * Usage: `--format
 -f`
@@ -1734,8 +1734,8 @@ Usage: gitlab-compliance generate [OPTIONS]
   Output format for generated documentation.
 
 
-* `DRY_MODE`: 
-  * Type: BOOL 
+* `DRY_MODE`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--dry-mode
 -d`
@@ -1743,8 +1743,8 @@ Usage: gitlab-compliance generate [OPTIONS]
   If set will disable documentation from being written
 
 
-* `OUTPUT_FILE`: 
-  * Type: STRING 
+* `OUTPUT_FILE`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--output-file
 -o`
@@ -1752,8 +1752,8 @@ Usage: gitlab-compliance generate [OPTIONS]
   Output location of the generated documentation.
 
 
-* `GLDOCS_CONFIG_FILE`: 
-  * Type: STRING 
+* `GLDOCS_CONFIG_FILE`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--input-config
 -i`
@@ -1761,8 +1761,8 @@ Usage: gitlab-compliance generate [OPTIONS]
   The Gitlab CI Input configuration file to generated documentation from.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -1801,16 +1801,16 @@ Usage: gitlab-compliance generate-html [OPTIONS]
 ```
 
 ### Options
-* `detailed`: 
-  * Type: BOOL 
+* `detailed`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--detailed`
 
   Will include workflow and rules from jobs.
 
 
-* `OUTPUT_FILE`: 
-  * Type: STRING 
+* `OUTPUT_FILE`:
+  * Type: STRING
   * Default: `gitlab-compliance.html`
   * Usage: `--output-file
 -o`
@@ -1818,8 +1818,8 @@ Usage: gitlab-compliance generate-html [OPTIONS]
   Output location of the HTML documentation.
 
 
-* `GLDOCS_CONFIG_FILE`: 
-  * Type: STRING 
+* `GLDOCS_CONFIG_FILE`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--input-config
 -i`
@@ -1827,8 +1827,8 @@ Usage: gitlab-compliance generate-html [OPTIONS]
   The Gitlab CI Input configuration file to generated documentation from.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -1863,8 +1863,8 @@ Usage: gitlab-compliance compliance [OPTIONS]
 ```
 
 ### Options
-* `features_dir` (REQUIRED): 
-  * Type: STRING 
+* `features_dir` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--features
 -f`
@@ -1872,8 +1872,8 @@ Usage: gitlab-compliance compliance [OPTIONS]
   Directory containing compliance policy .feature files or an OCI reference (oci://registry.example.com/policies:1.0.0).
 
 
-* `pipeline_file`: 
-  * Type: STRING 
+* `pipeline_file`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--pipeline
 -p`
@@ -1881,16 +1881,16 @@ Usage: gitlab-compliance compliance [OPTIONS]
   Path to the GitLab CI pipeline YAML file.
 
 
-* `output_format`: 
-  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality']) 
+* `output_format`:
+  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality'])
   * Default: `console`
   * Usage: `--format`
 
   Output format for the compliance report.
 
 
-* `output_file`: 
-  * Type: STRING 
+* `output_file`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--output-file
 -o`
@@ -1898,80 +1898,80 @@ Usage: gitlab-compliance compliance [OPTIONS]
   Write rendered report to this file (markdown, html, mr-comment).
 
 
-* `include_nested`: 
-  * Type: BOOL 
+* `include_nested`:
+  * Type: BOOL
   * Default: `true`
   * Usage: `--include-nested`
 
   Resolve nested local include files into the compliance stash.
 
 
-* `gitlab_url`: 
-  * Type: STRING 
+* `gitlab_url`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--gitlab-url`
 
   GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).
 
 
-* `token`: 
-  * Type: STRING 
+* `token`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--token`
 
   GitLab API token (default: GITLAB_TOKEN or CI_JOB_TOKEN).
 
 
-* `project`: 
-  * Type: STRING 
+* `project`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--project`
 
   GitLab project path or ID for API-backed policy checks.
 
 
-* `group`: 
-  * Type: STRING 
+* `group`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--group`
 
   GitLab group path or ID for API-backed policy checks.
 
 
-* `strict`: 
-  * Type: BOOL 
+* `strict`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--strict`
 
   Fail API-backed scenarios when connection info is missing (default: skip).
 
 
-* `update`: 
-  * Type: BOOL 
+* `update`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--update`
 
   Pull the latest policies from an OCI registry before running checks.
 
 
-* `policy_cache_dir`: 
-  * Type: STRING 
+* `policy_cache_dir`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--policy-cache-dir`
 
   Directory used when pulling OCI policy bundles (default: system temp).
 
 
-* `dry_run`: 
-  * Type: BOOL 
+* `dry_run`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--dry-run`
 
   Parse and list scenarios without asserting.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -2030,8 +2030,8 @@ Usage: gitlab-compliance compliance-doc [OPTIONS]
 ```
 
 ### Options
-* `features_dir` (REQUIRED): 
-  * Type: STRING 
+* `features_dir` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--features
 -f`
@@ -2039,16 +2039,16 @@ Usage: gitlab-compliance compliance-doc [OPTIONS]
   Directory containing compliance policy .feature files.
 
 
-* `output_format`: 
-  * Type: Choice(['markdown', 'html']) 
+* `output_format`:
+  * Type: Choice(['markdown', 'html'])
   * Default: `markdown`
   * Usage: `--format`
 
   Output format for the policy catalog.
 
 
-* `output_file`: 
-  * Type: STRING 
+* `output_file`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--output-file
 -o`
@@ -2056,8 +2056,8 @@ Usage: gitlab-compliance compliance-doc [OPTIONS]
   Write the policy catalog to this file.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -2093,8 +2093,8 @@ Usage: gitlab-compliance compliance-push [OPTIONS] TARGET
 ```
 
 ### Options
-* `features_dir` (REQUIRED): 
-  * Type: STRING 
+* `features_dir` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--features
 -f`
@@ -2102,16 +2102,16 @@ Usage: gitlab-compliance compliance-push [OPTIONS] TARGET
   Directory containing compliance policy .feature files to publish.
 
 
-* `target` (REQUIRED) [argument]: 
-  * Type: STRING 
+* `target` (REQUIRED) [argument]:
+  * Type: STRING
   * Default: `none`
   * Usage: `target`
 
-  
 
 
-* `help`: 
-  * Type: BOOL 
+
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -2144,16 +2144,16 @@ Usage: gitlab-compliance compliance-pull [OPTIONS] TARGET
 ```
 
 ### Options
-* `target` (REQUIRED) [argument]: 
-  * Type: STRING 
+* `target` (REQUIRED) [argument]:
+  * Type: STRING
   * Default: `none`
   * Usage: `target`
 
-  
 
 
-* `output_dir`: 
-  * Type: STRING 
+
+* `output_dir`:
+  * Type: STRING
   * Default: `policy`
   * Usage: `--output-dir
 -o`
@@ -2161,8 +2161,8 @@ Usage: gitlab-compliance compliance-pull [OPTIONS] TARGET
   Directory to extract pulled policies into.
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -2196,56 +2196,56 @@ Usage: gitlab-compliance release-notes [OPTIONS]
 ```
 
 ### Options
-* `token` (REQUIRED): 
-  * Type: STRING 
+* `token` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--token`
 
   GitLab personal access token
 
 
-* `url`: 
-  * Type: STRING 
+* `url`:
+  * Type: STRING
   * Default: `https://gitlab.com`
   * Usage: `--url`
 
   GitLab instance URL
 
 
-* `projects` (REQUIRED): 
-  * Type: STRING 
+* `projects` (REQUIRED):
+  * Type: STRING
   * Default: `none`
   * Usage: `--projects`
 
   List of GitLab project IDs or full paths
 
 
-* `since_tag`: 
-  * Type: STRING 
+* `since_tag`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--since-tag`
 
   Baseline tag name (default: latest semver tag, else most recent by date)
 
 
-* `markdown_dir`: 
-  * Type: <click.types.Path object at 0x7e2a3543d880> 
+* `markdown_dir`:
+  * Type: <click.types.Path object at 0x7e2a3543d880>
   * Default: `.`
   * Usage: `--markdown`
 
   Directory to output Markdown release notes
 
 
-* `no_write`: 
-  * Type: BOOL 
+* `no_write`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--no-write`
 
   Skip writing Markdown files
 
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
@@ -2271,4 +2271,3 @@ Options:
   --no-write            Skip writing Markdown files
   --help                Show this message and exit.
 ```
-

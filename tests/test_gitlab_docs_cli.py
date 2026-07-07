@@ -3,7 +3,7 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from src.gitlab_docs import (
+from src.gitlab_compliance import (
     compliance,
     compliance_doc,
     generate,
@@ -225,7 +225,7 @@ class TestComplianceCli:
 class TestComplianceOciCli:
     def test_push_policies_mocked(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "src.gitlab_docs.push_policies",
+            "src.gitlab_compliance.push_policies",
             lambda features_dir, target: "sha256:abc",
         )
         runner = CliRunner()
@@ -247,7 +247,7 @@ class TestComplianceOciCli:
         def _fake_pull(_target, output_dir=None):
             return str(out_dir)
 
-        monkeypatch.setattr("src.gitlab_docs.pull_policies", _fake_pull)
+        monkeypatch.setattr("src.gitlab_compliance.pull_policies", _fake_pull)
         runner = CliRunner()
         result = runner.invoke(
             gitlab_compliance,

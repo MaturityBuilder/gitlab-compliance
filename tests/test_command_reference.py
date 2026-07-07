@@ -1,7 +1,7 @@
 from click.testing import CliRunner
 
-from src.gitlab_docs import gitlab_compliance
-from src.modules.command_reference import dumps, dump_helper, recursive_help
+from src.gitlab_compliance import gitlab_compliance
+from src.modules.command_reference import dump_helper, dumps, recursive_help
 
 
 class TestRecursiveHelp:
@@ -38,7 +38,7 @@ class TestDumpsCli:
             dumps,
             [
                 "--baseModule",
-                "src.gitlab_docs",
+                "src.gitlab_compliance",
                 "--baseCommand",
                 "gitlab_compliance",
                 "--docsPath",

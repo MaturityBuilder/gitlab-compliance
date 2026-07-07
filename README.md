@@ -1,8 +1,8 @@
-# Gitlab Docs
+# Gitlab Compliance
 
 ## Overview
 
-GitLab Docs is a portable Python CLI for documenting GitLab CI/CD pipelines and enforcing configuration policies. It generates Markdown or HTML documentation from `.gitlab-ci.yml`, and includes a Gherkin-based compliance engine (similar to [terraform-compliance](https://github.com/terraform-compliance/cli) and [Conftest](https://www.conftest.dev/)) for YAML and API-backed checks.
+GitLab Compliance is a CLI composing BDD style tests for verifying and patching gitlab ci yaml. This includes updating and pinning images and includes and writing policies to ensure gitlab pipelines are written inline with organisation policies. In addition it can be used for generating pipeline documentation in markdown and html format in a swagger like format. The Gherkin-based compliance engine uses a similar concept to [terraform-compliance](https://github.com/terraform-compliance/cli).
 
 ## Key features
 
@@ -36,11 +36,11 @@ gitlab-compliance --help
 ### Docker
 
 ```bash
-docker run -v ${PWD}:/gitlab-compliance charlieasmith93/gitlab-compliance
+docker run -v ${PWD}:/gitlab-compliance maturitybuilder/gitlab-compliance
 ```
 
 ```bash
-podman run -it -v $(PWD):/gitlab-compliance charlieasmith93/gitlab-compliance
+podman run -it -v $(PWD):/gitlab-compliance maturitybuilder/gitlab-compliance
 ```
 
 ## Pipeline documentation
@@ -265,7 +265,7 @@ Example Markdown file: `release_notes_group_project_since_v1.0.0.md`
 
 [comment]: <> (gitlab-compliance-opening-auto-generated)
 
-# GITLAB DOCS - .gitlab-ci.yml
+# GITLAB COMPLIANCE - .gitlab-ci.yml
 
 ## Inputs
 

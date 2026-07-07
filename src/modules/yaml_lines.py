@@ -6,7 +6,15 @@ from yaml import MappingNode, SequenceNode, compose_all
 
 from src.modules.common import EnvLoader
 
-NON_JOB_KEYS = {"default", "include", "stages", "variables", "workflow", "image", "spec"}
+NON_JOB_KEYS = {
+    "default",
+    "include",
+    "stages",
+    "variables",
+    "workflow",
+    "image",
+    "spec",
+}
 
 
 def _line_number(node) -> int:
@@ -39,7 +47,9 @@ def index_yaml_file(config_file: str) -> dict:
                 if key == "workflow":
                     if isinstance(value_node, MappingNode):
                         for workflow_key, workflow_value in value_node.value:
-                            if workflow_key.value == "rules" and isinstance(workflow_value, SequenceNode):
+                            if workflow_key.value == "rules" and isinstance(
+                                workflow_value, SequenceNode
+                            ):
                                 for item in workflow_value.value:
                                     workflow_rules.append(_line_number(item))
                     elif isinstance(value_node, SequenceNode):

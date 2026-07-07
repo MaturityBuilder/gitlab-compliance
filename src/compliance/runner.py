@@ -11,8 +11,8 @@ from behave.configuration import Configuration
 from behave.runner import Runner
 from behave.step_registry import registry
 
-from src.compliance.console import render_compliance_console
 from src.compliance.api_enrichment import policies_require_api_enrichment
+from src.compliance.console import render_compliance_console
 from src.compliance.metadata import build_policy_catalog
 from src.compliance.models import ComplianceResult, ScenarioResult
 from src.compliance.oci_registry import resolve_features_dir
@@ -180,8 +180,14 @@ def run_compliance(
     if fix:
         if dry_run:
             raise ValueError("--fix cannot be used with --dry-run")
-        if not token and not os.getenv("GITLAB_TOKEN") and not os.getenv("CI_JOB_TOKEN"):
-            raise ValueError("--fix requires a GitLab token (--token, GITLAB_TOKEN, or CI_JOB_TOKEN)")
+        if (
+            not token
+            and not os.getenv("GITLAB_TOKEN")
+            and not os.getenv("CI_JOB_TOKEN")
+        ):
+            raise ValueError(
+                "--fix requires a GitLab token (--token, GITLAB_TOKEN, or CI_JOB_TOKEN)"
+            )
         from src.compliance.supply_chain_fix import apply_supply_chain_fixes
 
         apply_supply_chain_fixes(
@@ -234,15 +240,15 @@ def run_compliance(
                 "project": project or "",
                 "group": group or "",
                 "strict": "true" if strict else "false",
-                "enrich_includes": "true"
-                if (fix or api_requirements.enrich_includes)
-                else "false",
-                "enrich_images": "true"
-                if (fix or api_requirements.enrich_images)
-                else "false",
-                "load_api_entities": "true"
-                if (fix or api_requirements.load_api_entities)
-                else "false",
+                "enrich_includes": (
+                    "true" if (fix or api_requirements.enrich_includes) else "false"
+                ),
+                "enrich_images": (
+                    "true" if (fix or api_requirements.enrich_images) else "false"
+                ),
+                "load_api_entities": (
+                    "true" if (fix or api_requirements.load_api_entities) else "false"
+                ),
             }
 
             runner = Runner(config)

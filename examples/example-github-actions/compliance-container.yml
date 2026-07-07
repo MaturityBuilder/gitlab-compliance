@@ -1,0 +1,39 @@
+# Example: compliance via container image (GitHub Actions)
+
+name: Compliance (container)
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+
+env:
+  COMPLIANCE_IMAGE: maturitybuilder/gitlab-compliance:latest
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run offline compliance policies
+        run: |
+          docker run --rm \
+            -v "$PWD:/work" \
+            -w /work \
+            ${{ env.COMPLIANCE_IMAGE }} \
+            compliance -f policies/security -p .gitlab-ci.yml
+
+      # Optional: pin a digest for supply-chain hardening
+      # COMPLIANCE_IMAGE: maturitybuilder/gitlab-compliance@sha256:<digest>
+
+      # Optional: API-backed policies
+      # docker run --rm -v "$PWD:/work" -w /work \
+      #   -e GITLAB_TOKEN \
+      #   ${{ env.COMPLIANCE_IMAGE }} \
+      #   compliance -f policies/security -p .gitlab-ci.yml \
+      #   --project ${{ github.repository }} --strict
+      # env:
+      #   GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}

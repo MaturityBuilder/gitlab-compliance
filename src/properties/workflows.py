@@ -1,15 +1,15 @@
-# import gitlab_docs.yaml_md_table as gldocs
+# import gitlab_compliance.yaml_md_table as gldocs
 import logging
 import os
+
 import yaml
+
 import src.modules.common as common
-from src.modules.logging import logger
 from src.modules.doc_controller import add_between_markers
+from src.modules.logging import logger
 
 
-def document_workflows(
-    OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE=False
-):
+def document_workflows(OUTPUT_FILE, GLDOCS_CONFIG_FILE, DISABLE_TITLE=False):
     logger.trace("Generating Documentation for Workflows")
     file = common.read_yml(GLDOCS_CONFIG_FILE)
     try:
@@ -42,7 +42,9 @@ def document_workflows(
                         "## " + GLDOCS_CONFIG_FILE + "\n\n"
                     )
                     add_between_markers(file_path=OUTPUT_FILE, content="\n")
-                    add_between_markers(file_path=OUTPUT_FILE, content=GLDOCS_CONFIG_FILE_HEADING)
+                    add_between_markers(
+                        file_path=OUTPUT_FILE, content=GLDOCS_CONFIG_FILE_HEADING
+                    )
                 add_between_markers(file_path=OUTPUT_FILE, content=str(workflow_table))
                 # f.close()
                 logger.debug("")

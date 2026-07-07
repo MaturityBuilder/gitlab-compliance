@@ -17,8 +17,12 @@ class TestLoadPipelineEntitiesEnrichmentFlags:
             encoding="utf-8",
         )
 
-        with patch("src.compliance.include_versions.enrich_includes_with_releases") as enrich:
-            with patch("src.compliance.image_versions.enrich_container_images_with_releases") as image_enrich:
+        with patch(
+            "src.compliance.include_versions.enrich_includes_with_releases"
+        ) as enrich:
+            with patch(
+                "src.compliance.image_versions.enrich_container_images_with_releases"
+            ) as image_enrich:
                 with patch("src.compliance.gitlab_api.load_api_entities") as api_load:
                     load_pipeline_entities(
                         str(pipeline),
@@ -45,7 +49,9 @@ class TestLoadPipelineEntitiesEnrichmentFlags:
             encoding="utf-8",
         )
 
-        with patch("src.compliance.include_versions.enrich_includes_with_releases") as enrich:
+        with patch(
+            "src.compliance.include_versions.enrich_includes_with_releases"
+        ) as enrich:
             enrich.return_value = [
                 {
                     "include_type": "project",

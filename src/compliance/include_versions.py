@@ -170,7 +170,9 @@ def enrich_include_release_metadata(
     enriched["version_tag_rank"] = None
     enriched["semver_tag_count"] = 0
 
-    project_path = resolve_include_project_path(include_type, enriched.get("project", ""))
+    project_path = resolve_include_project_path(
+        include_type, enriched.get("project", "")
+    )
     if not project_path:
         return enriched
 
@@ -212,10 +214,18 @@ def enrich_include_release_metadata(
         enriched["version_released_at"] = pinned_date.isoformat()
     if latest_date is not None:
         enriched["latest_version_released_at"] = latest_date.isoformat()
-        enriched["latest_release_age_days"] = compute_latest_release_age_days(latest_date)
+        enriched["latest_release_age_days"] = compute_latest_release_age_days(
+            latest_date
+        )
 
-    if enriched["update_available"] and pinned_date is not None and latest_date is not None:
-        enriched["release_lag_days"] = compute_release_lag_days(pinned_date, latest_date)
+    if (
+        enriched["update_available"]
+        and pinned_date is not None
+        and latest_date is not None
+    ):
+        enriched["release_lag_days"] = compute_release_lag_days(
+            pinned_date, latest_date
+        )
 
     return enriched
 

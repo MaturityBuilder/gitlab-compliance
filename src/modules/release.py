@@ -87,7 +87,9 @@ def sort_tags(tags: list) -> list:
     return sorted(tags, key=lambda tag: _tag_committed_date(tag), reverse=True)
 
 
-def resolve_baseline_tag(tags: list, since_tag: str | None = None) -> tuple[str, datetime, str | None]:
+def resolve_baseline_tag(
+    tags: list, since_tag: str | None = None
+) -> tuple[str, datetime, str | None]:
     """Return baseline tag name, date, and commit SHA."""
     if since_tag:
         for tag in tags:
@@ -217,7 +219,9 @@ def generate_markdown(
     return filename
 
 
-def render_summary_table(all_summaries: list[tuple[str, dict[str, int], list]]) -> Table:
+def render_summary_table(
+    all_summaries: list[tuple[str, dict[str, int], list]]
+) -> Table:
     """Build a Rich table summarizing all processed projects."""
     table = Table(show_header=True, header_style="bold magenta")
     table.add_column("Project")
@@ -255,9 +259,22 @@ def print_release_preview(commits) -> None:
 
 
 @click.command()
-@click.option("--token", envvar="GITLAB_TOKEN", required=True, help="GitLab personal access token")
-@click.option("--url", envvar="GITLAB_URL", default="https://gitlab.com", show_default=True, help="GitLab instance URL")
-@click.option("--projects", required=True, multiple=True, help="List of GitLab project IDs or full paths")
+@click.option(
+    "--token", envvar="GITLAB_TOKEN", required=True, help="GitLab personal access token"
+)
+@click.option(
+    "--url",
+    envvar="GITLAB_URL",
+    default="https://gitlab.com",
+    show_default=True,
+    help="GitLab instance URL",
+)
+@click.option(
+    "--projects",
+    required=True,
+    multiple=True,
+    help="List of GitLab project IDs or full paths",
+)
 @click.option(
     "--since-tag",
     default=None,
@@ -289,8 +306,12 @@ def release_notes(token, url, projects, since_tag, markdown_dir, no_write):
                 gl, project_id, since_tag=since_tag
             )
 
-            console.print(f"Last tag: [green]{tag_name}[/green] ({_format_tag_date(tag_date)})")
-            console.print(f"Found [yellow]{len(commits)}[/yellow] commits since last tag.\n")
+            console.print(
+                f"Last tag: [green]{tag_name}[/green] ({_format_tag_date(tag_date)})"
+            )
+            console.print(
+                f"Found [yellow]{len(commits)}[/yellow] commits since last tag.\n"
+            )
 
             summary = summarize_commits(commits)
             all_summaries.append((project_id, summary, commits))

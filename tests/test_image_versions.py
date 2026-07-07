@@ -33,7 +33,9 @@ class TestImageUpdateAvailable:
 class TestEnrichContainerImagesWithReleases:
     def test_list_docker_hub_tags_uses_cache_without_network(self):
         cache = ReleaseMetadataCache()
-        cache.set_registry_tags("registry-1.docker.io", "library/python", ["3.12.0", "3.13.0"])
+        cache.set_registry_tags(
+            "registry-1.docker.io", "library/python", ["3.12.0", "3.13.0"]
+        )
 
         with patch("src.compliance.image_versions.requests.get") as mock_get:
             from src.compliance.image_versions import _list_docker_hub_tags

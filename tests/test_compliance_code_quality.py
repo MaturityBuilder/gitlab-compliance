@@ -1,9 +1,12 @@
 import json
 
 from src.compliance.models import ComplianceResult, ScenarioResult
-from src.compliance.render import (_fingerprint, _map_severity,
-                                   _parse_locations,
-                                   render_compliance_code_quality)
+from src.compliance.render import (
+    _fingerprint,
+    _map_severity,
+    _parse_locations,
+    render_compliance_code_quality,
+)
 
 
 def _result(*scenarios: ScenarioResult) -> ComplianceResult:
@@ -20,7 +23,9 @@ def _result(*scenarios: ScenarioResult) -> ComplianceResult:
 
 class TestParseLocations:
     def test_extracts_path_and_line(self):
-        message = "Entities missing property: build (examples/sample-files/.gitlab-ci.yml:12)"
+        message = (
+            "Entities missing property: build (examples/sample-files/.gitlab-ci.yml:12)"
+        )
         assert _parse_locations(message, ".gitlab-ci.yml") == [
             ("examples/sample-files/.gitlab-ci.yml", 12)
         ]
@@ -65,7 +70,9 @@ class TestRenderComplianceCodeQuality:
             )
         )
         payload = json.loads(
-            render_compliance_code_quality(result, "examples/sample-files/.gitlab-ci.yml")
+            render_compliance_code_quality(
+                result, "examples/sample-files/.gitlab-ci.yml"
+            )
         )
         assert len(payload) == 1
         finding = payload[0]

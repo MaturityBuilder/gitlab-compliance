@@ -193,8 +193,7 @@ def load_pipeline_entities(
     enrich_images: bool = True,
     load_api_entities: bool = True,
 ) -> dict[str, list[dict]]:
-    from src.compliance.api_config import (resolve_group, resolve_project,
-                                           resolve_token)
+    from src.compliance.api_config import resolve_group, resolve_project, resolve_token
     from src.compliance.release_cache import ReleaseMetadataCache
 
     entities = load_yaml_entities(pipeline_file, include_nested=include_nested)

@@ -1,12 +1,16 @@
 import logging
 import os
+
 import yaml
+
 import src.modules.common as common
-from src.modules.logging import logger
+
 # from src.modules.doc_controller import add_between_markers
 from src.modules.doc_controller import add_between_markers
+from src.modules.logging import logger
 
-def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
+
+def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, DISABLE_TITLE):
     logger.trace("Generating Documentation for Variables")
 
     file = common.read_yml(GLDOCS_CONFIG_FILE)
@@ -22,7 +26,9 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
                     "Options",
                     "Expand",
                 ]
-                variables_table = common.table_design(headers=field_names,field_names=field_names)
+                variables_table = common.table_design(
+                    headers=field_names, field_names=field_names
+                )
 
                 for v in variables:
                     description = "&#x274c;"
@@ -34,7 +40,7 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
                         result["value"] = variables[v]
 
                     else:
-                        try: 
+                        try:
                             if "description" in variables[v]:
                                 description = variables[v]["description"]
                             else:
@@ -61,9 +67,13 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
                                 )
                                 expand = "true"
                         except Exception as e:
-                            logger.error(f"Unable to extract variable information from {file}")
+                            logger.error(
+                                f"Unable to extract variable information from {file}"
+                            )
 
-                    variables_table.add_row([v, variables[v], description, options, expand])
+                    variables_table.add_row(
+                        [v, variables[v], description, options, expand]
+                    )
 
                 # f = open(OUTPUT_FILE, WRITE_MODE)
                 if not DISABLE_TITLE:

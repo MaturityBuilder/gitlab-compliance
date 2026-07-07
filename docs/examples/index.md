@@ -28,7 +28,8 @@ gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml
 | Pattern | When to use | Reference |
 |---------|-------------|-----------|
 | Local copy | Single project, quick start | `cp -r examples/examples/example-policies/security/ policies/security/` |
-| Shared CI jobs | Reuse job templates across projects | [`example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/compliance-jobs.yml) |
+| Shared CI jobs | Reuse job templates across projects | [`example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-ci/compliance-jobs.yml) |
+| GitHub Actions | pip or container compliance jobs | [`example-github-actions/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-github-actions) |
 | `include:` from central repo | Versioned policy + job distribution | [GitLab CI/CD](../ci-cd/gitlab-ci.md#include-shared-compliance-jobs) |
 | OCI registry | Immutable policy bundles | [OCI Policy Packs](oci-policy-packs.md) |
 | Pipeline Execution Policy | Org-wide injection (GitLab security policies) | [Pipeline Execution Policy](../ci-cd/pipeline-execution-policy.md) |

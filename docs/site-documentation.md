@@ -47,7 +47,17 @@ PyPI release jobs (`publish` on tags) are unchanged and independent of the docum
 
 ## GitHub Actions
 
-Workflow: [`.github/workflows/mkdocs-gh-pages.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/mkdocs-gh-pages.yml).
+| Workflow | When | Purpose |
+| --- | --- | --- |
+| [`tests.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/tests.yml) | PR + push | behave, pytest, coverage |
+| [`pre-commit.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/pre-commit.yml) | PR + push | pre-commit hooks |
+| [`danger.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/danger.yml) | PR | Danger PR review |
+| [`docker.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/docker.yml) | PR + push | Build, Trivy scan, Docker Hub publish |
+| [`mkdocs-gh-pages.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/mkdocs-gh-pages.yml) | PR + push | MkDocs build and GitHub Pages |
+
+See [GitHub Actions CI/CD](ci-cd/github-actions.md) for consumer examples (pip vs container) and Docker Hub publish setup.
+
+### Documentation site
 
 | Job | When | Purpose |
 | --- | --- | --- |
@@ -70,7 +80,7 @@ Navigation mirrors [terraform-compliance.com](https://terraform-compliance.com/)
 | Usage | CLI reference, parameters, environment variables |
 | BDD Reference | Gherkin step grammar |
 | Examples | Security policy patterns |
-| Using in CI/CD | GitLab CI, Pipeline Execution Policy |
+| Using in CI/CD | GitLab CI, GitHub Actions, Pipeline Execution Policy |
 | Contributing | Development and docs workflow |
 
 ## Adding pages
