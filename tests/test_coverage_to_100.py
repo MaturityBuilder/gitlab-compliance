@@ -648,7 +648,7 @@ class TestFinalCoverageLines:
     def test_command_reference_cli_callback(self):
         from src.modules.command_reference import cli as dumps_cli
 
-        dumps_cli()
+        dumps_cli.callback()
 
     def test_pipeline_variable_dict_and_commonpath_error(self, tmp_path, monkeypatch):
         from src.modules.pipeline_data import _parse_variable_entry, _resolve_local_include_path
