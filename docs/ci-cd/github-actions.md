@@ -10,8 +10,8 @@ Run **gitlab-compliance** in GitHub Actions to gate pull requests and default-br
 compliance:
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+    - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
       with:
         python-version: "3.12"
     - run: pip install gitlab-compliance
@@ -26,7 +26,7 @@ Full example: [`examples/example-github-actions/compliance-pip.yml`](https://git
 compliance:
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
     - run: |
         docker run --rm -v "$PWD:/work" -w /work \
           maturitybuilder/gitlab-compliance:latest \
@@ -104,7 +104,7 @@ The `publish` job pushes to Docker Hub using a **personal access token** (PAT).
 The workflow logs in with:
 
 ```yaml
-- uses: docker/login-action@v4
+- uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4
   with:
     username: ${{ vars.DOCKERHUB_USERNAME }}
     password: ${{ secrets.DOCKERHUB_TOKEN }}

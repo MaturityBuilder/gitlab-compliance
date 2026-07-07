@@ -16,17 +16,17 @@ import src.properties.inputs as inputs
 import src.properties.jobs as jobs
 import src.properties.variables as variables
 import src.properties.workflows as workflows
-from src.compliance.metadata import build_policy_catalog
-from src.compliance.oci_registry import (
+from src.compliance.policy_doc import render_policy_catalog
+from src.gitlab_docs import (
     DEFAULT_POLICY_DIR,
+    build_policy_catalog,
     is_oci_reference,
     pull_policies,
     push_policies,
+    render_compliance_report,
     resolve_features_dir,
+    run_compliance,
 )
-from src.compliance.policy_doc import render_policy_catalog
-from src.compliance.render import render_compliance_report
-from src.compliance.runner import run_compliance
 from src.modules.command_reference import dumps
 from src.modules.constants import (
     COMPLIANCE_DEFAULT_OUTPUT_FILES,

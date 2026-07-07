@@ -16,9 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Run Danger
-        uses: danger/python@v12
+        uses: danger/python@39f28a92d98c31eb89f103ef9410ff7b08c24f17 # master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
