@@ -10,6 +10,7 @@ from datetime import datetime
 
 import click
 
+import src.gitlab_docs as _gitlab_docs
 import src.modules.doc_controller as md_writer
 import src.properties.includes as includes
 import src.properties.inputs as inputs
@@ -17,16 +18,6 @@ import src.properties.jobs as jobs
 import src.properties.variables as variables
 import src.properties.workflows as workflows
 from src.compliance.policy_doc import render_policy_catalog
-from src.gitlab_docs import (
-    DEFAULT_POLICY_DIR,
-    build_policy_catalog,
-    is_oci_reference,
-    pull_policies,
-    push_policies,
-    render_compliance_report,
-    resolve_features_dir,
-    run_compliance,
-)
 from src.modules.command_reference import dumps
 from src.modules.constants import (
     COMPLIANCE_DEFAULT_OUTPUT_FILES,
@@ -116,7 +107,7 @@ class _DualBrandCliGroup(click.Group):
 
     _LEGACY_NOTICE = (
         "Note: `gitlab-docs` is deprecated in favor of `gitlab-compliance`. "
-        "The `gitlab-compliance` command will be removed in a future release."
+        "The `gitlab-docs` command will be removed in a future release."
     )
 
     def _emit_legacy_notice(self, ctx) -> None:
@@ -145,7 +136,7 @@ def gitlab_compliance():
 
 
 # Backward-compatible alias for imports and ``python -m src.gitlab_compliance``.
-gitlab_compliance = gitlab_compliance
+gitlab_docs = gitlab_compliance
 
 
 # ENABLE_WORKFLOW_DOCUMENTATION = os.getenv("ENABLE_WORKFLOW_DOCUMENTATION", False)
@@ -350,7 +341,9 @@ def _resolve_policies_dir(
     if os.path.isdir(features_dir):
         resolved = os.path.abspath(features_dir)
         return resolved, resolved
-    resolved = resolve_features_dir(features_dir, cache_dir=policy_cache_dir)
+    resolved = _gitlab_docs.resolve_features_dir(
+        features_dir, cache_dir=policy_cache_dir
+    )
     return resolved, features_dir
 
 
@@ -463,12 +456,12 @@ def compliance(
 
     if (
         update
-        and is_oci_reference(features_dir)
+        and _gitlab_docs.is_oci_reference(features_dir)
         and policy_cache_dir
         and os.path.isdir(policy_cache_dir)
     ):
         shutil.rmtree(policy_cache_dir)
-    result = run_compliance(
+    result = _gitlab_docs.run_compliance(
         features_dir=features_dir,
         pipeline_file=pipeline_file,
         include_nested=include_nested,
@@ -485,7 +478,7 @@ def compliance(
     )
 
     if output_format != "console":
-        report = render_compliance_report(
+        report = _gitlab_docs.render_compliance_report(
             result=result,
             pipeline_file=pipeline_file,
             features_dir=features_dir,
@@ -544,7 +537,7 @@ def compliance_doc(features_dir, output_format, output_file):
     """
     output_format = output_format.lower()
     resolved_dir, _source = _resolve_policies_dir(features_dir)
-    catalog = build_policy_catalog(resolved_dir)
+    catalog = _gitlab_docs.build_policy_catalog(resolved_dir)
     report = render_policy_catalog(catalog, _source, output_format)
     target = _resolve_policy_doc_output(output_format, output_file)
     if target:
@@ -568,7 +561,7 @@ def compliance_push(features_dir, target):
     """
     Push a compliance policy bundle to an OCI registry (Conftest-style).
     """
-    digest = push_policies(features_dir, target)
+    digest = _gitlab_docs.push_policies(features_dir, target)
     logger.success(f"Pushed policy bundle to {target}")
     if digest:
         logger.info(f"Digest: {digest}")
@@ -580,7 +573,7 @@ def compliance_push(features_dir, target):
     "--output-dir",
     "-o",
     "output_dir",
-    default=DEFAULT_POLICY_DIR,
+    default=_gitlab_docs.DEFAULT_POLICY_DIR,
     show_default=True,
     help="Directory to extract pulled policies into.",
 )
@@ -588,7 +581,7 @@ def compliance_pull(target, output_dir):
     """
     Pull a compliance policy bundle from an OCI registry.
     """
-    pulled_to = pull_policies(target, output_dir=output_dir)
+    pulled_to = _gitlab_docs.pull_policies(target, output_dir=output_dir)
     logger.success(f"Pulled policies to {pulled_to}")
 
 

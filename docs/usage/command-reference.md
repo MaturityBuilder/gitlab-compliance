@@ -1,11 +1,9 @@
 # Command Reference
 Auto-generated reference for `gitlab-compliance` subcommands.
-- [compliance](compliance.md)
-- [compliance-doc](compliance-doc.md)
-- [compliance-pull](compliance-pull.md)
-- [compliance-push](compliance-push.md)
-- [dumps](dumps.md)
-- [generate](generate.md)
-- [generate-html](generate-html.md)
-- [get-attributes](get-attributes.md)
-- [release-notes](release-notes.md)
+- [compliance](reference/compliance.md)
+- [compliance-doc](reference/compliance-doc.md)
+- [compliance-pull](reference/compliance-pull.md)
+- [compliance-push](reference/compliance-push.md)
+- [generate](reference/generate.md)
+- [get-attributes](reference/get-attributes.md)
+- [release-notes](reference/release-notes.md)

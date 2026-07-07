@@ -38,6 +38,7 @@ oras = "0.2.42"
 idna = "3.15"
 requests = "2.34.2"
 behave = "^1.2.6"
+
 [tool.poetry.scripts]
 gitlab-docs = 'src.gitlab_compliance:gitlab_compliance'
 gitlab-compliance = 'src.gitlab_compliance:gitlab_compliance'

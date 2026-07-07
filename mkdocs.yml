@@ -43,10 +43,9 @@ nav:
   - Installation:
     - installation/index.md
     - Installing via pip: installation/pip.md
+    - Installing via Docker: installation/docker.md
   - Command Reference:
-
     - Compliance:
-
       - Command Reference: usage/reference/compliance.md
       - Compliance Docs: usage/reference/compliance-doc.md
       - Compliance Pull: usage/reference/compliance-pull.md
@@ -82,7 +81,6 @@ nav:
       - Template Extends: examples/template-extends.md
       - API Hardening: examples/api-hardening.md
       - OCI Policy Packs: examples/oci-policy-packs.md
-      - Include Versions: examples/advanced/include-versions.md
 
     - Gitlab Docs Output (generate command): examples/gitlab-docs-output-example.md
   - Using in CI/CD:
