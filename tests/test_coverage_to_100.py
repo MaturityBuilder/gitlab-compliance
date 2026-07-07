@@ -16,7 +16,6 @@ from src.compliance.behave_support import environment as behave_env
 from src.compliance.behave_support.steps import given_steps, then_steps, when_steps
 from src.compliance.console import render_compliance_console
 from src.compliance.metadata import (
-    PolicyCatalog,
     _parse_metadata_yaml,
     _slug,
     build_policy_catalog,
@@ -36,7 +35,7 @@ from src.compliance.policy_doc import _relative_path, render_policy_catalog
 from src.compliance.render import render_compliance_code_quality
 from src.compliance.runner import _build_behave_workspace, _scenario_message
 from src.compliance.stash import get_property, normalize_value
-from src.gitlab_docs import (
+from src.gitlab_compliance import (
     _resolve_compliance_output,
     _resolve_output_file,
     _resolve_policy_doc_output,
@@ -205,7 +204,9 @@ class TestMetadataAndModel:
 
 class TestOciRegistryFull:
     def test_normalize_oci_reference_adds_latest(self):
-        assert normalize_oci_reference("registry.example.com/org/policies").endswith(":latest")
+        assert normalize_oci_reference("registry.example.com/org/policies").endswith(
+            ":latest"
+        )
 
     def test_bundle_policies_dir_empty(self, tmp_path):
         empty = tmp_path / "empty"
@@ -253,7 +254,9 @@ class TestPipelineAndYaml:
     def test_parse_include_unknown_returns_none(self):
         assert _parse_include_entry({"remote": "https://x/ci.yml"}) is None
 
-    def test_collect_skips_non_dict_jobs_and_commonpath_value_error(self, tmp_path, monkeypatch):
+    def test_collect_skips_non_dict_jobs_and_commonpath_value_error(
+        self, tmp_path, monkeypatch
+    ):
         cfg = tmp_path / "ci.yml"
         cfg.write_text(
             "include:\n  - local: /etc/passwd\n"
@@ -268,13 +271,17 @@ class TestPipelineAndYaml:
 
     def test_index_yaml_skips_non_mapping_document(self, tmp_path):
         path = tmp_path / "multi.yml"
-        path.write_text("---\n'just-a-string'\n---\nbuild:\n  script: echo\n", encoding="utf-8")
+        path.write_text(
+            "---\n'just-a-string'\n---\nbuild:\n  script: echo\n", encoding="utf-8"
+        )
         index = index_yaml_file(str(path))
         assert "build" in index["jobs"]
 
     def test_scalar_pipeline_variable(self, tmp_path):
         cfg = tmp_path / "ci.yml"
-        cfg.write_text("variables:\n  PLAIN: hello\njob:\n  script: echo\n", encoding="utf-8")
+        cfg.write_text(
+            "variables:\n  PLAIN: hello\njob:\n  script: echo\n", encoding="utf-8"
+        )
         data = collect_pipeline_data(str(cfg))
         assert data["variables"][0]["key"] == "PLAIN"
 
@@ -346,7 +353,7 @@ class TestGitlabDocsHelpers:
         from src.compliance.models import ComplianceResult
 
         monkeypatch.setattr(
-            "src.gitlab_docs.run_compliance",
+            "src.gitlab_compliance.run_compliance",
             lambda **kwargs: ComplianceResult(
                 success=True,
                 exit_code=0,
@@ -399,7 +406,9 @@ class TestRenderRunnerConsole:
     def test_build_behave_workspace_relpath_escape(self, monkeypatch, tmp_path):
         policies = tmp_path / "policies"
         policies.mkdir()
-        (policies / "a.feature").write_text("Feature: A\n  Scenario: S\n    Given x\n", encoding="utf-8")
+        (policies / "a.feature").write_text(
+            "Feature: A\n  Scenario: S\n    Given x\n", encoding="utf-8"
+        )
 
         def fake_relpath(_path, _start):
             return "../outside"
@@ -486,9 +495,7 @@ class TestCommandReferenceAndRelease:
         assert result.exit_code == 0
 
     def test_print_release_preview_truncation(self, capsys):
-        commits = [
-            SimpleNamespace(title=f"c{i}", short_id=str(i)) for i in range(12)
-        ]
+        commits = [SimpleNamespace(title=f"c{i}", short_id=str(i)) for i in range(12)]
         print_release_preview(commits)
         out = capsys.readouterr().out
         assert "more commits" in out
@@ -562,7 +569,11 @@ class TestFinalCoverageLines:
         assert ann.custom == {}
 
     def test_policy_doc_location_and_custom_render(self, tmp_path):
-        from src.compliance.metadata import PolicyAnnotation, FeaturePolicies, PolicyCatalog
+        from src.compliance.metadata import (
+            FeaturePolicies,
+            PolicyAnnotation,
+            PolicyCatalog,
+        )
         from src.compliance.policy_doc import _location
 
         feature = tmp_path / "meta.feature"
@@ -598,7 +609,9 @@ class TestFinalCoverageLines:
                 )
             ]
         )
-        assert "- **Custom:**" in render_policy_catalog(catalog, str(tmp_path), "markdown")
+        assert "- **Custom:**" in render_policy_catalog(
+            catalog, str(tmp_path), "markdown"
+        )
         html = render_policy_catalog(catalog, str(tmp_path), "html")
         assert "severity" in html
 
@@ -651,7 +664,10 @@ class TestFinalCoverageLines:
         dumps_cli.callback()
 
     def test_pipeline_variable_dict_and_commonpath_error(self, tmp_path, monkeypatch):
-        from src.modules.pipeline_data import _parse_variable_entry, _resolve_local_include_path
+        from src.modules.pipeline_data import (
+            _parse_variable_entry,
+            _resolve_local_include_path,
+        )
 
         entry = _parse_variable_entry(
             "X",

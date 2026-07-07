@@ -9,8 +9,14 @@ from click.testing import CliRunner
 
 from src.compliance.behave_support import environment as behave_env
 from src.compliance.behave_support.steps import given_steps, then_steps, when_steps
+from src.compliance.oci_registry import (
+    pull_policies,
+    push_policies,
+    resolve_features_dir,
+)
+from src.compliance.render import _status_icon, render_compliance_report
 from src.compliance.runner import _assert_within_directory, _temporary_gitlab_env
-from src.gitlab_docs import compliance, generate_html
+from src.gitlab_compliance import compliance, generate_html
 from src.modules.command_reference import dumps
 from src.modules.logging import configure_logger
 from src.modules.pipeline_data import collect_pipeline_data
@@ -18,8 +24,6 @@ from src.modules.release import filter_commits_since_tag, sort_tags
 from src.modules.swagger_html import render_swagger_html
 from src.modules.yaml_lines import index_yaml_file
 from src.modules.yaml_md_table import generate_markdown_table
-from src.compliance.oci_registry import pull_policies, push_policies, resolve_features_dir
-from src.compliance.render import _status_icon, render_compliance_report
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SAMPLE = REPO_ROOT / "sample-files" / ".gitlab-ci.yml"
@@ -39,8 +43,8 @@ class TestGitlabDocsBranches:
         assert out.is_file()
 
     def test_compliance_echo_report_when_no_output_target(self, monkeypatch):
-        from src.compliance.models import ComplianceResult
         from src import gitlab_docs as gd
+        from src.compliance.models import ComplianceResult
 
         result = ComplianceResult(
             success=True,
@@ -78,7 +82,7 @@ class TestCommandReferenceErrors:
             dumps,
             [
                 "--baseModule",
-                "src.gitlab_docs",
+                "src.gitlab_compliance",
                 "--baseCommand",
                 "not_a_command",
                 "--docsPath",
@@ -199,15 +203,15 @@ class TestBehaveSupport:
         context = SimpleNamespace(
             compliance_entities={
                 "jobs": [
-                {
-                    "name": "build",
-                    "values": {
-                        "stage": "test",
-                        "image": "alpine",
-                        "extends": "template",
-                    },
-                }
-            ],
+                    {
+                        "name": "build",
+                        "values": {
+                            "stage": "test",
+                            "image": "alpine",
+                            "extends": "template",
+                        },
+                    }
+                ],
                 "includes": [{"include_type": "local", "name": "x"}],
                 "variables": [{"name": "VAR", "values": {"value": "1"}}],
                 "workflow_rules": [{"name": "rule-1", "values": {"when": "always"}}],
@@ -241,7 +245,9 @@ class TestBehaveSupport:
         then_steps.then_extends_includes(context, "template")
 
     def test_runner_env_and_path_guard(self, monkeypatch):
-        with _temporary_gitlab_env(token="t", gitlab_url="https://x", project="p", group="g"):
+        with _temporary_gitlab_env(
+            token="t", gitlab_url="https://x", project="p", group="g"
+        ):
             assert os.environ.get("GITLAB_TOKEN") == "t"
         with pytest.raises(ValueError):
             _assert_within_directory("/tmp/a", "/tmp/b/outside.feature")
@@ -256,23 +262,30 @@ class TestMisc:
         configure_logger("INFO", output=stream)
 
     def test_release_sort_and_filter(self):
-        tags = sort_tags([SimpleNamespace(name="v2.0.0"), SimpleNamespace(name="not-semver")])
+        tags = sort_tags(
+            [SimpleNamespace(name="v2.0.0"), SimpleNamespace(name="not-semver")]
+        )
         assert tags
         commits = filter_commits_since_tag([SimpleNamespace(id="1")], None)
 
     def test_render_status_icon_unknown(self):
         assert _status_icon("unknown") == "UNKNOWN"
-        assert render_compliance_report(
-            __import__("src.compliance.models", fromlist=["ComplianceResult"]).ComplianceResult(
-                success=True,
-                exit_code=0,
-                scenario_results=[],
-                scenarios=0,
-                passed=0,
-                failed=0,
-                skipped=0,
-            ),
-            ".gitlab-ci.yml",
-            "policies",
-            "unknown-format",
-        ) is None
+        assert (
+            render_compliance_report(
+                __import__(
+                    "src.compliance.models", fromlist=["ComplianceResult"]
+                ).ComplianceResult(
+                    success=True,
+                    exit_code=0,
+                    scenario_results=[],
+                    scenarios=0,
+                    passed=0,
+                    failed=0,
+                    skipped=0,
+                ),
+                ".gitlab-ci.yml",
+                "policies",
+                "unknown-format",
+            )
+            is None
+        )

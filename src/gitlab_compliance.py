@@ -10,14 +10,24 @@ from datetime import datetime
 
 import click
 
-import src.gitlab_docs as _gitlab_docs
+import src.gitlab_compliance as _gitlab_docs
 import src.modules.doc_controller as md_writer
 import src.properties.includes as includes
 import src.properties.inputs as inputs
 import src.properties.jobs as jobs
 import src.properties.variables as variables
 import src.properties.workflows as workflows
+from src.compliance.metadata import build_policy_catalog
+from src.compliance.oci_registry import (
+    DEFAULT_POLICY_DIR,
+    is_oci_reference,
+    pull_policies,
+    push_policies,
+    resolve_features_dir,
+)
 from src.compliance.policy_doc import render_policy_catalog
+from src.compliance.render import render_compliance_report
+from src.compliance.runner import run_compliance
 from src.modules.command_reference import dumps
 from src.modules.constants import (
     COMPLIANCE_DEFAULT_OUTPUT_FILES,
@@ -37,6 +47,40 @@ from src.modules.pipeline_data import collect_pipeline_data
 from src.modules.release import release_notes
 from src.modules.swagger_html import render_swagger_html
 from src.properties.extract_job_attribute import get_job_attribute
+
+__all__ = [
+    "DEFAULT_POLICY_DIR",
+    "build_policy_catalog",
+    "compliance",
+    "compliance_doc",
+    "compliance_pull",
+    "compliance_push",
+    "dumps",
+    "generate",
+    "generate_html",
+    "get_attributes",
+    "gitlab_compliance",
+    "gitlab_docs",
+    "is_oci_reference",
+    "pull_policies",
+    "push_policies",
+    "release_notes",
+    "render_compliance_report",
+    "resolve_features_dir",
+    "run_compliance",
+]
+
+
+def __getattr__(name: str):
+    import src.gitlab_compliance as mod
+
+    if name == "gitlab_docs":
+        return mod.gitlab_compliance
+    return getattr(mod, name)
+
+
+def __dir__():
+    return sorted(set(__all__) | set(globals().keys()))
 
 
 def _generate_markdown(
