@@ -1,5 +1,6 @@
 [project]
 name = "gitlab-compliance"
+version = "1.0.6"
 dynamic = [ "readme" ]
 [project.urls]
 "Home Page" = "https://maturitybuilder.github.io/gitlab-compliance/"
@@ -10,7 +11,6 @@ Repository = "https://github.com/MaturityBuilder/gitlab-compliance"
 
 [tool.poetry]
 name = "gitlab-compliance"
-version = "1.0.6"
 description = "Gitlab automatically generates gitlab documentation from yaml files"
 authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
 readme = ["docs/index.md"]
