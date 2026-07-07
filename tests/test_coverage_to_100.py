@@ -505,3 +505,177 @@ class TestCommandReferenceAndRelease:
                 ["--token", "tok", "--projects", "g/p"],
             )
         assert result.exit_code == 1
+
+    def test_release_notes_partial_failure_exits_one(self):
+        from datetime import datetime, timezone
+
+        runner = CliRunner()
+        ok_project = SimpleNamespace(web_url="https://example.com/p")
+
+        def ok(_gl, project_id, since_tag=None):
+            return (
+                ok_project,
+                "v1.0.0",
+                datetime(2024, 1, 1, tzinfo=timezone.utc),
+                [],
+            )
+
+        def fail(_gl, project_id, since_tag=None):
+            raise RuntimeError("broken")
+
+        with patch("src.modules.release.gitlab.Gitlab"):
+            with patch(
+                "src.modules.release.get_commits_since_last_tag",
+                side_effect=[ok, fail],
+            ):
+                result = runner.invoke(
+                    release_notes,
+                    ["--token", "tok", "--projects", "g/ok", "--projects", "g/bad"],
+                )
+        assert result.exit_code == 1
+
+
+class TestFinalCoverageLines:
+    def test_when_apply_filter_assigns_stash(self):
+        entity = {"name": "build", "values": {"stage": "test"}}
+        context = SimpleNamespace(
+            stash=[entity],
+            step_mode=None,
+            scenario_skipped=False,
+            scenario=SimpleNamespace(skip=MagicMock()),
+        )
+        when_steps.when_it_has(context, "stage")
+        assert context.stash == [entity]
+
+    def test_metadata_custom_not_dict(self):
+        from src.compliance.metadata import _annotation_from_raw
+
+        ann = _annotation_from_raw(
+            {"custom": "not-a-dict"},
+            scope="feature",
+            feature_file="/f.feature",
+            line=1,
+            feature_name="F",
+            default_title="F",
+            default_id="ID",
+        )
+        assert ann.custom == {}
+
+    def test_policy_doc_location_and_custom_render(self, tmp_path):
+        from src.compliance.metadata import PolicyAnnotation, FeaturePolicies, PolicyCatalog
+        from src.compliance.policy_doc import _location
+
+        feature = tmp_path / "meta.feature"
+        feature.write_text(
+            "# METADATA\n# title: T\n# custom:\n#   severity: high\n"
+            "Feature: Meta\n  Scenario: S\n    Given x\n",
+            encoding="utf-8",
+        )
+        catalog = build_policy_catalog(str(tmp_path))
+        assert "- **Custom:**" in render_policy_catalog(catalog, str(tmp_path), "markdown")
+        html = render_policy_catalog(catalog, str(tmp_path), "html")
+        assert "severity" in html
+
+        bare = PolicyCatalog(
+            features=[
+                FeaturePolicies(
+                    feature_file=str(feature),
+                    feature_name="Meta",
+                    annotation=PolicyAnnotation(
+                        policy_id="P",
+                        title="T",
+                        line=0,
+                        feature_file=str(feature),
+                        feature_name="Meta",
+                    ),
+                    scenarios=[],
+                )
+            ]
+        )
+        assert _location(str(tmp_path), bare.features[0].annotation) == os.path.relpath(
+            str(feature), str(tmp_path)
+        )
+
+    def test_render_failed_description_fallback(self):
+        from src.compliance.render import _description_for_scenario
+
+        scenario = ScenarioResult(
+            feature="f.feature",
+            name="N",
+            status="failed",
+            message="",
+            description="",
+            title="Title",
+        )
+        assert "Compliance check failed" in _description_for_scenario(scenario)
+
+    def test_gitlab_docs_resolve_helpers_and_legacy_notice(self):
+        import click
+
+        from src import gitlab_docs as gd
+
+        assert gd._resolve_compliance_output("console", None) is None
+        assert gd._resolve_policy_doc_output("unknown", None) is None
+        ctx = click.Context(gd.gitlab_compliance, info_name="gitlab-docs")
+        gd.gitlab_compliance._emit_legacy_notice(ctx)
+
+    def test_command_reference_cli_callback(self):
+        from src.modules.command_reference import cli as dumps_cli
+
+        dumps_cli()
+
+    def test_pipeline_variable_dict_and_commonpath_error(self, tmp_path, monkeypatch):
+        from src.modules.pipeline_data import _parse_variable_entry, _resolve_local_include_path
+
+        entry = _parse_variable_entry(
+            "X",
+            {"description": "d", "options": ["a"], "expand": False},
+        )
+        assert entry["description"] == "d"
+
+        cfg = tmp_path / "ci.yml"
+        cfg.write_text(
+            "include:\n  - local: child.yml\n"
+            "build:\n  needs: [prep]\n  script: echo\n",
+            encoding="utf-8",
+        )
+        collect_pipeline_data(str(cfg), detailed=True)
+
+        def boom(_paths):
+            raise ValueError("no common path")
+
+        monkeypatch.setattr("src.modules.pipeline_data.os.path.commonpath", boom)
+        assert _resolve_local_include_path(str(cfg), "child.yml") is None
+
+    def test_swagger_rules_table_no_headers(self):
+        assert _render_rules_table(["not-a-dict-rule"]) == ""
+
+    def test_document_inputs_scalar_and_missing_expand(self, tmp_path):
+        cfg = tmp_path / "ci.yml"
+        cfg.write_text(
+            "spec:\n  inputs:\n"
+            "    PLAIN: hello\n"
+            "    NO_EXPAND:\n      default: x\n      description: d\n      options: [a]\n",
+            encoding="utf-8",
+        )
+        document_inputs(str(_markers_file(tmp_path)), str(cfg), DISABLE_TITLE=True)
+
+    def test_get_jobs_artifacts_and_rules_table(self, tmp_path):
+        cfg = tmp_path / "ci.yml"
+        cfg.write_text(
+            "build:\n"
+            "  stage: test\n"
+            "  script: echo\n"
+            "  rules:\n"
+            "    - when: always\n"
+            "  artifacts:\n"
+            "    paths:\n"
+            "      - dist/\n",
+            encoding="utf-8",
+        )
+        get_jobs(
+            str(_markers_file(tmp_path)),
+            str(cfg),
+            detailed=True,
+            experimental=True,
+        )
