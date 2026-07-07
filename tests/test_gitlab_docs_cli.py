@@ -3,16 +3,16 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from src.gitlab_docs import (
-    compliance,
-    compliance_doc,
+from src.gitlab_compliance import (
+    check,
     generate,
     get_attributes,
     gitlab_compliance,
+    policies_doc,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SAMPLE_PIPELINE = REPO_ROOT / "sample-files" / ".gitlab-ci.yml"
+SAMPLE_PIPELINE = REPO_ROOT / "examples/sample-files" / ".gitlab-ci.yml"
 PASSING_POLICIES = REPO_ROOT / "tests" / "compliance_policies" / "passing"
 FAILING_POLICIES = REPO_ROOT / "tests" / "compliance_policies" / "failing"
 ANNOTATED_POLICIES = REPO_ROOT / "tests" / "compliance_policies" / "annotated"
@@ -49,7 +49,7 @@ class TestGenerateCli:
         )
         assert result.exit_code == 0, result.output
         content = output_file.read_text(encoding="utf-8")
-        assert "gitlab-docs-opening-auto-generated" in content or len(content) > 0
+        assert "gitlab-compliance-opening-auto-generated" in content or len(content) > 0
 
     def test_html_format_writes_file(self, tmp_path):
         output_file = tmp_path / "docs.html"
@@ -128,7 +128,7 @@ class TestComplianceCli:
     def test_passing_policies_exit_zero(self):
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 str(PASSING_POLICIES),
@@ -141,7 +141,7 @@ class TestComplianceCli:
     def test_failing_policies_exit_nonzero(self):
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 str(FAILING_POLICIES),
@@ -155,7 +155,7 @@ class TestComplianceCli:
         report_path = tmp_path / "gl-code-quality-report.json"
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 str(FAILING_POLICIES),
@@ -176,7 +176,7 @@ class TestComplianceCli:
     def test_dry_run_lists_scenarios_without_failing(self):
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 str(FAILING_POLICIES),
@@ -191,7 +191,7 @@ class TestComplianceCli:
         report_path = tmp_path / "report.md"
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 str(FAILING_POLICIES),
@@ -210,7 +210,7 @@ class TestComplianceCli:
         api_missing = REPO_ROOT / "tests" / "compliance_policies" / "api-missing"
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 str(api_missing),
@@ -232,7 +232,8 @@ class TestComplianceOciCli:
         result = runner.invoke(
             gitlab_compliance,
             [
-                "compliance-push",
+                "policies",
+                "push",
                 "--features",
                 str(PASSING_POLICIES),
                 "registry.example.com/org/policies:1.0.0",
@@ -252,7 +253,8 @@ class TestComplianceOciCli:
         result = runner.invoke(
             gitlab_compliance,
             [
-                "compliance-pull",
+                "policies",
+                "pull",
                 "registry.example.com/org/policies:1.0.0",
                 "--output-dir",
                 str(out_dir),
@@ -266,7 +268,7 @@ class TestComplianceDocCli:
         output_path = tmp_path / "catalog.md"
         runner = CliRunner()
         result = runner.invoke(
-            compliance_doc,
+            policies_doc,
             [
                 "--features",
                 str(ANNOTATED_POLICIES),

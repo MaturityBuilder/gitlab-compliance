@@ -106,8 +106,8 @@ def step_file_contains_marked_block(context):
     with open(context.file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    marker_start = "[comment]: <> (gitlab-docs-opening-auto-generated)"
-    marker_end = "[comment]: <> (gitlab-docs-closing-auto-generated)"
+    marker_start = "[comment]: <> (gitlab-compliance-opening-auto-generated)"
+    marker_end = "[comment]: <> (gitlab-compliance-closing-auto-generated)"
 
     assert marker_start in content, "File should contain opening marker"
     assert marker_end in content, "File should contain closing marker"
@@ -151,8 +151,8 @@ def step_file_properly_formatted(context):
     assert len(lines) > 1, "File should have multiple lines"
 
     # Should contain the markers
-    marker_start = "[comment]: <> (gitlab-docs-opening-auto-generated)"
-    marker_end = "[comment]: <> (gitlab-docs-closing-auto-generated)"
+    marker_start = "[comment]: <> (gitlab-compliance-opening-auto-generated)"
+    marker_end = "[comment]: <> (gitlab-compliance-closing-auto-generated)"
     assert marker_start in content, "Should contain opening marker"
     assert marker_end in content, "Should contain closing marker"
 

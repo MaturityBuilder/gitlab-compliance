@@ -15,7 +15,7 @@ from src.compliance.api_config import require_api_connection
 from src.compliance.behave_support import environment as behave_env
 from src.compliance.behave_support.steps import given_steps, then_steps, when_steps
 from src.compliance.console import render_compliance_console
-from src.compliance.metadata import collect_policy_index, build_policy_catalog
+from src.compliance.metadata import build_policy_catalog, collect_policy_index
 from src.compliance.model import load_pipeline_entities, load_yaml_entities
 from src.compliance.models import ComplianceResult, ScenarioResult
 from src.compliance.oci_registry import is_oci_reference, push_policies
@@ -28,12 +28,17 @@ from src.compliance.render import (
 )
 from src.compliance.runner import _temporary_gitlab_env, run_compliance
 from src.compliance.stash import assert_all, entity_has_property, format_entity_ref
-from src.gitlab_docs import (
+from src.gitlab_compliance import (
     _resolve_policies_dir,
-    compliance_doc,
     gitlab_compliance,
+    policies_doc,
 )
 from src.modules.command_reference import _param_metadata, dumps
+from src.modules.doc_controller import (
+    add_between_markers,
+    remove_duplicate_headings,
+    update_marked_block,
+)
 from src.modules.pipeline_data import collect_pipeline_data
 from src.modules.release import (
     build_markdown,
@@ -44,7 +49,6 @@ from src.modules.release import (
 from src.modules.swagger_html import render_swagger_html
 from src.modules.yaml_lines import index_yaml_file
 from src.modules.yaml_md_table import generate_markdown_table
-from src.modules.doc_controller import add_between_markers, remove_duplicate_headings, update_marked_block
 from src.properties.extract_job_attribute import get_job_attribute
 from src.properties.includes import document_includes
 from src.properties.inputs import document_inputs
@@ -53,19 +57,35 @@ from src.properties.variables import document_variables
 from src.properties.workflows import document_workflows
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SAMPLE = REPO_ROOT / "sample-files" / ".gitlab-ci.yml"
+SAMPLE = REPO_ROOT / "examples/sample-files" / ".gitlab-ci.yml"
 PASSING = REPO_ROOT / "tests" / "compliance_policies" / "passing"
 SKIP_POLICIES = REPO_ROOT / "tests" / "compliance_policies" / "skip"
 ANNOTATED = REPO_ROOT / "tests" / "compliance_policies" / "annotated"
 
-MARKER_START = "[comment]: <> (gitlab-docs-opening-auto-generated)"
-MARKER_END = "[comment]: <> (gitlab-docs-closing-auto-generated)"
+MARKER_START = "[comment]: <> (gitlab-compliance-opening-auto-generated)"
+MARKER_END = "[comment]: <> (gitlab-compliance-closing-auto-generated)"
 
 
 def _markers_file(tmp_path):
     out = tmp_path / "out.md"
     out.write_text(f"{MARKER_START}\n{MARKER_END}\n", encoding="utf-8")
     return out
+
+
+_GITLAB_ENV_KEYS = (
+    "GITLAB_TOKEN",
+    "CI_JOB_TOKEN",
+    "CI_PROJECT_PATH",
+    "GITLAB_GROUP_PATH",
+    "CI_SERVER_URL",
+    "GITLAB_URL",
+)
+
+
+@pytest.fixture
+def clear_gitlab_env(monkeypatch):
+    for key in _GITLAB_ENV_KEYS:
+        monkeypatch.delenv(key, raising=False)
 
 
 class TestYamlMdTableBranches:
@@ -160,7 +180,9 @@ class TestPropertiesExtra:
         out = _markers_file(tmp_path)
         document_inputs(str(out), str(cfg), DISABLE_TITLE=False)
 
-    def test_document_workflows_dict_rules_and_fallback_table(self, tmp_path, monkeypatch):
+    def test_document_workflows_dict_rules_and_fallback_table(
+        self, tmp_path, monkeypatch
+    ):
         cfg = tmp_path / "ci.yml"
         cfg.write_text(
             "workflow:\n  rules:\n    - if: $CI\n      when: always\n",
@@ -303,8 +325,7 @@ class TestPipelineAndSwagger:
     def test_collect_pipeline_missing_local_include(self, tmp_path):
         cfg = tmp_path / ".gitlab-ci.yml"
         cfg.write_text(
-            "include:\n  - local: missing.yml\n"
-            "root:\n  script: echo\n",
+            "include:\n  - local: missing.yml\n" "root:\n  script: echo\n",
             encoding="utf-8",
         )
         data = collect_pipeline_data(str(cfg), detailed=True, include_nested=True)
@@ -321,7 +342,7 @@ class TestPipelineAndSwagger:
             raise RuntimeError("semver unavailable")
 
         monkeypatch.setattr(
-            "src.modules.pipeline_data.semver.Version.is_valid",
+            "semver.Version.is_valid",
             boom,
         )
         data = collect_pipeline_data(str(cfg))
@@ -342,8 +363,7 @@ class TestPipelineAndSwagger:
     def test_index_yaml_workflow_dict_form(self, tmp_path):
         cfg = tmp_path / "ci.yml"
         cfg.write_text(
-            "workflow:\n  rules:\n    - when: always\n"
-            "build:\n  script: echo\n",
+            "workflow:\n  rules:\n    - when: always\n" "build:\n  script: echo\n",
             encoding="utf-8",
         )
         index = index_yaml_file(str(cfg))
@@ -409,7 +429,7 @@ class TestComplianceRenderAndConsole:
                     feature="other.feature",
                     name="No id",
                     status="failed",
-                    message="(sample-files/.gitlab-ci.yml:1)",
+                    message="(examples/sample-files/.gitlab-ci.yml:1)",
                     severity="weird-severity",
                 ),
             ],
@@ -431,21 +451,15 @@ class TestComplianceRenderAndConsole:
         assert "blocked" not in comment.lower()
 
     def test_html_success_path(self):
-        html = render_compliance_html(
-            self._mixed_result(), str(SAMPLE), str(PASSING)
-        )
+        html = render_compliance_html(self._mixed_result(), str(SAMPLE), str(PASSING))
         assert "Compliance Passed" in html
 
     def test_codequality_skipped_and_unknown_severity(self):
-        payload = render_compliance_code_quality(
-            self._mixed_result(), str(SAMPLE)
-        )
+        payload = render_compliance_code_quality(self._mixed_result(), str(SAMPLE))
         assert "skipped" in payload.lower() or "major" in payload
 
     def test_console_success_with_skipped(self, capsys):
-        render_compliance_console(
-            self._mixed_result(), str(SAMPLE), str(PASSING)
-        )
+        render_compliance_console(self._mixed_result(), str(SAMPLE), str(PASSING))
         assert capsys.readouterr().out
 
 
@@ -500,6 +514,7 @@ class TestModelMetadataPolicy:
         assert "<html" in html.lower()
 
 
+@pytest.mark.usefixtures("clear_gitlab_env")
 class TestGitlabDocsCliExtra:
     def test_legacy_brand_notice_on_invoke(self):
         runner = CliRunner()
@@ -511,26 +526,27 @@ class TestGitlabDocsCliExtra:
         assert result.exit_code == 0
         assert "deprecated" in result.output.lower()
 
-    def test_compliance_doc_stdout(self, monkeypatch):
+    def test_policies_doc_stdout(self, monkeypatch):
         monkeypatch.setattr(
-            "src.gitlab_docs._resolve_policy_doc_output",
+            "src.gitlab_compliance._resolve_policy_doc_output",
             lambda _fmt, _out: None,
         )
         runner = CliRunner()
         result = runner.invoke(
-            compliance_doc,
+            policies_doc,
             ["--features", str(ANNOTATED), "--format", "markdown"],
         )
         assert result.exit_code == 0
         assert "Catalog" in result.output or "catalog" in result.output.lower()
 
-    def test_compliance_push_without_digest(self, monkeypatch):
+    def test_policies_push_without_digest(self, monkeypatch):
         monkeypatch.setattr("src.gitlab_docs.push_policies", lambda _f, _t: "")
         runner = CliRunner()
         result = runner.invoke(
             gitlab_compliance,
             [
-                "compliance-push",
+                "policies",
+                "push",
                 "--features",
                 str(PASSING),
                 "registry.example.com/p:1",
@@ -566,7 +582,7 @@ class TestCommandReferenceAndOci:
             dumps,
             [
                 "--baseModule",
-                "src.gitlab_docs",
+                "src.gitlab_compliance",
                 "--baseCommand",
                 "gitlab_compliance",
                 "--docsPath",
@@ -666,7 +682,9 @@ class TestBehaveSupportExtra:
         given_steps.given_project_setting(context, "jobs_enabled")
         given_steps.given_any_project_ci_variable(context)
         monkeypatch.setenv("GITLAB_GROUP_PATH", "grp")
-        context.compliance_entities["group_settings"] = [{"name": "shared_runners_enabled"}]
+        context.compliance_entities["group_settings"] = [
+            {"name": "shared_runners_enabled"}
+        ]
         given_steps.given_any_group_setting(context)
 
     def test_when_filter_skips_scenario(self):
@@ -689,11 +707,14 @@ class TestBehaveSupportExtra:
 
     def test_temporary_gitlab_env_restores_previous(self, monkeypatch):
         monkeypatch.setenv("GITLAB_TOKEN", "original")
-        with _temporary_gitlab_env(token="temporary", gitlab_url=None, project=None, group=None):
+        with _temporary_gitlab_env(
+            token="temporary", gitlab_url=None, project=None, group=None
+        ):
             assert os.environ["GITLAB_TOKEN"] == "temporary"
         assert os.environ["GITLAB_TOKEN"] == "original"
 
 
+@pytest.mark.usefixtures("clear_gitlab_env")
 class TestRunnerSkipPolicy:
     def test_run_compliance_skip_policies(self):
         result = run_compliance(

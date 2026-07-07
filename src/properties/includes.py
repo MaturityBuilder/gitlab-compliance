@@ -1,10 +1,12 @@
 import os
+
 import semver
 import yaml
+
 import src.modules.common as common
 import src.properties.jobs as jobs
-from src.modules.logging import logger
 from src.modules.doc_controller import add_between_markers
+from src.modules.logging import logger
 
 
 def document_includes(
@@ -26,9 +28,17 @@ def document_includes(
             if not includes:
                 logger.trace(f"No 'include' section found in {GLDOCS_CONFIG_FILE}")
                 return
-            includes_table = common.table_design(field_names = [
-                "Include Type", "Project", "Version", "Valid Version", "File", "Variables", "Rules"
-            ])
+            includes_table = common.table_design(
+                field_names=[
+                    "Include Type",
+                    "Project",
+                    "Version",
+                    "Valid Version",
+                    "File",
+                    "Variables",
+                    "Rules",
+                ]
+            )
 
             for i in includes:
                 try:
@@ -45,15 +55,28 @@ def document_includes(
                             version = i.get("ref", "")
                             file = i.get("file", "")
                             valid_version = (
-                                "&#9989;" if check_include_version_is_sema_version(version, file, value)
+                                "&#9989;"
+                                if check_include_version_is_sema_version(
+                                    version, file, value
+                                )
                                 else "&#x274c;"
                             )
-                            inc_vars = common.format_dict_summary(i.get("variables", ""))
+                            inc_vars = common.format_dict_summary(
+                                i.get("variables", "")
+                            )
                             inc_rules = common.format_rules_summary(i.get("rules", ""))
 
-                            includes_table.add_row([
-                                include_type, value, version, valid_version, file, inc_vars, inc_rules
-                            ])
+                            includes_table.add_row(
+                                [
+                                    include_type,
+                                    value,
+                                    version,
+                                    valid_version,
+                                    file,
+                                    inc_vars,
+                                    inc_rules,
+                                ]
+                            )
 
                         elif include_type == "component":
                             try:
@@ -63,24 +86,45 @@ def document_includes(
                                 continue
 
                             valid_version = (
-                                "&#9989;" if check_include_version_is_sema_version(version, "component", value)
+                                "&#9989;"
+                                if check_include_version_is_sema_version(
+                                    version, "component", value
+                                )
                                 else "&#x274c;"
                             )
                             inc_vars = common.format_dict_summary(i.get("inputs", ""))
                             inc_rules = common.format_rules_summary(i.get("rules", ""))
 
-                            includes_table.add_row([
-                                include_type, value, version, valid_version, "", inc_vars, inc_rules
-                            ])
+                            includes_table.add_row(
+                                [
+                                    include_type,
+                                    value,
+                                    version,
+                                    valid_version,
+                                    "",
+                                    inc_vars,
+                                    inc_rules,
+                                ]
+                            )
 
                         elif include_type == "local":
                             version = "n/a"
-                            inc_vars = common.format_dict_summary(i.get("variables", ""))
+                            inc_vars = common.format_dict_summary(
+                                i.get("variables", "")
+                            )
                             inc_rules = common.format_rules_summary(i.get("rules", ""))
 
-                            includes_table.add_row([
-                                include_type, value, version, "&#9989;", "", inc_vars, inc_rules
-                            ])
+                            includes_table.add_row(
+                                [
+                                    include_type,
+                                    value,
+                                    version,
+                                    "&#9989;",
+                                    "",
+                                    inc_vars,
+                                    inc_rules,
+                                ]
+                            )
 
                             # Recursively document nested includes
                             sub_config = value.lstrip("/")
@@ -98,7 +142,9 @@ def document_includes(
                                     DISABLE_TYPE_HEADING=DISABLE_TYPE_HEADING,
                                 )
                             except Exception as e:
-                                logger.error(f"Error processing nested local include {value}: {e}")
+                                logger.error(
+                                    f"Error processing nested local include {value}: {e}"
+                                )
 
                         else:
                             logger.warning(f"Unknown include type: {include_type}")
@@ -124,8 +170,7 @@ def check_include_version_is_sema_version(version, file, include):
         is_valid = semver.Version.is_valid(version)
         if not is_valid:
             logger.warning(
-                "Invalid SemVer: %s | File: %s | Include: %s",
-                version, file, include
+                "Invalid SemVer: %s | File: %s | Include: %s", version, file, include
             )
         return is_valid
     except Exception as e:

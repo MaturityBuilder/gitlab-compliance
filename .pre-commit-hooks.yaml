@@ -1,9 +1,9 @@
-- id: gitlab-docs
-  name: gitlab-docs
+- id: gitlab-compliance
+  name: gitlab-compliance
   description: Automatically update GitLab pipeline documentation in README.md
-  entry: gitlab-docs
+  entry: gitlab-compliance
   additional_dependencies:
-    - gitlab_docs
+    - gitlab-compliance
 
   language_version: python3.12.11
   pass_filenames: false

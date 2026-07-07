@@ -1,8 +1,8 @@
-# Gitlab Docs
+# Gitlab Compliance
 
 ## Overview
 
-GitLab Docs is a portable Python CLI for documenting GitLab CI/CD pipelines and enforcing configuration policies. It generates Markdown or HTML documentation from `.gitlab-ci.yml`, and includes a Gherkin-based compliance engine (similar to [terraform-compliance](https://github.com/terraform-compliance/cli) and [Conftest](https://www.conftest.dev/)) for YAML and API-backed checks.
+GitLab Compliance is a CLI composing BDD style tests for verifying and patching gitlab ci yaml. This includes updating and pinning images and includes and writing policies to ensure gitlab pipelines are written inline with organisation policies. In addition it can be used for generating pipeline documentation in markdown and html format in a swagger like format. The Gherkin-based compliance engine uses a similar concept to [terraform-compliance](https://github.com/terraform-compliance/cli).
 
 ## Key features
 
@@ -20,27 +20,27 @@ GitLab Docs is a portable Python CLI for documenting GitLab CI/CD pipelines and 
 
 ### Python
 
-Install the package (PyPI name remains `gitlab-docs` for now). Two equivalent CLI commands are provided:
+Install the package (PyPI name remains `gitlab-compliance` for now). Two equivalent CLI commands are provided:
 
 | Command | Status |
 |---------|--------|
 | `gitlab-compliance` | **Preferred** — same tool, compliance-first naming |
-| `gitlab-docs` | **Deprecated** — will be removed in a future release |
+| `gitlab-compliance` | **Deprecated** — will be removed in a future release |
 
 ```bash
-pip3 install --user gitlab-docs
+pip3 install --user gitlab-compliance
 gitlab-compliance --help
-# or: gitlab-docs --help  (shows a deprecation notice)
+# or: gitlab-compliance --help  (shows a deprecation notice)
 ```
 
 ### Docker
 
 ```bash
-docker run -v ${PWD}:/gitlab-docs charlieasmith93/gitlab-docs
+docker run -v ${PWD}:/gitlab-compliance maturitybuilder/gitlab-compliance
 ```
 
 ```bash
-podman run -it -v $(PWD):/gitlab-docs charlieasmith93/gitlab-docs
+podman run -it -v $(PWD):/gitlab-compliance maturitybuilder/gitlab-compliance
 ```
 
 ## Pipeline documentation
@@ -49,22 +49,22 @@ Generate documentation from your pipeline file:
 
 ```bash
 # Markdown (default) into README markers
-gitlab-docs generate -i .gitlab-ci.yml -o README.md
+gitlab-compliance generate -i .gitlab-ci.yml -o README.md
 
 # Swagger-style HTML
-gitlab-docs generate -i .gitlab-ci.yml --format html -o GITLAB-DOCS.html
+gitlab-compliance generate -i .gitlab-ci.yml --format html -o gitlab-compliance.html
 
 # Preview without writing files
-gitlab-docs generate -i .gitlab-ci.yml --dry-mode
+gitlab-compliance generate -i .gitlab-ci.yml --dry-mode
 
 # Include workflow rules and job rules
-gitlab-docs generate -i .gitlab-ci.yml --detailed -o README.md
+gitlab-compliance generate -i .gitlab-ci.yml --detailed -o README.md
 ```
 
 Document specific attributes only:
 
 ```bash
-gitlab-docs get-attributes -i .gitlab-ci.yml -a stage,image,rules -o JOBS.md
+gitlab-compliance get-attributes -i .gitlab-ci.yml -a stage,image,rules -o JOBS.md
 ```
 
 ## Compliance policies
@@ -73,19 +73,19 @@ Run policies from a local directory or OCI registry against your pipeline:
 
 ```bash
 # YAML-only checks (offline)
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 
 # API-backed checks (project settings, CI variables)
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --project $CI_PROJECT_PATH
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project $CI_PROJECT_PATH
 
 # Strict mode: fail when API connection info is missing (default: skip)
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --strict
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --strict
 
 # Reports
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format markdown -o COMPLIANCE-REPORT.md
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format html -o COMPLIANCE-REPORT.html
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format mr-comment -o COMPLIANCE-MR-COMMENT.md
-gitlab-docs compliance -f policies/ -p .gitlab-ci.yml --format codequality -o gl-code-quality-report.json
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format markdown -o COMPLIANCE-REPORT.md
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format html -o COMPLIANCE-REPORT.html
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format mr-comment -o COMPLIANCE-MR-COMMENT.md
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format codequality -o gl-code-quality-report.json
 ```
 
 ### Policy metadata (Conftest-style)
@@ -108,7 +108,7 @@ Annotate `.feature` files with `# METADATA` blocks for IDs, titles, and descript
 Generate a searchable policy catalog:
 
 ```bash
-gitlab-docs compliance-doc -f policies/ -o COMPLIANCE-POLICIES.md
+gitlab-compliance policies doc -f policies/ -o COMPLIANCE-POLICIES.md
 ```
 
 ### OCI policy registries
@@ -118,22 +118,22 @@ Publish and consume policy packs from any OCI-compliant registry (GitLab CR, GHC
 ```bash
 docker login registry.example.com
 
-gitlab-docs compliance-push -f policies/ registry.example.com/org/gitlab-ci-policies:1.0.0
-gitlab-docs compliance-pull oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/
-gitlab-docs compliance -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update
+gitlab-compliance policies push -f policies/ registry.example.com/org/gitlab-ci-policies:1.0.0
+gitlab-compliance policies pull oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/
+gitlab-compliance check -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update
 ```
 
 ### Example policy packs
 
-See [example-policies/security/](example-policies/security/) and [docs/compliance-security-examples.md](docs/compliance-security-examples.md) for pinning images, components, fragments, services, rules, templates, and API hardening.
+See [examples/example-policies/security/](examples/example-policies/security/) and [docs/compliance-security-examples.md](docs/compliance-security-examples.md) for pinning images, components, fragments, services, rules, templates, and API hardening.
 
 ## Command reference
 
 Full auto-generated reference: [docs/command-reference.md](docs/command-reference.md).
 
-### `gitlab-compliance` (legacy: `gitlab-docs`)
+### `gitlab-compliance` (legacy: `gitlab-compliance`)
 
-Top-level CLI group. **`gitlab-compliance`** is the preferred command name; **`gitlab-docs`** is deprecated and will be removed in a future release.
+Top-level CLI group. **`gitlab-compliance`** is the preferred command name; **`gitlab-compliance`** is deprecated and will be removed in a future release.
 
 ```bash
 gitlab-compliance --help
@@ -143,17 +143,17 @@ gitlab-compliance --help
 |---------|-------------|
 | `generate` | Build Markdown or HTML documentation from pipeline YAML |
 | `get-attributes` | Document selected YAML attributes as a table |
-| `compliance` | Run Gherkin compliance policies |
-| `compliance-doc` | Generate policy catalog from `# METADATA` annotations |
-| `compliance-push` | Push policy bundle to an OCI registry |
-| `compliance-pull` | Pull policy bundle from an OCI registry |
+| `check` | Run Gherkin compliance policies |
+| `policies doc` | Generate policy catalog from `# METADATA` annotations |
+| `policies push` | Push policy bundle to an OCI registry |
+| `policies pull` | Pull policy bundle from an OCI registry |
 | `release-notes` | Generate release notes from GitLab project commits |
 | `generate-html` | Deprecated — use `generate --format html` |
 
 ### `generate`
 
 ```bash
-gitlab-docs generate [OPTIONS]
+gitlab-compliance generate [OPTIONS]
 ```
 
 | Option | Description |
@@ -167,7 +167,7 @@ gitlab-docs generate [OPTIONS]
 ### `get-attributes`
 
 ```bash
-gitlab-docs get-attributes [OPTIONS]
+gitlab-compliance get-attributes [OPTIONS]
 ```
 
 | Option | Description |
@@ -177,10 +177,10 @@ gitlab-docs get-attributes [OPTIONS]
 | `-a, --attributes` | Comma-separated attribute list |
 | `-j, --json` | Return JSON instead of Markdown |
 
-### `compliance`
+### `check`
 
 ```bash
-gitlab-docs compliance [OPTIONS]
+gitlab-compliance check [OPTIONS]
 ```
 
 | Option | Description |
@@ -198,10 +198,10 @@ gitlab-docs compliance [OPTIONS]
 | `--policy-cache-dir` | Cache directory for OCI pulls |
 | `--dry-run` | List scenarios without asserting |
 
-### `compliance-doc`
+### `policies doc`
 
 ```bash
-gitlab-docs compliance-doc [OPTIONS]
+gitlab-compliance policies doc [OPTIONS]
 ```
 
 | Option | Description |
@@ -210,10 +210,10 @@ gitlab-docs compliance-doc [OPTIONS]
 | `--format` | `markdown` or `html` (default: `markdown`) |
 | `-o, --output-file` | Output file path |
 
-### `compliance-push`
+### `policies push`
 
 ```bash
-gitlab-docs compliance-push -f <policies-dir> <registry/repo:tag>
+gitlab-compliance policies push -f <policies-dir> <registry/repo:tag>
 ```
 
 | Argument / option | Description |
@@ -221,10 +221,10 @@ gitlab-docs compliance-push -f <policies-dir> <registry/repo:tag>
 | `TARGET` | OCI registry reference (e.g. `registry.example.com/org/policies:1.0.0`) |
 | `-f, --features` | Local policies directory to publish (**required**) |
 
-### `compliance-pull`
+### `policies pull`
 
 ```bash
-gitlab-docs compliance-pull <registry/repo:tag> [-o <dir>]
+gitlab-compliance policies pull <registry/repo:tag> [-o <dir>]
 ```
 
 | Argument / option | Description |
@@ -237,7 +237,7 @@ gitlab-docs compliance-pull <registry/repo:tag> [-o <dir>]
 Generate release notes from commits since the latest tag (or a chosen baseline tag). Commits are classified using conventional-commit prefixes (`feat`, `fix`, `chore`, and others bucketed as Other). Markdown output groups commits by type and links to GitLab when URLs are available.
 
 ```bash
-gitlab-docs release-notes \
+gitlab-compliance release-notes \
   --token <token> \
   --projects <id-or-path> \
   [--since-tag v1.0.0] \
@@ -261,12 +261,11 @@ Example Markdown file: `release_notes_group_project_since_v1.0.0.md`
 - [Command reference](docs/command-reference.md) — full Click-generated option details
 - [Compliance security examples](docs/compliance-security-examples.md) — policy patterns and CI integration
 - [Output example](docs/output-example.md) — sample generated documentation
-- [Site build & publish](docs/site-documentation.md) — MkDocs Material site, GitLab Pages, and GitHub Pages
+- [Site build & publish](docs/site-documentation.md) — Zensical site, GitLab Pages, and GitHub Pages
 
-[comment]: <> (gitlab-docs-opening-auto-generated)
+[comment]: <> (gitlab-compliance-opening-auto-generated)
 
-            <h1><span class="badge text-bg-primary">GITLAB DOCS - .gitlab-ci.yml</span></h1>
-
+# GITLAB COMPLIANCE - .gitlab-ci.yml
 
 ## Inputs
 
@@ -275,140 +274,137 @@ Example Markdown file: `release_notes_group_project_since_v1.0.0.md`
 | job-stage | {'default': 'test'} |   &#x274c;  | &#x274c; |  true  |
 
 
-
 ## Variables
 
 |     Key     |     Value      | Description | Options  | Expand |
 | :---------: | :------------: | :---------: | :------: | :----: |
-| APPLICATION |  gitlab-docs   |   &#x274c;  | &#x274c; |  true  |
-| OUTPUT_FILE | GITLAB-DOCS.md |   &#x274c;  | &#x274c; |  true  |
+| APPLICATION |  gitlab-compliance   |   &#x274c;  | &#x274c; |  true  |
+| OUTPUT_FILE | gitlab-compliance.md |   &#x274c;  | &#x274c; |  true  |
 
-
-
-## .gitlab-ci.yml
-<h4><span class="badge text-bg-info">SPEC</span></h4>
-
-<hr>
-
-| **Property** |           **Value**            |
-| :----------: | :----------------------------: |
-|  **inputs**  | 'job-stage': 'default': 'test' |
-
-
-## .gitlab-ci.yml
+## Jobs
 <h4><span class="badge text-bg-secondary">.TEST:RULES</span></h4>
 
 <hr>
 
-| **Property** |                       **Value**                       |
-| :----------: | :---------------------------------------------------: |
-|  **rules**   |                ['if': '$CI_COMMIT_TAG'                |
-|              |                     'when': 'never'                   |
-|              |  'if': '$CI_PIPELINE_SOURCE == "merge_request_event"' |
-|              |    'if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH']   |
-|  **stage**   |                          test                         |
+| **Attribute** | **Value** |
+| :-----------: | :-------: |
+|   **stage**   |    test   |
+
+| Rule # |                      if                      |  when |
+| :----: | :------------------------------------------: | :---: |
+|   1    |                $CI_COMMIT_TAG                | never |
+|   2    | $CI_PIPELINE_SOURCE == "merge_request_event" |       |
+|   3    |   $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH    |       |
+
 <h4><span class="badge text-bg-info">MEGALINTER</span></h4>
 
 <hr>
 
-|    **Property**   |           **Value**            |
+|   **Attribute**   |           **Value**            |
 | :---------------: | :----------------------------: |
 | **allow_failure** |              True              |
-|    **extends**    |        ['.test:rules']         |
+|    **extends**    |         1. .test:rules         |
 |     **image**     | oxsecurity/megalinter-ci_light |
 
-| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
-| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
-|                   artifacts                    |                      when                      |                      always                      |
-|                   artifacts                    |                     paths                      |              ['megalinter-reports']              |
-|                   artifacts                    |                   expire_in                    |                      1 week                      |
-|                   variables                    |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
+| <span class="badge text-bg-danger">Attribute</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :-------------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                      variables                      |               DEFAULT_WORKSPACE                |                 $CI_PROJECT_DIR                  |
+
 
 <h4><span class="badge text-bg-info">BEHAVE-TESTS</span></h4>
 
 <hr>
 
-| **Property** |    **Value**    |
-| :----------: | :-------------: |
-| **extends**  | ['.test:rules'] |
+| **Attribute** |   **Value**    |
+| :-----------: | :------------: |
+|  **extends**  | 1. .test:rules |
 
-| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
-| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
-|                   variables                    |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
+| <span class="badge text-bg-danger">Attribute</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
+| :-------------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
+|                      variables                      |           POETRY_VIRTUALENVS_CREATE            |                      false                       |
+
 
 <h4><span class="badge text-bg-info">BUMP-VERSION</span></h4>
 
 <hr>
 
-| **Property** |               **Value**               |
-| :----------: | :-----------------------------------: |
-|  **image**   |             python:3.12.11            |
-|  **rules**   | ['if': '$CI_COMMIT_BRANCH == "main"'] |
-|  **stage**   |                publish                |
+| **Attribute** |   **Value**    |
+| :-----------: | :------------: |
+|   **image**   | python:3.12.11 |
+|   **stage**   |    publish     |
+
+| Rule # |              if             |
+| :----: | :-------------------------: |
+|   1    | $CI_COMMIT_BRANCH == "main" |
+
 <h4><span class="badge text-bg-secondary">.BUILD:PYTHON</span></h4>
 
 <hr>
 
-|   **Property**  | **Value** |
+|  **Attribute**  | **Value** |
 | :-------------: | :-------: |
 | **environment** |  release  |
 |    **stage**    |   build   |
+
 <h4><span class="badge text-bg-info">TEST-BUILD</span></h4>
 
 <hr>
 
-| **Property** |    **Value**     |
-| :----------: | :--------------: |
-| **extends**  | ['.build:python' |
-|              |  '.test:rules']  |
-<h4><span class="badge text-bg-info">DOCS:BUILD</span></h4>
+| **Attribute** |    **Value**     |
+| :-----------: | :--------------: |
+|  **extends**  | 1. .build:python |
+|               |  2. .test:rules  |
+
+<h4><span class="badge text-bg-info">DOCS:REVIEW</span></h4>
 
 <hr>
 
-| **Property** |    **Value**    |
-| :----------: | :-------------: |
-| **extends**  | ['.docs:mkdocs' |
-|              |  '.test:rules'] |
-|  **stage**   |      build      |
-
-| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
-| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
-|                   artifacts                    |                     paths                      |                    ['public']                    |
-|                   artifacts                    |                   expire_in                    |                      1 week                      |
+| **Attribute** |    **Value**    |
+| :-----------: | :-------------: |
+|  **extends**  | 1. .docs:mkdocs |
+|               |  2. .test:rules |
+|   **stage**   |      build      |
 
 <h4><span class="badge text-bg-info">PAGES</span></h4>
 
 <hr>
 
-| **Property** |                     **Value**                     |
-| :----------: | :-----------------------------------------------: |
-| **extends**  |                    .docs:mkdocs                   |
-|  **rules**   | ['if': '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'] |
-|  **stage**   |                      publish                      |
+| **Attribute** |  **Value**   |
+| :-----------: | :----------: |
+|  **extends**  | .docs:mkdocs |
+|   **stage**   |   publish    |
 
-| <span class="badge text-bg-danger">Type</span> | <span class="badge text-bg-warning">Key</span> | <span class="badge text-bg-success">Value</span> |
-| :--------------------------------------------: | :--------------------------------------------: | :----------------------------------------------: |
-|                   artifacts                    |                     paths                      |                    ['public']                    |
+| Rule # |                    if                   |
+| :----: | :-------------------------------------: |
+|   1    | $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH |
 
 <h4><span class="badge text-bg-info">PUBLISH</span></h4>
 
 <hr>
 
-|   **Property**  |        **Value**         |
-| :-------------: | :----------------------: |
-|    **cache**    |            []            |
-| **environment** |         release          |
-|    **rules**    | ['if': '$CI_COMMIT_TAG'] |
-|    **stage**    |         publish          |
+|  **Attribute**  | **Value** |
+| :-------------: | :-------: |
+|    **cache**    |     []    |
+| **environment** |  release  |
+|    **stage**    |  publish  |
+
+| Rule # |       if       |
+| :----: | :------------: |
+|   1    | $CI_COMMIT_TAG |
+
 <h4><span class="badge text-bg-info">DOCKER-BUILD</span></h4>
 
 <hr>
 
-| **Property** |                    **Value**                    |
-| :----------: | :---------------------------------------------: |
-|  **image**   |                  docker:latest                  |
-|  **rules**   | ['if': '$CI_COMMIT_REF_NAME != $CI_COMMIT_TAG'] |
-| **services** |                 ['docker:dind']                 |
-|  **stage**   |                      build                      |
-|   **tags**   |              ['gitlab-org-docker']              |
-[comment]: <> (gitlab-docs-closing-auto-generated)
+| **Attribute** |      **Value**       |
+| :-----------: | :------------------: |
+|   **image**   |    docker:latest     |
+|  **services** |    1. docker:dind    |
+|   **stage**   |        build         |
+|    **tags**   | 1. gitlab-org-docker |
+
+| Rule # |                   if                  |
+| :----: | :-----------------------------------: |
+|   1    | $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG |
+
+[comment]: <> (gitlab-compliance-closing-auto-generated)

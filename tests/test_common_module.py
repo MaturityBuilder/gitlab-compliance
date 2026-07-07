@@ -1,5 +1,6 @@
-import pytest
 from types import SimpleNamespace
+
+import pytest
 
 from src.modules.common import (
     EnvLoader,
@@ -50,7 +51,9 @@ class TestFormatHelpers:
 class TestReadYml:
     def test_read_yml_multi_document(self, tmp_path):
         path = tmp_path / "multi.yml"
-        path.write_text("---\nname: one\nage: 1\n---\nname: two\nage: 2\n", encoding="utf-8")
+        path.write_text(
+            "---\nname: one\nage: 1\n---\nname: two\nage: 2\n", encoding="utf-8"
+        )
         docs = read_yml(str(path))
         assert len(docs) == 2
         assert docs[0]["name"] == "one"

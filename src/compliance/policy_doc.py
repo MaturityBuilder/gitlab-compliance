@@ -6,7 +6,11 @@ import html
 import os
 from datetime import datetime, timezone
 
-from src.compliance.metadata import PolicyAnnotation, PolicyCatalog, collect_policy_index
+from src.compliance.metadata import (
+    PolicyAnnotation,
+    PolicyCatalog,
+    collect_policy_index,
+)
 
 
 def _relative_path(features_dir: str, feature_file: str) -> str:
@@ -44,31 +48,42 @@ def render_policy_catalog_markdown(catalog: PolicyCatalog, features_dir: str) ->
     lines.append("")
     for feature in catalog.features:
         rel_feature = _relative_path(features_dir, feature.feature_file)
-        lines.extend([
-            f"## {feature.feature_name}",
-            "",
-            f"**File:** `{rel_feature}`",
-        ])
+        lines.extend(
+            [
+                f"## {feature.feature_name}",
+                "",
+                f"**File:** `{rel_feature}`",
+            ]
+        )
         if feature.annotation:
-            lines.extend([
-                f"**Feature ID:** `{feature.annotation.policy_id}`",
-                "",
-                feature.annotation.description or "_No feature description provided._",
-                "",
-            ])
+            lines.extend(
+                [
+                    f"**Feature ID:** `{feature.annotation.policy_id}`",
+                    "",
+                    feature.annotation.description
+                    or "_No feature description provided._",
+                    "",
+                ]
+            )
         if feature.scenarios:
             lines.append("### Scenarios")
             lines.append("")
             for scenario in feature.scenarios:
-                lines.extend([
-                    f"#### `{scenario.policy_id}` — {scenario.title}",
-                    "",
-                    f"- **Location:** `{_location(features_dir, scenario)}`",
-                ])
+                lines.extend(
+                    [
+                        f"#### `{scenario.policy_id}` — {scenario.title}",
+                        "",
+                        f"- **Location:** `{_location(features_dir, scenario)}`",
+                    ]
+                )
                 if scenario.description:
                     lines.append(f"- **Description:** {scenario.description}")
                 if scenario.custom:
-                    custom_bits = ", ".join(f"`{key}`: {value}" for key, value in scenario.custom.items() if key != "id")
+                    custom_bits = ", ".join(
+                        f"`{key}`: {value}"
+                        for key, value in scenario.custom.items()
+                        if key != "id"
+                    )
                     if custom_bits:
                         lines.append(f"- **Custom:** {custom_bits}")
                 lines.append("")
@@ -117,7 +132,8 @@ def render_policy_catalog_html(catalog: PolicyCatalog, features_dir: str) -> str
             + (
                 f"<p><strong>Feature ID:</strong> <code>{html.escape(feature.annotation.policy_id)}</code></p>"
                 f"<p>{html.escape(feature.annotation.description)}</p>"
-                if feature.annotation else ""
+                if feature.annotation
+                else ""
             )
             + "".join(scenario_blocks)
             + "</section>"
@@ -152,7 +168,9 @@ def render_policy_catalog_html(catalog: PolicyCatalog, features_dir: str) -> str
 """
 
 
-def render_policy_catalog(catalog: PolicyCatalog, features_dir: str, output_format: str) -> str:
+def render_policy_catalog(
+    catalog: PolicyCatalog, features_dir: str, output_format: str
+) -> str:
     fmt = output_format.lower()
     if fmt == "html":
         return render_policy_catalog_html(catalog, features_dir)

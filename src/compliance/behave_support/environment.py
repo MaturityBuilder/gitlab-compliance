@@ -29,6 +29,12 @@ def before_scenario(context, scenario):
             gitlab_url=context.config.userdata.get("gitlab_url") or None,
             project=context.config.userdata.get("project") or None,
             group=context.config.userdata.get("group") or None,
+            enrich_includes=context.config.userdata.get("enrich_includes", "true")
+            == "true",
+            enrich_images=context.config.userdata.get("enrich_images", "true")
+            == "true",
+            load_api_entities=context.config.userdata.get("load_api_entities", "true")
+            == "true",
         )
 
 

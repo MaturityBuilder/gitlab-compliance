@@ -5,7 +5,7 @@ from unittest.mock import patch
 from click.testing import CliRunner
 
 from src.compliance.models import ComplianceResult
-from src.gitlab_docs import compliance
+from src.gitlab_compliance import check
 
 
 class TestComplianceCacheUpdate:
@@ -33,14 +33,14 @@ class TestComplianceCacheUpdate:
 
         runner = CliRunner()
         result = runner.invoke(
-            compliance,
+            check,
             [
                 "--features",
                 "oci://registry.example.com/policies:1.0.0",
                 "--pipeline",
                 os.fspath(
                     __import__("pathlib").Path(__file__).resolve().parents[1]
-                    / "sample-files"
+                    / "examples/sample-files"
                     / ".gitlab-ci.yml"
                 ),
                 "--update",

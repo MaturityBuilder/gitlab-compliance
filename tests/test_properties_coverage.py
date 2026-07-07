@@ -1,18 +1,18 @@
 import os
 from pathlib import Path
 
+from src.properties.extract_job_attribute import get_job_attribute
 from src.properties.includes import (
     check_include_version_is_sema_version,
     document_includes,
 )
-from src.properties.extract_job_attribute import get_job_attribute
 from src.properties.inputs import document_inputs
 from src.properties.jobs import get_jobs
 from src.properties.variables import document_variables
 from src.properties.workflows import document_workflows
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SAMPLE = REPO_ROOT / "sample-files" / ".gitlab-ci.yml"
+SAMPLE = REPO_ROOT / "examples/sample-files" / ".gitlab-ci.yml"
 
 
 class TestIncludes:
@@ -27,8 +27,8 @@ class TestIncludes:
         cfg.write_text("variables:\n  FOO: bar\n", encoding="utf-8")
         out = tmp_path / "out.md"
         Path(out).write_text(
-            "[comment]: <> (gitlab-docs-opening-auto-generated)\n"
-            "[comment]: <> (gitlab-docs-closing-auto-generated)\n",
+            "[comment]: <> (gitlab-compliance-opening-auto-generated)\n"
+            "[comment]: <> (gitlab-compliance-closing-auto-generated)\n",
             encoding="utf-8",
         )
         document_includes(str(out), str(cfg))
@@ -41,19 +41,21 @@ class TestIncludes:
         )
         out = tmp_path / "out.md"
         out.write_text(
-            "[comment]: <> (gitlab-docs-opening-auto-generated)\n"
-            "[comment]: <> (gitlab-docs-closing-auto-generated)\n",
+            "[comment]: <> (gitlab-compliance-opening-auto-generated)\n"
+            "[comment]: <> (gitlab-compliance-closing-auto-generated)\n",
             encoding="utf-8",
         )
         document_includes(str(out), str(cfg))
 
     def test_unknown_include_type(self, tmp_path):
         cfg = tmp_path / "ci.yml"
-        cfg.write_text("include:\n  - remote: https://example.com/ci.yml\n", encoding="utf-8")
+        cfg.write_text(
+            "include:\n  - remote: https://example.com/ci.yml\n", encoding="utf-8"
+        )
         out = tmp_path / "out.md"
         out.write_text(
-            "[comment]: <> (gitlab-docs-opening-auto-generated)\n"
-            "[comment]: <> (gitlab-docs-closing-auto-generated)\n",
+            "[comment]: <> (gitlab-compliance-opening-auto-generated)\n"
+            "[comment]: <> (gitlab-compliance-closing-auto-generated)\n",
             encoding="utf-8",
         )
         document_includes(str(out), str(cfg))
@@ -76,8 +78,8 @@ class TestJobsAndProperties:
     def _prepare_output(self, tmp_path):
         out = tmp_path / "out.md"
         out.write_text(
-            "[comment]: <> (gitlab-docs-opening-auto-generated)\n"
-            "[comment]: <> (gitlab-docs-closing-auto-generated)\n",
+            "[comment]: <> (gitlab-compliance-opening-auto-generated)\n"
+            "[comment]: <> (gitlab-compliance-closing-auto-generated)\n",
             encoding="utf-8",
         )
         return out

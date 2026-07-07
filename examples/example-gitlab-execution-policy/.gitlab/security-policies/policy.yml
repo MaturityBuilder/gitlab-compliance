@@ -1,0 +1,20 @@
+# GitLab Pipeline Execution Policy — org-wide compliance injection.
+# Store this file in a security policy project.
+# Requires GitLab tier with security policies (see GitLab docs).
+#
+# Copy examples/example-policies/security/ into policies/security/ in the same repo.
+
+pipeline_execution_policy:
+  - name: Enforce GitLab CI compliance
+    description: Injects gitlab-compliance job into member project pipelines
+    enabled: true
+    pipeline_config_strategy: inject_policy
+    content:
+      include:
+        - project: my-group/gitlab-compliance-policies
+          file: policy-ci.yml
+          ref: "1.0.0"
+    policy_scope:
+      projects:
+        including:
+          - full_path: my-group/*

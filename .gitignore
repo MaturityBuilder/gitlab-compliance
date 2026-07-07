@@ -1,10 +1,10 @@
 *.pem
-sample-files/*.md
-gitlab-docs/
+examples/sample-files/*.md
+gitlab-compliance/
 dist/
 public/
 site/
-gitlab_docs/__pycache__/
+gitlab_compliance/__pycache__/
 megalinter-reports
 __pycache__
 .coverage

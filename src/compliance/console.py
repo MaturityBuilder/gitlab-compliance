@@ -44,7 +44,9 @@ def render_compliance_console(
     summary.add_row("[bold]Total[/bold]", str(result.scenarios))
     console.print(summary)
 
-    failures = [scenario for scenario in result.scenario_results if scenario.status == "failed"]
+    failures = [
+        scenario for scenario in result.scenario_results if scenario.status == "failed"
+    ]
     if failures:
         console.rule("[bold red]Failure details")
         for scenario in failures:
@@ -56,7 +58,9 @@ def render_compliance_console(
             if scenario.message:
                 console.print(scenario.message, style="dim")
 
-    skipped = [scenario for scenario in result.scenario_results if scenario.status == "skipped"]
+    skipped = [
+        scenario for scenario in result.scenario_results if scenario.status == "skipped"
+    ]
     if skipped:
         console.rule("[bold yellow]Skipped scenarios")
         for scenario in skipped:

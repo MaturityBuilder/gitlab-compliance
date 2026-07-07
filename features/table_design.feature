@@ -13,7 +13,7 @@ Feature: PrettyTable design
   Scenario: Table uses headers when field_names not provided
     Given a table is created with headers "Name, Age, City" and no field names
     Then the table should have field names "Name, Age, City"
-    
+
     And the table should have borders enabled
     And all columns should be center-aligned
     And the table style should be "MARKDOWN"

@@ -1,6 +1,6 @@
 build-container:
-	docker build -t gitlab-docs .
-	docker run -v ${PWD}:/gitlab-docs charlieasmith93/gitlab-docs
+	docker build -t gitlab-compliance .
+	docker run -v ${PWD}:/gitlab-compliance maturitybuilder/gitlab-compliance
 init:
 	brew install poetry
 	echo 'PATH=$HOME/.local/bin:$HOME/.poetry/bin:$PATH' >> ~/.bash_profile
@@ -18,13 +18,13 @@ build:
 	poetry build
 
 docs-serve:
-	poetry run mkdocs serve
+	poetry run zensical serve
 
 docs-build:
-	poetry run mkdocs build --strict
+	poetry run zensical build --strict
 
 publish:
 	poetry publish --build
 install_package:
-	python3 -m pip uninstall gitlab-docs -q
-	python3 -m pip install --index-url https://pypi.org/simple/ gitlab-docs --no-cache-dir
+	python3 -m pip uninstall gitlab-compliance -q
+	python3 -m pip install --index-url https://pypi.org/simple/ gitlab-compliance --no-cache-dir

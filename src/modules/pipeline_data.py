@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import os
+import re
 from typing import Any
 
-import semver
-
 import src.modules.common as common
+from src.compliance.include_versions import is_valid_semver_version
 
 JOB_EXCLUDE_KEYWORDS = [
     "default",
@@ -21,6 +21,11 @@ JOB_EXCLUDE_KEYWORDS = [
 
 JOB_SKIP_ATTRIBUTES = {"before_script", "script", "after_script", "artifacts"}
 
+_REMOTE_VERSION_RE = re.compile(
+    r"(?:^|/)(v?\d+\.\d+\.\d+(?:[-+][\w.-]+)?|[0-9a-f]{40})(?:/|$)",
+    re.IGNORECASE,
+)
+
 
 def _normalize_include(entry: Any) -> dict:
     if isinstance(entry, str):
@@ -29,10 +34,28 @@ def _normalize_include(entry: Any) -> dict:
 
 
 def _include_valid_version(version: str, file: str, include: str) -> bool:
-    try:
-        return semver.Version.is_valid(version)
-    except Exception:
-        return False
+    return is_valid_semver_version(version)
+
+
+def _parse_remote_url_version(url: str) -> str:
+    match = _REMOTE_VERSION_RE.search(str(url))
+    if not match:
+        return ""
+    return match.group(1).lstrip("vV")
+
+
+def _parse_image_reference(image_value: Any) -> str:
+    if isinstance(image_value, dict):
+        return str(image_value.get("name", "")).strip()
+    return str(image_value or "").strip()
+
+
+def _parse_service_image(service: Any) -> str:
+    if isinstance(service, str):
+        return service.strip()
+    if isinstance(service, dict):
+        return str(service.get("name", "")).strip()
+    return ""
 
 
 def _parse_include_entry(
@@ -71,6 +94,31 @@ def _parse_include_entry(
                 "source_file": source_file,
                 "line": line,
             }
+        if include_type == "template":
+            return {
+                "include_type": include_type,
+                "project": str(value),
+                "version": "n/a",
+                "valid_version": False,
+                "file": "",
+                "variables": {},
+                "rules": [],
+                "source_file": source_file,
+                "line": line,
+            }
+        if include_type == "remote":
+            version = _parse_remote_url_version(str(value))
+            return {
+                "include_type": include_type,
+                "project": str(value),
+                "version": version,
+                "valid_version": _include_valid_version(version, "remote", str(value)),
+                "file": "",
+                "variables": {},
+                "rules": [],
+                "source_file": source_file,
+                "line": line,
+            }
         if include_type == "local":
             return {
                 "include_type": include_type,
@@ -84,6 +132,57 @@ def _parse_include_entry(
                 "line": line,
             }
     return None
+
+
+def _collect_container_images(jobs: list[dict]) -> list[dict]:
+    images: list[dict] = []
+    index = 0
+    for job in jobs:
+        job_name = job.get("name", "")
+        source_file = job.get("source_file", "")
+        job_line = job.get("line", 0)
+        values = {}
+        for attribute in job.get("attributes", []):
+            values[attribute["key"]] = attribute["value"]
+
+        image_ref = _parse_image_reference(values.get("image"))
+        if image_ref:
+            index += 1
+            images.append(
+                {
+                    "include_type": "container_image",
+                    "image_source": "job",
+                    "parent_job": job_name,
+                    "project": image_ref,
+                    "image": image_ref,
+                    "version": "",
+                    "valid_version": False,
+                    "source_file": source_file,
+                    "line": job_line,
+                }
+            )
+
+        services = values.get("services", [])
+        if isinstance(services, list):
+            for service in services:
+                service_ref = _parse_service_image(service)
+                if not service_ref:
+                    continue
+                index += 1
+                images.append(
+                    {
+                        "include_type": "container_image",
+                        "image_source": "service",
+                        "parent_job": job_name,
+                        "project": service_ref,
+                        "image": service_ref,
+                        "version": "",
+                        "valid_version": False,
+                        "source_file": source_file,
+                        "line": job_line,
+                    }
+                )
+    return images
 
 
 def _parse_input_entry(key: str, value: Any) -> dict:
@@ -195,6 +294,7 @@ def collect_pipeline_data(
         "includes": [],
         "workflow_rules": [],
         "jobs": [],
+        "container_images": [],
     }
 
     for document in documents:
@@ -259,4 +359,6 @@ def collect_pipeline_data(
                 )
             )
 
+    data["container_images"] = _collect_container_images(data["jobs"])
+    data["line_index"] = line_index
     return data

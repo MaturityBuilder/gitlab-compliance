@@ -1,0 +1,22 @@
+# Injected by a GitLab Pipeline Execution Policy (inject_policy).
+# Lives in the security policy project alongside .gitlab/security-policies/policy.yml.
+#
+# Policies are vendored in the security policy repo at policies/security/.
+
+stages:
+  - compliance
+  - test
+  - build
+
+policy::gitlab-compliance:
+  stage: compliance
+  image: python:3.12
+  variables:
+    COMPLIANCE_POLICIES: policies/security
+  script:
+    - pip install --quiet gitlab-docs
+    - gitlab-compliance check -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
+        --project "$CI_PROJECT_PATH" --strict
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

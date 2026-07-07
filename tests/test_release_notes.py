@@ -185,9 +185,13 @@ class TestReleaseNotesCli:
 
     def test_success_without_ai_summary(self, tmp_path):
         runner = CliRunner()
-        with patch("src.modules.release.gitlab.Gitlab", return_value=self._mock_gitlab()):
+        with patch(
+            "src.modules.release.gitlab.Gitlab", return_value=self._mock_gitlab()
+        ):
             result = runner.invoke(
-                __import__("src.modules.release", fromlist=["release_notes"]).release_notes,
+                __import__(
+                    "src.modules.release", fromlist=["release_notes"]
+                ).release_notes,
                 [
                     "--token",
                     "test-token",
@@ -205,9 +209,13 @@ class TestReleaseNotesCli:
     def test_honors_markdown_directory(self, tmp_path):
         runner = CliRunner()
         markdown_dir = tmp_path / "notes"
-        with patch("src.modules.release.gitlab.Gitlab", return_value=self._mock_gitlab()):
+        with patch(
+            "src.modules.release.gitlab.Gitlab", return_value=self._mock_gitlab()
+        ):
             result = runner.invoke(
-                __import__("src.modules.release", fromlist=["release_notes"]).release_notes,
+                __import__(
+                    "src.modules.release", fromlist=["release_notes"]
+                ).release_notes,
                 [
                     "--token",
                     "test-token",
@@ -227,7 +235,9 @@ class TestReleaseNotesCli:
         gl.projects.get.side_effect = RuntimeError("project not found")
         with patch("src.modules.release.gitlab.Gitlab", return_value=gl):
             result = runner.invoke(
-                __import__("src.modules.release", fromlist=["release_notes"]).release_notes,
+                __import__(
+                    "src.modules.release", fromlist=["release_notes"]
+                ).release_notes,
                 ["--token", "test-token", "--projects", "missing/project"],
             )
         assert result.exit_code == 1
@@ -239,7 +249,9 @@ class TestReleaseNotesCli:
         gl.projects.get.side_effect = RuntimeError("boom")
         with patch("src.modules.release.gitlab.Gitlab", return_value=gl):
             result = runner.invoke(
-                __import__("src.modules.release", fromlist=["release_notes"]).release_notes,
+                __import__(
+                    "src.modules.release", fromlist=["release_notes"]
+                ).release_notes,
                 [
                     "--token",
                     "test-token",

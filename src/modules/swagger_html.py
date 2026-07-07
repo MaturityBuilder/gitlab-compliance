@@ -48,15 +48,16 @@ def _render_job_block(job: dict) -> str:
     method_label = "TEMPLATE" if job["is_template"] else "JOB"
 
     attribute_rows = [
-        [item["key"], common.format_value(item["value"])]
-        for item in job["attributes"]
+        [item["key"], common.format_value(item["value"])] for item in job["attributes"]
     ]
     nested_rows = [
         [item["attribute"], item["key"], common.format_value(item["value"])]
         for item in job["nested"]
     ]
 
-    attributes_html = _render_table(["Attribute", "Value"], attribute_rows) if attribute_rows else ""
+    attributes_html = (
+        _render_table(["Attribute", "Value"], attribute_rows) if attribute_rows else ""
+    )
     nested_html = (
         _render_table(["Attribute", "Key", "Value"], nested_rows) if nested_rows else ""
     )
@@ -93,7 +94,9 @@ def _render_sidebar_nav(data: dict) -> str:
         section_id = entry[0]
         label = entry[1]
         count = entry[2] if len(entry) > 2 else None
-        count_html = f'<span class="nav-count">{count}</span>' if count is not None else ""
+        count_html = (
+            f'<span class="nav-count">{count}</span>' if count is not None else ""
+        )
         items.append(
             f'<a class="nav-link" href="#{section_id}">{_escape(label)}{count_html}</a>'
         )
@@ -107,11 +110,23 @@ def _render_sidebar_nav(data: dict) -> str:
 
 def render_swagger_html(data: dict) -> str:
     input_rows = [
-        [item["key"], item["value"], item["description"], item["options"], item["expand"]]
+        [
+            item["key"],
+            item["value"],
+            item["description"],
+            item["options"],
+            item["expand"],
+        ]
         for item in data["inputs"]
     ]
     variable_rows = [
-        [item["key"], item["value"], item["description"], item["options"], item["expand"]]
+        [
+            item["key"],
+            item["value"],
+            item["description"],
+            item["options"],
+            item["expand"],
+        ]
         for item in data["variables"]
     ]
     include_rows = [
@@ -128,7 +143,9 @@ def render_swagger_html(data: dict) -> str:
     ]
 
     jobs_html = "".join(_render_job_block(job) for job in data["jobs"])
-    workflow_html = _render_rules_table(data["workflow_rules"]) if data["workflow_rules"] else ""
+    workflow_html = (
+        _render_rules_table(data["workflow_rules"]) if data["workflow_rules"] else ""
+    )
 
     return f"""<!DOCTYPE html>
 <html lang="en">

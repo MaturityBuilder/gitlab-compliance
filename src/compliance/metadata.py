@@ -37,7 +37,9 @@ class FeaturePolicies:
 class PolicyCatalog:
     features: list[FeaturePolicies] = field(default_factory=list)
 
-    def lookup_scenario(self, feature_file: str, scenario_name: str) -> PolicyAnnotation | None:
+    def lookup_scenario(
+        self, feature_file: str, scenario_name: str
+    ) -> PolicyAnnotation | None:
         normalized = os.path.realpath(feature_file)
         for feature in self.features:
             if os.path.realpath(feature.feature_file) != normalized:
@@ -61,10 +63,34 @@ def _auto_scenario_id(feature_id: str, index: int) -> str:
     return f"{feature_id}-{index:03d}"
 
 
+def _quote_yaml_scalar(value: str) -> str:
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
+
+
+def _prepare_metadata_yaml_line(line: str) -> str:
+    if line.startswith("  "):
+        return line
+    if ":" not in line:
+        return line
+    key, sep, rest = line.partition(":")
+    value = rest.strip()
+    if not value or value in ("|", ">"):
+        return line
+    if (value.startswith('"') and value.endswith('"')) or (
+        value.startswith("'") and value.endswith("'")
+    ):
+        return line
+    if ":" in value:
+        return f"{key}{sep} {_quote_yaml_scalar(value)}"
+    return line
+
+
 def _parse_metadata_yaml(yaml_lines: list[str]) -> dict:
     if not yaml_lines:
         return {}
-    parsed = yaml.safe_load("\n".join(yaml_lines))
+    prepared = [_prepare_metadata_yaml_line(line) for line in yaml_lines]
+    parsed = yaml.safe_load("\n".join(prepared))
     return parsed if isinstance(parsed, dict) else {}
 
 
@@ -151,7 +177,11 @@ def parse_feature_policies(feature_file: str) -> FeaturePolicies:
         if stripped.startswith("Scenario:"):
             scenario_name = stripped.split(":", 1)[1].strip()
             scenario_index += 1
-            feature_id = feature_annotation.policy_id if feature_annotation else _auto_feature_id(feature_path)
+            feature_id = (
+                feature_annotation.policy_id
+                if feature_annotation
+                else _auto_feature_id(feature_path)
+            )
             scenarios.append(
                 _annotation_from_raw(
                     pending_metadata,

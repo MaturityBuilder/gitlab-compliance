@@ -51,5 +51,7 @@ class TestLoadApiEntities:
         with patch("gitlab.Gitlab") as gitlab_cls:
             gl = MagicMock()
             gitlab_cls.return_value = gl
-            entities = load_api_entities(token="secret", gitlab_url="https://gitlab.example.com")
+            entities = load_api_entities(
+                token="secret", gitlab_url="https://gitlab.example.com"
+            )
         assert entities["project_settings"] == []

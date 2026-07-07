@@ -11,6 +11,6 @@ Feature: Compliance policy documentation
     And the report file should contain "Passing annotated scenario"
 
   Scenario: Compliance output includes policy IDs
-    When I run basic compliance on "sample-files/.gitlab-ci.yml" with policies "tests/compliance_policies/annotated"
+    When I run basic compliance on "examples/sample-files/.gitlab-ci.yml" with policies "tests/compliance_policies/annotated"
     Then compliance should pass
     And compliance output should mention "TEST-POLICY-001"

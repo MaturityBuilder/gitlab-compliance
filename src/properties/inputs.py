@@ -1,15 +1,17 @@
 import logging
 import os
+
 import yaml
+
 import src.modules.common as common
-from src.modules.logging import logger
+
 # from src.modules.doc_controller import add_between_markers
 from src.modules.doc_controller import add_between_markers
+from src.modules.logging import logger
 
-def document_inputs(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
+
+def document_inputs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, DISABLE_TITLE):
     logger.trace("Generating Documentation for inputs")
-
-    
 
     file = common.read_yml(GLDOCS_CONFIG_FILE)
     try:
@@ -17,14 +19,16 @@ def document_inputs(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
             if "spec" in data:
                 inputs = data["spec"]["inputs"]
                 # logger.trace(gldocs.generate_markdown_table(inputs))
-            
-                inputs_table = common.table_design(headers=[
-                    "Key",
-                    "Value",
-                    "Description",
-                    "Options",
-                    "Expand",
-                ])
+
+                inputs_table = common.table_design(
+                    headers=[
+                        "Key",
+                        "Value",
+                        "Description",
+                        "Options",
+                        "Expand",
+                    ]
+                )
                 # inputs_table.add_rows([inputs])
                 logger.info(inputs)
 
@@ -45,7 +49,7 @@ def document_inputs(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
                                 "Description for: "
                                 + v
                                 + " isn't set, input should have description set, "
-                                + "gitlab-docs considers this malformed :("
+                                + "gitlab-compliance considers this malformed :("
                             )
                             description = "&#x274c;"
 

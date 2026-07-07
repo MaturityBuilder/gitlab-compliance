@@ -1,43 +1,93 @@
 site_name: GitLab Compliance
-site_description: Document GitLab CI/CD pipelines and run Gherkin compliance policies
+site_description: BDD compliance testing for GitLab CI/CD pipelines and project settings
 docs_dir: docs
 site_dir: public
 repo_url: https://github.com/MaturityBuilder/gitlab-compliance
 repo_name: MaturityBuilder/gitlab-compliance
-edit_uri: edit/main/docs/
-
+edit_uri: edit/main/
 theme:
-  name: material
+  variant: classic
   language: en
   features:
-    - navigation.tabs
+    - navigation.instant
+    - navigation.instant.progress
+    # - navigation.expand
+    - navigation.path
     - navigation.top
+    - navigation.indexes
+    - toc.follow
     - content.code.copy
     - search.suggest
     - search.highlight
   palette:
     - scheme: default
-      primary: indigo
-      accent: indigo
       toggle:
-        icon: material/brightness-4
+        icon: lucide/sun
         name: Switch to dark mode
     - scheme: slate
-      primary: indigo
-      accent: indigo
       toggle:
-        icon: material/brightness-7
+        icon: lucide/moon
         name: Switch to light mode
-  font:
-    text: Roboto
-    code: Roboto Mono
 
 nav:
-  - Home: index.md
-  - Output Example: output-example.md
-  - Command Reference: command-reference.md
-  - Compliance Examples: compliance-security-examples.md
-  - Site build & publish: site-documentation.md
+  - Overview: index.md
+  - Installation:
+    - installation/index.md
+    - Installing via pip: installation/pip.md
+    - Installing via Docker: installation/docker.md
+  - Command Reference:
+    - Compliance:
+      - Check: usage/reference/check.md
+      - Policies:
+          - Overview: usage/reference/policies.md
+          - Policy Catalog: usage/reference/policies-doc.md
+          - Pull: usage/reference/policies-pull.md
+          - Push: usage/reference/policies-push.md
+      - Environment Variables: usage/environment-variables.md
+    - Generate Documentation:
+      - Generate Pipeline Documentation: usage/reference/generate.md
+      - Generate HTML Documentation: usage/reference/generate-html.md
+      - Get Specific Documentation About Attributes: usage/reference/get-attributes.md
+    - Release Notes Commands:
+      - Release Notes: usage/reference/release-notes.md
+    - Update Command Reference: usage/reference/dumps.md
+  - Usage:
+    - usage/index.md
+    - Additional Parameters: usage/additional-parameters.md
+
+
+  - BDD Reference:
+    - bdd-reference/index.md
+    - Overview of Scenario Flow: bdd-reference/overview.md
+    - GIVEN Directives: bdd-reference/given.md
+    - WHEN Directives: bdd-reference/when.md
+    - THEN Directives: bdd-reference/then.md
+    - Using AND: bdd-reference/using-and.md
+    - Policy Metadata: bdd-reference/metadata.md
+  - Examples:
+    - Compliance Examples:
+      - examples/index.md
+      - Image Pinning: examples/image-pinning.md
+      - Component Pinning: examples/component-pinning.md
+      - Fragment Pinning: examples/fragment-pinning.md
+      - Include Versions: examples/include-versions.md
+      - Service Pinning: examples/service-pinning.md
+      - Execution Policy: examples/execution-policy.md
+      - Template Extends: examples/template-extends.md
+      - API Hardening: examples/api-hardening.md
+      - Rules Policy: examples/rules.md
+      - OCI Policy Packs: examples/oci-policy-packs.md
+      - Compliance Security Examples: examples/compliance-security-examples.md
+
+    - Gitlab Docs Output (generate command): examples/gitlab-docs-output-example.md
+  - Using in CI/CD:
+    - ci-cd/index.md
+    - GitLab CI/CD: ci-cd/gitlab-ci.md
+    - GitHub Actions: ci-cd/github-actions.md
+    - Pipeline Execution Policy: ci-cd/pipeline-execution-policy.md
+  - Contributing:
+    - contributing.md
+    - Site build & publish: site-documentation.md
 
 markdown_extensions:
   - admonition
@@ -46,3 +96,9 @@ markdown_extensions:
   - tables
   - toc:
       permalink: true
+      toc_depth: 4
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/MaturityBuilder/gitlab-compliance

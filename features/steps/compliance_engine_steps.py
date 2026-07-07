@@ -26,8 +26,9 @@ def step_generate_policy_catalog(context, policy_dir, output_path):
     command = [
         sys.executable,
         "-m",
-        "src.gitlab_docs",
-        "compliance-doc",
+        "src.gitlab_compliance",
+        "policies",
+        "doc",
         "-f",
         os.path.abspath(policy_dir),
         "-o",
@@ -55,8 +56,8 @@ def _run_compliance(
     command = [
         sys.executable,
         "-m",
-        "src.gitlab_docs",
-        "compliance",
+        "src.gitlab_compliance",
+        "check",
         "-f",
         os.path.abspath(policy_dir),
         "-p",

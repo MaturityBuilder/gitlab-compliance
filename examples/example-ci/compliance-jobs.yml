@@ -1,0 +1,46 @@
+# Reusable compliance job templates for GitLab CI.
+# Include from your .gitlab-ci.yml:
+#   include:
+#     - local: example-ci/compliance-jobs.yml
+#     # or from a central repo:
+#     # - project: my-group/gitlab-compliance-policies
+#     #   file: example-ci/compliance-jobs.yml
+#     #   ref: "1.0.0"
+
+.compliance:base:
+  image: python:3.12
+  stage: test
+  variables:
+    COMPLIANCE_POLICIES: policies/security
+  before_script:
+    - pip install --quiet gitlab-docs
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+.compliance:offline:
+  extends: .compliance:base
+  script:
+    - gitlab-compliance check -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
+
+.compliance:api:
+  extends: .compliance:base
+  script:
+    - gitlab-compliance check -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
+        --project "$CI_PROJECT_PATH" --strict
+
+.compliance:codequality:
+  extends: .compliance:base
+  script:
+    - gitlab-compliance check -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
+        --format codequality -o gl-code-quality-report.json
+  artifacts:
+    reports:
+      codequality: gl-code-quality-report.json
+
+.compliance:oci:
+  extends: .compliance:base
+  variables:
+    COMPLIANCE_OCI: oci://registry.example.com/org/gitlab-ci-policies:1.0.0
+  script:
+    - gitlab-compliance check -f "$COMPLIANCE_OCI" -p .gitlab-ci.yml --update
