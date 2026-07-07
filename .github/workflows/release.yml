@@ -1,105 +1,29 @@
-name: Release
-
 on:
   push:
-    branches:
-      - main
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
-concurrency:
-  group: release-${{ github.repository }}
-  cancel-in-progress: false
-
-permissions:
-  contents: write
-
-env:
-  POETRY_VIRTUALENVS_CREATE: "false"
-  POETRY_NO_INTERACTION: "1"
+name: Create Release
 
 jobs:
-  release:
+  build:
+    name: Create Release
     runs-on: ubuntu-latest
-    if: >-
-      !contains(github.event.head_commit.message, 'chore(release):') &&
-      !contains(github.event.head_commit.message, 'chore: bumping version to')
     steps:
-      - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Create Release
+        id: create_release
+        uses: comnoco/create-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
-        with:
-          python-version: "3.12"
-
-      - name: Install Poetry
-        uses: snok/install-poetry@a783c322200f0519c7926aa6faa857c4e23e9263 # v1
-        with:
-          virtualenvs-create: false
-
-      - name: Configure git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Bump version, tag, and prepare release notes
-        id: version
-        run: |
-          set -euo pipefail
-
-          CURRENT_VERSION=$(poetry version -s)
-          echo "Current version: ${CURRENT_VERSION}"
-
-          COMMITS=$(git log -1 --pretty=%B)
-          echo "Last commit message: ${COMMITS}"
-
-          if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
-            BUMP="major"
-          elif echo "$COMMITS" | grep -Eiq "^feat(\(.*\))?: "; then
-            BUMP="minor"
-          elif echo "$COMMITS" | grep -Eiq "^fix(\(.*\))?: "; then
-            BUMP="patch"
-          else
-            echo "No conventional commit keyword found; skipping version bump."
-            echo "released=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "Detected bump type: ${BUMP}"
-
-          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
-          {
-            echo "## Release notes"
-            echo
-            if [ -n "$PREV_TAG" ]; then
-              git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)"
-            else
-              git log -10 --pretty=format:"- %s (%h)"
-            fi
-          } > RELEASE_BODY.md
-
-          poetry version "$BUMP"
-          NEW_VERSION=$(poetry version -s)
-          echo "__version__ = \"${NEW_VERSION}\"" > src/__init__.py
-
-          git add pyproject.toml src/__init__.py
-          git commit -m "chore: bumping version to ${NEW_VERSION}"
-          git tag "${NEW_VERSION}"
-
-          echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "released=true" >> "$GITHUB_OUTPUT"
-
-      - name: Push release commit and tags
-        if: steps.version.outputs.released == 'true'
-        run: git push --follow-tags origin main
-
-      - name: Create GitHub Release
-        if: steps.version.outputs.released == 'true'
-        uses: softprops/action-gh-release@e497bd421fc7c06b13984e7b4eb8d506b2e020ac # v2
-        with:
-          tag_name: ${{ steps.version.outputs.version }}
-          name: ${{ steps.version.outputs.version }}
-          body_path: RELEASE_BODY.md
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Changes in this Release
+            - First Change
+            - Second Change
           draft: false
           prerelease: false
