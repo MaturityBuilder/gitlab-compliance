@@ -32,7 +32,7 @@ The HTML output is written to `public/` (GitLab Pages and GitHub Pages both expe
 
 ### Link rules (`--strict`)
 
-MkDocs only validates links to files under `docs/`. Link to repository paths outside that folder with full URLs (for example `examples/examples/example-policies/` on GitHub), not `../` relative paths.
+MkDocs only validates links to files under `docs/`. Link to repository paths outside that folder with full URLs (for example `examples/example-policies/` on GitHub), not `../` relative paths.
 
 ## GitLab CI/CD
 

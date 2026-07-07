@@ -74,7 +74,7 @@ class TestPoliciesRequireApiEnrichment:
         policies.mkdir()
         source = (
             REPO_ROOT
-            / "examples/examples/example-policies"
+            / "examples/example-policies"
             / "security"
             / "execution-policy.feature"
         )

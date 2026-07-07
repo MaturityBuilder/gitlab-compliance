@@ -4,7 +4,7 @@ Jobs should extend organization template jobs (for example shared security or de
 
 ## Policy
 
-From [`security/template-extends.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/examples/example-policies/security/template-extends.feature):
+From [`security/template-extends.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/template-extends.feature):
 
 ```gherkin
 Scenario: Code-quality jobs must extend gitleaks template

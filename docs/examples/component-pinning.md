@@ -18,7 +18,7 @@ include:
 
 ## Policy
 
-From [`security/component-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/examples/example-policies/security/component-pinning.feature):
+From [`security/component-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/component-pinning.feature):
 
 ```gherkin
 Scenario: Component includes must use semver

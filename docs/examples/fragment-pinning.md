@@ -22,7 +22,7 @@ include:
 
 ## Policy
 
-From [`security/fragment-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/examples/example-policies/security/fragment-pinning.feature):
+From [`security/fragment-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/fragment-pinning.feature):
 
 ```gherkin
 Scenario: Project includes must not use branch refs

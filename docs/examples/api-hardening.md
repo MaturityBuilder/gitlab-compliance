@@ -6,7 +6,7 @@ Requires `--project`, a token, and optionally `--strict` in CI. See [Environment
 
 ## Policy examples
 
-From [`security/api-hardening.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/examples/example-policies/security/api-hardening.feature):
+From [`security/api-hardening.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/api-hardening.feature):
 
 ```gherkin
 Scenario: Job logs must not be public

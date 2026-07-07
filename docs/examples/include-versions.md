@@ -171,6 +171,6 @@ export GITLAB_TOKEN="<token>"
 gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml
 ```
 
-Full example pack: [`security/include-versions.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/examples/example-policies/security/include-versions.feature).
+Full example pack: [`security/include-versions.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/include-versions.feature).
 
 Back to [Examples](index.md).

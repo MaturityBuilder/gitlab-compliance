@@ -78,7 +78,7 @@ Auto-generated option details: [Command Reference](command-reference.md) (one pa
 
 ```bash
 pip install gitlab-compliance
-cp -r examples/examples/example-policies/security/ policies/
+cp -r examples/example-policies/security/ policies/
 gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml
 ```
 

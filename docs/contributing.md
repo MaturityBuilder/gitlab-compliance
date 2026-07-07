@@ -48,7 +48,7 @@ When adding pages:
 
 - Step definitions live under `src/compliance/behave_support/steps/`
 - Update [BDD Reference](bdd-reference/index.md) when adding new `Given` / `When` / `Then` sentences
-- Add example `.feature` files under `examples/examples/example-policies/` and a matching [Examples](examples/index.md) page
+- Add example `.feature` files under `examples/example-policies/` and a matching [Examples](examples/index.md) page
 
 ## Pull requests
 

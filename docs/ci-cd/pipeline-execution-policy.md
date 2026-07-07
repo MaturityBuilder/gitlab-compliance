@@ -6,7 +6,7 @@ Inject `gitlab-compliance` into member project pipelines org-wide using GitLab [
 
 - GitLab tier with security policies (Ultimate or equivalent feature availability)
 - A **security policy project** linked to your group or instance
-- Policy pack vendored in the security policy repo at `policies/security/` (copy from [`examples/examples/example-policies/security/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/examples/example-policies/security))
+- Policy pack vendored in the security policy repo at `policies/security/` (copy from [`examples/example-policies/security/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-policies/security))
 
 ## Repository layout
 
@@ -112,7 +112,7 @@ Pipeline execution policy pipelines run in **isolation** from the member project
 
 ## Pair with BDD execution policy
 
-The injected job enforces [`execution-policy.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/examples/example-policies/security/execution-policy.feature) against each member project's `.gitlab-ci.yml` — catching deploy jobs without `rules:` and weak `when: always` guards.
+The injected job enforces [`execution-policy.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/execution-policy.feature) against each member project's `.gitlab-ci.yml` — catching deploy jobs without `rules:` and weak `when: always` guards.
 
 See [Execution Policy](../examples/execution-policy.md) for the policy definition and project-level alternative.
 

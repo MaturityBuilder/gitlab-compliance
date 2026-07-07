@@ -42,7 +42,7 @@ scan:
 
 ## Policy
 
-From [`security/execution-policy.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/examples/example-policies/security/execution-policy.feature):
+From [`security/execution-policy.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/execution-policy.feature):
 
 ```gherkin
 Feature: Pipeline execution controls
@@ -63,7 +63,7 @@ Feature: Pipeline execution controls
     Then it must contain rules
 ```
 
-Legacy file [`rules.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/examples/example-policies/security/rules.feature) remains for backward compatibility.
+Legacy file [`rules.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/rules.feature) remains for backward compatibility.
 
 ## Consume in GitLab CI (project level)
 
@@ -146,14 +146,14 @@ policy::gitlab-compliance:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 ```
 
-The injected job runs the same Gherkin pack (`policies/security/execution-policy.feature`) as project-level consumption. Vendor `examples/examples/example-policies/security/` into `policies/security/` in the security policy repo.
+The injected job runs the same Gherkin pack (`policies/security/execution-policy.feature`) as project-level consumption. Vendor `examples/example-policies/security/` into `policies/security/` in the security policy repo.
 
 Full walkthrough: [Pipeline Execution Policy](../ci-cd/pipeline-execution-policy.md).
 
 ## Run locally
 
 ```bash
-cp -r examples/examples/example-policies/security/ policies/security/
+cp -r examples/example-policies/security/ policies/security/
 gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml
 ```
 

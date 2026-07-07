@@ -372,10 +372,7 @@ class TestIncludeVersionPolicies:
 
 
 COMPONENT_PINNING_FEATURE = (
-    REPO_ROOT
-    / "examples/examples/example-policies"
-    / "security"
-    / "component-pinning.feature"
+    REPO_ROOT / "examples/example-policies" / "security" / "component-pinning.feature"
 )
 
 

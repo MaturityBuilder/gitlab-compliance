@@ -8,9 +8,7 @@ from src.compliance.metadata import (
     parse_feature_policies,
 )
 
-EXAMPLE_POLICIES = (
-    Path(__file__).resolve().parents[1] / "examples/examples/example-policies"
-)
+EXAMPLE_POLICIES = Path(__file__).resolve().parents[1] / "examples/example-policies"
 
 
 class TestParseMetadataYaml:

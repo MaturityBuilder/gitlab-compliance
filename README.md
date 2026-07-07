@@ -125,7 +125,7 @@ gitlab-compliance compliance -f oci://registry.example.com/org/gitlab-ci-policie
 
 ### Example policy packs
 
-See [examples/examples/example-policies/security/](examples/examples/example-policies/security/) and [docs/compliance-security-examples.md](docs/compliance-security-examples.md) for pinning images, components, fragments, services, rules, templates, and API hardening.
+See [examples/example-policies/security/](examples/example-policies/security/) and [docs/compliance-security-examples.md](docs/compliance-security-examples.md) for pinning images, components, fragments, services, rules, templates, and API hardening.
 
 ## Command reference
 

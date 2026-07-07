@@ -31,7 +31,7 @@ build:
 
 ## Policy
 
-From [`security/image-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/examples/example-policies/security/image-pinning.feature):
+From [`security/image-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/image-pinning.feature):
 
 ```gherkin
 Scenario: Job images must use sha256 digest
@@ -91,7 +91,7 @@ compliance:
 ## Run locally
 
 ```bash
-cp -r examples/examples/example-policies/security/ policies/security/
+cp -r examples/example-policies/security/ policies/security/
 gitlab-compliance compliance -f policies/security/ -p .gitlab-ci.yml
 ```
 

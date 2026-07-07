@@ -1,11 +1,11 @@
 # Examples
 
-Sample policies for common GitLab CI/CD compliance checks. Full files are in the repository under [`examples/examples/example-policies/security/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/examples/example-policies/security).
+Sample policies for common GitLab CI/CD compliance checks. Full files are in the repository under [`examples/example-policies/security/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-policies/security).
 
 ## Quick start
 
 ```bash
-cp -r examples/examples/example-policies/security/ policies/
+cp -r examples/example-policies/security/ policies/
 gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml
 ```
 
@@ -27,7 +27,7 @@ gitlab-compliance compliance -f policies/ -p .gitlab-ci.yml
 
 | Pattern | When to use | Reference |
 |---------|-------------|-----------|
-| Local copy | Single project, quick start | `cp -r examples/examples/example-policies/security/ policies/security/` |
+| Local copy | Single project, quick start | `cp -r examples/example-policies/security/ policies/security/` |
 | Shared CI jobs | Reuse job templates across projects | [`example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-ci/compliance-jobs.yml) |
 | GitHub Actions | pip or container compliance jobs | [`example-github-actions/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-github-actions) |
 | `include:` from central repo | Versioned policy + job distribution | [GitLab CI/CD](../ci-cd/gitlab-ci.md#include-shared-compliance-jobs) |
