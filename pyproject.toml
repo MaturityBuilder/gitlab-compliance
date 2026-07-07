@@ -1,20 +1,20 @@
 [project]
-name = "gitlab-docs"
+name = "gitlab-compliance"
 dynamic = [ "readme" ]
 [project.urls]
-"Home Page" = "https://pypi.org/manage/project/gitlab-docs"
-DOCUMENTATION = "https://pypi.org/manage/project/gitlab-docs"
-Repository = "https://gitlab.com/charlieasmith/gitlab-docs"
-Gitlab     = "https://gitlab.com/charlieasmith/gitlab-docs"
+"Home Page" = "https://pypi.org/manage/project/gitlab-compliance"
+DOCUMENTATION = "https://pypi.org/manage/project/gitlab-compliance"
+Repository = "https://gitlab.com/charlieasmith/gitlab-compliance"
+Gitlab     = "https://gitlab.com/charlieasmith/gitlab-compliance"
 
 [tool.poetry_bumpversion.file."src/__init__.py"]
 
 [tool.poetry]
-name = "gitlab-docs"
+name = "gitlab-compliance"
 version = "1.0.6"
 description = "Gitlab automatically generates gitlab documentation from yaml files"
 authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
-readme = ["docs/index.md", "docs/command-reference.md", "docs/output-example.md"]
+readme = ["docs/index.md"]
 
 packages = [{ include = "src" }]
 
@@ -27,7 +27,6 @@ pytablewriter = "1.2.0"
 oyaml = "*"
 typer = "0.10.0"
 markdown-analysis = "0.1.5"
-setuptools = "83.0.0"
 urllib3 = "2.7.0"
 jq = "1.8.0"
 click = "8.0.0"
@@ -39,20 +38,21 @@ rich = "14.2.0"
 oras = "0.2.42"
 idna = "3.15"
 requests = "2.34.2"
+behave = "^1.2.6"
 [tool.poetry.scripts]
-gitlab-compliance = 'src.gitlab_docs:gitlab_compliance'
-gitlab-docs = 'src.gitlab_docs:gitlab_compliance'
+gitlab-docs = 'src.gitlab_compliance:gitlab_compliance'
+gitlab-compliance = 'src.gitlab_compliance:gitlab_compliance'
 
 [tool.poetry.group.dev.dependencies]
+setuptools = "83.0.0"
 pytest = "^8.4.1"
-behave = "^1.2.6"
+
 pyyaml = "^6.0.2"
 coverage = "^7.9.2"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.6.0"
 mkdocs-material = "^9.6.0"
-
 [build-system]
 requires = ["poetry-core","setuptools","poetry-bumpversion","id"]
 build-backend = "poetry.core.masonry.api"

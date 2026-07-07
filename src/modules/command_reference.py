@@ -1,14 +1,10 @@
 import importlib
-import os
 import pathlib
+import re
 
 import click
 
 md_base_template = """
-## {command_name}
-
-{description}
-
 ### Usage
 
 ```
@@ -23,7 +19,6 @@ md_base_template = """
 ```
 {help}
 ```
-
 """
 
 
@@ -66,52 +61,73 @@ def _param_metadata(param):
     }
 
 
-def dump_helper(base_command, docs_dir):
-    """Dumping help usage files from Click Help files into an md"""
+def _format_options(options: dict) -> str:
+    if not options:
+        return "_No options._\n"
+    return "\n".join(
+        [
+            f"* `{opt_name}`{' (REQUIRED)' if opt.get('required') else ''}"
+            f"{' [argument]' if opt.get('kind') == 'argument' else ''}: \n"
+            f"  * Type: {opt.get('type')} \n"
+            f"  * Default: `{str(opt.get('default')).lower()}`\n"
+            f"  * Usage: `{opt.get('usage')}`\n"
+            "\n"
+            f"  {opt.get('help') or ''}\n"
+            for opt_name, opt in options.items()
+        ]
+    )
+
+
+def _render_command_page(helpdct: dict) -> str:
+    command = helpdct["command"]
+    options = {opt.name: _param_metadata(opt) for opt in helpdct.get("params", [])}
+    description = (command.help or "").strip()
+    body = md_base_template.format(
+        usage=helpdct.get("usage"),
+        options=_format_options(options),
+        help=helpdct.get("help"),
+    )
+    if description:
+        return f"# {command.name}\n\n{description}\n{body}"
+    return f"# {command.name}\n{body}"
+
+
+def _command_filename(command_name: str) -> str:
+    safe_name = re.sub(r"[^\w.-]+", "-", command_name).strip("-").lower()
+    return f"{safe_name}.md"
+
+
+def dump_helper(base_command, docs_dir) -> list[str]:
+    """Write one markdown file per top-level subcommand."""
     docs_path = pathlib.Path(docs_dir)
+    docs_path.mkdir(parents=True, exist_ok=True)
+
+    root_name = base_command.name
+    written: list[str] = []
+
     for helpdct in recursive_help(base_command):
-        command = helpdct.get("command")
-        helptxt = helpdct.get("help")
-        usage = helpdct.get("usage")
+        command = helpdct["command"]
         parent = helpdct.get("parent", "") or ""
-        options = {opt.name: _param_metadata(opt) for opt in helpdct.get("params", [])}
-        full_command = (
-            f"{str(parent) + ' ' if parent else ''}{str(command.name)}".replace(
-                "gitlab-docs", ""
-            )
+
+        if command is base_command or parent != root_name:
+            continue
+
+        filename = _command_filename(command.name)
+        (docs_path / filename).write_text(
+            _render_command_page(helpdct),
+            encoding="utf-8",
         )
+        written.append(command.name)
 
-        if not full_command:
-            full_command = f"{str(parent) + ' ' if parent else ''}{str(command.name)}"
-        print(full_command)
-        md_template = md_base_template.format(
-            command_name=full_command,
-            description=command.help,
-            usage=usage,
-            options="\n".join(
-                [
-                    f"* `{opt_name}`{' (REQUIRED)' if opt.get('required') else ''}{' [argument]' if opt.get('kind') == 'argument' else ''}: \n"
-                    f"  * Type: {opt.get('type')} \n"
-                    f"  * Default: `{str(opt.get('default')).lower()}`\n"
-                    f"  * Usage: `{opt.get('usage')}`\n"
-                    "\n"
-                    f"  {opt.get('help') or ''}\n"
-                    f"\n"
-                    for opt_name, opt in options.items()
-                ]
-            ),
-            help=helptxt,
-        )
+    index_lines = [
+        "# Command Reference\n",
+        f"Auto-generated reference for `{root_name}` subcommands.\n",
+    ]
+    for name in sorted(written):
+        index_lines.append(f"- [{name}]({_command_filename(name)})\n")
+    (docs_path / "command-reference.md").write_text("".join(index_lines), encoding="utf-8")
 
-        if not docs_path.exists():
-            docs_path.mkdir(parents=True, exist_ok=True)
-
-        md_file_path = docs_path.joinpath("command-reference.md").absolute()
-        # full_command.replace(' ', '-').lower() + '.md')
-
-        # Create the file per each command
-        with open(md_file_path, "a") as md_file:
-            md_file.write(md_template)
+    return written
 
 
 @click.group()
@@ -139,19 +155,14 @@ def cli():
     "docs_path",
     help="The docs dir path to write the md files",
     required=True,
-    default="docs/",
+    default="docs/usage/reference/",
 )
 def dumps(base_module, base_command, docs_path):
     """
-    # Click-md
-    Create md files per each command, in format of `parent-command`, under the `--docsPath` directory.
+    Create one markdown file per top-level subcommand under --docsPath.
     """
-    md_file_path = os.path.join(docs_path, "command-reference.md")
-    os.makedirs(docs_path, exist_ok=True)
-    with open(md_file_path, "w", encoding="utf-8") as md_file:
-        md_file.write("# Command Reference")
     click.secho(
-        f"Creating a new documents from {base_module}.{base_command} into {docs_path}",
+        f"Creating command docs from {base_module}.{base_command} into {docs_path}",
         color="green",
     )
 
@@ -168,8 +179,11 @@ def dumps(base_module, base_command, docs_path):
         return
 
     try:
-        dump_helper(command_, docs_dir=docs_path)
-        click.secho(f"Created docs under {docs_path}", color="green")
+        written = dump_helper(command_, docs_dir=docs_path)
+        click.secho(
+            f"Created {len(written)} command docs under {docs_path}",
+            color="green",
+        )
     except Exception as e:
         click.secho(f"Dumps command failed: {str(e)}", color="red")
         raise

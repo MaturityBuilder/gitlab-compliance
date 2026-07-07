@@ -20,17 +20,58 @@ def _job_entity(name: str, config: dict, source_file: str = "", line: int = 0) -
 
 
 def _include_entity(index: int, include: dict) -> dict:
+    version = include.get("version", "")
     return {
         "address": f"include.{index}",
         "type": "include",
         "include_type": include["include_type"],
         "name": include.get("project", ""),
         "project": include.get("project", ""),
-        "version": include.get("version", ""),
+        "version": version,
+        "valid_version": include.get("valid_version", False),
+        "latest_version": include.get("latest_version", ""),
+        "update_available": include.get("update_available", False),
+        "release_metadata_resolved": include.get("release_metadata_resolved", False),
+        "version_released_at": include.get("version_released_at", ""),
+        "latest_version_released_at": include.get("latest_version_released_at", ""),
+        "latest_release_age_days": include.get("latest_release_age_days"),
+        "release_lag_days": include.get("release_lag_days"),
+        "version_tag_rank": include.get("version_tag_rank"),
+        "semver_tag_count": include.get("semver_tag_count", 0),
         "file": include.get("file", ""),
         "values": include,
         "source_file": include.get("source_file", ""),
         "line": include.get("line", 0),
+    }
+
+
+def _container_image_entity(index: int, image: dict) -> dict:
+    image_ref = image.get("image", image.get("project", ""))
+    return {
+        "address": f"container_image.{index}",
+        "type": "container_image",
+        "include_type": "container_image",
+        "image_source": image.get("image_source", ""),
+        "parent_job": image.get("parent_job", ""),
+        "name": image_ref,
+        "project": image_ref,
+        "image": image_ref,
+        "version": image.get("version", ""),
+        "valid_version": image.get("valid_version", False),
+        "registry": image.get("registry", ""),
+        "repository": image.get("repository", ""),
+        "digest": image.get("digest", ""),
+        "latest_version": image.get("latest_version", ""),
+        "latest_digest": image.get("latest_digest", ""),
+        "update_available": image.get("update_available", False),
+        "release_metadata_resolved": image.get("release_metadata_resolved", False),
+        "latest_release_age_days": image.get("latest_release_age_days"),
+        "release_lag_days": image.get("release_lag_days"),
+        "version_tag_rank": image.get("version_tag_rank"),
+        "semver_tag_count": image.get("semver_tag_count", 0),
+        "values": image,
+        "source_file": image.get("source_file", ""),
+        "line": image.get("line", 0),
     }
 
 
@@ -75,9 +116,7 @@ def load_yaml_entities(
         include_nested=include_nested,
     )
 
-    from src.modules.yaml_lines import index_yaml_file
-
-    line_index = index_yaml_file(pipeline_file)
+    line_index = pipeline_data.get("line_index") or {}
     workflow_rule_lines = line_index.get("workflow_rules", [])
 
     entities: dict[str, list[dict]] = {
@@ -119,6 +158,10 @@ def load_yaml_entities(
         "project_settings": [],
         "project_ci_variables": [],
         "group_settings": [],
+        "container_images": [
+            _container_image_entity(index, image)
+            for index, image in enumerate(pipeline_data["container_images"], 1)
+        ],
     }
     return entities
 
@@ -146,9 +189,13 @@ def load_pipeline_entities(
     token: str | None = None,
     project: str | None = None,
     group: str | None = None,
+    enrich_includes: bool = True,
+    enrich_images: bool = True,
+    load_api_entities: bool = True,
 ) -> dict[str, list[dict]]:
     from src.compliance.api_config import (resolve_group, resolve_project,
                                            resolve_token)
+    from src.compliance.release_cache import ReleaseMetadataCache
 
     entities = load_yaml_entities(pipeline_file, include_nested=include_nested)
 
@@ -160,14 +207,67 @@ def load_pipeline_entities(
     resolved_project = resolve_project(userdata)
     resolved_group = resolve_group(userdata)
 
-    if api_token and (resolved_project or resolved_group):
-        from src.compliance.gitlab_api import load_api_entities
+    cache = ReleaseMetadataCache()
+    gl = None
+    resolved_gitlab_url = (
+        gitlab_url
+        or os.getenv("CI_SERVER_URL")
+        or os.getenv("GITLAB_URL")
+        or "https://gitlab.com"
+    )
 
-        api_entities = load_api_entities(
+    needs_gitlab_client = api_token and (
+        enrich_includes
+        or enrich_images
+        or (load_api_entities and (resolved_project or resolved_group))
+    )
+    if needs_gitlab_client:
+        try:
+            import gitlab
+
+            gl = gitlab.Gitlab(resolved_gitlab_url, private_token=api_token)
+            gl.auth()
+        except Exception:
+            gl = None
+
+    if api_token and enrich_includes:
+        from src.compliance.include_versions import enrich_includes_with_releases
+
+        enriched_includes = enrich_includes_with_releases(
+            [include["values"] for include in entities["includes"]],
+            gitlab_url=gitlab_url,
+            token=api_token,
+            gl=gl,
+            cache=cache,
+        )
+        entities["includes"] = [
+            _include_entity(index, include)
+            for index, include in enumerate(enriched_includes)
+        ]
+
+    if api_token and enrich_images:
+        from src.compliance.image_versions import enrich_container_images_with_releases
+
+        enriched_images = enrich_container_images_with_releases(
+            [image["values"] for image in entities["container_images"]],
+            gitlab_url=gitlab_url,
+            token=api_token,
+            cache=cache,
+        )
+        entities["container_images"] = [
+            _container_image_entity(index, image)
+            for index, image in enumerate(enriched_images, 1)
+        ]
+
+    if api_token and load_api_entities and (resolved_project or resolved_group) and gl:
+        from src.compliance.gitlab_api import load_api_entities as fetch_api_entities
+
+        api_entities = fetch_api_entities(
             gitlab_url=gitlab_url,
             token=api_token,
             project=resolved_project,
             group=resolved_group,
+            gl=gl,
         )
         entities["project_settings"].extend(api_entities.get("project_settings", []))
         entities["project_ci_variables"].extend(

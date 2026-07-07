@@ -11,7 +11,7 @@ from pathlib import Path
 import oras.client
 from oras.utils import extract_targz, make_targz
 
-POLICY_BUNDLE_MEDIA_TYPE = "application/vnd.gitlab-docs.policy.bundle.v1+tar+gzip"
+POLICY_BUNDLE_MEDIA_TYPE = "application/vnd.gitlab-compliance.policy.bundle.v1+tar+gzip"
 OCI_SCHEME = "oci://"
 DEFAULT_POLICY_DIR = "policy"
 REGISTRY_REFERENCE = re.compile(
@@ -45,7 +45,7 @@ def bundle_policies_dir(features_dir: str) -> str:
     if not feature_files:
         raise FileNotFoundError(f"No .feature files found in {features_dir}")
 
-    bundle_path = os.path.join(tempfile.mkdtemp(prefix="gitlab-docs-policy-bundle-"), "policies.tar.gz")
+    bundle_path = os.path.join(tempfile.mkdtemp(prefix="gitlab-compliance-policy-bundle-"), "policies.tar.gz")
     return make_targz(features_dir, bundle_path)
 
 
@@ -90,7 +90,7 @@ def push_policies(features_dir: str, target: str) -> str:
 def pull_policies(target: str, output_dir: str | None = None) -> str:
     target = normalize_oci_reference(target)
     output_dir = os.path.abspath(output_dir or DEFAULT_POLICY_DIR)
-    temp_root = tempfile.mkdtemp(prefix="gitlab-docs-policy-pull-")
+    temp_root = tempfile.mkdtemp(prefix="gitlab-compliance-policy-pull-")
 
     try:
         client = _client()
@@ -131,7 +131,7 @@ def resolve_features_dir(features_dir: str, cache_dir: str | None = None) -> str
         return os.path.abspath(features_dir)
 
     if is_oci_reference(features_dir):
-        cache_dir = cache_dir or os.path.join(tempfile.gettempdir(), "gitlab-docs-policies")
+        cache_dir = cache_dir or os.path.join(tempfile.gettempdir(), "gitlab-compliance-policies")
         os.makedirs(cache_dir, exist_ok=True)
         return pull_policies(features_dir, output_dir=cache_dir)
 

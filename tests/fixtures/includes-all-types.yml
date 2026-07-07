@@ -1,0 +1,20 @@
+include:
+  - local: child/ci.yml
+  - project: platform/ci-templates
+    ref: 1.0.0
+    file: security/gitleaks.yml
+  - component: gitlab.com/org/pipeline@1.2.0
+  - template: Auto-DevOps.gitlab-ci.yml
+  - remote: https://gitlab.com/group/proj/-/raw/2.1.0/ci/template.yml
+
+scan:
+  image: python:3.12.0
+  script:
+    - echo scan
+
+build:
+  image: alpine:3.20
+  services:
+    - docker:24.0.5-dind
+  script:
+    - echo build

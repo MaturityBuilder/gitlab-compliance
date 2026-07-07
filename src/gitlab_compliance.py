@@ -1,5 +1,5 @@
 """
-Gitlab-Docs entrypoint to auto generate gitlab-ci documentation from yml configuration files
+gitlab-compliance entrypoint to auto generate gitlab-ci documentation from yml configuration files
 Author: Charlie Smith
 """
 
@@ -101,15 +101,15 @@ def _resolve_output_file(output_format, output_file):
     return DEFAULT_OUTPUT_FILES[output_format]
 
 
-_LEGACY_CLI_NAME = "gitlab-docs"
+_LEGACY_CLI_NAME = "gitlab-compliance"
 
 
 class _DualBrandCliGroup(click.Group):
-    """Shared CLI group; warns when invoked via the legacy ``gitlab-docs`` script name."""
+    """Shared CLI group; warns when invoked via the legacy ``gitlab-compliance`` script name."""
 
     _LEGACY_NOTICE = (
         "Note: `gitlab-docs` is deprecated in favor of `gitlab-compliance`. "
-        "The `gitlab-docs` command will be removed in a future release."
+        "The `gitlab-compliance` command will be removed in a future release."
     )
 
     def _emit_legacy_notice(self, ctx) -> None:
@@ -290,7 +290,7 @@ def generate(detailed, output_format, OUTPUT_FILE, DRY_MODE, GLDOCS_CONFIG_FILE)
     "OUTPUT_FILE",
     required=False,
     help="Output location of the HTML documentation.",
-    default="GITLAB-DOCS.html",
+    default="gitlab-compliance.html",
 )
 @click.option(
     "--input-config",
@@ -424,6 +424,12 @@ def _resolve_policies_dir(features_dir: str, policy_cache_dir: str | None = None
     default=False,
     help="Parse and list scenarios without asserting.",
 )
+@click.option(
+    "--fix",
+    is_flag=True,
+    default=False,
+    help="Auto-fix outdated include refs and pin container images to sha256 digests.",
+)
 def compliance(
     features_dir,
     pipeline_file,
@@ -438,12 +444,13 @@ def compliance(
     update,
     policy_cache_dir,
     dry_run,
+    fix,
 ):
     """
     Run Gherkin compliance policies against GitLab CI YAML and optional API settings.
     """
     output_format = output_format.lower()
-    logger.success("GitLab Docs Compliance")
+
     if update and is_oci_reference(features_dir) and policy_cache_dir and os.path.isdir(policy_cache_dir):
         shutil.rmtree(policy_cache_dir)
     result = run_compliance(
@@ -459,6 +466,7 @@ def compliance(
         output_format=output_format,
         policies_source=features_dir,
         policy_cache_dir=policy_cache_dir,
+        fix=fix,
     )
 
     if output_format != "console":

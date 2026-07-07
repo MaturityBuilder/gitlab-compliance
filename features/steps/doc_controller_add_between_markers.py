@@ -6,8 +6,8 @@ from tempfile import NamedTemporaryFile
 from src.modules.doc_controller import add_between_markers
 
 file_path = "README.md"
-marker_start = "[comment]: <> (gitlab-docs-opening-auto-generated)"
-marker_end = "[comment]: <> (gitlab-docs-closing-auto-generated)"
+marker_start = "[comment]: <> (gitlab-compliance-opening-auto-generated)"
+marker_end = "[comment]: <> (gitlab-compliance-closing-auto-generated)"
 
 @given('a non-existent file path')
 def step_given_nonexistent_file(context):

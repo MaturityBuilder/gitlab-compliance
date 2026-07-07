@@ -20,19 +20,19 @@ def _result(*scenarios: ScenarioResult) -> ComplianceResult:
 
 class TestParseLocations:
     def test_extracts_path_and_line(self):
-        message = "Entities missing property: build (sample-files/.gitlab-ci.yml:12)"
+        message = "Entities missing property: build (examples/sample-files/.gitlab-ci.yml:12)"
         assert _parse_locations(message, ".gitlab-ci.yml") == [
-            ("sample-files/.gitlab-ci.yml", 12)
+            ("examples/sample-files/.gitlab-ci.yml", 12)
         ]
 
     def test_multiple_entity_refs(self):
         message = (
-            "Failures: build (sample-files/.gitlab-ci.yml:12), "
-            "test (sample-files/.gitlab-ci.yml:20)"
+            "Failures: build (examples/sample-files/.gitlab-ci.yml:12), "
+            "test (examples/sample-files/.gitlab-ci.yml:20)"
         )
         assert _parse_locations(message, ".gitlab-ci.yml") == [
-            ("sample-files/.gitlab-ci.yml", 12),
-            ("sample-files/.gitlab-ci.yml", 20),
+            ("examples/sample-files/.gitlab-ci.yml", 12),
+            ("examples/sample-files/.gitlab-ci.yml", 20),
         ]
 
     def test_fallback_when_no_location(self):
@@ -59,19 +59,19 @@ class TestRenderComplianceCodeQuality:
                 feature="image-pinning.feature",
                 name="Job images must not use the latest tag",
                 status="failed",
-                message="Entities where image must not match: build (sample-files/.gitlab-ci.yml:12)",
+                message="Entities where image must not match: build (examples/sample-files/.gitlab-ci.yml:12)",
                 policy_id="GLCI-IMAGE-PINNING-001",
                 severity="HIGH",
             )
         )
         payload = json.loads(
-            render_compliance_code_quality(result, "sample-files/.gitlab-ci.yml")
+            render_compliance_code_quality(result, "examples/sample-files/.gitlab-ci.yml")
         )
         assert len(payload) == 1
         finding = payload[0]
         assert finding["check_name"] == "GLCI-IMAGE-PINNING-001"
         assert finding["severity"] == "major"
-        assert finding["location"]["path"] == "sample-files/.gitlab-ci.yml"
+        assert finding["location"]["path"] == "examples/sample-files/.gitlab-ci.yml"
         assert finding["location"]["lines"]["begin"] == 12
         assert set(finding) >= {
             "description",

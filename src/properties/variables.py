@@ -42,7 +42,7 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE,  DISABLE_TITLE):
                                     "Description for: "
                                     + v
                                     + " isn't set, variable should have description set, "
-                                    + "gitlab-docs considers this malformed :("
+                                    + "gitlab-compliance considers this malformed :("
                                 )
                                 description = "&#x274c;"
 

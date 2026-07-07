@@ -20,6 +20,8 @@ mkdocs serve
 
 Open the URL printed in the terminal (default `http://127.0.0.1:8000`). Edit files under `docs/`; the preview reloads automatically.
 
+The **table of contents** (heading tree on the right) appears when the browser window is wide enough (~1220px+). On narrower viewports, open the page menu (top right) to see **Table of contents**. Pages need `##` headings or lower — the page `#` title is not listed in the TOC.
+
 Produce a static site for inspection:
 
 ```bash
@@ -30,7 +32,7 @@ The HTML output is written to `public/` (GitLab Pages and GitHub Pages both expe
 
 ### Link rules (`--strict`)
 
-MkDocs only validates links to files under `docs/`. Link to repository paths outside that folder with full URLs (for example `example-policies/` on GitHub), not `../` relative paths.
+MkDocs only validates links to files under `docs/`. Link to repository paths outside that folder with full URLs (for example `examples/examples/example-policies/` on GitHub), not `../` relative paths.
 
 ## GitLab CI/CD
 
@@ -57,8 +59,22 @@ Enable **Settings → Pages → Build and deployment → GitHub Actions** if the
 
 On pull requests, open the **review** job and download the **mkdocs-preview** artifact to inspect the built site.
 
+## Site structure
+
+Navigation mirrors [terraform-compliance.com](https://terraform-compliance.com/):
+
+| Section | Purpose |
+| --- | --- |
+| Overview | Product introduction and BDD example |
+| Installation | pip |
+| Usage | CLI reference, parameters, environment variables |
+| BDD Reference | Gherkin step grammar |
+| Examples | Security policy patterns |
+| Using in CI/CD | GitLab CI, Pipeline Execution Policy |
+| Contributing | Development and docs workflow |
+
 ## Adding pages
 
-1. Add or edit Markdown under `docs/`.
+1. Add or edit Markdown under `docs/` (use subfolders for sections, e.g. `docs/examples/`).
 2. Register the page in the `nav` section of `mkdocs.yml`.
 3. Run `mkdocs build --strict` locally before opening a merge request.

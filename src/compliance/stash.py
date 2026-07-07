@@ -72,6 +72,111 @@ def extends_includes(entity: dict, template: str) -> bool:
     return False
 
 
+def include_has_valid_semver(entity: dict) -> bool:
+    return bool(entity.get("valid_version"))
+
+
+def include_has_newer_release(entity: dict) -> bool:
+    return bool(entity.get("update_available"))
+
+
+def include_version_is_latest(entity: dict) -> bool:
+    if not entity.get("release_metadata_resolved"):
+        return False
+    version = normalize_value(entity.get("version", ""))
+    latest = normalize_value(entity.get("latest_version", ""))
+    return bool(version and latest and version == latest)
+
+
+def include_release_metadata_resolved(entity: dict) -> bool:
+    return bool(entity.get("release_metadata_resolved"))
+
+
+def include_newer_release_older_than_days(entity: dict, days: int) -> bool:
+    if not entity.get("update_available"):
+        return False
+    age_days = entity.get("latest_release_age_days")
+    if age_days is None:
+        return False
+    return int(age_days) > days
+
+
+def include_release_lag_exceeds_days(entity: dict, days: int) -> bool:
+    if not entity.get("update_available"):
+        return False
+    lag_days = entity.get("release_lag_days")
+    if lag_days is None:
+        return False
+    return int(lag_days) > days
+
+
+def include_within_latest_tags(entity: dict, count: int) -> bool:
+    if not entity.get("release_metadata_resolved"):
+        return False
+    rank = entity.get("version_tag_rank")
+    if rank is None:
+        return False
+    return int(rank) <= count
+
+
+def include_not_within_latest_tags(entity: dict, count: int) -> bool:
+    if not entity.get("release_metadata_resolved"):
+        return False
+    rank = entity.get("version_tag_rank")
+    if rank is None:
+        return True
+    return int(rank) > count
+
+
+def container_image_uses_sha256(entity: dict) -> bool:
+    image = str(entity.get("image", entity.get("project", "")))
+    return "@sha256:" in image
+
+
+def container_image_has_newer_release(entity: dict) -> bool:
+    return bool(entity.get("update_available"))
+
+
+def container_image_newer_release_older_than_days(entity: dict, days: int) -> bool:
+    if not entity.get("update_available"):
+        return False
+    age_days = entity.get("latest_release_age_days")
+    if age_days is None:
+        return False
+    return int(age_days) > days
+
+
+def container_image_release_lag_exceeds_days(entity: dict, days: int) -> bool:
+    if not entity.get("update_available"):
+        return False
+    lag_days = entity.get("release_lag_days")
+    if lag_days is None:
+        return False
+    return int(lag_days) > days
+
+
+def container_image_within_latest_tags(entity: dict, count: int) -> bool:
+    if not entity.get("release_metadata_resolved"):
+        return False
+    rank = entity.get("version_tag_rank")
+    if rank is None:
+        return False
+    return int(rank) <= count
+
+
+def container_image_not_within_latest_tags(entity: dict, count: int) -> bool:
+    if not entity.get("release_metadata_resolved"):
+        return False
+    rank = entity.get("version_tag_rank")
+    if rank is None:
+        return True
+    return int(rank) > count
+
+
+def container_image_release_metadata_resolved(entity: dict) -> bool:
+    return bool(entity.get("release_metadata_resolved"))
+
+
 def filter_entities(
     entities: list[dict], predicate: Callable[[dict], bool]
 ) -> list[dict]:

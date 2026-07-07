@@ -1,6 +1,6 @@
 *.pem
-sample-files/*.md
-gitlab-docs/
+examples/sample-files/*.md
+gitlab-compliance/
 dist/
 public/
 site/

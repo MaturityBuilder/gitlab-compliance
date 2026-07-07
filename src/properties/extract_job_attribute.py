@@ -32,8 +32,8 @@ def get_job_attribute(
 
     attribute_table = common.table_design(field_names=attribute_tb_headers)
     file = common.read_yml(GLDOCS_CONFIG_FILE)
-    marker_start="[comment]: <> (gitlab-docs-attribute-opening-auto-generated)"
-    marker_end="[comment]: <> (gitlab-docs-attribute-closing-auto-generated)"
+    marker_start="[comment]: <> (gitlab-compliance-attribute-opening-auto-generated)"
+    marker_end="[comment]: <> (gitlab-compliance-attribute-closing-auto-generated)"
     update_marked_block(file_path=OUTPUT_FILE, content="\n", marker_start=marker_start,marker_end=marker_end)
     add_between_markers(file_path=OUTPUT_FILE, content="\n",marker_start=marker_start,marker_end=marker_end)
     for jobs in file:

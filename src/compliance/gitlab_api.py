@@ -48,6 +48,7 @@ def load_api_entities(
     token: str | None = None,
     project: str | None = None,
     group: str | None = None,
+    gl: Any | None = None,
 ) -> dict[str, list[dict]]:
     gitlab_url = gitlab_url or os.getenv("CI_SERVER_URL") or os.getenv("GITLAB_URL") or "https://gitlab.com"
     token = token or os.getenv("GITLAB_TOKEN") or os.getenv("CI_JOB_TOKEN")
@@ -55,10 +56,11 @@ def load_api_entities(
     if not token:
         raise ValueError("GitLab API token required. Set --token or GITLAB_TOKEN.")
 
-    import gitlab
+    if gl is None:
+        import gitlab
 
-    gl = gitlab.Gitlab(gitlab_url, private_token=token)
-    gl.auth()
+        gl = gitlab.Gitlab(gitlab_url, private_token=token)
+        gl.auth()
 
     entities: dict[str, list[dict]] = {
         "project_settings": [],

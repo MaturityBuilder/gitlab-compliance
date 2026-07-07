@@ -1,17 +1,23 @@
 site_name: GitLab Compliance
-site_description: Document GitLab CI/CD pipelines and run Gherkin compliance policies
+site_description: BDD compliance testing for GitLab CI/CD pipelines and project settings
 docs_dir: docs
 site_dir: public
 repo_url: https://github.com/MaturityBuilder/gitlab-compliance
 repo_name: MaturityBuilder/gitlab-compliance
-edit_uri: edit/main/docs/
-
+edit_uri: edit/main/
+plugins:
+  # - include_dir_to_nav
 theme:
   name: material
   language: en
   features:
-    - navigation.tabs
+    - navigation.instant
+    - navigation.instant.progress
+    # - navigation.expand
+    - navigation.path
     - navigation.top
+    - navigation.indexes
+    - toc.follow
     - content.code.copy
     - search.suggest
     - search.highlight
@@ -33,11 +39,59 @@ theme:
     code: Roboto Mono
 
 nav:
-  - Home: index.md
-  - Output Example: output-example.md
-  - Command Reference: command-reference.md
-  - Compliance Examples: compliance-security-examples.md
-  - Site build & publish: site-documentation.md
+  - Overview: index.md
+  - Installation:
+    - installation/index.md
+    - Installing via pip: installation/pip.md
+  - Command Reference: 
+
+    - Compliance:
+
+      - Command Reference: usage/reference/compliance.md
+      - Compliance Docs: usage/reference/compliance-doc.md
+      - Compliance Pull: usage/reference/compliance-pull.md
+      - Compliance Push: usage/reference/compliance-push.md
+      - Environment Variables: usage/environment-variables.md
+    - Generate Documentation:
+      - Generate Pipeline Documentation: usage/reference/generate.md
+      - Get Specific Documentation About Attributes: usage/reference/get-attributes.md 
+    - Release Notes Commands:
+      - Release Notes: usage/reference/release-notes.md 
+  - Usage:
+    - usage/index.md 
+    - Additional Parameters: usage/additional-parameters.md
+    
+    
+  - BDD Reference:
+    - bdd-reference/index.md
+    - Overview of Scenario Flow: bdd-reference/overview.md
+    - GIVEN Directives: bdd-reference/given.md
+    - WHEN Directives: bdd-reference/when.md
+    - THEN Directives: bdd-reference/then.md
+    - Using AND: bdd-reference/using-and.md
+    - Policy Metadata: bdd-reference/metadata.md
+  - Examples:
+    - Compliance Examples:
+      - examples/index.md
+      - Image Pinning: examples/image-pinning.md
+      - Component Pinning: examples/component-pinning.md
+      - Fragment Pinning: examples/fragment-pinning.md
+      - Include Versions: examples/include-versions.md
+      - Service Pinning: examples/service-pinning.md
+      - Execution Policy: examples/execution-policy.md
+      - Template Extends: examples/template-extends.md
+      - API Hardening: examples/api-hardening.md
+      - OCI Policy Packs: examples/oci-policy-packs.md
+      - Include Versions: examples/advanced/include-versions.md
+
+    - Gitlab Docs Output (generate command): examples/gitlab-docs-output-example.md
+  - Using in CI/CD:
+    - ci-cd/index.md
+    - GitLab CI/CD: ci-cd/gitlab-ci.md
+    - Pipeline Execution Policy: ci-cd/pipeline-execution-policy.md
+  - Contributing:
+    - contributing.md
+    - Site build & publish: site-documentation.md
 
 markdown_extensions:
   - admonition
@@ -46,3 +100,12 @@ markdown_extensions:
   - tables
   - toc:
       permalink: true
+      toc_depth: 4
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/MaturityBuilder/gitlab-compliance
+
+extra_javascript:
+  - javascripts/nav-expand.js

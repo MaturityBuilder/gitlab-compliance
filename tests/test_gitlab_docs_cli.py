@@ -12,7 +12,7 @@ from src.gitlab_docs import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SAMPLE_PIPELINE = REPO_ROOT / "sample-files" / ".gitlab-ci.yml"
+SAMPLE_PIPELINE = REPO_ROOT / "examples/sample-files" / ".gitlab-ci.yml"
 PASSING_POLICIES = REPO_ROOT / "tests" / "compliance_policies" / "passing"
 FAILING_POLICIES = REPO_ROOT / "tests" / "compliance_policies" / "failing"
 ANNOTATED_POLICIES = REPO_ROOT / "tests" / "compliance_policies" / "annotated"
@@ -49,7 +49,7 @@ class TestGenerateCli:
         )
         assert result.exit_code == 0, result.output
         content = output_file.read_text(encoding="utf-8")
-        assert "gitlab-docs-opening-auto-generated" in content or len(content) > 0
+        assert "gitlab-compliance-opening-auto-generated" in content or len(content) > 0
 
     def test_html_format_writes_file(self, tmp_path):
         output_file = tmp_path / "docs.html"

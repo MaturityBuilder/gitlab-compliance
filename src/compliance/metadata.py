@@ -61,10 +61,34 @@ def _auto_scenario_id(feature_id: str, index: int) -> str:
     return f"{feature_id}-{index:03d}"
 
 
+def _quote_yaml_scalar(value: str) -> str:
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
+
+
+def _prepare_metadata_yaml_line(line: str) -> str:
+    if line.startswith("  "):
+        return line
+    if ":" not in line:
+        return line
+    key, sep, rest = line.partition(":")
+    value = rest.strip()
+    if not value or value in ("|", ">"):
+        return line
+    if (value.startswith('"') and value.endswith('"')) or (
+        value.startswith("'") and value.endswith("'")
+    ):
+        return line
+    if ":" in value:
+        return f"{key}{sep} {_quote_yaml_scalar(value)}"
+    return line
+
+
 def _parse_metadata_yaml(yaml_lines: list[str]) -> dict:
     if not yaml_lines:
         return {}
-    parsed = yaml.safe_load("\n".join(yaml_lines))
+    prepared = [_prepare_metadata_yaml_line(line) for line in yaml_lines]
+    parsed = yaml.safe_load("\n".join(prepared))
     return parsed if isinstance(parsed, dict) else {}
 
 

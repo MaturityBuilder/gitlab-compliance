@@ -15,8 +15,8 @@ dry = os.environ.get("DRY_MODE", False)
 def update_marked_block(
     file_path,
     content,
-    marker_start="[comment]: <> (gitlab-docs-opening-auto-generated)",
-    marker_end="[comment]: <> (gitlab-docs-closing-auto-generated)",
+    marker_start="[comment]: <> (gitlab-compliance-opening-auto-generated)",
+    marker_end="[comment]: <> (gitlab-compliance-closing-auto-generated)",
     dry=None,
 ):
     """
@@ -71,8 +71,8 @@ def update_marked_block(
 def add_between_markers(
     file_path,
     content,
-    marker_start="[comment]: <> (gitlab-docs-opening-auto-generated)",
-    marker_end="[comment]: <> (gitlab-docs-closing-auto-generated)",
+    marker_start="[comment]: <> (gitlab-compliance-opening-auto-generated)",
+    marker_end="[comment]: <> (gitlab-compliance-closing-auto-generated)",
 ):
     """
     Appends content between marker lines in a file.

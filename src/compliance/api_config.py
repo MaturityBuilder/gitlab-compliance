@@ -38,6 +38,10 @@ def group_api_ready(userdata: dict[str, Any] | None = None) -> bool:
     return bool(resolve_token(userdata) and resolve_group(userdata))
 
 
+def gitlab_api_ready(userdata: dict[str, Any] | None = None) -> bool:
+    return bool(resolve_token(userdata))
+
+
 def _missing_connection_message(scope: ApiScope, label: str) -> str:
     if scope == "project":
         return (
@@ -48,6 +52,28 @@ def _missing_connection_message(scope: ApiScope, label: str) -> str:
         f"GitLab API connection info not provided for {label}. "
         "Set --token and --group (or GITLAB_TOKEN/CI_JOB_TOKEN)."
     )
+
+
+def _missing_gitlab_api_message(label: str) -> str:
+    return (
+        f"GitLab API token not provided for {label}. "
+        "Set --token or GITLAB_TOKEN/CI_JOB_TOKEN."
+    )
+
+
+def require_gitlab_api(context, label: str) -> bool:
+    userdata = context.config.userdata
+    if gitlab_api_ready(userdata):
+        return True
+
+    message = _missing_gitlab_api_message(label)
+    if userdata.get("strict") == "true":
+        raise AssertionError(message)
+
+    from src.compliance.behave_support.environment import _skip_remaining_steps
+
+    _skip_remaining_steps(context, message)
+    return False
 
 
 def require_api_connection(context, scope: ApiScope, label: str) -> bool:

@@ -17,7 +17,7 @@ class TestDualCliEntryPoints:
 
     def test_gitlab_docs_help_shows_deprecation_notice(self):
         runner = CliRunner()
-        result = runner.invoke(gitlab_compliance, ["--help"], prog_name="gitlab-docs")
+        result = runner.invoke(gitlab_compliance, ["--help"], prog_name="gitlab-compliance")
         assert result.exit_code == 0
         assert "deprecated" in result.output.lower()
         assert "gitlab-compliance" in result.output

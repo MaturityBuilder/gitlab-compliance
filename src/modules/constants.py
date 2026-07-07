@@ -2,7 +2,7 @@ SUPPORTED_OUTPUT_FORMATS = ("markdown", "html")
 
 DEFAULT_OUTPUT_FILES = {
     "markdown": "README.md",
-    "html": "GITLAB-DOCS.html",
+    "html": "gitlab-compliance.html",
 }
 
 COMPLIANCE_OUTPUT_FORMATS = ("console", "markdown", "html", "mr-comment", "codequality")
