@@ -24,6 +24,11 @@ jobs:
         uses: googleapis/release-please-action@v4
         with:
           token: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
+          release-type: python
+          release-name: Release ${{ github.ref }}
+          release-draft: false
+          release-prerelease: false
+          release-tag: ${{ github.ref }}
   test:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
