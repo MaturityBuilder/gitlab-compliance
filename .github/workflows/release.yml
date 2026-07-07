@@ -9,8 +9,8 @@ on:
 
 permissions:
   contents: write
+  issues: write
   pull-requests: write
-
 env:
   POETRY_VIRTUALENVS_CREATE: "false"
   POETRY_NO_INTERACTION: "1"
@@ -18,13 +18,21 @@ env:
 
 jobs:
   release-please:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Release Please
         uses: googleapis/release-please-action@v4
         with:
           token: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
+          release-type: python
+          release-name: Release ${{ github.ref }}
+          release-body: |
+            Changes in this Release
+            - First Change
+            - Second Change
+          release-draft: false
+          release-prerelease: false
+          release-tag: ${{ github.ref }}
   test:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
