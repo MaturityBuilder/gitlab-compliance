@@ -22,11 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Release Please
-      - uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@v4
         with:
-          # this assumes that you have created a personal access token
-          # (PAT) and configured it as a GitHub action secret named
-          # `MY_RELEASE_PLEASE_TOKEN` (this secret name is not important).
           token: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
   test:
     if: startsWith(github.ref, 'refs/tags/v')
