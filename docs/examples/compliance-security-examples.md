@@ -1,7 +1,9 @@
 # GitLab Compliance Security Examples
 
 !!! note "Moved"
-    This content has been reorganized to match [terraform-compliance.com](https://terraform-compliance.com/) documentation structure.
+    This content has been reorganized to match
+    [terraform-compliance.com](https://terraform-compliance.com/) documentation
+    structure.
 
     Start at **[Examples](index.md)** for the policy index, or jump to:
 

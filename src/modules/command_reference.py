@@ -5,18 +5,18 @@ import re
 import click
 
 md_base_template = """
-### Usage
+## Usage
 
-```
+```text
 {usage}
 ```
 
-### Options
+## Options
 {options}
 
-### CLI Help
+## CLI Help
 
-```
+```text
 {help}
 ```
 """

@@ -16,9 +16,10 @@ from src.compliance.stash import (
     include_newer_release_older_than_days,
     include_not_within_latest_tags,
     include_release_lag_exceeds_days,
+    input_matches,
     name_starts_with,
     property_matches,
-    property_matches_regex,
+    property_matches_conditional,
 )
 
 
@@ -61,12 +62,29 @@ def when_property_is(context, property_name, expected):
 
 @when('its {property_name} matches "{pattern}"')
 def when_property_matches(context, property_name, pattern):
+    when_property_matches_conditional(context, property_name, pattern)
+
+
+def when_property_matches_conditional(context, property_name, pattern):
     filtered = filter_entities(
         context.stash,
-        lambda e: property_matches_regex(e, property_name, pattern),
+        lambda e: property_matches_conditional(e, property_name, pattern),
     )
     _apply_filter(
         context, filtered, f"No entities where {property_name} matches {pattern}"
+    )
+
+
+@when("the entity input {name} equals {value}")
+def when_input_is(context, name, value):
+    filtered = filter_entities(
+        context.stash,
+        lambda e: input_matches(e, name, value),
+    )
+    _apply_filter(
+        context,
+        filtered,
+        f"No entities where input '{name}' matches '{value}'",
     )
 
 

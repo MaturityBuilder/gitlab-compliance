@@ -1,12 +1,15 @@
 # API Hardening
 
-Some controls cannot be expressed in YAML alone. API-backed scenarios read project settings and CI variables via the GitLab API.
+Some controls cannot be expressed in YAML alone. API-backed scenarios read
+project settings and CI variables via the GitLab API.
 
-Requires `--project`, a token, and optionally `--strict` in CI. See [Environment Variables](../usage/environment-variables.md).
+Requires `--project`, a token, and optionally `--strict` in CI. See [Environment
+Variables](../usage/environment-variables.md).
 
 ## Policy examples
 
-From [`security/api-hardening.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/api-hardening.feature):
+From
+[`security/api-hardening.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/api-hardening.feature):
 
 ```gherkin
 Scenario: Job logs must not be public
@@ -22,7 +25,7 @@ Scenario: Production tokens must be protected and masked
   When its key matches "^(AWS_|DATABASE_|API_KEY)"
   Then its protected must be true
   And its masked must be true
-```
+```text
 
 ## Consume in GitLab CI
 
@@ -34,7 +37,7 @@ include:
 
 compliance:
   extends: .compliance:api
-```
+```text
 
 `CI_JOB_TOKEN` and `CI_PROJECT_PATH` are set automatically in GitLab CI jobs.
 
@@ -47,7 +50,7 @@ compliance:api:
 compliance:report:
   extends: .compliance:codequality
   needs: [compliance:api]
-```
+```text
 
 ## Run locally
 
@@ -55,8 +58,9 @@ compliance:report:
 export GITLAB_TOKEN="<token>"
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
   --project my-group/my-project --strict
-```
+```text
 
-Without API credentials, these scenarios are **skipped** unless `--strict` is set.
+Without API credentials, these scenarios are **skipped** unless `--strict` is
+set.
 
 Back to [Examples](index.md).

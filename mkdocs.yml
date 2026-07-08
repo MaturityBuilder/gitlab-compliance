@@ -1,5 +1,5 @@
-site_name: GitLab Compliance
-site_description: BDD compliance testing for GitLab CI/CD pipelines and project settings
+site_name: gitlab-compliance
+site_description: BDD compliance testing for GitLab CI/CD pipelines and project settings — by MaturityBuilder
 docs_dir: docs
 site_dir: public
 repo_url: https://github.com/MaturityBuilder/gitlab-compliance
@@ -7,6 +7,8 @@ repo_name: MaturityBuilder/gitlab-compliance
 edit_uri: edit/main/
 theme:
   variant: classic
+  logo: assets/logo-square.png
+  favicon: assets/favicon.png
   language: en
   features:
     - navigation.instant
@@ -20,13 +22,19 @@ theme:
     - search.suggest
     - search.highlight
   palette:
-    - scheme: default
-      toggle:
-        icon: lucide/sun
-        name: Switch to dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
       toggle:
         icon: lucide/moon
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: lucide/sun
         name: Switch to light mode
 
 nav:
@@ -59,6 +67,8 @@ nav:
   - BDD Reference:
     - bdd-reference/index.md
     - Overview of Scenario Flow: bdd-reference/overview.md
+    - Advanced scenarios: bdd-reference/advanced-scenarios.md
+    - Scenario Outline deep-dive: bdd-reference/scenario-outline.md
     - GIVEN Directives: bdd-reference/given.md
     - WHEN Directives: bdd-reference/when.md
     - THEN Directives: bdd-reference/then.md
@@ -67,6 +77,7 @@ nav:
   - Examples:
     - Compliance Examples:
       - examples/index.md
+      - Advanced scenarios: examples/advanced-scenarios.md
       - Image Pinning: examples/image-pinning.md
       - Component Pinning: examples/component-pinning.md
       - Fragment Pinning: examples/fragment-pinning.md
@@ -97,6 +108,9 @@ markdown_extensions:
   - toc:
       permalink: true
       toc_depth: 4
+
+extra_css:
+  - stylesheets/extra.css
 
 extra:
   social:

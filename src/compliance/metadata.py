@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -41,13 +42,28 @@ class PolicyCatalog:
         self, feature_file: str, scenario_name: str
     ) -> PolicyAnnotation | None:
         normalized = os.path.realpath(feature_file)
+        normalized_name = normalize_scenario_name(scenario_name)
         for feature in self.features:
             if os.path.realpath(feature.feature_file) != normalized:
                 continue
             for scenario in feature.scenarios:
-                if scenario.scenario_name == scenario_name:
+                if scenario.scenario_name in (scenario_name, normalized_name):
                     return scenario
         return None
+
+
+def normalize_scenario_name(scenario_name: str) -> str:
+    """Strip Behave Scenario Outline example suffixes for metadata lookup."""
+    return re.sub(r"\s+--\s+@\d+(?:\.\d+)?(?:\s+.*)?$", "", scenario_name).strip()
+
+
+def iter_feature_files(features_dir: str, *, sort_names: bool = False) -> Iterator[str]:
+    """Yield paths to .feature files under a policy directory."""
+    for root, _dirs, files in os.walk(features_dir):
+        names = sorted(files) if sort_names else files
+        for filename in names:
+            if filename.endswith(".feature"):
+                yield os.path.join(root, filename)
 
 
 def _slug(value: str) -> str:
@@ -174,7 +190,13 @@ def parse_feature_policies(feature_file: str) -> FeaturePolicies:
             continue
 
         stripped = line.strip()
-        if stripped.startswith("Scenario:"):
+        scenario_prefix = None
+        if stripped.startswith("Scenario Outline:"):
+            scenario_prefix = "Scenario Outline:"
+        elif stripped.startswith("Scenario:"):
+            scenario_prefix = "Scenario:"
+
+        if scenario_prefix:
             scenario_name = stripped.split(":", 1)[1].strip()
             scenario_index += 1
             feature_id = (
@@ -220,18 +242,17 @@ def parse_feature_policies(feature_file: str) -> FeaturePolicies:
 
 
 def build_policy_catalog(features_dir: str) -> PolicyCatalog:
+    return build_policy_catalog_from_dirs([features_dir])
+
+
+def build_policy_catalog_from_dirs(features_dirs: list[str]) -> PolicyCatalog:
     catalog = PolicyCatalog()
-    if not os.path.isdir(features_dir):
-        raise FileNotFoundError(f"Features directory not found: {features_dir}")
+    for features_dir in features_dirs:
+        if not os.path.isdir(features_dir):
+            raise FileNotFoundError(f"Features directory not found: {features_dir}")
 
-    feature_files: list[str] = []
-    for root, _dirs, files in os.walk(features_dir):
-        for filename in sorted(files):
-            if filename.endswith(".feature"):
-                feature_files.append(os.path.join(root, filename))
-
-    for feature_file in feature_files:
-        catalog.features.append(parse_feature_policies(feature_file))
+        for feature_file in iter_feature_files(features_dir, sort_names=True):
+            catalog.features.append(parse_feature_policies(feature_file))
 
     return catalog
 

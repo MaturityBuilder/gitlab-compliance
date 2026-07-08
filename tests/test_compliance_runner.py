@@ -1,11 +1,14 @@
+import os
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
+from src.compliance.builtin_policies import BUILTIN_POLICIES_DIR
 from src.compliance.runner import (
     _assert_within_directory,
     _collect_feature_files,
+    _resolve_policy_directories,
     run_compliance,
 )
 
@@ -21,6 +24,7 @@ INCLUDE_VERSION_POLICIES = (
 INCLUDE_VERSION_PIPELINE = (
     REPO_ROOT / "examples/sample-files" / "gitlab-ci" / "includes_with_keys.yml"
 )
+OUTLINE_POLICIES = REPO_ROOT / "tests" / "compliance_policies" / "outlines"
 
 
 class TestFeatureFileGuards:
@@ -515,3 +519,160 @@ class TestRunComplianceFix:
             project=None,
             group=None,
         )
+
+
+class TestResolvePolicyDirectories:
+    def test_with_builtin_includes_package_dir(self):
+        dirs = _resolve_policy_directories(str(PASSING_POLICIES), with_builtin=True)
+        assert os.path.abspath(BUILTIN_POLICIES_DIR) in dirs
+        assert os.path.abspath(str(PASSING_POLICIES)) in dirs
+
+    def test_without_builtin_only_user_dir(self):
+        dirs = _resolve_policy_directories(str(PASSING_POLICIES), with_builtin=False)
+        assert len(dirs) == 1
+        assert dirs[0] == os.path.abspath(str(PASSING_POLICIES))
+
+
+class TestScenarioOutlinePolicies:
+    def test_variable_outline_expands_and_passes(self, tmp_path):
+        policies = tmp_path / "policies"
+        policies.mkdir()
+        policies.joinpath("outline.feature").write_text(
+            (OUTLINE_POLICIES / "variable-outline.feature").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        result = run_compliance(
+            features_dir=str(policies),
+            pipeline_file=str(SAMPLE_PIPELINE),
+        )
+        assert result.success is True
+        assert result.passed >= 1
+        assert any(
+            "Pipeline variables must match" in r.name for r in result.scenario_results
+        )
+
+    def test_variable_outline_failing_row(self, tmp_path):
+        policies = tmp_path / "policies"
+        policies.mkdir()
+        policies.joinpath("fail.feature").write_text(
+            (OUTLINE_POLICIES / "variable-outline-failing.feature").read_text(
+                encoding="utf-8"
+            ),
+            encoding="utf-8",
+        )
+        result = run_compliance(
+            features_dir=str(policies),
+            pipeline_file=str(SAMPLE_PIPELINE),
+        )
+        assert result.success is False
+        assert result.failed >= 1
+
+    def test_component_input_outline_passes(self, tmp_path):
+        policies = tmp_path / "policies"
+        policies.mkdir()
+        policies.joinpath("component.feature").write_text(
+            (OUTLINE_POLICIES / "component-input-outline.feature").read_text(
+                encoding="utf-8"
+            ),
+            encoding="utf-8",
+        )
+        result = run_compliance(
+            features_dir=str(policies),
+            pipeline_file=str(OUTLINE_POLICIES / "component-input-pipeline.yml"),
+        )
+        assert result.success is True
+        assert result.passed >= 2
+
+    def test_component_input_outline_fails(self, tmp_path):
+        policies = tmp_path / "policies"
+        policies.mkdir()
+        policies.joinpath("component.feature").write_text(
+            (OUTLINE_POLICIES / "component-input-outline.feature").read_text(
+                encoding="utf-8"
+            ),
+            encoding="utf-8",
+        )
+        result = run_compliance(
+            features_dir=str(policies),
+            pipeline_file=str(
+                OUTLINE_POLICIES / "component-input-failing-pipeline.yml"
+            ),
+        )
+        assert result.success is False
+        assert result.failed >= 1
+
+    def test_variable_outline_regex_row_passes(self, tmp_path):
+        policies = tmp_path / "policies"
+        policies.mkdir()
+        policies.joinpath("allowlist.feature").write_text(
+            (
+                REPO_ROOT / "src/compliance/builtin_policies/variable-allowlist.feature"
+            ).read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        pipeline = tmp_path / ".gitlab-ci.yml"
+        pipeline.write_text(
+            "variables:\n"
+            "  APPLICATION: my-app\n"
+            "  ENVIRONMENT: prod\n"
+            "  ROLE: backend\n"
+            "job:\n"
+            "  script:\n"
+            "    - echo hi\n",
+            encoding="utf-8",
+        )
+        result = run_compliance(
+            features_dir=str(policies),
+            pipeline_file=str(pipeline),
+        )
+        assert result.success is True
+        assert result.passed >= 3
+        assert result.failed == 0
+
+    def test_variable_outline_skips_when_key_absent(self, tmp_path):
+        policies = tmp_path / "policies"
+        policies.mkdir()
+        policies.joinpath("outline.feature").write_text(
+            (OUTLINE_POLICIES / "variable-outline.feature").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        pipeline = tmp_path / ".gitlab-ci.yml"
+        pipeline.write_text(
+            "variables:\n" "  OTHER: value\n" "job:\n" "  script:\n" "    - echo hi\n",
+            encoding="utf-8",
+        )
+        result = run_compliance(
+            features_dir=str(policies),
+            pipeline_file=str(pipeline),
+        )
+        assert result.skipped >= 1
+        assert result.failed == 0
+        assert all(s.status != "failed" for s in result.scenario_results)
+
+    def test_outline_metadata_attached(self, tmp_path):
+        policies = tmp_path / "policies"
+        policies.mkdir()
+        policies.joinpath("metadata.feature").write_text(
+            (OUTLINE_POLICIES / "metadata-outline.feature").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        result = run_compliance(
+            features_dir=str(policies),
+            pipeline_file=str(SAMPLE_PIPELINE),
+        )
+        assert result.success is True
+        assert any(
+            s.policy_id == "GLCI-OUTLINE-TEST-001" for s in result.scenario_results
+        )
+
+
+class TestWithBuiltinPolicies:
+    def test_with_builtin_merges_policies(self):
+        result = run_compliance(
+            features_dir=str(PASSING_POLICIES),
+            pipeline_file=str(SAMPLE_PIPELINE),
+            with_builtin=True,
+        )
+        assert result.scenarios >= 2
+        policy_ids = {s.policy_id for s in result.scenario_results if s.policy_id}
+        assert any(pid.startswith("GLCI-BUILTIN") for pid in policy_ids)

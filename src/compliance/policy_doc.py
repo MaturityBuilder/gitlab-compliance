@@ -11,6 +11,7 @@ from src.compliance.metadata import (
     PolicyCatalog,
     collect_policy_index,
 )
+from src.modules.common import render_table_or_list
 
 
 def _relative_path(features_dir: str, feature_file: str) -> str:
@@ -18,6 +19,13 @@ def _relative_path(features_dir: str, feature_file: str) -> str:
         return os.path.relpath(feature_file, os.path.abspath(features_dir))
     except ValueError:
         return feature_file
+
+
+def _short_location(features_dir: str, annotation: PolicyAnnotation) -> str:
+    loc = _location(features_dir, annotation)
+    if len(loc) > 24:
+        return "…" + loc[-23:]
+    return loc
 
 
 def _location(features_dir: str, annotation: PolicyAnnotation) -> str:
@@ -36,13 +44,12 @@ def render_policy_catalog_markdown(catalog: PolicyCatalog, features_dir: str) ->
         "",
         "## Index",
         "",
-        "| ID | Title | Scope | Location |",
-        "|----|-------|-------|----------|",
     ]
 
     for policy in collect_policy_index(catalog):
+        loc = _short_location(features_dir, policy)
         lines.append(
-            f"| `{policy.policy_id}` | {policy.title} | {policy.scope} | `{_location(features_dir, policy)}` |"
+            f"- `{policy.policy_id}` — {policy.title} " f"({policy.scope}, `{loc}`)"
         )
 
     lines.append("")

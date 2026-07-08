@@ -1,30 +1,32 @@
 # Component Pinning
 
-CI/CD components in `include:` must use immutable version refs, not branch names like `@main`.
+CI/CD components in `include:` must use immutable version refs, not branch names
+like `@main`.
 
 ## Bad
 
 ```yaml
 include:
   - component: gitlab.com/org/pipeline@main
-```
+```text
 
 ## Good
 
 ```yaml
 include:
   - component: gitlab.com/org/pipeline@1.2.0
-```
+```text
 
 ## Policy
 
-From [`security/component-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/component-pinning.feature):
+From
+[`security/component-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/component-pinning.feature):
 
 ```gherkin
 Scenario: Component includes must use semver
   Given I have include type "component" defined
   Then its version must match "^\d+\.\d+\.\d+(-[\w.]+)?$"
-```
+```text
 
 ## Consume in GitLab CI
 
@@ -36,15 +38,16 @@ include:
 
 compliance:
   extends: .compliance:offline
-```
+```text
 
-The job runs all policies under `policies/security/`, including `component-pinning.feature`.
+The job runs all policies under `policies/security/`, including
+`component-pinning.feature`.
 
 ## Run locally
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-```
+```text
 
 Scenarios skip when the pipeline has no `component:` includes (not applicable).
 

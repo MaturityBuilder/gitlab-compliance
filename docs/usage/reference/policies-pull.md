@@ -2,19 +2,18 @@
 
 Pull a compliance policy bundle from an OCI registry.
 
-### Usage
+## Usage
 
-```
+```text
 Usage: gitlab-compliance policies pull [OPTIONS] TARGET
 ```
 
-### Options
+## Options
+
 * `target` (REQUIRED) [argument]:
   * Type: STRING
   * Default: `sentinel.unset`
   * Usage: `target`
-
-
 
 * `output_dir`:
   * Type: STRING
@@ -31,10 +30,9 @@ Usage: gitlab-compliance policies pull [OPTIONS] TARGET
 
   Show this message and exit.
 
+## CLI Help
 
-### CLI Help
-
-```
+```text
 Usage: gitlab-compliance policies pull [OPTIONS] TARGET
 
   Pull a compliance policy bundle from an OCI registry.

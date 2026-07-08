@@ -9,14 +9,14 @@ git clone https://github.com/MaturityBuilder/gitlab-compliance.git
 cd gitlab-compliance
 poetry install --with docs
 poetry run gitlab-compliance --help
-```
+```text
 
 ## Tests
 
 ```bash
 poetry run pytest
 poetry run behave
-```
+```text
 
 ## Pre-commit
 
@@ -24,19 +24,23 @@ poetry run behave
 poetry install
 poetry run pre-commit install
 poetry run pre-commit run --all-files
-```
+```text
 
-Hooks are defined in [`.pre-commit-config.yaml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.pre-commit-config.yaml). CI runs the same checks via [`.github/workflows/pre-commit.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/pre-commit.yml).
+Hooks are defined in
+[`.pre-commit-config.yaml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.pre-commit-config.yaml).
+CI runs the same checks via
+[`.github/workflows/pre-commit.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/pre-commit.yml).
 
 ## Documentation
 
-Docs are built with [Zensical](https://zensical.org/). Structure mirrors [terraform-compliance.com](https://terraform-compliance.com/).
+Docs are built with [Zensical](https://zensical.org/). Structure mirrors
+[terraform-compliance.com](https://terraform-compliance.com/).
 
 ```bash
 poetry install --with docs
 poetry run zensical serve
 poetry run zensical build --strict
-```
+```text
 
 When adding pages:
 
@@ -47,8 +51,10 @@ When adding pages:
 ## Policy and BDD changes
 
 - Step definitions live under `src/compliance/behave_support/steps/`
-- Update [BDD Reference](bdd-reference/index.md) when adding new `Given` / `When` / `Then` sentences
-- Add example `.feature` files under `examples/example-policies/` and a matching [Examples](examples/index.md) page
+- Update [BDD Reference](bdd-reference/index.md) when adding new `Given` /
+  `When` / `Then` sentences
+- Add example `.feature` files under `examples/example-policies/` and a matching
+  [Examples](examples/index.md) page
 
 ## Pull requests
 
@@ -56,4 +62,5 @@ When adding pages:
 - Include tests for new compliance steps or CLI behavior
 - Update docs for user-facing changes
 
-Report issues on [GitHub](https://github.com/MaturityBuilder/gitlab-compliance/issues).
+Report issues on
+[GitHub](https://github.com/MaturityBuilder/gitlab-compliance/issues).

@@ -1,6 +1,7 @@
 # Fragment Pinning
 
-Shared YAML from other projects must pin `ref:` to a tag or SHA, not a moving branch.
+Shared YAML from other projects must pin `ref:` to a tag or SHA, not a moving
+branch.
 
 ## Bad
 
@@ -9,7 +10,7 @@ include:
   - project: platform/ci-templates
     ref: main
     file: security/gitleaks.yml
-```
+```text
 
 ## Good
 
@@ -18,11 +19,12 @@ include:
   - project: platform/ci-templates
     ref: 2.4.1
     file: security/gitleaks.yml
-```
+```text
 
 ## Policy
 
-From [`security/fragment-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/fragment-pinning.feature):
+From
+[`security/fragment-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/fragment-pinning.feature):
 
 ```gherkin
 Scenario: Project includes must not use branch refs
@@ -32,7 +34,7 @@ Scenario: Project includes must not use branch refs
 Scenario: Project includes must use valid semver
   Given I have include type "project" defined
   Then its version must match "^\\d+\\.\\d+\\.\\d+"
-```
+```text
 
 ## Consume in GitLab CI
 
@@ -44,14 +46,15 @@ include:
 
 compliance:
   extends: .compliance:offline
-```
+```text
 
-Pair with [Include Versions](include-versions.md) when you also want API-backed release checks.
+Pair with [Include Versions](include-versions.md) when you also want API-backed
+release checks.
 
 ## Run locally
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-```
+```text
 
 Back to [Examples](index.md).

@@ -2,13 +2,14 @@
 
 Push a compliance policy bundle to an OCI registry (Conftest-style).
 
-### Usage
+## Usage
 
-```
+```text
 Usage: gitlab-compliance policies push [OPTIONS] TARGET
 ```
 
-### Options
+## Options
+
 * `features_dir` (REQUIRED):
   * Type: STRING
   * Default: `sentinel.unset`
@@ -22,8 +23,6 @@ Usage: gitlab-compliance policies push [OPTIONS] TARGET
   * Default: `sentinel.unset`
   * Usage: `target`
 
-
-
 * `help`:
   * Type: BOOL
   * Default: `false`
@@ -31,10 +30,9 @@ Usage: gitlab-compliance policies push [OPTIONS] TARGET
 
   Show this message and exit.
 
+## CLI Help
 
-### CLI Help
-
-```
+```text
 Usage: gitlab-compliance policies push [OPTIONS] TARGET
 
   Push a compliance policy bundle to an OCI registry (Conftest-style).

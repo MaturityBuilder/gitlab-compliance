@@ -1,0 +1,120 @@
+/* MaturityBuilder — gitlab-compliance brand theme */
+
+:root,
+[data-md-color-scheme="default"] {
+  --mb-slate: #1e2a3a;
+  --mb-slate-light: #2d3f54;
+  --mb-slate-dark: #121a24;
+  --mb-coral: #e85d3a;
+  --mb-coral-light: #f4a574;
+  --mb-coral-dark: #c44a2b;
+  --mb-teal: #2dd4bf;
+  --mb-surface: #f8fafc;
+
+  --md-primary-fg-color: var(--mb-slate);
+  --md-primary-fg-color--light: var(--mb-slate-light);
+  --md-primary-fg-color--dark: var(--mb-slate-dark);
+  --md-accent-fg-color: var(--mb-coral);
+  --md-accent-fg-color--transparent: rgba(232, 93, 58, 0.1);
+  --md-typeset-a-color: var(--mb-coral-dark);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-hue: 215;
+  --md-primary-fg-color: #243447;
+  --md-primary-fg-color--light: #334a63;
+  --md-primary-fg-color--dark: #121a24;
+  --md-accent-fg-color: var(--mb-coral);
+  --md-accent-fg-color--transparent: rgba(232, 93, 58, 0.15);
+  --md-default-bg-color: #0f1419;
+  --md-default-bg-color--light: #1a2332;
+  --md-default-bg-color--lighter: #243447;
+  --md-typeset-a-color: var(--mb-coral-light);
+}
+
+/* Header & navigation */
+.md-header {
+  background: linear-gradient(135deg, var(--mb-slate-dark) 0%, var(--mb-slate) 55%, var(--mb-slate-light) 100%);
+  box-shadow: 0 1px 0 rgba(232, 93, 58, 0.25);
+}
+
+.md-header__title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.md-tabs {
+  background: var(--mb-slate-dark);
+}
+
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  color: var(--mb-coral-light);
+}
+
+/* Hero / landing */
+.mb-hero {
+  margin: 0 0 2rem;
+  padding: 1.5rem 1.75rem;
+  border-radius: 12px;
+  background: linear-gradient(145deg, var(--mb-surface) 0%, #eef2f7 100%);
+  border: 1px solid rgba(30, 42, 58, 0.08);
+  text-align: center;
+}
+
+[data-md-color-scheme="slate"] .mb-hero {
+  background: linear-gradient(145deg, #1a2332 0%, #243447 100%);
+  border-color: rgba(232, 93, 58, 0.2);
+}
+
+.mb-hero img {
+  max-width: min(520px, 100%);
+  height: auto;
+  margin: 0 auto 0.75rem;
+}
+
+.mb-hero .mb-tagline {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--mb-slate-light);
+  font-weight: 500;
+}
+
+[data-md-color-scheme="slate"] .mb-hero .mb-tagline {
+  color: #cbd5e1;
+}
+
+.mb-byline {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mb-coral);
+  font-weight: 600;
+}
+
+/* Links & interactive accents */
+.md-typeset a:hover {
+  color: var(--mb-coral);
+}
+
+.md-typeset .md-button--primary {
+  background-color: var(--mb-coral);
+  border-color: var(--mb-coral);
+}
+
+.md-typeset .md-button--primary:hover {
+  background-color: var(--mb-coral-dark);
+  border-color: var(--mb-coral-dark);
+}
+
+/* Code blocks — subtle brand tint */
+.highlight .filename {
+  color: var(--mb-coral-light);
+}
+
+/* Footer attribution */
+.mb-footer-brand {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}

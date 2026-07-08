@@ -62,8 +62,8 @@ PASSING = REPO_ROOT / "tests" / "compliance_policies" / "passing"
 SKIP_POLICIES = REPO_ROOT / "tests" / "compliance_policies" / "skip"
 ANNOTATED = REPO_ROOT / "tests" / "compliance_policies" / "annotated"
 
-MARKER_START = "[comment]: <> (gitlab-compliance-opening-auto-generated)"
-MARKER_END = "[comment]: <> (gitlab-compliance-closing-auto-generated)"
+MARKER_START = "<!-- gitlab-compliance-opening-auto-generated -->"
+MARKER_END = "<!-- gitlab-compliance-closing-auto-generated -->"
 
 
 def _markers_file(tmp_path):

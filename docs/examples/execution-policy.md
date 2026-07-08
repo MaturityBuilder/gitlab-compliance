@@ -1,6 +1,8 @@
 # Execution Policy
 
-Control **when** pipeline jobs run. Jobs without `rules:` can execute on every push, tag, or schedule — including deploy stages that should be gated to protected branches or merge requests.
+Control **when** pipeline jobs run. Jobs without `rules:` can execute on every
+push, tag, or schedule — including deploy stages that should be gated to
+protected branches or merge requests.
 
 ## Bad
 
@@ -10,14 +12,14 @@ deploy-production:
   script:
     - ./deploy.sh
   # no rules — runs on every pipeline source
-```
+```text
 
 ```yaml
 release:
   stage: publish
   rules:
     - when: always
-```
+```text
 
 ## Good
 
@@ -38,11 +40,12 @@ scan:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-```
+```text
 
 ## Policy
 
-From [`security/execution-policy.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/execution-policy.feature):
+From
+[`security/execution-policy.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/execution-policy.feature):
 
 ```gherkin
 Feature: Pipeline execution controls
@@ -61,9 +64,11 @@ Feature: Pipeline execution controls
     Given I have any job defined
     When its name does not start with "."
     Then it must contain rules
-```
+```text
 
-Legacy file [`rules.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/rules.feature) remains for backward compatibility.
+Legacy file
+[`rules.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/rules.feature)
+remains for backward compatibility.
 
 ## Consume in GitLab CI (project level)
 
@@ -89,7 +94,7 @@ deploy-production:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: manual
     - when: never
-```
+```text
 
 Warn-only rollout:
 
@@ -97,17 +102,23 @@ Warn-only rollout:
 compliance:
   extends: .compliance:offline
   allow_failure: true
-```
+```text
 
 Remove `allow_failure` once every job has proper `rules:`.
 
-See also [`example-ci/.gitlab-ci.consumer.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/.gitlab-ci.consumer.yml) for a minimal consumer project.
+See also
+[`example-ci/.gitlab-ci.consumer.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/.gitlab-ci.consumer.yml)
+for a minimal consumer project.
 
 ## Org-wide rollout (GitLab Pipeline Execution Policy)
 
-For GitLab tiers with [Pipeline execution policies](https://docs.gitlab.com/user/application_security/policies/pipeline_execution_policies/), inject the compliance job into every member project from a security policy project.
+For GitLab tiers with [Pipeline execution
+policies](https://docs.gitlab.com/user/application_security/policies/pipeline_execution_policies/),
+inject the compliance job into every member project from a security policy
+project.
 
-**1. Security policy project** — [`.gitlab/security-policies/policy.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-gitlab-execution-policy/.gitlab/security-policies/policy.yml):
+**1. Security policy project** —
+[`.gitlab/security-policies/policy.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-gitlab-execution-policy/.gitlab/security-policies/policy.yml):
 
 ```yaml
 pipeline_execution_policy:
@@ -124,9 +135,11 @@ pipeline_execution_policy:
       projects:
         including:
           - full_path: my-group/*
-```
+```text
 
-**2. Injected CI config** — [`policy-ci.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-gitlab-execution-policy/policy-ci.yml) in the same repo:
+**2. Injected CI config** —
+[`policy-ci.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-gitlab-execution-policy/policy-ci.yml)
+in the same repo:
 
 ```yaml
 stages:
@@ -144,17 +157,21 @@ policy::gitlab-compliance:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-```
+```text
 
-The injected job runs the same Gherkin pack (`policies/security/execution-policy.feature`) as project-level consumption. Vendor `examples/example-policies/security/` into `policies/security/` in the security policy repo.
+The injected job runs the same Gherkin pack
+(`policies/security/execution-policy.feature`) as project-level consumption.
+Vendor `examples/example-policies/security/` into `policies/security/` in the
+security policy repo.
 
-Full walkthrough: [Pipeline Execution Policy](../ci-cd/pipeline-execution-policy.md).
+Full walkthrough: [Pipeline Execution
+Policy](../ci-cd/pipeline-execution-policy.md).
 
 ## Run locally
 
 ```bash
 cp -r examples/example-policies/security/ policies/security/
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-```
+```text
 
 Back to [Examples](index.md).

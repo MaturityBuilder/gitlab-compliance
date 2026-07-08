@@ -7,13 +7,14 @@ Compared to the generate command, the get-attribute command allows you to pass t
         attributes (_type_): _description_
         json (_type_): _description_
 
-### Usage
+## Usage
 
-```
+```text
 Usage: gitlab-compliance get-attributes [OPTIONS]
 ```
 
-### Options
+## Options
+
 * `attributes`:
   * Type: STRING
   * Default: `readme.md`
@@ -53,10 +54,9 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
 
   Show this message and exit.
 
+## CLI Help
 
-### CLI Help
-
-```
+```text
 Usage: gitlab-compliance get-attributes [OPTIONS]
 
   Compared to the generate command, the get-attribute command allows you to
