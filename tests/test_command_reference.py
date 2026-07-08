@@ -26,8 +26,10 @@ class TestDumpHelper:
         assert "generate" in written
         assert "check" in written
         assert "policies doc" in written
+        assert "document gitstrings" in written
         assert (tmp_path / "check.md").is_file()
         assert (tmp_path / "policies-doc.md").is_file()
+        assert (tmp_path / "document-gitstrings.md").is_file()
 
         generate_md = tmp_path / "generate.md"
         assert generate_md.is_file()
@@ -59,9 +61,10 @@ class TestDumpsCli:
         assert (docs_dir / "generate.md").is_file()
         assert (docs_dir / "check.md").is_file()
         assert (docs_dir / "policies-doc.md").is_file()
+        assert (docs_dir / "document-gitstrings.md").is_file()
         index_text = (docs_dir / "command-reference.md").read_text(encoding="utf-8")
         assert "# Command Reference" in index_text
-        assert "Created 10 command docs" in result.output
+        assert "Created 12 command docs" in result.output
 
     def test_missing_module_reports_error(self, tmp_path):
         runner = CliRunner()

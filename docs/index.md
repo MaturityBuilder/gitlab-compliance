@@ -11,7 +11,7 @@ Source code: [MaturityBuilder/gitlab-compliance](https://github.com/MaturityBuil
 - **YAML and API:** Offline checks against pipeline files; optional GitLab API checks for project settings and CI variables
 - **easy to integrate:** Run in GitLab CI or local git hooks
 - **segregation of duty:** Keep policy packs in a separate repository or OCI registry
-- **documentation:** Generate Markdown or HTML reference docs from `.gitlab-ci.yml`
+- **documentation:** Generate Markdown or HTML reference docs from `.gitlab-ci.yml`, or inline template YAML with `document gitstrings`
 
 ## Idea
 

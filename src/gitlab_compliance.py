@@ -43,6 +43,7 @@ from src.modules.doc_controller import (
     update_marked_block,
 )
 from src.modules.logging import logger
+from src.modules.gitstrings import process_gitstrings
 from src.modules.pipeline_data import collect_pipeline_data
 from src.modules.release import release_notes
 from src.modules.swagger_html import render_swagger_html
@@ -52,6 +53,8 @@ __all__ = [
     "DEFAULT_POLICY_DIR",
     "build_policy_catalog",
     "check",
+    "document",
+    "document_gitstrings",
     "dumps",
     "generate",
     "generate_html",
@@ -625,12 +628,70 @@ def policies_pull(target, output_dir):
     logger.success(f"Pulled policies to {pulled_to}")
 
 
+@click.group()
+def document():
+    """Generate documentation from inline template YAML (gitstrings)."""
+    pass
+
+
+@document.command("gitstrings")
+@click.option(
+    "-i",
+    "--input-file",
+    "input_file",
+    default="README.md",
+    show_default=True,
+    help="Markdown file to scan for ```yaml gitstrings fences (source snippets).",
+)
+@click.option(
+    "-o",
+    "--output-file",
+    "--output",
+    "output_file",
+    default=None,
+    help="Default markdown file for gitstrings marker updates when a fence has no # @output.",
+)
+@click.option(
+    "--dry-mode",
+    "-d",
+    "dry_mode",
+    is_flag=True,
+    default=False,
+    help="Log updates without writing files.",
+)
+@click.option(
+    "--keep-source/--no-keep-source",
+    "keep_source",
+    default=True,
+    show_default=True,
+    help="Include collapsible source YAML in the generated marker block.",
+)
+def document_gitstrings(input_file, output_file, dry_mode, keep_source):
+    """
+    Render decorated ```yaml gitstrings fences into marker-delimited markdown tables.
+    """
+    if dry_mode:
+        logger.info("Dry mode enabled; gitstrings marker updates will be logged only.")
+    written = process_gitstrings(
+        input_file,
+        output_file,
+        dry=dry_mode,
+        keep_source=keep_source,
+    )
+    if written:
+        for path in written:
+            logger.info(f"Gitstrings documentation updated: {path}")
+    else:
+        logger.info("No gitstrings output files were updated.")
+
+
 gitlab_compliance.add_command(get_attributes)
 gitlab_compliance.add_command(dumps)
 gitlab_compliance.add_command(generate)
 gitlab_compliance.add_command(generate_html)
 gitlab_compliance.add_command(check)
 gitlab_compliance.add_command(policies)
+gitlab_compliance.add_command(document)
 gitlab_compliance.add_command(release_notes)
 if __name__ == "__main__":  # pragma: no cover
     gitlab_compliance(obj={})

@@ -23,6 +23,12 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 | API hardening | Public logs, unmasked variables | [API Hardening](api-hardening.md) |
 | OCI policy packs | Central policy distribution | [OCI Policy Packs](oci-policy-packs.md) |
 
+## Documentation examples
+
+| Topic | Example page |
+|-------|----------------|
+| Inline YAML (gitstrings) | [Gitstrings inline YAML](gitstrings-inline-yaml.md) |
+
 ## Consumption patterns
 
 | Pattern | When to use | Reference |

@@ -124,6 +124,21 @@ def read_yml(GLDOCS_CONFIG_FILE):
     return documents
 
 
+def format_description_cell(text) -> str:
+    """Format YAML description scalars for markdown table cells."""
+    if text is None:
+        return "&#x274c;"
+    if not isinstance(text, str):
+        return str(text)
+    stripped = text.strip()
+    if not stripped:
+        return "&#x274c;"
+    if "\n" not in stripped:
+        return stripped
+    lines = [line.rstrip() for line in stripped.splitlines()]
+    return "<br>".join(lines)
+
+
 def table_design(headers=[], field_names=[], style="MARKDOWN"):
 
     from prettytable import PrettyTable, TableStyle

@@ -67,6 +67,16 @@ Document specific attributes only:
 gitlab-compliance get-attributes -i .gitlab-ci.yml -a stage,image,rules -o JOBS.md
 ```
 
+### Inline template documentation (gitstrings)
+
+Render decorated ` ```yaml gitstrings ` blocks in markdown into marker-delimited tables (without replacing your hand-written README content):
+
+```bash
+gitlab-compliance document gitstrings -i README.md
+```
+
+See [Gitstrings documentation](docs/usage/gitstrings.md) on the docs site.
+
 ## Compliance policies
 
 Run policies from a local directory or OCI registry against your pipeline:

@@ -1,11 +1,7 @@
-import logging
-import os
-
 import yaml
 
 import src.modules.common as common
-
-# from src.modules.doc_controller import add_between_markers
+import src.properties.table_render as table_render
 from src.modules.doc_controller import add_between_markers
 from src.modules.logging import logger
 
@@ -18,74 +14,14 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, DISABLE_TITLE):
         for data in file:
             if "variables" in data:
                 variables = data["variables"]
-                # logger.trace(gldocs.generate_markdown_table(variables))
-                field_names = [
-                    "Key",
-                    "Value",
-                    "Description",
-                    "Options",
-                    "Expand",
-                ]
-                variables_table = common.table_design(
-                    headers=field_names, field_names=field_names
-                )
-
-                for v in variables:
-                    description = "&#x274c;"
-                    options = "&#x274c;"
-                    expand = "true"
-                    result = {}
-                    if type(variables[v]) is str:
-                        logger.debug("Simple variable found: " + variables[v])
-                        result["value"] = variables[v]
-
-                    else:
-                        try:
-                            if "description" in variables[v]:
-                                description = variables[v]["description"]
-                            else:
-                                logger.debug(
-                                    "Description for: "
-                                    + v
-                                    + " isn't set, variable should have description set, "
-                                    + "gitlab-compliance considers this malformed :("
-                                )
-                                description = "&#x274c;"
-
-                            if "options" in variables[v]:
-                                options = variables[v]["options"]
-                            else:
-                                options = "&#x274c;"
-                            if "expand" in variables[v]:
-                                expand = variables[v]["expand"]
-                            else:
-                                logger.debug(
-                                    "expand key: "
-                                    + v
-                                    + " isn't set, default value will recored as 'true'"
-                                    + "https://docs.gitlab.com/ee/ci/yaml/#variablesexpand"
-                                )
-                                expand = "true"
-                        except Exception as e:
-                            logger.error(
-                                f"Unable to extract variable information from {file}"
-                            )
-
-                    variables_table.add_row(
-                        [v, variables[v], description, options, expand]
-                    )
-
-                # f = open(OUTPUT_FILE, WRITE_MODE)
+                table_md = table_render.render_variables_table(variables)
                 if not DISABLE_TITLE:
-                    # GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n\n")
                     add_between_markers(file_path=OUTPUT_FILE, content="\n")
-                    # add_between_markers(file_path=OUTPUT_FILE, content=GLDOCS_CONFIG_FILE_HEADING)
                 add_between_markers(file_path=OUTPUT_FILE, content="\n")
                 add_between_markers(file_path=OUTPUT_FILE, content="## Variables")
                 add_between_markers(file_path=OUTPUT_FILE, content="\n")
-                add_between_markers(file_path=OUTPUT_FILE, content=str(variables_table))
+                add_between_markers(file_path=OUTPUT_FILE, content=table_md)
                 add_between_markers(file_path=OUTPUT_FILE, content="\n")
-                # f.close()
 
     except yaml.YAMLError as exc:
         logger.trace(exc)

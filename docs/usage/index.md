@@ -72,6 +72,11 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format markdown -o COMP
 | `policies push` | Publish a policy bundle to an OCI registry |
 | `policies pull` | Pull a policy bundle from an OCI registry |
 | `release-notes` | Generate release notes from GitLab commits |
+| `document gitstrings` | Render inline `yaml gitstrings` fences into README marker blocks |
+
+### Template documentation
+
+For ci-template READMEs, use [`document gitstrings`](gitstrings.md) to turn decorated YAML snippets into tables inside gitstrings markers (alongside [`generate`](reference/generate.md) for full pipeline YAML).
 
 ## Quick start
 

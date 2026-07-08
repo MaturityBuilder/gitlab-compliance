@@ -20,3 +20,10 @@ POLICY_DOC_DEFAULT_OUTPUT_FILES = {
     "markdown": "COMPLIANCE-POLICIES.md",
     "html": "COMPLIANCE-POLICIES.html",
 }
+
+GITSTRINGS_MARKER_OPEN = (
+    "[comment]: <> (gitlab-compliance-gitstrings-opening-auto-generated)"
+)
+GITSTRINGS_MARKER_CLOSE = (
+    "[comment]: <> (gitlab-compliance-gitstrings-closing-auto-generated)"
+)
