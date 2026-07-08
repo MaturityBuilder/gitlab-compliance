@@ -7,6 +7,7 @@ from src.modules.output_filters import (
     group_jobs,
     parse_exclude,
     validate_exclude_sections,
+    warn_group_by_excluded,
 )
 
 
@@ -43,6 +44,12 @@ class TestValidateExcludeSections:
             assert False, "expected ValueError"
         except ValueError as exc:
             assert "Unknown section" in str(exc)
+
+
+class TestWarnGroupByExcluded:
+    def test_warns_when_group_by_attribute_excluded(self, capsys):
+        warn_group_by_excluded("stage", {"stage", "image"})
+        assert "Warning" in capsys.readouterr().err
 
 
 class TestFilterJob:
