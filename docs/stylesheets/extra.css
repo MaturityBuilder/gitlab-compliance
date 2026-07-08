@@ -262,11 +262,11 @@
   background: linear-gradient(180deg, var(--mb-slate-dark) 0%, rgba(18, 26, 36, 0.97) 100%);
   color: rgba(255, 255, 255, 0.92);
   font-weight: 500;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   letter-spacing: -0.01em;
   box-shadow: none;
   border-bottom: 1px solid rgba(232, 93, 58, 0.35);
-  padding: 0.55rem 0.75rem;
+  padding: 0.4rem 0.65rem;
 }
 
 .md-nav__title .md-nav__button {
@@ -277,39 +277,39 @@
 .md-nav--primary .md-nav .md-nav__title {
   background: transparent;
   color: var(--mb-nav-section-color);
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   box-shadow: none;
   border-bottom: none;
-  padding: 0.85rem 0.75rem 0.3rem;
-  margin-top: 0.15rem;
+  padding: 0.5rem 0.65rem 0.15rem;
+  margin-top: 0.05rem;
 }
 
 .md-nav__source {
   box-shadow: none;
   border-bottom: 1px solid var(--mb-border);
-  padding: 0.35rem 0;
+  padding: 0.2rem 0;
 }
 
 .md-nav--primary > .md-nav__list > .md-nav__item {
-  margin: 0.1rem 0.4rem;
+  margin: 0.04rem 0.3rem;
 }
 
 .md-nav--primary .md-nav__list .md-nav__list {
-  padding: 0.15rem 0 0.35rem;
+  padding: 0.06rem 0 0.18rem;
 }
 
 .md-nav--primary .md-nav__link {
   position: relative;
   border-radius: var(--mb-radius);
-  margin: 0.05rem 0;
-  padding: 0.38rem 0.65rem 0.38rem 0.8rem;
+  margin: 0.02rem 0;
+  padding: 0.24rem 0.55rem 0.24rem 0.7rem;
   font-size: 0.8125rem;
   font-weight: 400;
   letter-spacing: 0.005em;
-  line-height: 1.4;
+  line-height: 1.3;
   border-left: none;
   transition:
     background var(--mb-nav-transition),
@@ -376,16 +376,16 @@
 .md-nav--primary .md-nav .md-nav__link {
   font-size: 0.78rem;
   font-weight: 400;
-  padding-left: 0.75rem;
+  padding-left: 0.65rem;
 }
 
 .md-nav--primary .md-nav .md-nav .md-nav__link {
   font-size: 0.75rem;
-  padding-left: 0.7rem;
+  padding-left: 0.6rem;
 }
 
 .md-nav--primary .md-nav__container .md-nav__link {
-  padding-right: 0.35rem;
+  padding-right: 0.3rem;
 }
 
 /* Nested nav — subtle indent, no Material lift */
@@ -419,10 +419,10 @@
 .md-sidebar--secondary .md-nav__link {
   position: relative;
   font-size: 0.76rem;
-  padding: 0.28rem 0.5rem 0.28rem 0.65rem;
+  padding: 0.18rem 0.45rem 0.18rem 0.55rem;
   border-left: none;
   border-radius: var(--mb-radius);
-  margin: 0.05rem 0.25rem;
+  margin: 0.02rem 0.2rem;
   transition:
     background var(--mb-nav-transition),
     color var(--mb-nav-transition);
@@ -941,9 +941,18 @@
 /* --- Mobile adjustments ------------------------------------------------- */
 
 @media screen and (max-width: 76.1875em) {
+  .md-nav--primary > .md-nav__title[for="__drawer"] {
+    padding: 0.45rem 0.7rem;
+  }
+
   .md-nav--primary > .md-nav__list > .md-nav__item {
-    margin-left: 0.25rem;
-    margin-right: 0.25rem;
+    margin-left: 0.2rem;
+    margin-right: 0.2rem;
+  }
+
+  .md-nav--primary .md-nav__link {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
   }
 
   .mb-hero {
