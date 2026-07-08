@@ -40,11 +40,11 @@ Directory of `.feature` policy files, or an OCI reference:
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p
 .gitlab-ci.yml
-```text
+```
 
 Use `--update` with OCI references to pull the latest bundle before running.
 
-### `--with-builtin`
+### `--with-builtin` {#with-builtin}
 
 Also run bundled baseline policies shipped inside the `gitlab-compliance`
 package. Your `-f` directory remains **required**; `--with-builtin` **adds** the
@@ -64,7 +64,7 @@ Path to the GitLab CI pipeline YAML (default: `.gitlab-ci.yml`).
 
 ```bash
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml
-```text
+```
 
 ### `--project` / `--group`
 
@@ -75,7 +75,7 @@ token — see [Environment Variables](environment-variables.md).
 export GITLAB_TOKEN="<token>"
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project
 my-group/my-project
-```text
+```
 
 API scenarios are **skipped** when connection info is missing unless you pass
 `--strict`.
@@ -95,7 +95,7 @@ Report format and output file:
 ```bash
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format markdown -o
 COMPLIANCE-REPORT.md
-```text
+```
 
 ### Other commands
 
