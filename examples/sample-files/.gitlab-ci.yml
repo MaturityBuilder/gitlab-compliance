@@ -1,4 +1,12 @@
 ---
+spec:
+  inputs:
+    runner-profile:
+      default: docker
+      description: |
+        Sample input documenting how component consumers override runner settings.
+        Used by gitlab-compliance `generate` and `document gitstrings` examples.
+---
 include:
   - "gitlab-ci/includes_without_keys.yml"
 
@@ -22,8 +30,13 @@ include:
 default:
   tags:
     - ${DEV_IAM_RUNNER}
+# Documented variables for compliance and documentation tooling (see table_render / generate).
 variables:
-  RUNNER: docker
+  RUNNER:
+    value: docker
+    description: |
+      Runner implementation label for sample jobs.
+      Shown in generated variable tables when documenting this file.
 workflow:
   - if: $CI_COMMIT_REF_NAME == "main"
   - if: $CI_COMMIT_TAG
@@ -33,6 +46,8 @@ stages:
   - code-quality
   - build
   - deploy
+
+# --- Code quality (extends shared org templates) ---
 
 fragment-version-check:
   stage: code-quality
@@ -54,6 +69,8 @@ todo-check:
   stage: code-quality
   extends:
     - .todo-check-template
+
+# --- Build / deploy (docker + ECR sample) ---
 
 .docker.build:
   image: docker

@@ -3,6 +3,9 @@ spec:
   inputs:
     job-stage:
       default: test
+      description: |
+        Default stage for jobs that extend `.test:rules` in this pipeline.
+        Override at include time when consuming this configuration as a component.
 ---
 stages:
   - test
@@ -24,8 +27,14 @@ include:
     rules:
       - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
 variables:
-  APPLICATION: gitlab-docs
-  OUTPUT_FILE: GITLAB-DOCS.md
+  APPLICATION:
+    value: gitlab-docs
+    description: |
+      Published package and documentation product name for generate/gitstrings output.
+  OUTPUT_FILE:
+    value: GITLAB-DOCS.md
+    description: |
+      Default markdown path targeted by pipeline documentation jobs.
   # CI_REGISTRY: registry.gitlab.com
 image:
   name: charlieasmith93/poetry-python3:3.12.12-1.8.3-dev

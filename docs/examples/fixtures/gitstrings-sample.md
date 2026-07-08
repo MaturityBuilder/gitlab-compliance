@@ -1,13 +1,26 @@
 # Sample gitstrings source
 
 ```yaml gitstrings
-# @title Consumer variables
+# @title CI inputs (sample pipeline)
+# @description
+#   Mirrors `spec.inputs` from the repository `.gitlab-ci.yml` sample.
+# @render inputs
+spec:
+  inputs:
+    job-stage:
+      default: test
+      description: |
+        Default stage for jobs that extend `.test:rules` in this pipeline.
+```
+
+```yaml gitstrings
+# @title Sample variables
 # @render variables
 variables:
-  APPLICATION:
-    value: my-app
+  RUNNER:
+    value: docker
     description: |
-      Application identifier passed to deploy jobs.
+      Runner implementation label for sample jobs.
 ```
 
 [comment]: <> (gitlab-compliance-gitstrings-opening-auto-generated)
