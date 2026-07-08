@@ -25,21 +25,6 @@ theme:
     - content.code.copy
     - search.suggest
     - search.highlight
-  palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: custom
-      accent: custom
-      toggle:
-        icon: lucide/moon
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: custom
-      accent: custom
-      toggle:
-        icon: lucide/sun
-        name: Switch to light mode
 
 nav:
   - Overview: index.md

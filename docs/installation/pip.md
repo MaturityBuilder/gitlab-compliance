@@ -16,7 +16,7 @@ Two CLI entry points are available:
 | Command             | Status                                                 |
 | ------------------- | ------------------------------------------------------ |
 | `gitlab-compliance` | **Preferred** — compliance-first naming                |
-| `gitlab-compliance` | **Deprecated** — same tool; shows a deprecation notice |
+| `gitlab-docs`       | **Deprecated** — same tool; shows a deprecation notice |
 
 ### Development install
 
