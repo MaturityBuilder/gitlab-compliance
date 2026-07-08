@@ -1,106 +1,372 @@
-/* MaturityBuilder — gitlab-compliance brand theme */
+/* ==========================================================================
+   MaturityBuilder — gitlab-compliance bespoke theme
+   Breaks default Material/Zensical chrome: flat surfaces, slate/coral/teal,
+   custom typography (DM Sans / IBM Plex Mono), no pill cards or app-bar lift.
+   ========================================================================== */
+
+/* --- Design tokens ------------------------------------------------------ */
 
 :root,
 [data-md-color-scheme="default"] {
   --mb-slate: #1e2a3a;
-  --mb-slate-light: #2d3f54;
+  --mb-slate-mid: #2d3f54;
+  --mb-slate-light: #3d5168;
   --mb-slate-dark: #121a24;
   --mb-coral: #e85d3a;
   --mb-coral-light: #f4a574;
   --mb-coral-dark: #c44a2b;
   --mb-teal: #2dd4bf;
-  --mb-surface: #f8fafc;
+  --mb-teal-dim: rgba(45, 212, 191, 0.15);
+  --mb-surface: #f4f6f9;
+  --mb-surface-raised: #ffffff;
+  --mb-border: rgba(30, 42, 58, 0.1);
+  --mb-radius: 4px;
+  --mb-radius-lg: 8px;
+  --mb-header-h: 3.25rem;
 
   --md-primary-fg-color: var(--mb-slate);
-  --md-primary-fg-color--light: var(--mb-slate-light);
+  --md-primary-fg-color--light: var(--mb-slate-mid);
   --md-primary-fg-color--dark: var(--mb-slate-dark);
   --md-accent-fg-color: var(--mb-coral);
-  --md-accent-fg-color--transparent: rgba(232, 93, 58, 0.1);
+  --md-accent-fg-color--transparent: rgba(232, 93, 58, 0.12);
+  --md-default-fg-color: #1a2332;
+  --md-default-fg-color--light: #4a5568;
+  --md-default-fg-color--lighter: #718096;
+  --md-default-fg-color--lightest: #a0aec0;
+  --md-default-bg-color: var(--mb-surface-raised);
+  --md-default-bg-color--light: var(--mb-surface);
+  --md-default-bg-color--lighter: #eef1f6;
+  --md-default-bg-color--lightest: #e2e8f0;
+  --md-code-bg-color: #eef2f7;
+  --md-code-fg-color: var(--mb-slate);
   --md-typeset-a-color: var(--mb-coral-dark);
+
+  --md-shadow-z1: none;
+  --md-shadow-z2: none;
+  --md-shadow-z3: 0 4px 20px rgba(18, 26, 36, 0.08);
 }
 
 [data-md-color-scheme="slate"] {
+  --mb-surface: #0f1419;
+  --mb-surface-raised: #1a2332;
+  --mb-border: rgba(45, 212, 191, 0.12);
+
   --md-hue: 215;
   --md-primary-fg-color: #243447;
   --md-primary-fg-color--light: #334a63;
-  --md-primary-fg-color--dark: #121a24;
+  --md-primary-fg-color--dark: var(--mb-slate-dark);
   --md-accent-fg-color: var(--mb-coral);
-  --md-accent-fg-color--transparent: rgba(232, 93, 58, 0.15);
-  --md-default-bg-color: #0f1419;
-  --md-default-bg-color--light: #1a2332;
+  --md-accent-fg-color--transparent: rgba(232, 93, 58, 0.18);
+  --md-default-fg-color: #e8edf4;
+  --md-default-fg-color--light: #a8b8cc;
+  --md-default-fg-color--lighter: #7a8fa8;
+  --md-default-bg-color: var(--mb-surface);
+  --md-default-bg-color--light: var(--mb-surface-raised);
   --md-default-bg-color--lighter: #243447;
+  --md-default-bg-color--lightest: #2d3f54;
+  --md-code-bg-color: #121a24;
+  --md-code-fg-color: #e2e8f0;
   --md-typeset-a-color: var(--mb-coral-light);
 }
 
-/* Header & navigation */
+/* --- Global typography -------------------------------------------------- */
+
+.md-typeset {
+  font-size: 0.94rem;
+  line-height: 1.65;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+.md-typeset h1 {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--mb-slate);
+  font-size: 1.85rem;
+  border-bottom: 2px solid var(--mb-coral);
+  padding-bottom: 0.35rem;
+  margin-bottom: 1.25rem;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h1 {
+  color: #f0f4f8;
+}
+
+.md-typeset h2 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--mb-slate-mid);
+  font-size: 1.35rem;
+  margin-top: 2rem;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--mb-teal);
+}
+
+[data-md-color-scheme="slate"] .md-typeset h2 {
+  color: #d4dde8;
+}
+
+.md-typeset h3 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-size: 1.1rem;
+}
+
+.md-typeset strong {
+  font-weight: 600;
+  color: var(--mb-slate);
+}
+
+[data-md-color-scheme="slate"] .md-typeset strong {
+  color: #f0f4f8;
+}
+
+/* --- Header: flat branded bar (not Material app bar) -------------------- */
+
 .md-header {
-  background: linear-gradient(135deg, var(--mb-slate-dark) 0%, var(--mb-slate) 55%, var(--mb-slate-light) 100%);
-  box-shadow: 0 1px 0 rgba(232, 93, 58, 0.25);
+  background: var(--mb-slate-dark);
+  box-shadow: none;
+  border-bottom: 2px solid var(--mb-coral);
+  height: var(--mb-header-h);
+}
+
+.md-header--shadow,
+.md-header--lifted {
+  box-shadow: none;
+}
+
+.md-header__inner {
+  max-width: none;
+  padding: 0 1rem;
 }
 
 .md-header__title {
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  font-size: 0.95rem;
 }
 
-.md-tabs {
+.md-header__topic {
+  opacity: 1;
+}
+
+.md-header__topic + .md-header__topic {
+  font-weight: 400;
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+
+.md-header__button {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.md-header__button:hover {
+  color: var(--mb-teal);
+}
+
+.md-logo img {
+  height: 1.75rem;
+}
+
+.md-header__source {
+  width: auto;
+  max-width: none;
+}
+
+.md-source {
+  opacity: 0.85;
+}
+
+.md-source:hover {
+  opacity: 1;
+}
+
+/* Palette toggle — flat, not pill */
+.md-header .md-header__button[for="__palette_0"],
+.md-header .md-header__button[for="__palette_1"] {
+  border-radius: var(--mb-radius);
+}
+
+/* --- Search ------------------------------------------------------------- */
+
+.md-search__form {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--mb-radius);
+  box-shadow: none;
+}
+
+.md-search__input {
+  color: #fff;
+}
+
+.md-search__input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.md-search__icon {
+  color: var(--mb-teal);
+}
+
+.md-search-result__meta {
+  color: var(--mb-coral);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* --- Sidebar navigation: flat rail -------------------------------------- */
+
+.md-sidebar--primary {
+  background: var(--mb-surface);
+  border-right: 1px solid var(--mb-border);
+}
+
+[data-md-color-scheme="slate"] .md-sidebar--primary {
   background: var(--mb-slate-dark);
+  border-right-color: var(--mb-border);
 }
 
-.md-tabs__link--active,
-.md-tabs__link:hover {
+.md-sidebar__scrollwrap {
+  box-shadow: none;
+}
+
+.md-nav__title {
+  background: var(--mb-slate-dark);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  box-shadow: none;
+  border-bottom: 2px solid var(--mb-coral);
+}
+
+.md-nav__title .md-nav__button {
+  color: #fff;
+}
+
+.md-nav__source {
+  box-shadow: none;
+  border-bottom: 1px solid var(--mb-border);
+}
+
+.md-nav__link {
+  border-radius: 0;
+  margin: 0;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.md-nav__link:hover {
+  background: var(--mb-teal-dim);
+  border-left-color: var(--mb-teal);
+}
+
+.md-nav__link--active,
+.md-nav__item--active > .md-nav__link {
+  background: rgba(232, 93, 58, 0.1);
+  border-left-color: var(--mb-coral);
+  color: var(--mb-coral-dark);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+[data-md-color-scheme="slate"] .md-nav__link--active,
+[data-md-color-scheme="slate"] .md-nav__item--active > .md-nav__link {
   color: var(--mb-coral-light);
 }
 
-/* Hero / landing */
-.mb-hero {
-  margin: 0 0 2rem;
-  padding: 1.5rem 1.75rem;
-  border-radius: 12px;
-  background: linear-gradient(145deg, var(--mb-surface) 0%, #eef2f7 100%);
-  border: 1px solid rgba(30, 42, 58, 0.08);
-  text-align: center;
+.md-nav__link .md-ellipsis {
+  white-space: normal;
 }
 
-[data-md-color-scheme="slate"] .mb-hero {
-  background: linear-gradient(145deg, #1a2332 0%, #243447 100%);
-  border-color: rgba(232, 93, 58, 0.2);
+/* Nested nav — subtle indent, no Material lift */
+.md-nav--secondary .md-nav__link {
+  font-size: 0.78rem;
+  font-weight: 400;
 }
 
-.mb-hero img {
-  max-width: min(520px, 100%);
-  height: auto;
-  margin: 0 auto 0.75rem;
+/* --- TOC sidebar -------------------------------------------------------- */
+
+.md-sidebar--secondary {
+  border-left: 1px solid var(--mb-border);
 }
 
-.mb-hero .mb-tagline {
-  margin: 0;
-  font-size: 1.05rem;
-  color: var(--mb-slate-light);
-  font-weight: 500;
+.md-sidebar--secondary .md-nav__link {
+  font-size: 0.78rem;
+  padding: 0.3rem 0.5rem;
+  border-left: 2px solid transparent;
 }
 
-[data-md-color-scheme="slate"] .mb-hero .mb-tagline {
-  color: #cbd5e1;
-}
-
-.mb-byline {
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.md-sidebar--secondary .md-nav__link--active {
+  border-left-color: var(--mb-teal);
   color: var(--mb-coral);
-  font-weight: 600;
+  background: transparent;
 }
 
-/* Links & interactive accents */
+/* --- Breadcrumbs / path ------------------------------------------------- */
+
+.md-path {
+  background: transparent;
+  box-shadow: none;
+  padding: 0.5rem 0;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.md-path__link {
+  color: var(--mb-slate-light);
+}
+
+.md-path__link:hover {
+  color: var(--mb-coral);
+}
+
+/* --- Main content area -------------------------------------------------- */
+
+.md-main {
+  background: var(--mb-surface-raised);
+}
+
+[data-md-color-scheme="slate"] .md-main {
+  background: var(--mb-surface);
+}
+
+.md-content {
+  max-width: 52rem;
+}
+
+.md-content__inner {
+  padding-top: 1.25rem;
+  padding-bottom: 3rem;
+}
+
+/* --- Links & buttons ---------------------------------------------------- */
+
+.md-typeset a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
 .md-typeset a:hover {
   color: var(--mb-coral);
+}
+
+.md-typeset .md-button {
+  border-radius: var(--mb-radius);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  box-shadow: none;
+  border-width: 1.5px;
 }
 
 .md-typeset .md-button--primary {
   background-color: var(--mb-coral);
   border-color: var(--mb-coral);
+  color: #fff;
 }
 
 .md-typeset .md-button--primary:hover {
@@ -108,13 +374,385 @@
   border-color: var(--mb-coral-dark);
 }
 
-/* Code blocks — subtle brand tint */
+/* --- Tables: flat, no Material card ------------------------------------- */
+
+.md-typeset table:not([class]) {
+  border: 1px solid var(--mb-border);
+  border-radius: var(--mb-radius);
+  box-shadow: none;
+  font-size: 0.88rem;
+  overflow: hidden;
+}
+
+.md-typeset table:not([class]) thead {
+  background: var(--mb-slate);
+  color: #fff;
+}
+
+.md-typeset table:not([class]) th {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.65rem 1rem;
+  border-bottom: 2px solid var(--mb-coral);
+}
+
+.md-typeset table:not([class]) td {
+  padding: 0.6rem 1rem;
+  border-top: 1px solid var(--mb-border);
+}
+
+.md-typeset table:not([class]) tr:hover td {
+  background: var(--mb-teal-dim);
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) thead {
+  background: var(--mb-slate-mid);
+}
+
+/* --- Code blocks -------------------------------------------------------- */
+
+.md-typeset code {
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+  font-size: 0.85em;
+  border: 1px solid var(--mb-border);
+}
+
+.md-typeset pre > code {
+  border: none;
+  padding: 0;
+}
+
+.highlight,
+.md-typeset pre {
+  border-radius: var(--mb-radius);
+  border: 1px solid var(--mb-border);
+  box-shadow: none;
+}
+
+[data-md-color-scheme="default"] .highlight,
+[data-md-color-scheme="default"] .md-typeset pre {
+  background: var(--mb-slate-dark);
+}
+
 .highlight .filename {
+  color: var(--mb-teal);
+  font-family: var(--md-code-font);
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(45, 212, 191, 0.25);
+}
+
+.md-clipboard.md-icon {
+  color: var(--mb-teal);
+}
+
+/* --- Admonitions: flat left-rail (not Material cards) ------------------- */
+
+.md-typeset .admonition {
+  border-radius: var(--mb-radius);
+  border: 1px solid var(--mb-border);
+  border-left-width: 4px;
+  box-shadow: none;
+  font-size: 0.9rem;
+}
+
+.md-typeset .admonition.note {
+  border-left-color: var(--mb-teal);
+}
+
+.md-typeset .admonition.warning,
+.md-typeset .admonition.caution {
+  border-left-color: #f59e0b;
+}
+
+.md-typeset .admonition.danger,
+.md-typeset .admonition.failure {
+  border-left-color: var(--mb-coral);
+}
+
+.md-typeset .admonition.tip,
+.md-typeset .admonition.success {
+  border-left-color: #22c55e;
+}
+
+.md-typeset .admonition-title {
+  border-radius: 0;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  background: transparent;
+  border-bottom: 1px solid var(--mb-border);
+  padding: 0.5rem 0.75rem;
+}
+
+.md-typeset .admonition-title::before {
+  display: none;
+}
+
+/* --- Hero / landing ----------------------------------------------------- */
+
+.mb-hero {
+  position: relative;
+  margin: -0.5rem -0.5rem 2.5rem;
+  padding: 2.5rem 2rem 2rem;
+  border-radius: var(--mb-radius-lg);
+  background:
+    linear-gradient(135deg, var(--mb-slate-dark) 0%, var(--mb-slate) 45%, var(--mb-slate-mid) 100%);
+  border: none;
+  text-align: center;
+  overflow: hidden;
+}
+
+.mb-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 80% at 90% 10%, rgba(232, 93, 58, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 60% at 10% 90%, rgba(45, 212, 191, 0.12) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.mb-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+[data-md-color-scheme="slate"] .mb-hero {
+  background:
+    linear-gradient(135deg, #0a0f14 0%, var(--mb-slate-dark) 50%, var(--mb-slate) 100%);
+}
+
+.mb-hero img {
+  max-width: min(480px, 100%);
+  height: auto;
+  margin: 0 auto 1rem;
+  filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.3));
+}
+
+.mb-hero .mb-tagline {
+  margin: 0.75rem 0 0;
+  font-size: 1.15rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mb-byline {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mb-teal);
+  font-weight: 700;
+}
+
+.mb-hero-divider {
+  display: block;
+  margin: 0.5rem auto;
+  width: 3rem;
+  height: 2px;
+  background: linear-gradient(90deg, var(--mb-coral), var(--mb-teal));
+  border: none;
+}
+
+.mb-hero-brand {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mb-coral-light);
+  font-weight: 600;
+}
+
+.mb-hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.mb-hero-cta .md-button {
+  margin: 0;
+}
+
+.mb-hero-cta .md-button--primary {
+  background: var(--mb-coral);
+  border-color: var(--mb-coral);
+}
+
+.mb-hero-cta .md-button:not(.md-button--primary) {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mb-hero-cta .md-button:not(.md-button--primary):hover {
+  border-color: var(--mb-teal);
+  color: var(--mb-teal);
+  background: rgba(45, 212, 191, 0.1);
+}
+
+/* Hide duplicate logo above hero on index */
+.md-content__inner > p:first-child > img:only-child,
+.md-content__inner > p:first-child img[alt*="MaturityBuilder"] {
+  display: none;
+}
+
+/* --- Footer ------------------------------------------------------------- */
+
+.md-footer {
+  background: var(--mb-slate-dark);
+  border-top: 2px solid var(--mb-coral);
+  box-shadow: none;
+}
+
+.md-footer-meta {
+  background: transparent;
+}
+
+.md-footer-meta__inner {
+  padding: 1rem;
+}
+
+.md-copyright {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.78rem;
+}
+
+.md-copyright__highlight {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.mb-footer-brand {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.mb-footer-brand a {
+  color: var(--mb-teal);
+  text-decoration: none;
+}
+
+.mb-footer-brand a:hover {
   color: var(--mb-coral-light);
 }
 
-/* Footer attribution */
-.mb-footer-brand {
-  font-size: 0.8rem;
-  opacity: 0.75;
+.md-social__link {
+  border-radius: var(--mb-radius);
+}
+
+/* --- Back to top -------------------------------------------------------- */
+
+.md-top {
+  background: var(--mb-slate);
+  border: 1px solid var(--mb-coral);
+  border-radius: var(--mb-radius);
+  box-shadow: none;
+  color: #fff;
+}
+
+.md-top:hover {
+  background: var(--mb-coral);
+  color: #fff;
+}
+
+/* --- Progress bar ------------------------------------------------------- */
+
+.md-progress {
+  background: var(--mb-coral);
+  height: 2px;
+}
+
+/* --- Tabs (if enabled later) -------------------------------------------- */
+
+.md-tabs {
+  background: var(--mb-slate-dark);
+  border-bottom: 1px solid rgba(232, 93, 58, 0.3);
+  box-shadow: none;
+}
+
+.md-tabs__link {
+  border-radius: 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  color: var(--mb-teal);
+  opacity: 1;
+  background: transparent;
+}
+
+/* --- Blockquotes -------------------------------------------------------- */
+
+.md-typeset blockquote {
+  border-left: 3px solid var(--mb-teal);
+  background: var(--mb-teal-dim);
+  border-radius: 0 var(--mb-radius) var(--mb-radius) 0;
+  padding: 0.75rem 1rem;
+  font-style: normal;
+}
+
+/* --- Permalinks --------------------------------------------------------- */
+
+.md-typeset .headerlink {
+  color: var(--mb-teal);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.md-typeset h1:hover .headerlink,
+.md-typeset h2:hover .headerlink,
+.md-typeset h3:hover .headerlink {
+  opacity: 0.6;
+}
+
+/* --- Mobile adjustments ------------------------------------------------- */
+
+@media screen and (max-width: 76.1875em) {
+  .md-nav--primary .md-nav__title[for="__drawer"] {
+    background: var(--mb-slate-dark);
+    border-bottom: 2px solid var(--mb-coral);
+  }
+
+  .mb-hero {
+    margin-left: 0;
+    margin-right: 0;
+    padding: 1.75rem 1.25rem 1.5rem;
+  }
+
+  .mb-hero .mb-tagline {
+    font-size: 1rem;
+  }
+}
+
+@media screen and (max-width: 44.9375em) {
+  .md-header__title {
+    font-size: 0.85rem;
+  }
+
+  .mb-hero-cta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mb-hero-cta .md-button {
+    width: 100%;
+    text-align: center;
+  }
 }

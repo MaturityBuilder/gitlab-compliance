@@ -1,22 +1,29 @@
-<div class="mb-hero" markdown="1">
-
 ![gitlab-compliance by MaturityBuilder](assets/logo-light.png)
 
-<p class="mb-byline">MaturityBuilder</p>
-<p class="mb-tagline">BDD compliance testing for GitLab CI/CD pipelines</p>
+<div class="mb-hero" markdown="1">
 
+<p class="mb-byline">GitLab Compliance</p>
+<hr class="mb-hero-divider" />
+<p class="mb-hero-brand">MaturityBuilder</p>
+<p class="mb-tagline">BDD compliance testing for GitLab CI/CD pipelines and project settings</p>
+
+<div class="mb-hero-cta" markdown="1">
+[Get started](installation/index.md){ .md-button .md-button--primary }
+[Usage reference](usage/index.md){ .md-button }
+[BDD grammar](bdd-reference/index.md){ .md-button }
 </div>
 
-# gitlab-compliance
+</div>
 
 `gitlab-compliance` (PyPI package
 [`gitlab-compliance`](https://pypi.org/project/gitlab-compliance/)) is a
 lightweight, security and compliance focused test framework for GitLab CI/CD. It
-runs Gherkin policies against `.gitlab-ci.yml` and optional GitLab API settings
+runs Gherkin policies against `.gitlab-ci.yml` and optional GitLab API settings.
+ You can also generate markdown documentation for your gitlab pipelines.
+
 — the same BDD model as
 [terraform-compliance](https://terraform-compliance.com/) uses for Terraform
 plans.
-
 Source code:
 [MaturityBuilder/gitlab-compliance](https://github.com/MaturityBuilder/gitlab-compliance).
 
