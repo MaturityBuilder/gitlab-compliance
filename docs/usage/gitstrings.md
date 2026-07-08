@@ -1,15 +1,32 @@
 # Gitstrings (inline YAML)
 
-Gitstrings renders ` ```yaml gitstrings ` fenced blocks in markdown into **marker-delimited** tables, the same way [`generate`](reference/generate.md) refreshes pipeline documentation without touching the rest of your README.
+Gitstrings turns **decorated YAML** into **marker-delimited** markdown tables (like [`generate`](reference/generate.md)), without overwriting the rest of your README.
+
+## Two input modes
+
+| Source | How decorators are written |
+|--------|----------------------------|
+| **CI YAML** (`.gitlab-ci.yml`, `*.yml`) | `# @title`, `# @render`, `# @description`, `# @output` comment lines above the YAML fragment |
+| **Markdown** | Same directives inside ` ```yaml gitstrings ` fenced blocks |
+
+For CI files, only the annotated fragment is read (for example the `variables:` map stops before the next top-level key such as `image:`).
+
+```bash
+# Scan decorators in pipeline YAML; default output README.md in the same directory
+gitlab-compliance document gitstrings -i .gitlab-ci.yml
+
+# Explicit output markdown
+gitlab-compliance document gitstrings -i .gitlab-ci.yml -o README.md
+```
 
 ## When to use
 
 | Command | Input | Output region |
 |---------|--------|----------------|
-| `document gitstrings` | Markdown with inline YAML snippets | `gitlab-compliance-gitstrings-*` markers |
-| `generate` | Full `.gitlab-ci.yml` | `gitlab-compliance-opening-*` markers |
+| `document gitstrings` | CI YAML decorators and/or markdown fences | `gitlab-compliance-gitstrings-*` markers |
+| `generate` | Full `.gitlab-ci.yml` (no decorators required) | `gitlab-compliance-opening-*` markers |
 
-Use gitstrings for **ci-template READMEs** and component docs where you keep small YAML fragments next to prose. Use `generate` for a full pipeline reference.
+Use gitstrings for **documented fragments** (inputs, variables, small job snippets). Use `generate` for a full pipeline reference.
 
 ## Quick start
 
@@ -20,15 +37,31 @@ Add gitstrings markers once where generated tables should appear:
 [comment]: <> (gitlab-compliance-gitstrings-closing-auto-generated)
 ```
 
-Then run:
+Annotate `.gitlab-ci.yml` (or use markdown fences), then run:
 
 ```bash
+gitlab-compliance document gitstrings -i .gitlab-ci.yml
 gitlab-compliance document gitstrings -i README.md
 gitlab-compliance document gitstrings -i docs/snippets.md -o README.md
-gitlab-compliance document gitstrings -i README.md --dry-mode
+gitlab-compliance document gitstrings -i .gitlab-ci.yml --dry-mode
 ```
 
-## Authoring fenced blocks
+## Authoring in `.gitlab-ci.yml`
+
+```yaml
+# @title Pipeline inputs
+# @description
+#   Inputs for component consumers.
+# @render inputs
+# @output README.md
+spec:
+  inputs:
+    job-stage:
+      default: test
+      description: Stage for test jobs.
+```
+
+## Authoring fenced blocks (markdown)
 
 Only fences tagged `yaml gitstrings` are processed. Ordinary ` ```yaml ` blocks are ignored.
 

@@ -69,13 +69,13 @@ gitlab-compliance get-attributes -i .gitlab-ci.yml -a stage,image,rules -o JOBS.
 
 ### Inline template documentation (gitstrings)
 
-Render decorated ` ```yaml gitstrings ` blocks in markdown into marker-delimited tables (without replacing your hand-written README content):
+Annotate `.gitlab-ci.yml` with `# @title`, `# @render`, and related comment directives, then refresh README marker tables:
 
 ```bash
-gitlab-compliance document gitstrings -i README.md
+gitlab-compliance document gitstrings -i .gitlab-ci.yml -o README.md
 ```
 
-See [Gitstrings documentation](docs/usage/gitstrings.md) on the docs site.
+Markdown ` ```yaml gitstrings ` fences are also supported. See [Gitstrings documentation](docs/usage/gitstrings.md).
 
 ## Compliance policies
 

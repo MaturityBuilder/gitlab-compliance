@@ -22,6 +22,13 @@ DIRECTIVE_LINE_RE = re.compile(
     r"^\s*#\s*@(?P<name>[a-zA-Z0-9_-]+)(?:\s+(?P<value>.*))?\s*$"
 )
 
+CI_BLOCK_START_RE = re.compile(
+    r"^\s*#\s*@(?:title|render|output(?:-file)?)\b",
+    re.IGNORECASE,
+)
+
+CI_YAML_SUFFIXES = {".yml", ".yaml"}
+
 RENDER_MODES = frozenset({"variables", "inputs", "jobs", "auto"})
 
 
@@ -106,9 +113,119 @@ def extract_gitstrings_blocks(markdown_text: str) -> list[GitstringsBlock]:
     return blocks
 
 
+def _collect_yaml_body_lines(
+    lines: list[str], start: int
+) -> tuple[list[str], int]:
+    """Collect YAML lines for one decorated fragment (single top-level key)."""
+    body: list[str] = []
+    i = start
+    root_key: str | None = None
+    top_level_key_re = re.compile(r"^[\w.*][\w.*-]*:")
+    while i < len(lines):
+        line = lines[i]
+        if CI_BLOCK_START_RE.match(line):
+            break
+        if line.strip() == "---":
+            break
+        stripped = line.strip()
+        if not stripped:
+            body.append(line)
+            i += 1
+            continue
+        if stripped.startswith("#") and not DIRECTIVE_LINE_RE.match(line):
+            body.append(line)
+            i += 1
+            continue
+        if DIRECTIVE_LINE_RE.match(line):
+            break
+        if top_level_key_re.match(line) and not line.startswith((" ", "\t")):
+            if root_key is None:
+                root_key = line.split(":", 1)[0].strip()
+                body.append(line)
+                i += 1
+                continue
+            break
+        body.append(line)
+        i += 1
+    return body, i
+
+
+def _split_ci_decorated_block(
+    lines: list[str], start: int
+) -> tuple[list[str], list[str], int] | None:
+    """Return directive lines, yaml lines, and index after the block."""
+    idx = start
+    if idx >= len(lines) or not CI_BLOCK_START_RE.match(lines[idx]):
+        return None
+
+    header: list[str] = []
+    while idx < len(lines):
+        line = lines[idx]
+        match = DIRECTIVE_LINE_RE.match(line)
+        if not match:
+            break
+        header.append(line)
+        idx += 1
+        name = match.group("name").lower().replace("-", "_")
+        value = (match.group("value") or "").strip()
+        if name == "description" and not value:
+            while idx < len(lines):
+                next_line = lines[idx]
+                if DIRECTIVE_LINE_RE.match(next_line):
+                    break
+                if next_line.strip().startswith("#"):
+                    header.append(next_line)
+                    idx += 1
+                    continue
+                break
+
+    yaml_lines, end_idx = _collect_yaml_body_lines(lines, idx)
+    if not header and not yaml_lines:
+        return None
+    return header, yaml_lines, end_idx
+
+
+def extract_gitstrings_blocks_from_ci_yaml(text: str) -> list[GitstringsBlock]:
+    """Find `# @title` / `# @render` / `# @output` decorated sections in CI YAML."""
+    lines = text.splitlines()
+    blocks: list[GitstringsBlock] = []
+    index = 0
+    while index < len(lines):
+        if not CI_BLOCK_START_RE.match(lines[index]):
+            index += 1
+            continue
+        split = _split_ci_decorated_block(lines, index)
+        if split is None:
+            index += 1
+            continue
+        header, yaml_lines, end_idx = split
+        raw_body = "\n".join(header + yaml_lines).strip()
+        if not raw_body:
+            index = end_idx
+            continue
+        directives, cleaned = parse_directives(raw_body)
+        blocks.append(
+            GitstringsBlock(
+                raw_body=raw_body,
+                cleaned_yaml=cleaned,
+                directives=directives,
+            )
+        )
+        index = end_idx if end_idx > index else index + 1
+    return blocks
+
+
 def extract_gitstrings_blocks_from_file(scan_path: str | Path) -> list[GitstringsBlock]:
-    text = Path(scan_path).read_text(encoding="utf-8")
-    return extract_gitstrings_blocks(text)
+    path = Path(scan_path)
+    text = path.read_text(encoding="utf-8")
+    blocks = extract_gitstrings_blocks(text)
+    if blocks:
+        return blocks
+    if path.suffix.lower() in CI_YAML_SUFFIXES:
+        ci_blocks = extract_gitstrings_blocks_from_ci_yaml(text)
+        if ci_blocks:
+            return ci_blocks
+    return []
 
 
 def resolve_fragment_output(
@@ -235,6 +352,14 @@ def write_gitstrings_block(
     )
 
 
+def _default_gitstrings_output(scan_path: Path, output_file: str | Path | None) -> Path:
+    if output_file:
+        return Path(output_file)
+    if scan_path.suffix.lower() in CI_YAML_SUFFIXES:
+        return scan_path.parent / "README.md"
+    return scan_path
+
+
 def process_gitstrings(
     input_file: str | Path,
     output_file: str | Path | None = None,
@@ -243,10 +368,12 @@ def process_gitstrings(
     keep_source: bool = True,
 ) -> list[Path]:
     scan_path = Path(input_file)
-    default_output = Path(output_file) if output_file else scan_path
+    default_output = _default_gitstrings_output(scan_path, output_file)
     blocks = extract_gitstrings_blocks_from_file(scan_path)
     if not blocks:
-        logger.info(f"No ```yaml gitstrings fences found in {scan_path}")
+        logger.info(
+            f"No gitstrings decorators or ```yaml gitstrings fences found in {scan_path}"
+        )
         return []
 
     by_output = render_gitstrings_by_output(

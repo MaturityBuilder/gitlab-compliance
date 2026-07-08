@@ -10,6 +10,7 @@ from src.modules.constants import (
 )
 from src.modules.gitstrings import (
     extract_gitstrings_blocks,
+    extract_gitstrings_blocks_from_ci_yaml,
     parse_directives,
     process_gitstrings,
     render_fragment,
@@ -62,6 +63,49 @@ variables:
     blocks = extract_gitstrings_blocks(md)
     assert len(blocks) == 1
     assert blocks[0].directives.render == "variables"
+
+
+def test_extract_gitstrings_blocks_from_ci_yaml():
+    ci = """---
+# @title Inputs
+# @render inputs
+spec:
+  inputs:
+    x:
+      default: a
+---
+# @title Vars
+# @render variables
+variables:
+  APP: one
+image:
+  name: foo
+"""
+    blocks = extract_gitstrings_blocks_from_ci_yaml(ci)
+    assert len(blocks) == 2
+    assert blocks[0].directives.title == "Inputs"
+    assert "spec:" in blocks[0].cleaned_yaml
+    assert "image:" not in blocks[1].cleaned_yaml
+    assert blocks[1].directives.render == "variables"
+
+
+def test_process_gitstrings_from_gitlab_ci_yml(tmp_path):
+    ci = tmp_path / ".gitlab-ci.yml"
+    readme = tmp_path / "README.md"
+    ci.write_text(
+        """# @title Vars
+# @render variables
+# @output README.md
+variables:
+  Z: 9
+stages:
+  - test
+""",
+        encoding="utf-8",
+    )
+    readme.write_text(MARKER_BLOCK, encoding="utf-8")
+    process_gitstrings(ci, keep_source=False)
+    assert "Z" in readme.read_text(encoding="utf-8")
 
 
 def test_render_inputs_table_multiline_description():

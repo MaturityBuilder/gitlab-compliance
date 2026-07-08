@@ -641,7 +641,7 @@ def document():
     "input_file",
     default="README.md",
     show_default=True,
-    help="Markdown file to scan for ```yaml gitstrings fences (source snippets).",
+    help="Markdown or CI YAML (.yml) file with gitstrings decorators or fenced snippets.",
 )
 @click.option(
     "-o",
@@ -668,7 +668,7 @@ def document():
 )
 def document_gitstrings(input_file, output_file, dry_mode, keep_source):
     """
-    Render decorated ```yaml gitstrings fences into marker-delimited markdown tables.
+    Render gitstrings documentation from CI YAML decorators or markdown fences.
     """
     if dry_mode:
         logger.info("Dry mode enabled; gitstrings marker updates will be logged only.")

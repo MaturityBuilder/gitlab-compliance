@@ -1,10 +1,8 @@
 ---
-# document gitstrings: copy from `# @title` through this spec block into a
-# ` ```yaml gitstrings ` fence in README.md (directives are stripped before YAML parse).
 # @title Pipeline inputs
 # @description
-#   CI component inputs for this repository. Re-run:
-#   gitlab-compliance document gitstrings -i README.md
+#   CI component inputs for this repository.
+#   Regenerate tables: gitlab-compliance document gitstrings -i .gitlab-ci.yml
 # @render inputs
 # @output README.md
 spec:
@@ -34,7 +32,6 @@ include:
       MY_INPUTS: "true"
     rules:
       - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-# document gitstrings: copy from `# @title` through the variables map below.
 # @title Project variables
 # @description
 #   Top-level variables for docs generation and packaging jobs.
