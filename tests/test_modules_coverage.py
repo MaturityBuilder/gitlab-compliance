@@ -216,7 +216,7 @@ class TestBehaveSupport:
                     }
                 ],
                 "includes": [{"include_type": "local", "name": "x"}],
-                "variables": [{"name": "VAR", "values": {"value": "1"}}],
+                "variables": [{"name": "VAR", "key": "VAR", "values": {"value": "1"}}],
                 "workflow_rules": [{"name": "rule-1", "values": {"when": "always"}}],
                 "project_settings": [],
                 "project_ci_variables": [],
