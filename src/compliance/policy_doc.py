@@ -11,7 +11,6 @@ from src.compliance.metadata import (
     PolicyCatalog,
     collect_policy_index,
 )
-from src.modules.common import render_table_or_list
 
 
 def _relative_path(features_dir: str, feature_file: str) -> str:
