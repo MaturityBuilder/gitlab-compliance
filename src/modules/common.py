@@ -1,3 +1,5 @@
+import html
+
 import yaml
 
 RULE_KEYS = [
@@ -137,6 +139,58 @@ def format_description_cell(text) -> str:
         return stripped
     lines = [line.rstrip() for line in stripped.splitlines()]
     return "<br>".join(lines)
+
+
+def format_structured_cell(value) -> str:
+    """Format YAML scalars, lists, and objects for PrettyTable markdown cells."""
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return format_scalar(value)
+    if isinstance(value, (int, float)):
+        return format_scalar(value)
+    if isinstance(value, str):
+        return value
+    if isinstance(value, list):
+        if not value:
+            return "[]"
+        if all(isinstance(item, str) for item in value):
+            return "<br>".join(html.escape(item) for item in value)
+        return "<br>".join(html.escape(format_scalar(item)) for item in value)
+    if isinstance(value, dict):
+        metadata_keys = {"description", "options", "expand"}
+        display_items = [
+            (key, val) for key, val in value.items() if key not in metadata_keys
+        ]
+        if not display_items:
+            return ""
+        if len(display_items) == 1:
+            only_key, only_val = display_items[0]
+            if only_key in ("default", "value"):
+                return format_structured_cell(only_val)
+        rows = []
+        for key, val in display_items:
+            inner = format_structured_cell(val)
+            rows.append(
+                "<tr>"
+                f"<td><strong>{html.escape(str(key))}</strong></td>"
+                f"<td>{inner}</td>"
+                "</tr>"
+            )
+        return "<table>" + "".join(rows) + "</table>"
+    return html.escape(str(value))
+
+
+def format_options_cell(options) -> str:
+    if options is None or options == "":
+        return "&#x274c;"
+    if isinstance(options, list):
+        if not options:
+            return "&#x274c;"
+        return "<br>".join(html.escape(str(item)) for item in options)
+    if isinstance(options, dict):
+        return format_structured_cell(options)
+    return html.escape(str(options))
 
 
 def table_design(headers=[], field_names=[], style="MARKDOWN"):

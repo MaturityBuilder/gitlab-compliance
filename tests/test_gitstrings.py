@@ -118,6 +118,27 @@ def test_render_inputs_table_multiline_description():
         }
     )
     assert "Line one<br>Line two" in table
+    assert "test" in table
+    assert "{'default'" not in table
+
+
+def test_format_structured_cell_nested_object():
+    from src.modules.common import format_structured_cell
+
+    cell = format_structured_cell(
+        {
+            "default": "test",
+            "description": "ignored in value column when split",
+        }
+    )
+    assert cell == "test"
+    nested = format_structured_cell(
+        {"default": "test", "type": "string", "description": "x"}
+    )
+    assert "<table>" in nested
+    assert "<strong>default</strong>" in nested
+    assert "<strong>type</strong>" in nested
+    assert "description" not in nested
 
 
 def test_render_fragment_block_description(tmp_path):
