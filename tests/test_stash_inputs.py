@@ -110,3 +110,17 @@ class TestWhenPropertyMatchesConditional:
         )
         when_steps.when_property_matches_conditional(context, "workflow", "trunk,main")
         assert context.stash == [matching]
+
+
+class TestWhenKeyIs:
+    def test_filters_variables_by_key(self):
+        runner = {"key": "RUNNER", "value": "docker", "values": {"value": "docker"}}
+        other = {"key": "OTHER", "value": "x", "values": {"value": "x"}}
+        context = SimpleNamespace(
+            stash=[runner, other],
+            scenario_skipped=False,
+            step_mode=None,
+            scenario=SimpleNamespace(skip=MagicMock()),
+        )
+        when_steps.when_key_is(context, "RUNNER")
+        assert context.stash == [runner]
