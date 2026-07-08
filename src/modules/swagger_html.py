@@ -78,16 +78,31 @@ def _render_job_block(job: dict) -> str:
     """
 
 
+def _jobs_grouped(data: dict) -> list[dict]:
+    """Return grouped jobs, falling back to a flat list when unfiltered."""
+    grouped = data.get("jobs_grouped")
+    if grouped is not None:
+        return grouped
+    jobs = data.get("jobs", [])
+    return [{"group_key": "", "jobs": jobs}]
+
+
+def _is_section_excluded(data: dict, section: str) -> bool:
+    return section in data.get("exclude_sections", set())
+
+
 def _render_sidebar_nav(data: dict) -> str:
-    links = [
-        ("overview", "Overview"),
-        ("inputs", "Inputs", len(data["inputs"])),
-        ("variables", "Variables", len(data["variables"])),
-        ("includes", "Includes", len(data["includes"])),
-    ]
-    if data["workflow_rules"]:
+    links = [("overview", "Overview")]
+    if not _is_section_excluded(data, "inputs"):
+        links.append(("inputs", "Inputs", len(data["inputs"])))
+    if not _is_section_excluded(data, "variables"):
+        links.append(("variables", "Variables", len(data["variables"])))
+    if not _is_section_excluded(data, "includes"):
+        links.append(("includes", "Includes", len(data["includes"])))
+    if data["workflow_rules"] and not _is_section_excluded(data, "workflow"):
         links.append(("workflow", "Workflow", len(data["workflow_rules"])))
-    links.append(("jobs", "Jobs", len(data["jobs"])))
+    if not _is_section_excluded(data, "jobs"):
+        links.append(("jobs", "Jobs", len(data["jobs"])))
 
     items = []
     for entry in links:
@@ -101,11 +116,33 @@ def _render_sidebar_nav(data: dict) -> str:
             f'<a class="nav-link" href="#{section_id}">{_escape(label)}{count_html}</a>'
         )
 
-    job_links = "".join(
-        f'<a class="nav-link nav-link-child" href="#job-{_escape(job["name"].replace(" ", "-"))}">{_escape(job["display_name"])}</a>'
-        for job in data["jobs"]
-    )
-    return f'<nav class="sidebar">{"".join(items)}{job_links}</nav>'
+    if not _is_section_excluded(data, "jobs"):
+        group_by = data.get("group_by")
+        for block in _jobs_grouped(data):
+            group_key = block.get("group_key", "")
+            if group_by and group_key:
+                items.append(
+                    f'<span class="nav-link nav-link-child nav-group">{_escape(group_by.title())} · {_escape(group_key)}</span>'
+                )
+            for job in block.get("jobs", []):
+                items.append(
+                    f'<a class="nav-link nav-link-child" href="#job-{_escape(job["name"].replace(" ", "-"))}">{_escape(job["display_name"])}</a>'
+                )
+    return f'<nav class="sidebar">{"".join(items)}</nav>'
+
+
+def _render_jobs_html(data: dict) -> str:
+    parts: list[str] = []
+    group_by = data.get("group_by")
+    for block in _jobs_grouped(data):
+        group_key = block.get("group_key", "")
+        if group_by and group_key:
+            parts.append(
+                f'<h3 class="job-group-heading">{_escape(group_by.title())} · {_escape(group_key)}</h3>'
+            )
+        for job in block.get("jobs", []):
+            parts.append(_render_job_block(job))
+    return "".join(parts)
 
 
 def render_swagger_html(data: dict) -> str:
@@ -142,10 +179,61 @@ def render_swagger_html(data: dict) -> str:
         for item in data["includes"]
     ]
 
-    jobs_html = "".join(_render_job_block(job) for job in data["jobs"])
-    workflow_html = (
-        _render_rules_table(data["workflow_rules"]) if data["workflow_rules"] else ""
+    jobs_html = (
+        _render_jobs_html(data) if not _is_section_excluded(data, "jobs") else ""
     )
+    workflow_html = (
+        _render_rules_table(data["workflow_rules"])
+        if data["workflow_rules"] and not _is_section_excluded(data, "workflow")
+        else ""
+    )
+
+    overview_bits = []
+    if not _is_section_excluded(data, "jobs"):
+        overview_bits.append(f"<strong>{len(data['jobs'])}</strong> jobs")
+    if not _is_section_excluded(data, "includes"):
+        overview_bits.append(f"<strong>{len(data['includes'])}</strong> includes")
+    if not _is_section_excluded(data, "variables"):
+        overview_bits.append(f"<strong>{len(data['variables'])}</strong> variables")
+    if not _is_section_excluded(data, "inputs"):
+        overview_bits.append(f"<strong>{len(data['inputs'])}</strong> inputs")
+    overview_summary = ", ".join(overview_bits) + "."
+
+    inputs_section = ""
+    if not _is_section_excluded(data, "inputs"):
+        inputs_section = f"""
+      <section class="section" id="inputs">
+        <h2>Inputs</h2>
+        {_render_table(["Key", "Value", "Description", "Options", "Expand"], input_rows)}
+      </section>"""
+
+    variables_section = ""
+    if not _is_section_excluded(data, "variables"):
+        variables_section = f"""
+      <section class="section" id="variables">
+        <h2>Variables</h2>
+        {_render_table(["Key", "Value", "Description", "Options", "Expand"], variable_rows)}
+      </section>"""
+
+    includes_section = ""
+    if not _is_section_excluded(data, "includes"):
+        includes_section = f"""
+      <section class="section" id="includes">
+        <h2>Includes</h2>
+        {_render_table(["Include Type", "Project", "Version", "Valid Version", "File", "Variables", "Rules"], include_rows)}
+      </section>"""
+
+    workflow_section = ""
+    if workflow_html:
+        workflow_section = f"<section class='section' id='workflow'><h2>Workflow</h2>{workflow_html}</section>"
+
+    jobs_section = ""
+    if not _is_section_excluded(data, "jobs"):
+        jobs_section = f"""
+      <section class="section" id="jobs">
+        <h2>Jobs</h2>
+        {jobs_html if jobs_html else '<p class="empty">No jobs found.</p>'}
+      </section>"""
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -343,35 +431,18 @@ def render_swagger_html(data: dict) -> str:
       <section class="section" id="overview">
         <h2>Overview</h2>
         <p>Swagger-style documentation generated from <code>{_escape(data['config_file'])}</code>.</p>
-        <p>
-          <strong>{len(data['jobs'])}</strong> jobs,
-          <strong>{len(data['includes'])}</strong> includes,
-          <strong>{len(data['variables'])}</strong> variables,
-          <strong>{len(data['inputs'])}</strong> inputs.
-        </p>
+        <p>{overview_summary}</p>
       </section>
 
-      <section class="section" id="inputs">
-        <h2>Inputs</h2>
-        {_render_table(["Key", "Value", "Description", "Options", "Expand"], input_rows)}
-      </section>
+      {inputs_section}
 
-      <section class="section" id="variables">
-        <h2>Variables</h2>
-        {_render_table(["Key", "Value", "Description", "Options", "Expand"], variable_rows)}
-      </section>
+      {variables_section}
 
-      <section class="section" id="includes">
-        <h2>Includes</h2>
-        {_render_table(["Include Type", "Project", "Version", "Valid Version", "File", "Variables", "Rules"], include_rows)}
-      </section>
+      {includes_section}
 
-      {"<section class='section' id='workflow'><h2>Workflow</h2>" + workflow_html + "</section>" if workflow_html else ""}
+      {workflow_section}
 
-      <section class="section" id="jobs">
-        <h2>Jobs</h2>
-        {jobs_html if jobs_html else '<p class="empty">No jobs found.</p>'}
-      </section>
+      {jobs_section}
     </main>
   </div>
   <script>

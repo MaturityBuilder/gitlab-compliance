@@ -85,6 +85,66 @@ class TestGenerateCli:
         assert result.exit_code == 0, result.output
         assert output_file.stat().st_size > 0
 
+    def test_exclude_sections_and_attributes(self, tmp_path):
+        output_file = tmp_path / "filtered.md"
+        runner = CliRunner()
+        result = runner.invoke(
+            generate,
+            [
+                "--input-config",
+                str(SAMPLE_PIPELINE),
+                "--output-file",
+                str(output_file),
+                "--format",
+                "swagger-markdown",
+                "--exclude",
+                "variables,image",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        content = output_file.read_text(encoding="utf-8")
+        assert "## Variables" not in content
+        assert "**image**" not in content.lower()
+        assert "image:" not in content.lower() or "container" in content.lower()
+
+    def test_group_by_stage_swagger_markdown(self, tmp_path):
+        output_file = tmp_path / "grouped.md"
+        runner = CliRunner()
+        result = runner.invoke(
+            generate,
+            [
+                "--input-config",
+                str(SAMPLE_PIPELINE),
+                "--output-file",
+                str(output_file),
+                "--format",
+                "swagger-markdown",
+                "--group-by",
+                "stage",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        content = output_file.read_text(encoding="utf-8")
+        assert "### Stage ·" in content
+
+    def test_unknown_exclude_token_treated_as_job_attribute(self, tmp_path):
+        output_file = tmp_path / "attrs.md"
+        runner = CliRunner()
+        result = runner.invoke(
+            generate,
+            [
+                "--input-config",
+                str(SAMPLE_PIPELINE),
+                "--output-file",
+                str(output_file),
+                "--format",
+                "swagger-markdown",
+                "--exclude",
+                "not-a-section",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+
 
 class TestGenerateHtmlCli:
     def test_deprecated_generate_html_delegates_to_generate(self, tmp_path):

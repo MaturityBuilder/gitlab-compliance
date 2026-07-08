@@ -62,8 +62,8 @@ from src.properties.workflows import document_workflows
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SAMPLE = REPO_ROOT / "examples/sample-files" / ".gitlab-ci.yml"
 PASSING = REPO_ROOT / "tests" / "compliance_policies" / "passing"
-MARKER_START = "[comment]: <> (gitlab-compliance-opening-auto-generated)"
-MARKER_END = "[comment]: <> (gitlab-compliance-closing-auto-generated)"
+MARKER_START = "<!-- gitlab-compliance-opening-auto-generated -->"
+MARKER_END = "<!-- gitlab-compliance-closing-auto-generated -->"
 
 
 def _markers_file(tmp_path):
@@ -415,7 +415,7 @@ class TestRenderRunnerConsole:
 
         monkeypatch.setattr("src.compliance.runner.os.path.relpath", fake_relpath)
         with pytest.raises(ValueError, match="escapes policies directory"):
-            _build_behave_workspace(str(policies))
+            _build_behave_workspace([str(policies)])
 
     def test_console_failure_with_description(self, capsys):
         result = ComplianceResult(

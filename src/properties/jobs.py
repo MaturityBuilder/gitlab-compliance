@@ -12,6 +12,75 @@ from src.modules.doc_controller import add_between_markers
 from src.modules.logging import logger
 
 
+def _render_single_job(OUTPUT_FILE, job: dict, detailed: bool = False):
+    """Write one job block to *OUTPUT_FILE* from structured pipeline data."""
+    job_config_table = common.table_design(headers=["**Attribute**", "**Value**"])
+    variable_table = common.table_design(
+        headers=["**Attribute**", "**Key**", "**Value**"]
+    )
+    rules_table = None
+    value_counter = 0
+
+    for item in job.get("attributes", []):
+        key = item["key"]
+        attribute_value = item["value"]
+        if key == "rules" and isinstance(attribute_value, list):
+            rules_table = common.build_dict_list_table(attribute_value)
+        else:
+            job_config_table.add_row(
+                [f"**{key}**", common.format_value(attribute_value)]
+            )
+
+    if detailed and job.get("rules"):
+        rules_table = common.build_dict_list_table(job["rules"])
+
+    for item in job.get("nested", []):
+        value_counter += 1
+        variable_table.add_row([item["attribute"], item.get("key", ""), item["value"]])
+
+    job_name = job.get("display_name", job.get("name", "").upper())
+    kind = "TEMPLATE" if job.get("is_template") else "JOB"
+    styled_job_name = f"### {kind} · {job_name}"
+    add_between_markers(file_path=OUTPUT_FILE, content="\n")
+    add_between_markers(file_path=OUTPUT_FILE, content=styled_job_name)
+    add_between_markers(file_path=OUTPUT_FILE, content="\n")
+    add_between_markers(
+        file_path=OUTPUT_FILE,
+        content=common.markdown_table_from_prettytable(job_config_table),
+    )
+
+    if rules_table is not None:
+        add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+        add_between_markers(file_path=OUTPUT_FILE, content=rules_table)
+
+    if value_counter > 0:
+        add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+        add_between_markers(
+            file_path=OUTPUT_FILE,
+            content=common.markdown_table_from_prettytable(variable_table),
+        )
+        add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+    add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+
+
+def render_jobs_from_pipeline(OUTPUT_FILE, pipeline_data: dict, detailed=False):
+    """Render jobs from filtered/grouped pipeline data."""
+    logger.trace("Generating Documentation for Jobs from pipeline data")
+    add_between_markers(file_path=OUTPUT_FILE, content="\n\n## Jobs\n")
+
+    group_by = pipeline_data.get("group_by")
+    for block in pipeline_data.get("jobs_grouped", []):
+        group_key = block.get("group_key", "")
+        if group_by and group_key:
+            heading = f"### {group_by.title()} · {group_key}"
+            add_between_markers(file_path=OUTPUT_FILE, content="\n")
+            add_between_markers(file_path=OUTPUT_FILE, content=heading)
+            add_between_markers(file_path=OUTPUT_FILE, content="\n")
+
+        for job in block.get("jobs", []):
+            _render_single_job(OUTPUT_FILE, job, detailed=detailed)
+
+
 def get_jobs(
     OUTPUT_FILE,
     GLDOCS_CONFIG_FILE,
@@ -32,36 +101,17 @@ def get_jobs(
     logger.trace("Generating Documentation for Jobs")
 
     file = common.read_yml(GLDOCS_CONFIG_FILE)
-    add_between_markers(file_path=OUTPUT_FILE, content="## Jobs")
+    add_between_markers(file_path=OUTPUT_FILE, content="\n\n## Jobs\n")
     for jobs in file:
-        # Create file lock against output md file
-        # f = open(OUTPUT_FILE, "a")
-        # if not DISABLE_TITLE:
-        #     add_between_markers(file_path=OUTPUT_FILE, content="\n")
-        #     GLDOCS_CONFIG_FILE_HEADING = str("## " + GLDOCS_CONFIG_FILE + "\n")
-        #     add_between_markers(file_path=OUTPUT_FILE, content=GLDOCS_CONFIG_FILE_HEADING)
-        # if not DISABLE_TYPE_HEADING:
-        # add_between_markers(file_path=OUTPUT_FILE, content="\n")
-        # add_between_markers(file_path=OUTPUT_FILE, content=str("## " + "Jobs" + "\n"))
-        # add_between_markers(file_path=OUTPUT_FILE, content="\n")
-
-        # logger.trace(type(jobs))
-
         for j in jobs:
             if j in exclude_keywords and not j.startswith("."):
                 logger.debug("Key is reserved for gitlab: " + j)
             else:
-                # Build Row Level Table to store each job config in
-
                 job_config_table = common.table_design(
                     headers=["**Attribute**", "**Value**"]
                 )
                 variable_table = common.table_design(
-                    headers=[
-                        '<span class="badge text-bg-danger">Attribute</span>',
-                        '<span class="badge text-bg-warning">Key</span>',
-                        '<span class="badge text-bg-success">Value</span>',
-                    ]
+                    headers=["**Attribute**", "**Key**", "**Value**"]
                 )
                 rules_table = None
                 try:
@@ -72,25 +122,18 @@ def get_jobs(
                     jobs[j].pop("script", None)
                     jobs[j].pop("after_script", None)
                     jobs[j].pop("artifacts", None)
-                    # logger.trace(jobs[j])
                     job_config = []
                     value_counter = 0
                     if jobs[j]:
                         for key in sorted(jobs[j]):
                             job_Attribute = "**" + key + "**"
                             attribute_value = jobs[j][key]
-                            # job_config_table_headers.append(key)
                             if key == "rules" and isinstance(attribute_value, list):
                                 rules_table = common.build_dict_list_table(
                                     attribute_value
                                 )
                             elif key in ["variables"]:
-                                # print(json.dumps(jobs[j]["variables"].keys()))
-                                # print(key)
                                 var = attribute_value.keys()
-                                # print(var)
-                                # var=json.dumps(jobs[j][key])
-                                # # .iteritems()
                                 for item_key in var:
                                     value = attribute_value[item_key]
                                     value_counter = value_counter + 1
@@ -104,11 +147,8 @@ def get_jobs(
                                     value_counter = value_counter + 1
                                     variable_table.add_row([key, item_key, value])
                             elif key in ["needs"]:
-                                # print("found extends")
-                                # logger.warning(len(jobs[j][key]))
                                 for x in attribute_value:
                                     value_counter = value_counter + 1
-                                    # print([key,"Hidden Job", x])
                                     variable_table.add_row([key, "", x])
                             else:
                                 job_config_table.add_row(
@@ -117,45 +157,41 @@ def get_jobs(
                                         common.format_value(attribute_value),
                                     ]
                                 )
-                            # job_config.append([key,jobs[j][key]])
                             logger.debug(jobs[j][key])
 
-                        # job_config_table.add_row(job_config)
-                        # logger.trace(job_config_table)
                         job_name = j.upper()
                         logger.debug("### " + job_name)
-                        # f = open(OUTPUT_FILE, "a")
-                        if not job_name.startswith("."):
-                            styled_job_name = f"""<h4><span class="badge text-bg-info">{job_name}</span></h4>"""
-                        else:
-                            styled_job_name = f"""<h4><span class="badge text-bg-secondary">{job_name}</span></h4>"""
+                        kind = "TEMPLATE" if job_name.startswith(".") else "JOB"
+                        styled_job_name = f"### {kind} · {job_name}"
+                        add_between_markers(file_path=OUTPUT_FILE, content="\n")
                         add_between_markers(
                             file_path=OUTPUT_FILE, content=styled_job_name
                         )
-                        add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
-                        add_between_markers(file_path=OUTPUT_FILE, content="<hr>")
-                        add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
-                        # add_between_markers(file_path=OUTPUT_FILE, content=str("\n"))
+                        add_between_markers(file_path=OUTPUT_FILE, content="\n")
                         add_between_markers(
-                            file_path=OUTPUT_FILE, content=str(job_config_table)
+                            file_path=OUTPUT_FILE,
+                            content=common.markdown_table_from_prettytable(
+                                job_config_table
+                            ),
                         )
-                        # print(variable_table)
 
                         if rules_table is not None:
                             add_between_markers(
                                 file_path=OUTPUT_FILE, content=str("\n")
                             )
                             add_between_markers(
-                                file_path=OUTPUT_FILE, content=str(rules_table)
+                                file_path=OUTPUT_FILE, content=rules_table
                             )
 
                         if value_counter > 0:
-                            # print(variable_table)
                             add_between_markers(
                                 file_path=OUTPUT_FILE, content=str("\n")
                             )
                             add_between_markers(
-                                file_path=OUTPUT_FILE, content=str(variable_table)
+                                file_path=OUTPUT_FILE,
+                                content=common.markdown_table_from_prettytable(
+                                    variable_table
+                                ),
                             )
                             add_between_markers(
                                 file_path=OUTPUT_FILE, content=str("\n")

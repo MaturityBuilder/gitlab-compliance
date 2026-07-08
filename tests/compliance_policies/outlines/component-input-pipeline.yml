@@ -1,0 +1,18 @@
+---
+include:
+  - component: gitlab.com/org/my-component@1.0.0
+    inputs:
+      mode: execute
+      workflow: trunk
+  - component: gitlab.com/org/my-component@1.0.0
+    inputs:
+      mode: dry-run
+      workflow: gitops
+
+stages:
+  - test
+
+smoke:
+  stage: test
+  script:
+    - echo ok

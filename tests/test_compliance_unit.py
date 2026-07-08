@@ -53,7 +53,7 @@ class TestStash:
         assert get_property(entity, "image") == "docker:24"
         assert entity_has_property(entity, "stage")
         assert property_matches(entity, "stage", "test")
-        assert property_matches_regex(entity, "image", r"docker")
+        assert property_matches_regex(entity, "image", r".*docker.*")
         assert property_not_matches_regex(entity, "image", r"latest")
         assert name_starts_with(entity, "bu")
         assert extends_includes({**entity, "extends": "template"}, "template")

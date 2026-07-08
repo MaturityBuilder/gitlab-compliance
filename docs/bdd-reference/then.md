@@ -1,6 +1,7 @@
 # THEN Directives
 
-`Then` **asserts** on every entity in the stash. If any entity fails, the scenario fails and the compliance run exits with a non-zero code.
+`Then` **asserts** on every entity in the stash. If any entity fails, the
+scenario fails and the compliance run exits with a non-zero code.
 
 ## Reference
 
@@ -33,13 +34,20 @@ Then its masked must be true
 
 ### `Then its {property_name} must match "{pattern}"`
 
-Every entity's property must match the regular expression.
+Every entity's property must match the **value spec** in `pattern`:
+
+- **Literal** — exact match (`prod`)
+- **Comma list** — actual must equal one listed value (`prod,uat,dev`)
+- **Regex** — full-string match (`^(backend|frontend)$`)
 
 ```gherkin
 Then its image must match "^[^\\s]+(:[\\w.-]+|@sha256:[a-f0-9]{64})$"
 Then its version must match "^\d+\.\d+\.\d+(-[\w.]+)?$"
+Then its value must match "prod,uat,dev"
 Then its rules must match "if:"
 ```
+
+See [Advanced scenarios](advanced-scenarios.md) for Examples table rules.
 
 ### `Then its {property_name} must not match "{pattern}"`
 
@@ -75,7 +83,8 @@ Then it must use valid semver
 
 ### `Then a newer release must not be available`
 
-**API:** pinned semver must not be behind the latest semver tag on the included project.
+**API:** pinned semver must not be behind the latest semver tag on the included
+project.
 
 ```gherkin
 Then a newer release must not be available
@@ -83,7 +92,9 @@ Then a newer release must not be available
 
 ### `Then a newer release must not be available for more than {days} days`
 
-**API:** fail when a newer semver exists and the latest tag was published more than `{days}` days ago. Gives teams a grace period to adopt new upstream releases.
+**API:** fail when a newer semver exists and the latest tag was published more
+than `{days}` days ago. Gives teams a grace period to adopt new upstream
+releases.
 
 ```gherkin
 Then a newer release must not be available for more than 30 days
@@ -91,7 +102,8 @@ Then a newer release must not be available for more than 30 days
 
 ### `Then its release lag must not exceed {days} days`
 
-**API:** fail when a newer semver exists and the pinned tag trails the latest by more than `{days}` days (by tag commit dates).
+**API:** fail when a newer semver exists and the pinned tag trails the latest by
+more than `{days}` days (by tag commit dates).
 
 ```gherkin
 Then its release lag must not exceed 90 days
@@ -99,7 +111,8 @@ Then its release lag must not exceed 90 days
 
 ### `Then it must be within the latest {count} tags`
 
-**API:** pinned semver must rank among the top `{count}` semver tags on the included project (1 = latest).
+**API:** pinned semver must rank among the top `{count}` semver tags on the
+included project (1 = latest).
 
 ```gherkin
 Then it must be within the latest 3 tags
@@ -107,7 +120,8 @@ Then it must be within the latest 3 tags
 
 ### `Then it must use sha256 digest`
 
-Container images must use an immutable `@sha256:` digest (default supply-chain pin).
+Container images must use an immutable `@sha256:` digest (default supply-chain
+pin).
 
 ### `Then a newer image release must not be available`
 
@@ -115,7 +129,8 @@ Container images must use an immutable `@sha256:` digest (default supply-chain p
 
 ### `Then it must be within the latest {count} image tags`
 
-**API:** image tag must rank among the top `{count}` semver tags on the registry.
+**API:** image tag must rank among the top `{count}` semver tags on the
+registry.
 
 ### `Then it must track the latest release`
 
@@ -127,6 +142,7 @@ Then it must track the latest release
 
 ## Failure output
 
-Failed assertions include entity name, property, expected condition, and source location in the pipeline file when line metadata is available.
+Failed assertions include entity name, property, expected condition, and source
+location in the pipeline file when line metadata is available.
 
 Next: [Using AND](using-and.md).

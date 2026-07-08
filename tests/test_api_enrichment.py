@@ -98,6 +98,54 @@ class TestPoliciesRequireApiEnrichment:
         assert reqs.enrich_images is False
         assert reqs.load_api_entities is False
 
+    def test_multi_dir_markers_split_across_dirs(self, tmp_path):
+        images = tmp_path / "images"
+        includes = tmp_path / "includes"
+        images.mkdir()
+        includes.mkdir()
+        images.joinpath("image.feature").write_text(
+            "Feature: Images\n"
+            "  Scenario: Image check\n"
+            "    Given I have any container image with release metadata defined\n",
+            encoding="utf-8",
+        )
+        includes.joinpath("include.feature").write_text(
+            "Feature: Includes\n"
+            "  Scenario: Include check\n"
+            "    Given I have any include with release metadata defined\n",
+            encoding="utf-8",
+        )
+
+        reqs = policies_require_api_enrichment([str(images), str(includes)])
+
+        assert reqs.enrich_images is True
+        assert reqs.enrich_includes is True
+        assert reqs.load_api_entities is False
+
+    def test_multi_dir_early_exit_when_all_markers_present(self, tmp_path):
+        first = tmp_path / "complete"
+        second = tmp_path / "unused"
+        first.mkdir()
+        second.mkdir()
+        first.joinpath("all.feature").write_text(
+            "Feature: All markers\n"
+            "  Scenario: Combined\n"
+            "    Given I have any include with release metadata defined\n"
+            "    And I have any container image with release metadata defined\n"
+            "    And I have project setting x defined\n",
+            encoding="utf-8",
+        )
+        second.joinpath("would-fail.feature").write_text(
+            "NOT VALID GHERKIN",
+            encoding="utf-8",
+        )
+
+        reqs = policies_require_api_enrichment([str(first), str(second)])
+
+        assert reqs.enrich_includes is True
+        assert reqs.enrich_images is True
+        assert reqs.load_api_entities is True
+
     def test_ignores_non_feature_files(self, tmp_path):
         policies = tmp_path / "policies"
         policies.mkdir()

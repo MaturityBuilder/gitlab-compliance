@@ -33,8 +33,8 @@ def document_inputs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, DISABLE_TITLE):
                 logger.info(inputs)
 
                 for v in inputs:
-                    description = "&#x274c;"
-                    options = "&#x274c;"
+                    description = "_not set_"
+                    options = "_not set_"
                     expand = "true"
                     result = {}
                     if type(inputs[v]) is str:
@@ -51,12 +51,12 @@ def document_inputs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, DISABLE_TITLE):
                                 + " isn't set, input should have description set, "
                                 + "gitlab-compliance considers this malformed :("
                             )
-                            description = "&#x274c;"
+                            description = "_not set_"
 
                         if "options" in inputs[v]:
                             options = inputs[v]["options"]
                         else:
-                            options = "&#x274c;"
+                            options = "_not set_"
                         if "expand" in inputs[v]:
                             expand = inputs[v]["expand"]
                         else:
@@ -78,7 +78,10 @@ def document_inputs(OUTPUT_FILE, GLDOCS_CONFIG_FILE, DISABLE_TITLE):
                 add_between_markers(file_path=OUTPUT_FILE, content="\n")
                 add_between_markers(file_path=OUTPUT_FILE, content="## Inputs")
                 add_between_markers(file_path=OUTPUT_FILE, content="\n")
-                add_between_markers(file_path=OUTPUT_FILE, content=str(inputs_table))
+                add_between_markers(
+                    file_path=OUTPUT_FILE,
+                    content=common.markdown_table_from_prettytable(inputs_table),
+                )
                 add_between_markers(file_path=OUTPUT_FILE, content="\n")
                 # f.close()
 

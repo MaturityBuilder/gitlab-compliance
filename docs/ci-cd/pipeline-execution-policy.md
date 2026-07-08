@@ -1,27 +1,35 @@
 # Pipeline Execution Policy
 
-Inject `gitlab-compliance` into member project pipelines org-wide using GitLab [Pipeline execution policies](https://docs.gitlab.com/user/application_security/policies/pipeline_execution_policies/).
+Inject `gitlab-compliance` into member project pipelines org-wide using GitLab
+[Pipeline execution
+policies](https://docs.gitlab.com/user/application_security/policies/pipeline_execution_policies/).
 
 ## Prerequisites
 
-- GitLab tier with security policies (Ultimate or equivalent feature availability)
+- GitLab tier with security policies (Ultimate or equivalent feature
+  availability)
 - A **security policy project** linked to your group or instance
-- Policy pack vendored in the security policy repo at `policies/security/` (copy from [`examples/example-policies/security/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-policies/security))
+- Policy pack vendored in the security policy repo at `policies/security/` (copy
+  from
+  [`examples/example-policies/security/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-policies/security))
 
 ## Repository layout
 
-```
+```text
+
 my-group/gitlab-compliance-policies/     # security policy project
 ├── .gitlab/security-policies/
 │   └── policy.yml                       # Pipeline Execution Policy definition
-├── policy-ci.yml                        # CI config injected into member pipelines
+├── policy-ci.yml # CI config injected into member pipelines
 └── policies/security/                   # Gherkin .feature files
     ├── execution-policy.feature
     ├── image-pinning.feature
     └── ...
+
 ```
 
-Example artifacts in this repository: [`examples/example-gitlab-execution-policy/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-gitlab-execution-policy).
+Example artifacts in this repository:
+[`examples/example-gitlab-execution-policy/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-gitlab-execution-policy).
 
 ## Step 1: Define the policy
 
@@ -46,13 +54,12 @@ pipeline_execution_policy:
 
 ### `inject_policy` vs `inject_ci`
 
-Use **`inject_policy`** (recommended). The deprecated `inject_ci` strategy is removed in GitLab 19.0 and does not support custom policy stages.
+Use **`inject_policy`** (recommended). The deprecated `inject_ci` strategy is
+removed in GitLab 19.0 and does not support custom policy stages.
 
-| Strategy | Behavior |
-|----------|----------|
-| `inject_policy` | Injects policy stages and jobs into member pipelines |
-| `inject_ci` (deprecated) | Legacy injection without custom stages |
-| `override_project_ci` | Replaces the project pipeline entirely |
+- **`inject_policy`:** Injects policy stages and jobs into member pipelines
+- **`inject_ci` (deprecated):** Legacy injection without custom stages
+- **`override_project_ci`:** Replaces the project pipeline entirely
 
 ## Step 2: Define the injected job
 
@@ -78,7 +85,9 @@ policy::gitlab-compliance:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 ```
 
-This runs the same Gherkin policies as a [project-level compliance job](gitlab-ci.md), including [Execution Policy](../examples/execution-policy.md) scenarios.
+This runs the same Gherkin policies as a [project-level compliance
+job](gitlab-ci.md), including [Execution
+Policy](../examples/execution-policy.md) scenarios.
 
 ## Step 3: Scope the policy
 
@@ -104,21 +113,32 @@ policy_scope:
 
 ## Variables and API checks
 
-Pipeline execution policy pipelines run in **isolation** from the member project's `.gitlab-ci.yml`. Implications:
+Pipeline execution policy pipelines run in **isolation** from the member
+project's `.gitlab-ci.yml`. Implications:
 
-- `CI_PROJECT_PATH` and `CI_JOB_TOKEN` refer to the **member project** — API checks work as expected.
-- Custom variables defined only in a member project's `.gitlab-ci.yml` are **not** available to the policy job. Define overrides as **project or group CI/CD variables** instead.
-- For include release checks, ensure the token can read tags on included projects.
+- `CI_PROJECT_PATH` and `CI_JOB_TOKEN` refer to the **member project** — API
+  checks work as expected.
+- Custom variables defined only in a member project's `.gitlab-ci.yml` are
+  **not** available to the policy job. Define overrides as **project or group
+  CI/CD variables** instead.
+- For include release checks, ensure the token can read tags on included
+  projects.
 
 ## Pair with BDD execution policy
 
-The injected job enforces [`execution-policy.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/execution-policy.feature) against each member project's `.gitlab-ci.yml` — catching deploy jobs without `rules:` and weak `when: always` guards.
+The injected job enforces
+[`execution-policy.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/execution-policy.feature)
+against each member project's `.gitlab-ci.yml` — catching deploy jobs without
+`rules:` and weak `when: always` guards.
 
-See [Execution Policy](../examples/execution-policy.md) for the policy definition and project-level alternative.
+See [Execution Policy](../examples/execution-policy.md) for the policy
+definition and project-level alternative.
 
 ## Related
 
-- [GitLab CI/CD consumption](gitlab-ci.md) — project-level jobs and shared templates
-- [Examples index](../examples/index.md) — all policy types and consumption patterns
+- [GitLab CI/CD consumption](gitlab-ci.md) — project-level jobs and shared
+  templates
+- [Examples index](../examples/index.md) — all policy types and consumption
+  patterns
 
 Back to [Using in CI/CD](index.md).

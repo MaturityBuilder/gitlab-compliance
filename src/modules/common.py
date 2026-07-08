@@ -92,15 +92,33 @@ def dict_list_rows(items, row_label="Rule #"):
     return headers, rows
 
 
+def render_rules_markdown(items, row_label="Rule #"):
+    """Render rules as a list when table rows would exceed 80 characters."""
+    headers, rows = dict_list_rows(items, row_label=row_label)
+    if not headers:
+        return ""
+    if any("\n" in str(cell) for row in rows for cell in row):
+        pass
+    else:
+        table = render_markdown_table(headers, rows)
+        if all(len(line) <= 80 for line in table.splitlines()):
+            return table
+    lines = []
+    for row in rows:
+        rule_id = row[0]
+        lines.append(f"- **{row_label} {rule_id}**")
+        for index, key in enumerate(headers[1:], start=1):
+            value = row[index] if index < len(row) else ""
+            if value != "":
+                lines.append(f"  - **{key}:** `{value}`")
+    return "\n".join(lines)
+
+
 def build_dict_list_table(items, row_label="Rule #"):
     headers, rows = dict_list_rows(items, row_label=row_label)
     if not headers:
         return None
-
-    table = table_design(field_names=headers)
-    for row in rows:
-        table.add_row(row)
-    return table
+    return render_rules_markdown(items, row_label=row_label)
 
 
 def env_var_replacement(loader, node):
@@ -142,3 +160,73 @@ def table_design(headers=[], field_names=[], style="MARKDOWN"):
     for header in headers:
         table.align[header] = "c"
     return table
+
+
+def render_markdown_table(headers, rows):
+    """Render a markdownlint MD060-aligned pipe table."""
+    if not headers:
+        return ""
+    str_headers = [str(h) for h in headers]
+    str_rows = [[str(c) for c in row] for row in rows]
+    widths = [len(h) for h in str_headers]
+    for row in str_rows:
+        for index, cell in enumerate(row):
+            if index < len(widths):
+                widths[index] = max(widths[index], len(cell))
+
+    def format_row(cells):
+        parts = []
+        for index, width in enumerate(widths):
+            cell = cells[index] if index < len(cells) else ""
+            parts.append(f" {cell:<{width}} ")
+        return "|" + "|".join(parts) + "|"
+
+    separator = "|" + "|".join(f" {'-' * width} " for width in widths) + "|"
+    lines = [format_row(str_headers), separator]
+    lines.extend(format_row(row) for row in str_rows)
+    return "\n".join(lines)
+
+
+def render_table_or_list(headers, rows):
+    """Render aligned table, falling back to a list if rows exceed 80 chars."""
+    if not headers:
+        return ""
+    if any("\n" in str(cell) for row in rows for cell in row):
+        pass
+    else:
+        table = render_markdown_table(headers, rows)
+        if all(len(line) <= 80 for line in table.splitlines()):
+            return table
+    lines = []
+    if len(headers) == 2:
+        for row in rows:
+            key = row[0] if row else ""
+            value = row[1] if len(row) > 1 else ""
+            if "\n" in str(value):
+                lines.append(f"- **{key}:**")
+                for part in str(value).splitlines():
+                    lines.append(f"  {part}")
+            else:
+                line = f"- **{key}:** `{value}`"
+                if len(line) <= 80:
+                    lines.append(line)
+                else:
+                    lines.append(f"- **{key}:**")
+                    lines.append(f"  `{value}`")
+        return "\n".join(lines)
+    for row in rows:
+        lines.append(
+            "- "
+            + " · ".join(
+                f"**{headers[i]}:** `{row[i]}`"
+                for i in range(min(len(headers), len(row)))
+            )
+        )
+    return "\n".join(lines)
+
+
+def markdown_table_from_prettytable(table):
+    """Convert a PrettyTable instance to markdown table or list."""
+    headers = list(table.field_names)
+    rows = [list(row) for row in table.rows]
+    return render_table_or_list(headers, rows)

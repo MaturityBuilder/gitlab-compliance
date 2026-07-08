@@ -18,7 +18,8 @@ build:
 
 ## Policy
 
-From [`security/service-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/service-pinning.feature):
+From
+[`security/service-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/service-pinning.feature):
 
 ```gherkin
 Scenario: docker:dind must include a version

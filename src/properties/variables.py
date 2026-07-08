@@ -31,8 +31,8 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, DISABLE_TITLE):
                 )
 
                 for v in variables:
-                    description = "&#x274c;"
-                    options = "&#x274c;"
+                    description = "_not set_"
+                    options = "_not set_"
                     expand = "true"
                     result = {}
                     if type(variables[v]) is str:
@@ -50,12 +50,12 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, DISABLE_TITLE):
                                     + " isn't set, variable should have description set, "
                                     + "gitlab-compliance considers this malformed :("
                                 )
-                                description = "&#x274c;"
+                                description = "_not set_"
 
                             if "options" in variables[v]:
                                 options = variables[v]["options"]
                             else:
-                                options = "&#x274c;"
+                                options = "_not set_"
                             if "expand" in variables[v]:
                                 expand = variables[v]["expand"]
                             else:
@@ -83,7 +83,10 @@ def document_variables(OUTPUT_FILE, GLDOCS_CONFIG_FILE, DISABLE_TITLE):
                 add_between_markers(file_path=OUTPUT_FILE, content="\n")
                 add_between_markers(file_path=OUTPUT_FILE, content="## Variables")
                 add_between_markers(file_path=OUTPUT_FILE, content="\n")
-                add_between_markers(file_path=OUTPUT_FILE, content=str(variables_table))
+                add_between_markers(
+                    file_path=OUTPUT_FILE,
+                    content=common.markdown_table_from_prettytable(variables_table),
+                )
                 add_between_markers(file_path=OUTPUT_FILE, content="\n")
                 # f.close()
 

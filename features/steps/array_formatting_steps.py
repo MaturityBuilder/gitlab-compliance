@@ -36,7 +36,11 @@ def step_format_rules_summary(context):
 
 @then('the rules table should contain column "{column_name}"')
 def step_rules_table_has_column(context, column_name):
-    assert column_name in context.rules_table.field_names
+    table = context.rules_table
+    if hasattr(table, "field_names"):
+        assert column_name in table.field_names
+    else:
+        assert column_name in str(table)
 
 
 @then('the rules table should contain row value "{expected_value}"')

@@ -14,3 +14,10 @@ reports
 trunk/
 __pycache__/
 reports/
+# .venv/
+# .pytest_cache/
+# .cache/
+# dist/
+# .coverage
+# gitlab-compliance-swagger.md
+# gitlab-compliance.html

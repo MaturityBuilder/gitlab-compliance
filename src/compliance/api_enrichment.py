@@ -5,6 +5,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+from src.compliance.metadata import iter_feature_files
+
 
 @dataclass
 class ApiEnrichmentRequirements:
@@ -31,22 +33,27 @@ API_ENTITY_MARKERS = (
 )
 
 
-def policies_require_api_enrichment(features_dir: str) -> ApiEnrichmentRequirements:
+def policies_require_api_enrichment(
+    features_dirs: str | list[str],
+) -> ApiEnrichmentRequirements:
     reqs = ApiEnrichmentRequirements()
-    if not os.path.isdir(features_dir):
-        return reqs
+    directories = [features_dirs] if isinstance(features_dirs, str) else features_dirs
 
-    combined: list[str] = []
-    for root, _dirs, files in os.walk(features_dir):
-        for filename in files:
-            if not filename.endswith(".feature"):
-                continue
-            feature_path = os.path.join(root, filename)
+    for features_dir in directories:
+        if not os.path.isdir(features_dir):
+            continue
+        for feature_path in iter_feature_files(features_dir):
             with open(feature_path, encoding="utf-8") as handle:
-                combined.append(handle.read().lower())
+                text = handle.read().lower()
+            if not reqs.enrich_includes:
+                reqs.enrich_includes = any(marker in text for marker in INCLUDE_MARKERS)
+            if not reqs.enrich_images:
+                reqs.enrich_images = any(marker in text for marker in IMAGE_MARKERS)
+            if not reqs.load_api_entities:
+                reqs.load_api_entities = any(
+                    marker in text for marker in API_ENTITY_MARKERS
+                )
+            if reqs.enrich_includes and reqs.enrich_images and reqs.load_api_entities:
+                return reqs
 
-    text = "\n".join(combined)
-    reqs.enrich_includes = any(marker in text for marker in INCLUDE_MARKERS)
-    reqs.enrich_images = any(marker in text for marker in IMAGE_MARKERS)
-    reqs.load_api_entities = any(marker in text for marker in API_ENTITY_MARKERS)
     return reqs

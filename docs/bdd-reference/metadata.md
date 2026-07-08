@@ -1,6 +1,9 @@
 # Policy Metadata
 
-Policies support [Conftest-style `# METADATA`](https://www.conftest.dev/documentation/) comments for IDs, titles, descriptions, and custom fields. This is the gitlab-compliance equivalent of cataloging and templating policy documentation.
+Policies support [Conftest-style `#
+METADATA`](https://www.conftest.dev/documentation/) comments for IDs, titles,
+descriptions, and custom fields. This is the gitlab-compliance equivalent of
+cataloging and templating policy documentation.
 
 ```gherkin
 # METADATA
@@ -17,14 +20,14 @@ Policies support [Conftest-style `# METADATA`](https://www.conftest.dev/document
 
 ## Fields
 
-| Field | Purpose |
-|-------|---------|
-| `title` | Short policy name in reports and catalogs |
-| `description` | Longer explanation for security reviewers |
-| `custom.id` | Stable policy ID (auto-generated if omitted) |
-| `custom.severity` | `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` — used in Code Quality output |
+- **`title`:** Short policy name in reports and catalogs
+- **`description`:** Longer explanation for security reviewers
+- **`custom.id`:** Stable policy ID (auto-generated if omitted)
+- **`custom.severity`:**
+  - `CRITICAL`, `HIGH`, `MEDIUM`, `LOW` — used in Code Quality output
 
-Metadata can appear at the **Feature** level (applies to the file) or immediately above a **Scenario**.
+Metadata can appear at the **Feature** level (applies to the file) or
+immediately above a **Scenario**.
 
 ## Policy catalog
 
@@ -32,13 +35,16 @@ Generate a searchable index from annotations:
 
 ```bash
 gitlab-compliance policies doc -f policies/ -o COMPLIANCE-POLICIES.md
-gitlab-compliance policies doc -f policies/ --format html -o COMPLIANCE-POLICIES.html
+gitlab-compliance policies doc -f policies/ --format html -o
+COMPLIANCE-POLICIES.html
 ```
 
-Compliance reports (console, markdown, HTML, MR comment, Code Quality) include policy IDs and titles when metadata is present.
+Compliance reports (console, markdown, HTML, MR comment, Code Quality) include
+policy IDs and titles when metadata is present.
 
 ## ID generation
 
-If `custom.id` is omitted, IDs are derived from the feature title and scenario name (for example `GLCI-IMAGE-PINNING-001`).
+If `custom.id` is omitted, IDs are derived from the feature title and scenario
+name (for example `GLCI-IMAGE-PINNING-001`).
 
 See [Examples](../examples/index.md) for annotated policy packs.
