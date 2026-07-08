@@ -15,7 +15,7 @@ Keep entities that define the property (any value).
 ```gherkin
 When it has image
 When it has rules
-```text
+```
 
 ### `When it does not have {property_name}`
 
@@ -23,7 +23,7 @@ Keep entities missing the property.
 
 ```gherkin
 When it does not have rules
-```text
+```
 
 ### `When its {property_name} is {expected}`
 
@@ -33,7 +33,7 @@ normalization).
 ```gherkin
 When its stage is deploy
 When its value is false
-```text
+```
 
 ### `When its {property_name} matches "{pattern}"`
 
@@ -42,7 +42,7 @@ Keep entities where the property matches the regular expression.
 ```gherkin
 When its key matches "^(AWS_|DATABASE_)"
 When its image matches ":latest$"
-```text
+```
 
 ### `When the entity input {name} equals {value}`
 
@@ -53,7 +53,7 @@ allowlist, or regex. Used in [advanced Scenario Outline](../bdd-reference/advanc
 ```gherkin
 When the entity input mode equals execute
 When the entity input mode equals dry-run
-```text
+```
 
 ### `When its name does not start with "{prefix}"`
 
@@ -62,7 +62,7 @@ template jobs).
 
 ```gherkin
 When its name does not start with "."
-```text
+```
 
 ## Skip behavior
 
@@ -70,7 +70,7 @@ When its name does not start with "."
 Given I have any job defined
 When its stage is nonexistent_stage_xyz
 Then it must contain image
-```text
+```
 
 If no job uses that stage, the scenario skips — it does not fail. This matches
 terraform-compliance `When` semantics.
@@ -82,7 +82,7 @@ ref.
 
 ```gherkin
 When a newer release is available
-```text
+```
 
 ### `When a newer release is available for more than {days} days`
 
@@ -91,7 +91,7 @@ committed more than `{days}` days ago (adoption grace window exceeded).
 
 ```gherkin
 When a newer release is available for more than 30 days
-```text
+```
 
 ### `When its release lag exceeds {days} days`
 
@@ -100,7 +100,7 @@ than `{days}` days older than the latest tag (by commit dates).
 
 ```gherkin
 When its release lag exceeds 90 days
-```text
+```
 
 ### `When it is not within the latest {count} tags`
 
@@ -109,7 +109,7 @@ tags (rank 1 = latest).
 
 ```gherkin
 When it is not within the latest 5 tags
-```text
+```
 
 ### `When a newer image release is available`
 

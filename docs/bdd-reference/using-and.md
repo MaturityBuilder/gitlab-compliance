@@ -9,14 +9,14 @@ Scenario: Production tokens must be protected and masked
   When its key matches "^(AWS_|DATABASE_|API_KEY)"
   Then its protected must be true
   And its masked must be true
-```text
+```
 
 This is equivalent to:
 
 ```gherkin
   Then its protected must be true
   Then its masked must be true
-```text
+```
 
 ## Rules
 

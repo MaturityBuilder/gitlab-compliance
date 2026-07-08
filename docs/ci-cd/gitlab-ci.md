@@ -16,13 +16,13 @@ compliance:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-```text
+```
 
 Copy policies first:
 
 ```bash
 cp -r examples/example-policies/security/ policies/security/
-```text
+```
 
 ## Include shared compliance jobs
 
@@ -37,7 +37,7 @@ include:
 
 compliance:
   extends: .compliance:offline
-```text
+```
 
 **Central repo include** (versioned distribution):
 
@@ -49,7 +49,7 @@ include:
 
 compliance:
   extends: .compliance:offline
-```text
+```
 
 Minimal consumer example:
 [`example-ci/.gitlab-ci.consumer.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/.gitlab-ci.consumer.yml).
@@ -74,7 +74,7 @@ compliance:
   extends: .compliance:oci
   variables:
     COMPLIANCE_OCI: oci://registry.example.com/org/gitlab-ci-policies:1.0.0
-```text
+```
 
 ## API-backed policies
 
@@ -83,7 +83,7 @@ compliance:
 ```yaml
 compliance:
   extends: .compliance:api
-```text
+```
 
 Use for [API hardening](../examples/api-hardening.md) and when `--strict` must
 fail skipped API scenarios.
@@ -99,7 +99,7 @@ compliance:includes:
     - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-```text
+```
 
 Use a [project access
 token](https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html)
@@ -114,7 +114,7 @@ Surface findings in the merge request **Changes** tab:
 ```yaml
 compliance:
   extends: .compliance:codequality
-```text
+```
 
 Artifact: `gl-code-quality-report.json` (configured in the template).
 
@@ -134,7 +134,7 @@ comment-compliance:
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-```text
+```
 
 Store `GITLAB_TOKEN` as a masked CI variable with `api` scope.
 
@@ -146,7 +146,7 @@ Start warn-only, then enforce:
 compliance:
   extends: .compliance:offline
   allow_failure: true   # remove once baseline is clean
-```text
+```
 
 Pair with [Execution Policy](../examples/execution-policy.md) policies to catch
 jobs missing `rules:` before blocking.

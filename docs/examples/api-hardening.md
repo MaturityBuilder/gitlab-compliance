@@ -25,7 +25,7 @@ Scenario: Production tokens must be protected and masked
   When its key matches "^(AWS_|DATABASE_|API_KEY)"
   Then its protected must be true
   And its masked must be true
-```text
+```
 
 ## Consume in GitLab CI
 
@@ -37,7 +37,7 @@ include:
 
 compliance:
   extends: .compliance:api
-```text
+```
 
 `CI_JOB_TOKEN` and `CI_PROJECT_PATH` are set automatically in GitLab CI jobs.
 
@@ -50,7 +50,7 @@ compliance:api:
 compliance:report:
   extends: .compliance:codequality
   needs: [compliance:api]
-```text
+```
 
 ## Run locally
 
@@ -58,7 +58,7 @@ compliance:report:
 export GITLAB_TOKEN="<token>"
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
   --project my-group/my-project --strict
-```text
+```
 
 Without API credentials, these scenarios are **skipped** unless `--strict` is
 set.

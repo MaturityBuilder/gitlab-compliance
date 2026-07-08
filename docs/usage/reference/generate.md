@@ -5,8 +5,7 @@ Will scan through your gitlab-ci yml and build documentation from the yml.
 ## Usage
 
 ```text
-Usage: gitlab-compliance generate [OPTIONS]
-```
+Usage: gitlab-compliance generate [OPTIONS]```
 
 ## Options
 
@@ -71,6 +70,7 @@ Usage: gitlab-compliance generate [OPTIONS]
   * Usage: `--help`
 
   Show this message and exit.
+
 
 ## CLI Help
 

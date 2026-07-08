@@ -10,7 +10,7 @@ scan:
   image: python
 build:
   image: docker:latest
-```text
+```
 
 ## Good (sha256 digest — default)
 
@@ -21,7 +21,7 @@ scan:
 build:
   image:
   docker@sha256:61394709d9c9999b6b7d6d5b8c7c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8
-```text
+```
 
 ## Good (explicit semver tag)
 
@@ -30,7 +30,7 @@ scan:
   image: python:3.12.11
 build:
   image: docker:24.0.5
-```text
+```
 
 ## Policy
 
@@ -50,7 +50,7 @@ Scenario: Job images must not use the latest tag
 Scenario: Container images must not lag behind registry latest
   Given I have any container image with release metadata defined
   Then a newer image release must not be available
-```text
+```
 
 Registry-backed checks resolve tags from Docker Hub (public images) and GitLab
 Container Registry (when the image host matches your GitLab instance).
@@ -61,7 +61,7 @@ Pin job and service images to sha256 digests for the currently referenced tag:
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
-```text
+```
 
 ## Consume in GitLab CI
 
@@ -74,14 +74,14 @@ include:
 
 compliance:
   extends: .compliance:offline
-```text
+```
 
 Registry checks with API enrichment:
 
 ```yaml
 compliance:
   extends: .compliance:api
-```text
+```
 
 Or apply fixes in CI:
 
@@ -92,13 +92,13 @@ compliance:
     - pip install --quiet gitlab-compliance
     - gitlab-compliance check -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
         --project "$CI_PROJECT_PATH" --strict --fix
-```text
+```
 
 ## Run locally
 
 ```bash
 cp -r examples/example-policies/security/ policies/security/
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-```text
+```
 
 Back to [Examples](index.md).

@@ -5,8 +5,7 @@ Create one markdown file per subcommand under --docsPath.
 ## Usage
 
 ```text
-Usage: gitlab-compliance dumps [OPTIONS]
-```
+Usage: gitlab-compliance dumps [OPTIONS]```
 
 ## Options
 
@@ -37,6 +36,7 @@ Usage: gitlab-compliance dumps [OPTIONS]
   * Usage: `--help`
 
   Show this message and exit.
+
 
 ## CLI Help
 

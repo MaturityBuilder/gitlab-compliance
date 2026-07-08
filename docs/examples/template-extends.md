@@ -19,7 +19,7 @@ Scenario: Deploy jobs must extend approved deploy template
   Given I have any job defined
   When its stage is deploy
   Then its extends must include ".approved-deploy-template"
-```text
+```
 
 Adjust template names to match your organization's hidden job keys.
 
@@ -33,12 +33,12 @@ include:
 
 compliance:
   extends: .compliance:offline
-```text
+```
 
 ## Run locally
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-```text
+```
 
 Back to [Examples](index.md).

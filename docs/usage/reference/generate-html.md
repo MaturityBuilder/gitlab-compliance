@@ -5,8 +5,7 @@ Deprecated: use `generate --format html` instead.
 ## Usage
 
 ```text
-Usage: gitlab-compliance generate-html [OPTIONS]
-```
+Usage: gitlab-compliance generate-html [OPTIONS]```
 
 ## Options
 
@@ -39,6 +38,7 @@ Usage: gitlab-compliance generate-html [OPTIONS]
   * Usage: `--help`
 
   Show this message and exit.
+
 
 ## CLI Help
 

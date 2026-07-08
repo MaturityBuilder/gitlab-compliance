@@ -12,14 +12,14 @@ deploy-production:
   script:
     - ./deploy.sh
   # no rules — runs on every pipeline source
-```text
+```
 
 ```yaml
 release:
   stage: publish
   rules:
     - when: always
-```text
+```
 
 ## Good
 
@@ -40,7 +40,7 @@ scan:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-```text
+```
 
 ## Policy
 
@@ -64,7 +64,7 @@ Feature: Pipeline execution controls
     Given I have any job defined
     When its name does not start with "."
     Then it must contain rules
-```text
+```
 
 Legacy file
 [`rules.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/rules.feature)
@@ -94,7 +94,7 @@ deploy-production:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: manual
     - when: never
-```text
+```
 
 Warn-only rollout:
 
@@ -102,7 +102,7 @@ Warn-only rollout:
 compliance:
   extends: .compliance:offline
   allow_failure: true
-```text
+```
 
 Remove `allow_failure` once every job has proper `rules:`.
 
@@ -135,7 +135,7 @@ pipeline_execution_policy:
       projects:
         including:
           - full_path: my-group/*
-```text
+```
 
 **2. Injected CI config** —
 [`policy-ci.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-gitlab-execution-policy/policy-ci.yml)
@@ -157,7 +157,7 @@ policy::gitlab-compliance:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-```text
+```
 
 The injected job runs the same Gherkin pack
 (`policies/security/execution-policy.feature`) as project-level consumption.
@@ -172,6 +172,6 @@ Policy](../ci-cd/pipeline-execution-policy.md).
 ```bash
 cp -r examples/example-policies/security/ policies/security/
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-```text
+```
 
 Back to [Examples](index.md).

@@ -31,7 +31,7 @@ Scenario: Job images must not use latest
   Given I have any job defined
   When it has image
   Then its image must not match ":latest$"
-```text
+```
 
 `Given`, `When`, and `Then` can be interleaved, but most policies use the order
 above.
@@ -45,7 +45,7 @@ when you need a different entity type mid-scenario:
 Given I have any job defined
 Given I have include type "component" defined
 Then its version must match "^\d+\.\d+\.\d+"
-```text
+```
 
 For preconditions, prefer a `Background` block or separate scenarios.
 
@@ -58,7 +58,7 @@ only the matching subset.
 Given I have any job defined
 When its stage is deploy
 Then it must contain rules
-```text
+```
 
 Only jobs in stage `deploy` are asserted. Jobs in other stages are ignored. If
 no job is in `deploy`, the scenario is skipped.
@@ -71,7 +71,7 @@ failure fails the scenario.
 ```gherkin
 Given I have any job defined
 Then it must contain rules
-```text
+```
 
 Every job must define `rules:`.
 

@@ -19,7 +19,7 @@ compliance:
         python-version: "3.12"
     - run: pip install gitlab-compliance
     - run: gitlab-compliance check -f policies/security -p .gitlab-ci.yml
-```text
+```
 
 Full example:
 [`examples/example-github-actions/compliance-pip.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-github-actions/compliance-pip.yml).
@@ -35,7 +35,7 @@ compliance:
         docker run --rm -v "$PWD:/work" -w /work \
           maturitybuilder/gitlab-compliance:latest \
           compliance -f policies/security -p .gitlab-ci.yml
-```text
+```
 
 Full example:
 [`examples/example-github-actions/compliance-container.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-github-actions/compliance-container.yml).
@@ -76,7 +76,7 @@ Install hooks after cloning:
 poetry install
 poetry run pre-commit install
 poetry run pre-commit run --all-files
-```text
+```
 
 Configuration:
 [`.pre-commit-config.yaml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.pre-commit-config.yaml).
@@ -192,7 +192,7 @@ path:
       --strict
   env:
     GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-```text
+```
 
 ## Related guides
 

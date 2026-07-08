@@ -5,6 +5,7 @@ Pull a compliance policy bundle from an OCI registry.
 ## Usage
 
 ```text
+
 Usage: gitlab-compliance policies pull [OPTIONS] TARGET
 ```
 
@@ -33,6 +34,7 @@ Usage: gitlab-compliance policies pull [OPTIONS] TARGET
 ## CLI Help
 
 ```text
+
 Usage: gitlab-compliance policies pull [OPTIONS] TARGET
 
   Pull a compliance policy bundle from an OCI registry.
@@ -41,4 +43,5 @@ Options:
   -o, --output-dir TEXT  Directory to extract pulled policies into.  [default:
                          policy]
   --help                 Show this message and exit.
+
 ```

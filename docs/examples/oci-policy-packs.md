@@ -10,7 +10,7 @@ sharing](https://www.conftest.dev/sharing/).
 docker login registry.example.com
 gitlab-compliance policies push -f policies/
 registry.example.com/org/gitlab-ci-policies:1.0.0
-```text
+```
 
 ## Pull and run
 
@@ -22,7 +22,7 @@ oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml
 gitlab-compliance check -f
 oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml
 --update
-```text
+```
 
 Bundles use media type
 `application/vnd.gitlab-compliance.policy.bundle.v1+tar+gzip`.
@@ -33,7 +33,7 @@ Index policies with [Policy Metadata](../bdd-reference/metadata.md):
 
 ```bash
 gitlab-compliance policies doc -f policies/ -o COMPLIANCE-POLICIES.md
-```text
+```
 
 ## Consume in GitLab CI
 
@@ -45,7 +45,7 @@ include:
 
 compliance:
   extends: .compliance:oci
-```text
+```
 
 Override the registry reference:
 
@@ -54,7 +54,7 @@ compliance:
   extends: .compliance:oci
   variables:
     COMPLIANCE_OCI: oci://registry.example.com/my-group/gitlab-ci-policies:2.0.0
-```text
+```
 
 Authenticate to the registry in `before_script` when using a private registry:
 
@@ -65,7 +65,7 @@ compliance:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER"
       --password-stdin $CI_REGISTRY
     - pip install --quiet gitlab-compliance
-```text
+```
 
 ## Run locally
 
@@ -73,6 +73,6 @@ compliance:
 gitlab-compliance check -f
 oci://registry.example.com/org/gitlab-ci-policies:1.0.0 \
   -p .gitlab-ci.yml --update
-```text
+```
 
 Back to [Examples](index.md).

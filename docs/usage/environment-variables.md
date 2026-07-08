@@ -25,7 +25,7 @@ compliance:
     - pip install gitlab-compliance
     - gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project
       $CI_PROJECT_PATH
-```text
+```
 
 Locally:
 
@@ -33,7 +33,7 @@ Locally:
 export GITLAB_TOKEN="glpat-..."
 export CI_PROJECT_PATH="my-group/my-project"
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml
-```text
+```
 
 !!! note "Token safety"
     Tokens are read from the environment only. Do not pass tokens through Behave

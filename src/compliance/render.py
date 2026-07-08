@@ -138,7 +138,7 @@ def render_compliance_mr_comment(
                 lines.extend([html.escape(scenario.description), ""])
             lines.extend(
                 [
-                    "```text",
+                    "```",
                     scenario.message or "Scenario failed.",
                     "```",
                     "",

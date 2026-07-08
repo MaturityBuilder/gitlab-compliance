@@ -10,7 +10,9 @@ Compared to the generate command, the get-attribute command allows you to pass t
 ## Usage
 
 ```text
+
 Usage: gitlab-compliance get-attributes [OPTIONS]
+
 ```
 
 ## Options
@@ -57,6 +59,7 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
 ## CLI Help
 
 ```text
+
 Usage: gitlab-compliance get-attributes [OPTIONS]
 
   Compared to the generate command, the get-attribute command allows you to
@@ -72,5 +75,7 @@ Options:
   -i, --input-config TEXT  The Gitlab CI Input configuration file to generated
                            documentation from.
   -j, --json BOOLEAN       Return results in json format.
-  --help                   Show this message and exit.
+  --help
+              Show this message and exit.
+
 ```

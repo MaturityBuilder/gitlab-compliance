@@ -10,7 +10,7 @@ include:
   - project: platform/ci-templates
     ref: main
     file: security/gitleaks.yml
-```text
+```
 
 ## Good
 
@@ -19,7 +19,7 @@ include:
   - project: platform/ci-templates
     ref: 2.4.1
     file: security/gitleaks.yml
-```text
+```
 
 ## Policy
 
@@ -34,7 +34,7 @@ Scenario: Project includes must not use branch refs
 Scenario: Project includes must use valid semver
   Given I have include type "project" defined
   Then its version must match "^\\d+\\.\\d+\\.\\d+"
-```text
+```
 
 ## Consume in GitLab CI
 
@@ -46,7 +46,7 @@ include:
 
 compliance:
   extends: .compliance:offline
-```text
+```
 
 Pair with [Include Versions](include-versions.md) when you also want API-backed
 release checks.
@@ -55,6 +55,6 @@ release checks.
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-```text
+```
 
 Back to [Examples](index.md).

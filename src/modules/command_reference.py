@@ -7,7 +7,7 @@ import click
 md_base_template = """
 ## Usage
 
-```text
+```
 {usage}
 ```
 
@@ -16,7 +16,7 @@ md_base_template = """
 
 ## CLI Help
 
-```text
+```
 {help}
 ```
 """

@@ -5,11 +5,9 @@ Run Gherkin compliance policies against GitLab CI YAML and optional API settings
 ## Usage
 
 ```text
-Usage: gitlab-compliance check [OPTIONS]
-```
+Usage: gitlab-compliance check [OPTIONS]```
 
 ## Options
-
 * `features_dir` (REQUIRED):
   * Type: STRING
   * Default: `sentinel.unset`
@@ -53,7 +51,7 @@ Usage: gitlab-compliance check [OPTIONS]
   * Default: `none`
   * Usage: `--gitlab-url`
 
-  GitLab instance URL (default: CI_SERVER_URL or <https://gitlab.com>).
+  GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).
 
 * `token`:
   * Type: STRING
@@ -124,6 +122,7 @@ Usage: gitlab-compliance check [OPTIONS]
   * Usage: `--help`
 
   Show this message and exit.
+
 
 ## CLI Help
 

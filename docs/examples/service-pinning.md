@@ -7,14 +7,14 @@ Service containers (for example `docker:dind`) should use explicit versions.
 ```yaml
 build:
   services: [docker:dind]
-```text
+```
 
 ## Good
 
 ```yaml
 build:
   services: [docker:24.0.5-dind]
-```text
+```
 
 ## Policy
 
@@ -27,7 +27,7 @@ Scenario: docker:dind must include a version
   When it has services
   Then its services must not match "docker:dind$"
   And its services must match "docker:[0-9]+\\.[0-9]+\\.[0-9]+-dind"
-```text
+```
 
 ## Consume in GitLab CI
 
@@ -39,12 +39,12 @@ include:
 
 compliance:
   extends: .compliance:offline
-```text
+```
 
 ## Run locally
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-```text
+```
 
 Back to [Examples](index.md).

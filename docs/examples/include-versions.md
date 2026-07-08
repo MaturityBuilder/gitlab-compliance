@@ -15,7 +15,7 @@ include:
     ref: main
     file: security/gitleaks.yml
   - component: gitlab.com/org/pipeline@develop
-```text
+```
 
 **Good:**
 
@@ -25,7 +25,7 @@ include:
     ref: 2.4.1
     file: security/gitleaks.yml
   - component: gitlab.com/org/pipeline@1.2.0
-```text
+```
 
 **Policy** (offline):
 
@@ -33,7 +33,7 @@ include:
 Scenario: Project includes must use valid semver
   Given I have include type "project" defined
   Then it must use valid semver
-```text
+```
 
 ## API-backed: latest release available (Advanced)
 
@@ -51,7 +51,7 @@ unless `--strict` is used.
 Scenario: Includes must not lag behind the latest release
   Given I have any include with release metadata defined
   Then a newer release must not be available
-```text
+```
 
 Filter to only outdated includes:
 
@@ -60,7 +60,7 @@ Scenario: Outdated includes must be upgraded
   Given I have any include with release metadata defined
   When a newer release is available
   Then it must track the latest release
-```text
+```
 
 ## Supply chain age policies
 
@@ -78,7 +78,7 @@ days ago.
 Scenario: New releases get a 30-day adoption window
   Given I have any include with release metadata defined
   Then a newer release must not be available for more than 30 days
-```text
+```
 
 ### Maximum release lag
 
@@ -89,7 +89,7 @@ days older than the latest tag (by commit dates).
 Scenario: Includes must stay within 90 days of upstream
   Given I have any include with release metadata defined
   Then its release lag must not exceed 90 days
-```text
+```
 
 Filter severely lagging includes before asserting upgrade:
 
@@ -98,7 +98,7 @@ Scenario: Flag severely lagging includes
   Given I have any include with release metadata defined
   When its release lag exceeds 90 days
   Then it must track the latest release
-```text
+```
 
 ### Within the latest N semver tags
 
@@ -110,7 +110,7 @@ allows staying one or two releases behind.
 Scenario: Includes must be within the latest three semver tags
   Given I have any include with release metadata defined
   Then it must be within the latest 3 tags
-```text
+```
 
 Filter includes outside the window:
 
@@ -119,7 +119,7 @@ Scenario: Flag includes outside the latest five tags
   Given I have any include with release metadata defined
   When it is not within the latest 5 tags
   Then it must track the latest release
-```text
+```
 
 ## Entity fields
 
@@ -155,7 +155,7 @@ GitLab API:
 ```bash
 export GITLAB_TOKEN="<token>"
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
-```text
+```
 
 ## Consume in GitLab CI
 
@@ -167,7 +167,7 @@ include:
 
 compliance:
   extends: .compliance:offline
-```text
+```
 
 Release availability checks (API — `CI_JOB_TOKEN` is set automatically in GitLab
 CI):
@@ -175,7 +175,7 @@ CI):
 ```yaml
 compliance:
   extends: .compliance:api
-```text
+```
 
 The `.compliance:api` template passes `--project $CI_PROJECT_PATH --strict` for
 project settings; include release metadata is enriched whenever a token is
@@ -186,7 +186,7 @@ present.
 ```bash
 export GITLAB_TOKEN="<token>"
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-```text
+```
 
 Full example pack:
 [`security/include-versions.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/include-versions.feature).

@@ -5,7 +5,9 @@ Generate a searchable policy catalog from Conftest-style # METADATA annotations.
 ## Usage
 
 ```text
+
 Usage: gitlab-compliance policies doc [OPTIONS]
+
 ```
 
 ## Options
@@ -43,6 +45,7 @@ Usage: gitlab-compliance policies doc [OPTIONS]
 ## CLI Help
 
 ```text
+
 Usage: gitlab-compliance policies doc [OPTIONS]
 
   Generate a searchable policy catalog from Conftest-style # METADATA
@@ -54,4 +57,5 @@ Options:
   --format [markdown|html]  Output format for the policy catalog.
   -o, --output-file TEXT    Write the policy catalog to this file.
   --help                    Show this message and exit.
+
 ```

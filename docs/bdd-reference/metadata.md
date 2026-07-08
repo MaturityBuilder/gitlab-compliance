@@ -16,7 +16,7 @@ cataloging and templating policy documentation.
     Given I have any job defined
     When it has image
     Then its image must not match ":latest$"
-```text
+```
 
 ## Fields
 
@@ -37,7 +37,7 @@ Generate a searchable index from annotations:
 gitlab-compliance policies doc -f policies/ -o COMPLIANCE-POLICIES.md
 gitlab-compliance policies doc -f policies/ --format html -o
 COMPLIANCE-POLICIES.html
-```text
+```
 
 Compliance reports (console, markdown, HTML, MR comment, Code Quality) include
 policy IDs and titles when metadata is present.

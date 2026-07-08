@@ -16,6 +16,7 @@ policies](https://docs.gitlab.com/user/application_security/policies/pipeline_ex
 ## Repository layout
 
 ```text
+
 my-group/gitlab-compliance-policies/     # security policy project
 ├── .gitlab/security-policies/
 │   └── policy.yml                       # Pipeline Execution Policy definition
@@ -24,7 +25,8 @@ my-group/gitlab-compliance-policies/     # security policy project
     ├── execution-policy.feature
     ├── image-pinning.feature
     └── ...
-```text
+
+```
 
 Example artifacts in this repository:
 [`examples/example-gitlab-execution-policy/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-gitlab-execution-policy).
@@ -48,7 +50,7 @@ pipeline_execution_policy:
       projects:
         including:
           - full_path: my-group/*
-```text
+```
 
 ### `inject_policy` vs `inject_ci`
 
@@ -81,7 +83,7 @@ policy::gitlab-compliance:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-```text
+```
 
 This runs the same Gherkin policies as a [project-level compliance
 job](gitlab-ci.md), including [Execution
@@ -98,7 +100,7 @@ policy_scope:
       - full_path: my-group/production/*
     excluding:
       - id: 12345
-```text
+```
 
 Or scope by compliance framework label:
 
@@ -107,7 +109,7 @@ policy_scope:
   compliance_frameworks:
     including:
       - SOX
-```text
+```
 
 ## Variables and API checks
 

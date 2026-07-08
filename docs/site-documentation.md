@@ -13,7 +13,7 @@ Install documentation dependencies (Poetry `docs` group), then serve or build:
 ```bash
 poetry install --with docs
 poetry run zensical serve
-```text
+```
 
 If your `poetry.lock` does not yet include the `docs` group, install Zensical
 directly:
@@ -21,7 +21,7 @@ directly:
 ```bash
 pip install "zensical>=0.0.47"
 zensical serve
-```text
+```
 
 Open the URL printed in the terminal (default `http://127.0.0.1:8000`). Edit
 files under `docs/`; the preview reloads automatically.
@@ -35,7 +35,7 @@ Produce a static site for inspection:
 
 ```bash
 zensical build --strict
-```text
+```
 
 The HTML output is written to `public/` (GitLab Pages and GitHub Pages both
 expect this directory in CI).

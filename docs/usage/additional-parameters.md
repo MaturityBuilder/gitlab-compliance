@@ -12,7 +12,7 @@ included fragments.
 
 ```bash
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml --no-include-nested
-```text
+```
 
 ## `--strict`
 
@@ -23,7 +23,7 @@ When enabled, API-backed `Given` steps fail instead of skipping if
 
 ```bash
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml --strict
-```text
+```
 
 Use `--strict` in CI jobs that must enforce API checks.
 
@@ -33,7 +33,7 @@ Parse scenarios and list them without running assertions.
 
 ```bash
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml --dry-run
-```text
+```
 
 ## `--fix`
 
@@ -49,7 +49,7 @@ be combined with `--dry-run`.
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
-```text
+```
 
 ## `--update`
 
@@ -59,7 +59,7 @@ checks.
 ```bash
 gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p
 .gitlab-ci.yml --update
-```text
+```
 
 ## `--policy-cache-dir`
 
@@ -69,7 +69,7 @@ directory).
 ```bash
 gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 \
   -p .gitlab-ci.yml --policy-cache-dir /tmp/policy-cache
-```text
+```
 
 ## `--gitlab-url`
 
@@ -79,7 +79,7 @@ GitLab instance URL for API checks. Defaults to `CI_SERVER_URL` or
 ```bash
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml \
   --gitlab-url https://gitlab.example.com --project my-group/my-project
-```text
+```
 
 ## Documentation commands
 
@@ -123,4 +123,4 @@ gitlab-compliance policies push -f policies/
 registry.example.com/org/policies:1.0.0
 gitlab-compliance policies pull oci://registry.example.com/org/policies:1.0.0 -o
 policies/
-```text
+```

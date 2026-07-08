@@ -82,9 +82,9 @@ open, portable alternative inspired by
 For example, a policy might require that no job uses a floating `latest` image
 tag:
 
-```text
+```gherkin
 if a job defines an image, it must not use the :latest tag
-```text
+```
 
 translates into:
 
@@ -92,7 +92,7 @@ translates into:
 Given I have any job defined
 When it has image
 Then its image must not match ":latest$"
-```text
+```
 
 The `image` value comes from your pipeline YAML:
 
@@ -101,7 +101,7 @@ scan:
   image: python:3.12
 build:
   image: docker:latest   # violates the policy above
-```text
+```
 
 In CI, this scenario runs against `.gitlab-ci.yml` (and resolved local includes)
 so merge requests cannot introduce violations.

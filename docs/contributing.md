@@ -9,14 +9,14 @@ git clone https://github.com/MaturityBuilder/gitlab-compliance.git
 cd gitlab-compliance
 poetry install --with docs
 poetry run gitlab-compliance --help
-```text
+```
 
 ## Tests
 
 ```bash
 poetry run pytest
 poetry run behave
-```text
+```
 
 ## Pre-commit
 
@@ -24,7 +24,7 @@ poetry run behave
 poetry install
 poetry run pre-commit install
 poetry run pre-commit run --all-files
-```text
+```
 
 Hooks are defined in
 [`.pre-commit-config.yaml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.pre-commit-config.yaml).
@@ -40,7 +40,7 @@ Docs are built with [Zensical](https://zensical.org/). Structure mirrors
 poetry install --with docs
 poetry run zensical serve
 poetry run zensical build --strict
-```text
+```
 
 When adding pages:
 

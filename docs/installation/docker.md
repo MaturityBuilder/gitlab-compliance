@@ -13,7 +13,7 @@ package.
 docker run -it -v $PWD:/src -w /src -e GITLAB_TOKEN=$GITLAB_TOKEN -e
 maturitybuilder/gitlab-compliance check -f example-policies --include-nested
 --project <my gitlab project path>
-```text
+```
 
 ## Audit Pipeline Yaml
 
@@ -24,7 +24,7 @@ gitlab-compliance:
         - gitlab-compliance check -f example-policies --include-nested --project
           <my gitlab project path>
 
-```text
+```
 
 Depending on your workflow and security policy the pipeline can potentially auto
 resolve includes and image updates by passing arg `--fix`

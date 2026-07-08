@@ -14,7 +14,7 @@ All jobs from the pipeline YAML (including from resolved local includes).
 
 ```gherkin
 Given I have any job defined
-```text
+```
 
 ### `Given I have job "{name}" defined`
 
@@ -22,7 +22,7 @@ A single job by name (case-sensitive).
 
 ```gherkin
 Given I have job "build" defined
-```text
+```
 
 ### `Given I have any include defined`
 
@@ -30,7 +30,7 @@ All `include:` entries (local, remote, component, template).
 
 ```gherkin
 Given I have any include defined
-```text
+```
 
 ### `Given I have include type "{include_type}" defined`
 
@@ -39,7 +39,7 @@ Includes filtered by type: `local`, `file`, `remote`, `template`, `component`,
 
 ```gherkin
 Given I have include type "component" defined
-```text
+```
 
 ### `Given I have any variable defined`
 
@@ -47,7 +47,7 @@ Pipeline-level `variables:` entries.
 
 ```gherkin
 Given I have any variable defined
-```text
+```
 
 ### `Given I have any workflow rule defined`
 
@@ -55,7 +55,7 @@ Entries under `workflow: rules:`.
 
 ```gherkin
 Given I have any workflow rule defined
-```text
+```
 
 ### `Given I have any project setting defined`
 
@@ -64,7 +64,7 @@ connection unless `--strict`.
 
 ```gherkin
 Given I have any project setting defined
-```text
+```
 
 ### `Given I have project setting "{name}" defined`
 
@@ -73,7 +73,7 @@ Given I have any project setting defined
 
 ```gherkin
 Given I have project setting "public_jobs" defined
-```text
+```
 
 ### `Given I have any project ci variable defined`
 
@@ -81,7 +81,7 @@ Given I have project setting "public_jobs" defined
 
 ```gherkin
 Given I have any project ci variable defined
-```text
+```
 
 ### `Given I have any group setting defined`
 
@@ -89,7 +89,7 @@ Given I have any project ci variable defined
 
 ```gherkin
 Given I have any group setting defined
-```text
+```
 
 ### `Given I have any include with release metadata defined`
 
@@ -109,7 +109,7 @@ Enriched include entities expose:
 
 ```gherkin
 Given I have any include with release metadata defined
-```text
+```
 
 ### Container image entities
 
@@ -124,6 +124,6 @@ Given I have any include with release metadata defined
 Given I have any container image defined
 Given I have container image from "job" defined
 Given I have any container image with release metadata defined
-```text
+```
 
 Next: [WHEN Directives](when.md).
