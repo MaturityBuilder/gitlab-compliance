@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.1](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.0.0...v2.0.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* disable container scanning uploads to security tab ([#27](https://github.com/MaturityBuilder/gitlab-compliance/issues/27)) ([c562f6b](https://github.com/MaturityBuilder/gitlab-compliance/commit/c562f6bfae04a822127c6c9c5541a3567d3a85b3))
+* python version pinning ([3fccebc](https://github.com/MaturityBuilder/gitlab-compliance/commit/3fccebc1988153ad8c07cddb10d6f8bcce350b8a))
+* python version pinning ([1ca3157](https://github.com/MaturityBuilder/gitlab-compliance/commit/1ca31571d1acb388f0849bbde76a32110d0ad347))
+
 ## [2.0.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v1.0.6...v2.0.0) (2026-07-07)
 
 
