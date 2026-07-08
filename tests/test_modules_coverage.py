@@ -216,7 +216,7 @@ class TestBehaveSupport:
                     }
                 ],
                 "includes": [{"include_type": "local", "name": "x"}],
-                "variables": [{"name": "VAR", "key": "VAR", "values": {"value": "1"}}],
+                "variables": [{"name": "VAR", "values": {"value": "1"}}],
                 "workflow_rules": [{"name": "rule-1", "values": {"when": "always"}}],
                 "project_settings": [],
                 "project_ci_variables": [],
@@ -238,7 +238,6 @@ class TestBehaveSupport:
         when_steps.when_it_does_not_have(context, "missing")
         when_steps.when_property_is(context, "stage", "test")
         when_steps.when_property_matches(context, "image", "alpine")
-        when_steps.when_key_is(context, "VAR")
         when_steps.when_name_not_starts_with(context, "z")
         then_steps.then_must_contain(context, "stage")
         then_steps.then_must_not_contain(context, "missing")

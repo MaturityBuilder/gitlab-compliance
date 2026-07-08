@@ -88,24 +88,6 @@ def when_input_is(context, name, value):
     )
 
 
-@when("its key is {name}")
-def when_key_is(context, name):
-    filtered = filter_entities(
-        context.stash,
-        lambda e: property_matches(e, "key", name),
-    )
-    _apply_filter(context, filtered, f"No entities where key is {name}")
-
-
-@when('its key matches "{pattern}"')
-def when_key_matches(context, pattern):
-    filtered = filter_entities(
-        context.stash,
-        lambda e: property_matches_conditional(e, "key", pattern),
-    )
-    _apply_filter(context, filtered, f"No entities where key matches {pattern}")
-
-
 @when('its name does not start with "{prefix}"')
 def when_name_not_starts_with(context, prefix):
     filtered = filter_entities(context.stash, lambda e: not name_starts_with(e, prefix))
