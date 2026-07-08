@@ -238,6 +238,7 @@ class TestBehaveSupport:
         when_steps.when_it_does_not_have(context, "missing")
         when_steps.when_property_is(context, "stage", "test")
         when_steps.when_property_matches(context, "image", "alpine")
+        when_steps.when_key_is(context, "VAR")
         when_steps.when_name_not_starts_with(context, "z")
         then_steps.then_must_contain(context, "stage")
         then_steps.then_must_not_contain(context, "missing")

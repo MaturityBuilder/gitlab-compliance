@@ -103,9 +103,7 @@ def when_key_matches(context, pattern):
         context.stash,
         lambda e: property_matches_conditional(e, "key", pattern),
     )
-    _apply_filter(
-        context, filtered, f"No entities where key matches {pattern}"
-    )
+    _apply_filter(context, filtered, f"No entities where key matches {pattern}")
 
 
 @when('its name does not start with "{prefix}"')
