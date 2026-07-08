@@ -119,6 +119,8 @@ def test_render_inputs_table_multiline_description():
     )
     assert "Line one<br>Line two" in table
     assert "test" in table
+    assert "Default" in table
+    assert "| Value |" not in table
     assert "{'default'" not in table
 
 
@@ -135,9 +137,10 @@ def test_format_structured_cell_nested_object():
     nested = format_structured_cell(
         {"default": "test", "type": "string", "description": "x"}
     )
-    assert "<table>" in nested
+    assert "<table>" not in nested
     assert "<strong>default</strong>" in nested
     assert "<strong>type</strong>" in nested
+    assert "<br>" in nested
     assert "description" not in nested
 
 

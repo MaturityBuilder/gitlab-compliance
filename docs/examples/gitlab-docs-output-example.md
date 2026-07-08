@@ -5,9 +5,9 @@
 
 ## Inputs
 
-|    Key    |        Value        | Description | Options  | Expand |
-| :-------: | :-----------------: | :---------: | :------: | :----: |
-| job-stage | {'default': 'test'} |   &#x274c;  | &#x274c; |  true  |
+|    Key    | Default | Description | Options  | Expand |
+| :-------- | :------ | :---------- | :------- | :----- |
+| job-stage | test    |   &#x274c;  | &#x274c; |  true  |
 
 
 ## Variables

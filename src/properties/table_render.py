@@ -6,11 +6,60 @@ import src.modules.common as common
 
 MISSING = "&#x274c;"
 
+_METADATA_KEYS = frozenset({"description", "options", "expand"})
 
-def _input_row_cells(key: str, raw_value) -> list:
+_INPUTS_COLUMN_ALIGN = {
+    "Key": "l",
+    "Default": "l",
+    "Description": "l",
+    "Options": "l",
+    "Expand": "c",
+}
+
+_VARIABLES_COLUMN_ALIGN = {
+    "Key": "l",
+    "Value": "l",
+    "Description": "l",
+    "Options": "l",
+    "Expand": "c",
+}
+
+
+def _inputs_row_cells(key: str, raw_value) -> list:
     description = MISSING
     options = MISSING
     expand = "true"
+    default_cell = ""
+
+    if isinstance(raw_value, str):
+        default_cell = raw_value
+    elif isinstance(raw_value, dict):
+        entry = raw_value
+        if "description" in entry:
+            description = common.format_description_cell(entry["description"])
+        if "options" in entry:
+            options = common.format_options_cell(entry["options"])
+        if "expand" in entry:
+            expand = entry["expand"]
+        payload = {k: v for k, v in entry.items() if k not in _METADATA_KEYS}
+        if not payload:
+            default_cell = MISSING
+        elif len(payload) == 1 and "default" in payload:
+            default_cell = common.format_structured_cell(payload["default"])
+        else:
+            default_cell = common.format_structured_cell(payload)
+    else:
+        default_cell = common.format_structured_cell(raw_value)
+
+    return [key, default_cell, description, options, expand]
+
+
+def _variables_row_cells(key: str, raw_value) -> list:
+    description = MISSING
+    options = MISSING
+    expand = "true"
+    value_cell = ""
+
     if isinstance(raw_value, str):
         value_cell = raw_value
     elif isinstance(raw_value, dict):
@@ -21,25 +70,40 @@ def _input_row_cells(key: str, raw_value) -> list:
             options = common.format_options_cell(entry["options"])
         if "expand" in entry:
             expand = entry["expand"]
-        value_cell = common.format_structured_cell(entry)
+        payload = {k: v for k, v in entry.items() if k not in _METADATA_KEYS}
+        if not payload:
+            value_cell = MISSING
+        elif len(payload) == 1 and "value" in payload:
+            value_cell = common.format_structured_cell(payload["value"])
+        else:
+            value_cell = common.format_structured_cell(payload)
     else:
         value_cell = common.format_structured_cell(raw_value)
+
     return [key, value_cell, description, options, expand]
 
 
 def render_inputs_table(inputs: dict) -> str:
-    field_names = ["Key", "Value", "Description", "Options", "Expand"]
-    table = common.table_design(headers=field_names, field_names=field_names)
+    field_names = ["Key", "Default", "Description", "Options", "Expand"]
+    table = common.table_design(
+        headers=field_names,
+        field_names=field_names,
+        column_align=_INPUTS_COLUMN_ALIGN,
+    )
     for key in inputs:
-        table.add_row(_input_row_cells(key, inputs[key]))
+        table.add_row(_inputs_row_cells(key, inputs[key]))
     return str(table)
 
 
 def render_variables_table(variables: dict) -> str:
     field_names = ["Key", "Value", "Description", "Options", "Expand"]
-    table = common.table_design(headers=field_names, field_names=field_names)
+    table = common.table_design(
+        headers=field_names,
+        field_names=field_names,
+        column_align=_VARIABLES_COLUMN_ALIGN,
+    )
     for key in variables:
-        table.add_row(_input_row_cells(key, variables[key]))
+        table.add_row(_variables_row_cells(key, variables[key]))
     return str(table)
 
 
@@ -50,7 +114,11 @@ def render_jobs_table(jobs: dict) -> str:
             continue
         parts.append(f"### {name}\n")
         headers = ["Attribute", "Value"]
-        table = common.table_design(headers=headers, field_names=headers)
+        table = common.table_design(
+            headers=headers,
+            field_names=headers,
+            column_align={"Attribute": "l", "Value": "l"},
+        )
         for attr, val in definition.items():
             if isinstance(val, dict):
                 cell = common.format_structured_cell(val)
@@ -64,7 +132,11 @@ def render_jobs_table(jobs: dict) -> str:
 
 def render_generic_kv_table(data: dict) -> str:
     headers = ["Key", "Value"]
-    table = common.table_design(headers=headers, field_names=headers)
+    table = common.table_design(
+        headers=headers,
+        field_names=headers,
+        column_align={"Key": "l", "Value": "l"},
+    )
     for key, value in data.items():
         if isinstance(value, dict):
             cell = common.format_structured_cell(value)

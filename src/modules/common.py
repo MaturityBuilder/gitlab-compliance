@@ -168,16 +168,11 @@ def format_structured_cell(value) -> str:
             only_key, only_val = display_items[0]
             if only_key in ("default", "value"):
                 return format_structured_cell(only_val)
-        rows = []
+        lines = []
         for key, val in display_items:
             inner = format_structured_cell(val)
-            rows.append(
-                "<tr>"
-                f"<td><strong>{html.escape(str(key))}</strong></td>"
-                f"<td>{inner}</td>"
-                "</tr>"
-            )
-        return "<table>" + "".join(rows) + "</table>"
+            lines.append(f"<strong>{html.escape(str(key))}</strong>: {inner}")
+        return "<br>".join(lines)
     return html.escape(str(value))
 
 
@@ -193,7 +188,7 @@ def format_options_cell(options) -> str:
     return html.escape(str(options))
 
 
-def table_design(headers=[], field_names=[], style="MARKDOWN"):
+def table_design(headers=[], field_names=[], style="MARKDOWN", column_align=None):
 
     from prettytable import PrettyTable, TableStyle
     from prettytable.colortable import ColorTable, Themes
@@ -206,8 +201,12 @@ def table_design(headers=[], field_names=[], style="MARKDOWN"):
     table.border = True
 
     table.set_style(TableStyle.MARKDOWN)
-    # table.sortby = headers[0]
-    table.align = "c"
-    for header in headers:
-        table.align[header] = "c"
+    names = table.field_names
+    if column_align:
+        for name in names:
+            table.align[name] = column_align.get(name, "c")
+    else:
+        table.align = "c"
+        for header in names:
+            table.align[header] = "c"
     return table
