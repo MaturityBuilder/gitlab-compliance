@@ -1,0 +1,15 @@
+extends: material
+
+palette:
+  - scheme: maturitybuilder
+    primary: custom
+    accent: custom
+    toggle:
+      icon: lucide/moon
+      name: Switch to dark mode
+  - scheme: maturitybuilder-dark
+    primary: custom
+    accent: custom
+    toggle:
+      icon: lucide/sun
+      name: Switch to light mode

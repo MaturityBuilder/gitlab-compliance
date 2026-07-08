@@ -6,8 +6,13 @@ repo_url: https://github.com/MaturityBuilder/gitlab-compliance
 repo_name: MaturityBuilder/gitlab-compliance
 edit_uri: edit/main/
 theme:
-  variant: classic
+  name: maturitybuilder
+  variant: modern
   language: en
+  logo: assets/logo.svg
+  font:
+    text: Plus Jakarta Sans
+    code: JetBrains Mono
   features:
     - navigation.instant
     - navigation.instant.progress
@@ -20,13 +25,17 @@ theme:
     - search.suggest
     - search.highlight
   palette:
-    - scheme: default
-      toggle:
-        icon: lucide/sun
-        name: Switch to dark mode
-    - scheme: slate
+    - scheme: maturitybuilder
+      primary: custom
+      accent: custom
       toggle:
         icon: lucide/moon
+        name: Switch to dark mode
+    - scheme: maturitybuilder-dark
+      primary: custom
+      accent: custom
+      toggle:
+        icon: lucide/sun
         name: Switch to light mode
 
 nav:

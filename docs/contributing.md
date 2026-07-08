@@ -30,7 +30,7 @@ Hooks are defined in [`.pre-commit-config.yaml`](https://github.com/MaturityBuil
 
 ## Documentation
 
-Docs are built with [Zensical](https://zensical.org/). Structure mirrors [terraform-compliance.com](https://terraform-compliance.com/).
+Docs are built with [Zensical](https://zensical.org/) and the shared **MaturityBuilder** theme in [`theme/maturitybuilder-zensical/`](../theme/maturitybuilder-zensical/README.md). Structure mirrors [terraform-compliance.com](https://terraform-compliance.com/).
 
 ```bash
 poetry install --with docs

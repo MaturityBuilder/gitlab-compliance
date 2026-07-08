@@ -154,7 +154,7 @@ test-build:
 
 .docs:zensical:
   before_script:
-    - pip install -q "zensical>=0.0.47"
+    - pip install -q "zensical>=0.0.47" "./theme/maturitybuilder-zensical"
   script:
     - zensical build --strict
 

@@ -11,10 +11,12 @@ poetry install --with docs
 poetry run zensical serve
 ```
 
-If your `poetry.lock` does not yet include the `docs` group, install Zensical directly:
+The docs group installs the shared [MaturityBuilder Zensical theme](../theme/maturitybuilder-zensical/README.md) from `theme/maturitybuilder-zensical/`.
+
+If your `poetry.lock` does not yet include the `docs` group, install Zensical and the theme directly:
 
 ```bash
-pip install "zensical>=0.0.47"
+pip install "zensical>=0.0.47" "./theme/maturitybuilder-zensical"
 zensical serve
 ```
 

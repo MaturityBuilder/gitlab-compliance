@@ -32,7 +32,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install documentation tools
-        run: pip install "zensical>=0.0.47"
+        run: pip install "zensical>=0.0.47" "./theme/maturitybuilder-zensical"
 
       - name: Build Zensical site (strict)
         run: zensical build --strict
@@ -57,7 +57,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install documentation tools
-        run: pip install "zensical>=0.0.47"
+        run: pip install "zensical>=0.0.47" "./theme/maturitybuilder-zensical"
 
       - name: Build Zensical site (strict)
         run: zensical build --strict

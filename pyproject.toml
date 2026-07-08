@@ -62,6 +62,7 @@ extend-ignore = ["E203", "W503"]
 
 [tool.poetry.group.docs.dependencies]
 zensical = "^0.0.47"
+maturitybuilder-zensical-theme = { path = "theme/maturitybuilder-zensical", develop = true }
 [build-system]
 requires = ["poetry-core","setuptools","poetry-bumpversion","id"]
 build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="MaturityBuilder">
+  <defs>
+    <linearGradient id="mb-mark" x1="4" y1="28" x2="28" y2="4" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0e7490"/>
+      <stop offset="0.55" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#mb-mark)"/>
+  <path fill="#f8fafc" d="M8 22V10h3.2v4.6L16 10h3.8l-5.2 6.3L20.2 22H16l-3.4-4.2L11.2 22H8z"/>
+</svg>
