@@ -1,6 +1,5 @@
 import os
 import shutil
-import stat
 import tempfile
 
 from behave import given, then, when
