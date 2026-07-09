@@ -94,26 +94,22 @@ def dict_list_rows(items, row_label="Rule #"):
     return headers, rows
 
 
+def _table_cell_text(cell) -> str:
+    """Normalize a markdown table cell (fold newlines for pipe tables)."""
+    if cell is None:
+        return ""
+    text = str(cell)
+    if "\n" in text:
+        return text.replace("\n", "<br>")
+    return text
+
+
 def render_rules_markdown(items, row_label="Rule #"):
-    """Render rules as a list when table rows would exceed 80 characters."""
+    """Render rules as a markdown table."""
     headers, rows = dict_list_rows(items, row_label=row_label)
     if not headers:
         return ""
-    if any("\n" in str(cell) for row in rows for cell in row):
-        pass
-    else:
-        table = render_markdown_table(headers, rows)
-        if all(len(line) <= 80 for line in table.splitlines()):
-            return table
-    lines = []
-    for row in rows:
-        rule_id = row[0]
-        lines.append(f"- **{row_label} {rule_id}**")
-        for index, key in enumerate(headers[1:], start=1):
-            value = row[index] if index < len(row) else ""
-            if value != "":
-                lines.append(f"  - **{key}:** `{value}`")
-    return "\n".join(lines)
+    return render_table_or_list(headers, rows)
 
 
 def build_dict_list_table(items, row_label="Rule #"):
@@ -256,41 +252,13 @@ def render_markdown_table(headers, rows):
 
 
 def render_table_or_list(headers, rows):
-    """Render aligned table, falling back to a list if rows exceed 80 chars."""
+    """Render documentation data as a markdown pipe table."""
     if not headers:
         return ""
-    if any("\n" in str(cell) for row in rows for cell in row):
-        pass
-    else:
-        table = render_markdown_table(headers, rows)
-        if all(len(line) <= 80 for line in table.splitlines()):
-            return table
-    lines = []
-    if len(headers) == 2:
-        for row in rows:
-            key = row[0] if row else ""
-            value = row[1] if len(row) > 1 else ""
-            if "\n" in str(value):
-                lines.append(f"- **{key}:**")
-                for part in str(value).splitlines():
-                    lines.append(f"  {part}")
-            else:
-                line = f"- **{key}:** `{value}`"
-                if len(line) <= 80:
-                    lines.append(line)
-                else:
-                    lines.append(f"- **{key}:**")
-                    lines.append(f"  `{value}`")
-        return "\n".join(lines)
-    for row in rows:
-        lines.append(
-            "- "
-            + " · ".join(
-                f"**{headers[i]}:** `{row[i]}`"
-                for i in range(min(len(headers), len(row)))
-            )
-        )
-    return "\n".join(lines)
+    if not rows:
+        return ""
+    str_rows = [[_table_cell_text(cell) for cell in row] for row in rows]
+    return render_markdown_table([str(h) for h in headers], str_rows)
 
 
 def markdown_table_from_prettytable(table):

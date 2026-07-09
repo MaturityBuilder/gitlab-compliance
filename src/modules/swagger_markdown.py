@@ -186,23 +186,33 @@ def render_swagger_markdown(data: dict) -> str:
     if not _is_section_excluded(data, "includes"):
         lines.extend(["## Includes", ""])
         if data["includes"]:
-            for item in data["includes"]:
-                lines.extend(
+            include_rows = [
+                [
+                    item["include_type"],
+                    item["project"],
+                    item["version"],
+                    "yes" if item["valid_version"] else "no",
+                    item.get("file") or "",
+                    common.format_dict_summary(item["variables"]),
+                    common.format_rules_summary(item["rules"]),
+                ]
+                for item in data["includes"]
+            ]
+            lines.append(
+                common.render_table_or_list(
                     [
-                        f"- **{item['include_type']}:** `{item['project']}`",
-                        f"  - **version:** `{item['version']}`",
-                        f"  - **valid:** {'yes' if item['valid_version'] else 'no'}",
-                    ]
+                        "Include Type",
+                        "Project",
+                        "Version",
+                        "Valid",
+                        "File",
+                        "Variables",
+                        "Rules",
+                    ],
+                    include_rows,
                 )
-                if item["file"]:
-                    lines.append(f"  - **file:** `{item['file']}`")
-                variables = common.format_dict_summary(item["variables"])
-                if variables:
-                    lines.append(f"  - **variables:** `{variables}`")
-                rules = common.format_rules_summary(item["rules"])
-                if rules:
-                    lines.append(f"  - **rules:** `{rules}`")
-                lines.append("")
+            )
+            lines.append("")
         else:
             lines.append("_No includes defined._")
             lines.append("")

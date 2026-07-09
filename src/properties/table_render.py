@@ -201,7 +201,7 @@ def render_jobs_table(jobs: dict) -> str:
             else:
                 cell = common.format_value(val)
             table.add_row([attr, cell])
-        parts.append(str(table))
+        parts.append(common.markdown_table_from_prettytable(table))
         parts.append("")
     return "\n".join(parts).rstrip()
 
@@ -227,7 +227,7 @@ def render_generic_kv_table(
         if yaml_paths.should_mask_value(value_path, sensitive_paths or []):
             cell = yaml_paths.SENSITIVE_MASK
         table.add_row([key, cell])
-    return str(table)
+    return common.markdown_table_from_prettytable(table)
 
 
 def render_path_markdown(
