@@ -764,7 +764,14 @@ def document():
     show_default=True,
     help="Include collapsible source YAML in the generated marker block.",
 )
-def document_gitstrings(input_file, output_file, dry_mode, keep_source):
+@click.option(
+    "--include-nested",
+    "include_nested",
+    is_flag=True,
+    default=False,
+    help="For @render includes: flatten nested local includes from the CI file (-i must be .yml).",
+)
+def document_gitstrings(input_file, output_file, dry_mode, keep_source, include_nested):
     """
     Render gitstrings documentation from CI YAML decorators or markdown fences.
     """
@@ -775,6 +782,7 @@ def document_gitstrings(input_file, output_file, dry_mode, keep_source):
         output_file,
         dry=dry_mode,
         keep_source=keep_source,
+        include_nested=include_nested,
     )
     if written:
         for path in written:

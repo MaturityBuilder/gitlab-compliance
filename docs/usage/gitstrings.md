@@ -127,6 +127,12 @@ include:
 
 Use `@render include` as an alias for `includes`. With `-i` set to a CI YAML file, `@render include` also resolves the full file’s `include` key when using path mode.
 
+Pass **`--include-nested`** when `-i` is a CI YAML file to document **nested local includes** the same way as `generate` (walk `local:` files and merge their `include` entries into one table). Without the flag, only entries listed in the annotated fragment are shown.
+
+```bash
+gitlab-compliance document gitstrings -i .gitlab-ci.yml --include-nested -o GITLAB-DOCS.md
+```
+
 ### Path-based render and sensitive values
 
 Use dot paths on `@render` to control exactly which YAML subtree becomes a table. Parent segments work too (`variables`, `megalinter.variables`). Job names match case-insensitively when resolving paths against a full `.gitlab-ci.yml`.

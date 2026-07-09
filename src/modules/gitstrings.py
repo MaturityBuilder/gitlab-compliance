@@ -479,12 +479,42 @@ def detect_render_mode(doc: object, directive_render: str) -> str:
     return "auto"
 
 
+def _ci_yaml_path(scan_path: str | Path | None) -> Path | None:
+    if scan_path is None:
+        return None
+    path = Path(scan_path)
+    if path.suffix.lower() in CI_YAML_SUFFIXES and path.is_file():
+        return path
+    return None
+
+
+def _render_includes_markdown(
+    doc: dict,
+    *,
+    config_file: str,
+    scan_path: str | Path | None,
+    include_nested: bool,
+) -> str:
+    ci = _ci_yaml_path(scan_path)
+    if include_nested and ci is not None:
+        return table_render.render_includes_from_config(
+            str(ci), include_nested=True
+        )
+    entries = doc.get("include") or []
+    return table_render.render_includes_table(
+        entries,
+        config_file=config_file or (str(ci) if ci else ""),
+    )
+
+
 def _render_table_for_doc(
     doc: dict,
     mode: str,
     *,
     sensitive_paths: list[str] | None = None,
     config_file: str = "",
+    scan_path: str | Path | None = None,
+    include_nested: bool = False,
 ) -> str:
     if mode == "auto":
         mode = detect_render_mode(doc, "auto")
@@ -504,8 +534,12 @@ def _render_table_for_doc(
             sensitive_paths=sensitive_paths,
         )
     if mode == "includes":
-        entries = doc.get("include") or []
-        return table_render.render_includes_table(entries, config_file=config_file)
+        return _render_includes_markdown(
+            doc,
+            config_file=config_file,
+            scan_path=scan_path,
+            include_nested=include_nested,
+        )
     if mode == "jobs":
         return table_render.render_jobs_table(doc)
     return table_render.render_generic_kv_table(doc, sensitive_paths=sensitive_paths)
@@ -516,6 +550,9 @@ def _render_path_specs(
     render_spec: str,
     *,
     sensitive_paths: list[str] | None = None,
+    config_file: str = "",
+    scan_path: str | Path | None = None,
+    include_nested: bool = False,
 ) -> str:
     parts: list[str] = []
     for path_spec in yaml_paths.parse_path_list(render_spec):
@@ -523,6 +560,9 @@ def _render_path_specs(
             root,
             path_spec,
             sensitive_paths=sensitive_paths,
+            config_file=config_file,
+            include_nested=include_nested,
+            scan_path=scan_path,
         )
         if rendered.strip():
             parts.append(rendered.strip())
@@ -625,6 +665,7 @@ def render_fragment(
     keep_source: bool = True,
     scan_path: str | Path | None = None,
     output_path: str | Path | None = None,
+    include_nested: bool = False,
 ) -> str:
     parts: list[str] = []
     directives = block.directives
@@ -669,6 +710,8 @@ def render_fragment(
                     render_spec,
                     sensitive_paths=directives.sensitive,
                     config_file=config_file,
+                    scan_path=scan_path,
+                    include_nested=include_nested,
                 )
             )
         else:
@@ -678,6 +721,8 @@ def render_fragment(
                     mode,
                     sensitive_paths=directives.sensitive,
                     config_file=config_file,
+                    scan_path=scan_path,
+                    include_nested=include_nested,
                 )
             )
     else:
@@ -687,6 +732,8 @@ def render_fragment(
                 render_spec,
                 sensitive_paths=directives.sensitive,
                 config_file=config_file,
+                scan_path=scan_path,
+                include_nested=include_nested,
             )
         )
     parts.append("")
@@ -711,6 +758,7 @@ def render_gitstrings_by_output(
     scan_path: str | Path,
     keep_source: bool = True,
     honor_fragment_output: bool = True,
+    include_nested: bool = False,
 ) -> dict[Path, str]:
     grouped: dict[Path, list[str]] = {}
     for block in blocks:
@@ -725,6 +773,7 @@ def render_gitstrings_by_output(
             keep_source=keep_source,
             scan_path=scan_path,
             output_path=target,
+            include_nested=include_nested,
         )
         grouped.setdefault(target, []).append(rendered)
     return {
@@ -776,6 +825,7 @@ def process_gitstrings(
     *,
     dry: bool = False,
     keep_source: bool = True,
+    include_nested: bool = False,
 ) -> list[Path]:
     scan_path = Path(input_file)
     default_output = _default_gitstrings_output(scan_path, output_file)
@@ -793,6 +843,7 @@ def process_gitstrings(
         scan_path=scan_path,
         keep_source=keep_source,
         honor_fragment_output=honor_fragment_output,
+        include_nested=include_nested,
     )
     written: list[Path] = []
     for target_path, markdown in by_output.items():

@@ -469,6 +469,35 @@ stages:
     assert "|" in out
 
 
+def test_include_nested_documents_local_chain(tmp_path):
+    (tmp_path / "grandchild.yml").write_text(
+        "variables:\n  NESTED: true\n", encoding="utf-8"
+    )
+    (tmp_path / "child.yml").write_text(
+        "include:\n  - local: grandchild.yml\n", encoding="utf-8"
+    )
+    ci = tmp_path / ".gitlab-ci.yml"
+    readme = tmp_path / "README.md"
+    ci.write_text(
+        """# @title Includes
+# @render includes
+include:
+  - local: child.yml
+""",
+        encoding="utf-8",
+    )
+    readme.write_text(MARKER_BLOCK, encoding="utf-8")
+    process_gitstrings(ci, readme, keep_source=False)
+    shallow = readme.read_text(encoding="utf-8").split(GITSTRINGS_MARKER_OPEN)[1]
+    assert "child.yml" in shallow
+    assert "grandchild.yml" not in shallow
+
+    process_gitstrings(ci, readme, keep_source=False, include_nested=True)
+    nested = readme.read_text(encoding="utf-8").split(GITSTRINGS_MARKER_OPEN)[1]
+    assert "child.yml" in nested
+    assert "grandchild.yml" in nested
+
+
 def test_render_jobs_table_uses_markdown_pipe_not_bullets():
     from src.properties.table_render import render_jobs_table
 

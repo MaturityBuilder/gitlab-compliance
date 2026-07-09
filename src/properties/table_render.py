@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import src.modules.common as common
 import src.properties.yaml_paths as yaml_paths
 from src.modules.logging import logger
@@ -9,6 +11,21 @@ from src.modules.logging import logger
 MISSING = "&#x274c;"
 
 _METADATA_KEYS = frozenset({"description", "options", "expand"})
+
+
+CI_YAML_SUFFIXES = {".yml", ".yaml"}
+
+
+def _resolve_ci_config_path(
+    scan_path: str | Path | None, config_file: str
+) -> str:
+    if scan_path is not None:
+        path = Path(scan_path)
+        if path.suffix.lower() in CI_YAML_SUFFIXES and path.is_file():
+            return str(path)
+    if config_file and Path(config_file).suffix.lower() in CI_YAML_SUFFIXES:
+        return config_file
+    return config_file
 
 
 def _gitstrings_table_cell(value) -> str:
@@ -245,27 +262,29 @@ def _normalize_include_entries(raw) -> list:
     return [raw]
 
 
-def render_includes_table(include_entries, *, config_file: str = "") -> str:
+def render_includes_table(
+    include_entries=None,
+    *,
+    config_file: str = "",
+    parsed_entries: list[dict] | None = None,
+) -> str:
     """Render GitLab ``include`` entries as a markdown table (gitstrings / docs)."""
     from src.modules.pipeline_data import _parse_include_entry
 
-    entries = _normalize_include_entries(include_entries)
     rows: list[list] = []
-    for entry in entries:
-        parsed = _parse_include_entry(entry, source_file=config_file)
-        if not parsed:
-            continue
-        rows.append(
-            [
-                parsed["include_type"],
-                parsed["project"],
-                parsed["version"],
-                "yes" if parsed["valid_version"] else "no",
-                parsed.get("file") or "",
-                common.format_dict_summary(parsed.get("variables") or {}),
-                common.format_rules_summary(parsed.get("rules") or []),
-            ]
-        )
+    if parsed_entries is not None:
+        items = parsed_entries
+        for parsed in items:
+            if not parsed:
+                continue
+            rows.append(_includes_row_from_parsed(parsed))
+    else:
+        entries = _normalize_include_entries(include_entries or [])
+        for entry in entries:
+            parsed = _parse_include_entry(entry, source_file=config_file)
+            if not parsed:
+                continue
+            rows.append(_includes_row_from_parsed(parsed))
     if not rows:
         return "_No includes defined._"
     return common.render_table_or_list(
@@ -280,6 +299,34 @@ def render_includes_table(include_entries, *, config_file: str = "") -> str:
         ],
         rows,
     )
+
+
+def _includes_row_from_parsed(parsed: dict) -> list:
+    return [
+        parsed["include_type"],
+        parsed["project"],
+        parsed["version"],
+        "yes" if parsed["valid_version"] else "no",
+        parsed.get("file") or "",
+        common.format_dict_summary(parsed.get("variables") or {}),
+        common.format_rules_summary(parsed.get("rules") or []),
+    ]
+
+
+def render_includes_from_config(
+    config_file: str,
+    *,
+    include_nested: bool = True,
+) -> str:
+    """Collect includes from a CI file, optionally flattening nested local includes."""
+    from src.modules.pipeline_data import collect_pipeline_data
+
+    data = collect_pipeline_data(
+        config_file,
+        detailed=False,
+        include_nested=include_nested,
+    )
+    return render_includes_table(parsed_entries=data["includes"])
 
 
 def render_jobs_table(jobs: dict) -> str:
@@ -333,6 +380,8 @@ def render_path_markdown(
     *,
     sensitive_paths: list[str] | None = None,
     config_file: str = "",
+    include_nested: bool = False,
+    scan_path: str | Path | None = None,
 ) -> str:
     """Render markdown tables for a dot-path into pipeline YAML."""
     sensitive_paths = sensitive_paths or []
@@ -344,10 +393,13 @@ def render_path_markdown(
     last = segments[-1] if segments else ""
 
     if path == "include" or path.endswith(".include") or last == "include":
+        ci_file = _resolve_ci_config_path(scan_path, config_file)
+        if include_nested and ci_file:
+            return render_includes_from_config(ci_file, include_nested=True)
         entries = node
         if isinstance(node, dict) and "include" in node:
             entries = node["include"]
-        return render_includes_table(entries, config_file=config_file)
+        return render_includes_table(entries, config_file=ci_file or config_file)
 
     if path == "inputs" or path.endswith(".inputs"):
         inputs = node if isinstance(node, dict) else {}
