@@ -10,6 +10,14 @@ MISSING = "&#x274c;"
 
 _METADATA_KEYS = frozenset({"description", "options", "expand"})
 
+
+def _gitstrings_table_cell(value) -> str:
+    """Format YAML values for gitstrings pipe tables (no bullet/numbered lists)."""
+    if value is None:
+        return ""
+    if isinstance(value, (dict, list)):
+        return common.format_structured_cell(value)
+    return common.format_scalar(value)
 _INPUTS_COLUMN_ALIGN = {
     "Key": "l",
     "Default": "l",
@@ -196,11 +204,7 @@ def render_jobs_table(jobs: dict) -> str:
             column_align={"Attribute": "l", "Value": "l"},
         )
         for attr, val in definition.items():
-            if isinstance(val, dict):
-                cell = common.format_structured_cell(val)
-            else:
-                cell = common.format_value(val)
-            table.add_row([attr, cell])
+            table.add_row([attr, _gitstrings_table_cell(val)])
         parts.append(common.markdown_table_from_prettytable(table))
         parts.append("")
     return "\n".join(parts).rstrip()
@@ -219,10 +223,7 @@ def render_generic_kv_table(
         column_align={"Key": "l", "Value": "l"},
     )
     for key, value in data.items():
-        if isinstance(value, dict):
-            cell = common.format_structured_cell(value)
-        else:
-            cell = common.format_value(value)
+        cell = _gitstrings_table_cell(value)
         value_path = f"{path_prefix}.{key}" if path_prefix else key
         if yaml_paths.should_mask_value(value_path, sensitive_paths or []):
             cell = yaml_paths.SENSITIVE_MASK

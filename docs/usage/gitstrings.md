@@ -127,6 +127,8 @@ When `-i` is a CI YAML file, paths resolve against the **entire** pipeline file,
 
 ## Output behavior
 
+Generated fragments are rendered as **markdown pipe tables** (variables, inputs, jobs, and path-based slices). Multi-line or list values use `<br>` inside table cells rather than bullet lists.
+
 - Only the **gitstrings marker block** on each target file is replaced.
 - Default output file: `-o` / `--output` / `--output-file`, or `-i` when omitted (for CI YAML, `README.md` beside the file).
 - When **`-o` is set**, every fragment writes to that file and **`# @output` is ignored**.

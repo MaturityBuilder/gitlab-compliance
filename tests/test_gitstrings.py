@@ -314,6 +314,22 @@ variables:
     )[1]
 
 
+def test_render_jobs_table_uses_markdown_pipe_not_bullets():
+    from src.properties.table_render import render_jobs_table
+
+    md = render_jobs_table(
+        {
+            "my-job": {
+                "extends": [".base", ".rules"],
+                "stage": "test",
+            }
+        }
+    )
+    assert "| Attribute | Value |" in md or "|" in md
+    assert "- **extends:**" not in md
+    assert "1. .base" not in md
+
+
 def test_gitstrings_markers_are_html_comments():
     assert GITSTRINGS_MARKER_OPEN.startswith("<!--")
     assert GITSTRINGS_MARKER_CLOSE.startswith("<!--")
