@@ -2,16 +2,13 @@
 
 ## [2.1.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.0.1...v2.1.0) (2026-07-09)
 
-
 ### Features
 
 * docs quality, BDD outlines, builtin policies, and test coverage ([#29](https://github.com/MaturityBuilder/gitlab-compliance/issues/29)) ([1d326e7](https://github.com/MaturityBuilder/gitlab-compliance/commit/1d326e7800840fc0ac776d8674124e2a9dbae852))
 
-
 ### Bug Fixes
 
 * **get-attributes:** format list/dict attribute values for the table ([#35](https://github.com/MaturityBuilder/gitlab-compliance/issues/35)) ([98d99e3](https://github.com/MaturityBuilder/gitlab-compliance/commit/98d99e38e6d210c5bc4bde6c257c1691e87d7a72))
-
 
 ### Documentation
 
