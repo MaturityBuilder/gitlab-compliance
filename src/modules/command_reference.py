@@ -208,10 +208,7 @@ def _demo_gif_block(command_path: tuple[str, ...] | None) -> str:
     demo = COMMAND_DEMO_GIFS.get(command_path or ())
     if not demo:
         return ""
-    return (
-        "## Animated demo\n\n"
-        f"![{demo['alt']}]({demo['path']})\n"
-    )
+    return "## Animated demo\n\n" f"![{demo['alt']}]({demo['path']})\n"
 
 
 def _extra_block(command_path: tuple[str, ...] | None) -> str:

@@ -131,7 +131,9 @@ class TestCommandReferenceHelpers:
             }
         )
 
-        assert "| `features_dir` | Yes | `text` | `None` | `--features, -f` |" in rendered
+        assert (
+            "| `features_dir` | Yes | `text` | `None` | `--features, -f` |" in rendered
+        )
 
     def test_render_command_page_without_description(self):
         @click.command()
