@@ -2,6 +2,10 @@
 
 Generate pipeline documentation from GitLab CI YAML.
 
+## Animated demo
+
+![Animated terminal demo for gitlab-compliance generate](../../assets/command-reference/generate-demo.gif)
+
 ## Usage
 
 ```text

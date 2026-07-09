@@ -2,6 +2,10 @@
 
 Run Gherkin compliance policies against GitLab CI YAML and optional API settings.
 
+## Animated demo
+
+![Animated terminal demo for gitlab-compliance check](../../assets/command-reference/check-demo.gif)
+
 ## Usage
 
 ```text

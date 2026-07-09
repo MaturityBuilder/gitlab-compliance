@@ -2,6 +2,10 @@
 
 Manage compliance policy bundles (catalog, OCI push/pull).
 
+## Animated demo
+
+![Animated terminal demo for gitlab-compliance policies](../../assets/command-reference/policies-demo.gif)
+
 ## Usage
 
 ```text

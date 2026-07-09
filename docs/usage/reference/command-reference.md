@@ -2,6 +2,8 @@
 
 Auto-generated reference for `gitlab-compliance` subcommands.
 
+![Animated terminal overview of gitlab-compliance commands](../../assets/command-reference/overview-demo.gif)
+
 - [check](check.md)
 - [generate](generate.md)
 - [get-attributes](get-attributes.md)

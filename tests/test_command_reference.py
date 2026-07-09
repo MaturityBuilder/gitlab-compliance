@@ -35,11 +35,14 @@ class TestDumpHelper:
         assert generate_md.is_file()
         text = generate_md.read_text(encoding="utf-8")
         assert text.startswith("# generate")
+        assert "../../assets/command-reference/generate-demo.gif" in text
         assert "## Usage" in text
 
         index_md = tmp_path / "command-reference.md"
         assert index_md.is_file()
-        assert "[generate](generate.md)" in index_md.read_text(encoding="utf-8")
+        index_text = index_md.read_text(encoding="utf-8")
+        assert "[generate](generate.md)" in index_text
+        assert "../../assets/command-reference/overview-demo.gif" in index_text
 
 
 class TestDumpsCli:

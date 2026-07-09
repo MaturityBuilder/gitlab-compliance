@@ -5,6 +5,8 @@ import re
 import click
 
 md_base_template = """
+{demo}
+
 ## Usage
 
 ```text
@@ -21,6 +23,21 @@ md_base_template = """
 {help}
 ```
 """
+
+COMMAND_DEMO_GIFS = {
+    ("check",): {
+        "path": "../../assets/command-reference/check-demo.gif",
+        "alt": "Animated terminal demo for gitlab-compliance check",
+    },
+    ("generate",): {
+        "path": "../../assets/command-reference/generate-demo.gif",
+        "alt": "Animated terminal demo for gitlab-compliance generate",
+    },
+    ("policies",): {
+        "path": "../../assets/command-reference/policies-demo.gif",
+        "alt": "Animated terminal demo for gitlab-compliance policies",
+    },
+}
 
 
 def recursive_help(cmd, parent=None):
@@ -93,6 +110,16 @@ def _escape_table(value) -> str:
     return str(value).replace("|", "\\|")
 
 
+def _demo_gif_block(command_path: tuple[str, ...] | None) -> str:
+    demo = COMMAND_DEMO_GIFS.get(command_path or ())
+    if not demo:
+        return ""
+    return (
+        "## Animated demo\n\n"
+        f"![{demo['alt']}]({demo['path']})\n"
+    )
+
+
 def _format_options(options: dict) -> str:
     if not options:
         return "_No options._\n"
@@ -115,7 +142,11 @@ def _format_options(options: dict) -> str:
     return "\n".join(rows) + "\n"
 
 
-def _render_command_page(helpdct: dict, title: str | None = None) -> str:
+def _render_command_page(
+    helpdct: dict,
+    title: str | None = None,
+    command_path: tuple[str, ...] | None = None,
+) -> str:
     command = helpdct["command"]
     options = {}
     for opt in helpdct.get("params", []):
@@ -127,6 +158,7 @@ def _render_command_page(helpdct: dict, title: str | None = None) -> str:
     description = _normalise_text(command.help)
     heading = title or command.name
     body = md_base_template.format(
+        demo=_demo_gif_block(command_path),
         usage=(helpdct.get("usage") or "").strip(),
         options=_format_options(options),
         help=(helpdct.get("help") or "").strip(),
@@ -185,7 +217,11 @@ def dump_helper(base_command, docs_dir) -> list[str]:
         display_name = " ".join(command_path)
         filename = _command_doc_filename(command_path)
         (docs_path / filename).write_text(
-            _render_command_page(helpdct, title=display_name),
+            _render_command_page(
+                helpdct,
+                title=display_name,
+                command_path=command_path,
+            ),
             encoding="utf-8",
         )
         written.append(command_path)
@@ -193,6 +229,7 @@ def dump_helper(base_command, docs_dir) -> list[str]:
     index_lines = [
         "# Command Reference\n\n",
         f"Auto-generated reference for `{root_name}` subcommands.\n\n",
+        "![Animated terminal overview of gitlab-compliance commands](../../assets/command-reference/overview-demo.gif)\n\n",
     ]
     for command_path in sorted(written, key=_command_doc_slug):
         display_name = " ".join(command_path)
