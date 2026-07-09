@@ -1,6 +1,6 @@
 [project]
 name = "gitlab-compliance"
-version = "2.0.1"
+version = "2.1.0"
 dynamic = [ "readme" ]
 [project.urls]
 "Home Page" = "https://maturitybuilder.github.io/gitlab-compliance/"
