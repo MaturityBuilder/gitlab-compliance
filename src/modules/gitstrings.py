@@ -354,6 +354,24 @@ def _render_table_for_doc(
     )
 
 
+def _render_path_specs(
+    root: dict,
+    render_spec: str,
+    *,
+    sensitive_paths: list[str] | None = None,
+) -> str:
+    parts: list[str] = []
+    for path_spec in yaml_paths.parse_path_list(render_spec):
+        rendered = table_render.render_path_markdown(
+            root,
+            path_spec,
+            sensitive_paths=sensitive_paths,
+        )
+        if rendered.strip():
+            parts.append(rendered.strip())
+    return "\n\n".join(parts)
+
+
 def render_fragment(
     block: GitstringsBlock,
     *,
@@ -386,7 +404,7 @@ def render_fragment(
         mode = detect_render_mode(doc, render_spec)
         if mode == "path":
             parts.append(
-                table_render.render_path_markdown(
+                _render_path_specs(
                     pipeline_root,
                     render_spec,
                     sensitive_paths=directives.sensitive,
@@ -402,7 +420,7 @@ def render_fragment(
             )
     else:
         parts.append(
-            table_render.render_path_markdown(
+            _render_path_specs(
                 pipeline_root,
                 render_spec,
                 sensitive_paths=directives.sensitive,

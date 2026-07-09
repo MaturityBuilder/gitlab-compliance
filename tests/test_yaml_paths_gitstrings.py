@@ -109,3 +109,52 @@ def test_render_variables_table_with_prefix_mask():
     )
     assert "hidden" not in table
     assert "****" in table
+
+
+def test_scalar_variable_masks_when_sensitive_path_uses_value_suffix():
+    table = render_variables_table(
+        {"DEFAULT_WORKSPACE": "$CI_PROJECT_DIR"},
+        path_prefix="megalinter.variables",
+        sensitive_paths=["megalinter.variables.DEFAULT_WORKSPACE.value"],
+    )
+    assert "$CI_PROJECT_DIR" not in table
+    assert "****" in table
+
+
+def test_render_fragment_multiple_paths_with_sensitive_scalar_variable(tmp_path):
+    ci = tmp_path / ".gitlab-ci.yml"
+    ci.write_text(
+        """# @title Megalinter
+# @description
+#   Megalinter is a tool that runs a set of linters and formatters on the codebase.
+# @render megalinter.artifacts, megalinter.variables
+# @sensitive megalinter.variables.DEFAULT_WORKSPACE.value
+megalinter:
+  script: ["true"]
+  variables:
+    DEFAULT_WORKSPACE: $CI_PROJECT_DIR
+  artifacts:
+    when: always
+    paths:
+      - megalinter-reports
+    expire_in: 1 week
+  allow_failure: true
+  extends:
+    - .test:rules
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BRANCH != $CI_COMMIT_TAG
+""",
+        encoding="utf-8",
+    )
+
+    from src.modules.gitstrings import extract_gitstrings_blocks_from_ci_yaml
+
+    block = extract_gitstrings_blocks_from_ci_yaml(ci.read_text(encoding="utf-8"))[0]
+    out = render_fragment(block, keep_source=False, scan_path=ci)
+
+    assert "Megalinter" in out
+    assert "megalinter-reports" in out
+    assert "DEFAULT_WORKSPACE" in out
+    assert "$CI_PROJECT_DIR" not in out
+    assert "****" in out
+    assert "allow_failure" not in out

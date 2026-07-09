@@ -63,10 +63,17 @@ def should_mask_value(canonical_value_path: str, sensitive_paths: list[str]) -> 
     if not sensitive_paths:
         return False
     target = canonical_value_path.strip()
+    target_variants = {target, target.removesuffix(".value"), f"{target}.value"}
     for sensitive in sensitive_paths:
         s = sensitive.strip()
         if not s:
             continue
-        if target == s or target.casefold() == s.casefold():
-            return True
+        sensitive_variants = {s, s.removesuffix(".value"), f"{s}.value"}
+        for target_variant in target_variants:
+            for sensitive_variant in sensitive_variants:
+                if (
+                    target_variant == sensitive_variant
+                    or target_variant.casefold() == sensitive_variant.casefold()
+                ):
+                    return True
     return False
