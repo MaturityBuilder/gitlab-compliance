@@ -408,7 +408,7 @@ class TestTableRenderCoverage:
         class Evil(dict):
             def __getitem__(self, key):
                 if key == "description":
-                    raise RuntimeError("boom")
+                    raise KeyError("description")
                 return super().__getitem__(key)
 
         table = tr.render_inputs_table(
