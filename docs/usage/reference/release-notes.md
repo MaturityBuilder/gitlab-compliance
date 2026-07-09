@@ -1,3 +1,4 @@
+<!-- gitlab-compliance-command-reference-opening-auto-generated -->
 # release-notes
 
 Generate release notes for GitLab projects and optionally write Markdown files.
@@ -38,3 +39,4 @@ Options:
   --no-write            Skip writing Markdown files
   --help                Show this message and exit.
 ```
+<!-- gitlab-compliance-command-reference-closing-auto-generated -->

@@ -1,3 +1,4 @@
+<!-- gitlab-compliance-command-reference-opening-auto-generated -->
 # get-attributes
 
 Generate a Markdown table for selected GitLab CI YAML attributes.
@@ -34,3 +35,4 @@ Options:
   -j, --json BOOLEAN       Return results in JSON format.
   --help                   Show this message and exit.
 ```
+<!-- gitlab-compliance-command-reference-closing-auto-generated -->

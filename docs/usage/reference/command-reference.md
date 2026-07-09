@@ -1,3 +1,4 @@
+<!-- gitlab-compliance-command-reference-opening-auto-generated -->
 # Command Reference
 
 Auto-generated reference for `gitlab-compliance` subcommands.
@@ -12,3 +13,4 @@ Auto-generated reference for `gitlab-compliance` subcommands.
 - [policies pull](policies-pull.md)
 - [policies push](policies-push.md)
 - [release-notes](release-notes.md)
+<!-- gitlab-compliance-command-reference-closing-auto-generated -->

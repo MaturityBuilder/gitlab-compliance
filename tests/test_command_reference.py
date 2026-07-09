@@ -3,6 +3,8 @@ from click.testing import CliRunner
 
 from src.gitlab_compliance import gitlab_compliance
 from src.modules.command_reference import (
+    COMMAND_REFERENCE_MARKER_END,
+    COMMAND_REFERENCE_MARKER_START,
     _format_options,
     _render_command_page,
     dump_helper,
@@ -34,7 +36,9 @@ class TestDumpHelper:
         generate_md = tmp_path / "generate.md"
         assert generate_md.is_file()
         text = generate_md.read_text(encoding="utf-8")
-        assert text.startswith("# generate")
+        assert text.startswith(COMMAND_REFERENCE_MARKER_START)
+        assert "# generate" in text
+        assert text.rstrip().endswith(COMMAND_REFERENCE_MARKER_END)
         assert "../../assets/command-reference/generate-demo.gif" in text
         assert "### Markdown output" in text
         assert "../../assets/command-reference/markdown-output-demo.gif" in text
@@ -45,8 +49,28 @@ class TestDumpHelper:
         index_md = tmp_path / "command-reference.md"
         assert index_md.is_file()
         index_text = index_md.read_text(encoding="utf-8")
+        assert COMMAND_REFERENCE_MARKER_START in index_text
         assert "[generate](generate.md)" in index_text
         assert "../../assets/command-reference/overview-demo.gif" in index_text
+
+    def test_updates_only_managed_block_when_markers_exist(self, tmp_path):
+        generate_md = tmp_path / "generate.md"
+        generate_md.write_text(
+            "custom intro\n"
+            f"{COMMAND_REFERENCE_MARKER_START}\n"
+            "stale generated content\n"
+            f"{COMMAND_REFERENCE_MARKER_END}\n"
+            "custom outro\n",
+            encoding="utf-8",
+        )
+
+        dump_helper(gitlab_compliance, tmp_path)
+        text = generate_md.read_text(encoding="utf-8")
+
+        assert "custom intro" in text
+        assert "custom outro" in text
+        assert "stale generated content" not in text
+        assert "# generate" in text
 
 
 class TestDumpsCli:

@@ -1,3 +1,4 @@
+<!-- gitlab-compliance-command-reference-opening-auto-generated -->
 # policies push
 
 Push a compliance policy bundle to an OCI registry (Conftest-style).
@@ -28,3 +29,4 @@ Options:
                        to publish.  [required]
   --help               Show this message and exit.
 ```
+<!-- gitlab-compliance-command-reference-closing-auto-generated -->

@@ -4,6 +4,15 @@ import re
 
 import click
 
+from src.modules.doc_controller import update_marked_block
+
+COMMAND_REFERENCE_MARKER_START = (
+    "<!-- gitlab-compliance-command-reference-opening-auto-generated -->"
+)
+COMMAND_REFERENCE_MARKER_END = (
+    "<!-- gitlab-compliance-command-reference-closing-auto-generated -->"
+)
+
 md_base_template = """
 {demo}
 {extra}
@@ -269,6 +278,33 @@ def _command_doc_filename(path: tuple[str, ...]) -> str:
     return f"{_command_doc_slug(path)}.md"
 
 
+def _managed_markdown(content: str) -> str:
+    return (
+        f"{COMMAND_REFERENCE_MARKER_START}\n"
+        f"{content.rstrip()}\n"
+        f"{COMMAND_REFERENCE_MARKER_END}\n"
+    )
+
+
+def _write_managed_markdown(path: pathlib.Path, content: str) -> None:
+    """Write generated command docs inside a replaceable marker block."""
+    if path.exists():
+        current = path.read_text(encoding="utf-8")
+        if (
+            COMMAND_REFERENCE_MARKER_START in current
+            and COMMAND_REFERENCE_MARKER_END in current
+        ):
+            update_marked_block(
+                file_path=path,
+                content=content,
+                marker_start=COMMAND_REFERENCE_MARKER_START,
+                marker_end=COMMAND_REFERENCE_MARKER_END,
+            )
+            return
+
+    path.write_text(_managed_markdown(content), encoding="utf-8")
+
+
 def _iter_command_docs(base_command):
     def walk(cmd, parent_ctx, path: tuple[str, ...]):
         ctx = click.core.Context(cmd, info_name=cmd.name, parent=parent_ctx)
@@ -306,13 +342,13 @@ def dump_helper(base_command, docs_dir) -> list[str]:
     for helpdct, command_path in _iter_command_docs(base_command):
         display_name = " ".join(command_path)
         filename = _command_doc_filename(command_path)
-        (docs_path / filename).write_text(
+        _write_managed_markdown(
+            docs_path / filename,
             _render_command_page(
                 helpdct,
                 title=display_name,
                 command_path=command_path,
             ),
-            encoding="utf-8",
         )
         written.append(command_path)
 
@@ -326,9 +362,7 @@ def dump_helper(base_command, docs_dir) -> list[str]:
         index_lines.append(
             f"- [{display_name}]({_command_doc_filename(command_path)})\n"
         )
-    (docs_path / "command-reference.md").write_text(
-        "".join(index_lines), encoding="utf-8"
-    )
+    _write_managed_markdown(docs_path / "command-reference.md", "".join(index_lines))
 
     return [" ".join(path) for path in written]
 

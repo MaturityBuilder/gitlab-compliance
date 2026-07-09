@@ -1,3 +1,4 @@
+<!-- gitlab-compliance-command-reference-opening-auto-generated -->
 # policies
 
 Manage compliance policy bundles (catalog, OCI push/pull).
@@ -33,3 +34,4 @@ Commands:
   pull  Pull a compliance policy bundle from an OCI registry.
   push  Push a compliance policy bundle to an OCI registry (Conftest-style).
 ```
+<!-- gitlab-compliance-command-reference-closing-auto-generated -->

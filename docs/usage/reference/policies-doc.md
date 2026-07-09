@@ -1,3 +1,4 @@
+<!-- gitlab-compliance-command-reference-opening-auto-generated -->
 # policies doc
 
 Generate a searchable policy catalog from Conftest-style # METADATA annotations.
@@ -32,3 +33,4 @@ Options:
   -o, --output-file TEXT    Write the policy catalog to this file.
   --help                    Show this message and exit.
 ```
+<!-- gitlab-compliance-command-reference-closing-auto-generated -->

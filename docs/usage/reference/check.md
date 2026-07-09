@@ -1,3 +1,4 @@
+<!-- gitlab-compliance-command-reference-opening-auto-generated -->
 # check
 
 Run Gherkin compliance policies against GitLab CI YAML and optional API settings.
@@ -75,3 +76,4 @@ Options:
                                   with gitlab-compliance.
   --help                          Show this message and exit.
 ```
+<!-- gitlab-compliance-command-reference-closing-auto-generated -->

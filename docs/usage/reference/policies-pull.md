@@ -1,3 +1,4 @@
+<!-- gitlab-compliance-command-reference-opening-auto-generated -->
 # policies pull
 
 Pull a compliance policy bundle from an OCI registry.
@@ -28,3 +29,4 @@ Options:
                          policy]
   --help                 Show this message and exit.
 ```
+<!-- gitlab-compliance-command-reference-closing-auto-generated -->

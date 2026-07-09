@@ -1,3 +1,4 @@
+<!-- gitlab-compliance-command-reference-opening-auto-generated -->
 # generate
 
 Generate pipeline documentation from GitLab CI YAML.
@@ -131,3 +132,4 @@ Options:
                                   attribute (e.g. stage).
   --help                          Show this message and exit.
 ```
+<!-- gitlab-compliance-command-reference-closing-auto-generated -->
