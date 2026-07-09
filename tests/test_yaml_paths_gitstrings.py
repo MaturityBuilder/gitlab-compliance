@@ -93,6 +93,33 @@ variables:
     assert "Z" not in out
 
 
+def test_render_fragment_masks_source_yaml_when_keep_source(tmp_path):
+    ci = tmp_path / ".gitlab-ci.yml"
+    ci.write_text(
+        """
+MEGALINTER:
+  variables:
+    mode:
+      value: top-secret
+# @title Megalinter mode
+# @render megalinter.variables.mode
+# @sensitive megalinter.variables.mode.value
+megalinter:
+  variables:
+    mode:
+      value: top-secret
+""",
+        encoding="utf-8",
+    )
+    from src.modules.gitstrings import extract_gitstrings_blocks_from_ci_yaml
+
+    block = extract_gitstrings_blocks_from_ci_yaml(ci.read_text(encoding="utf-8"))[-1]
+    out = render_fragment(block, keep_source=True, scan_path=ci)
+    assert "<summary>Source YAML</summary>" in out
+    assert "top-secret" not in out
+    assert "****" in out
+
+
 def test_mask_value_path_matching():
     assert should_mask_value(
         "megalinter.variables.mode.value",

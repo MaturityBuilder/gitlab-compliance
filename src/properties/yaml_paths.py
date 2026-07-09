@@ -81,3 +81,86 @@ def should_mask_value(canonical_value_path: str, sensitive_paths: list[str]) -> 
                 ):
                     return True
     return False
+
+
+def _mask_dict_entry_value(
+    entry: dict,
+    *,
+    path_prefix: str,
+    key: str,
+    sensitive_paths: list[str],
+) -> Any:
+    segment = f"{path_prefix}.{key}" if path_prefix else key
+    value_path = value_path_for_variable(path_prefix, key, entry)
+    default_path = f"{segment}.default"
+    if should_mask_value(segment, sensitive_paths) and not should_mask_value(
+        value_path, sensitive_paths
+    ) and not (
+        "default" in entry and should_mask_value(default_path, sensitive_paths)
+    ):
+        return SENSITIVE_MASK
+    if should_mask_value(value_path, sensitive_paths):
+        masked = dict(entry)
+        if "value" in masked:
+            masked["value"] = SENSITIVE_MASK
+        elif "default" in masked:
+            masked["default"] = SENSITIVE_MASK
+        else:
+            return {
+                sub_key: mask_sensitive_in_structure(
+                    sub_value, f"{segment}.{sub_key}", sensitive_paths
+                )
+                for sub_key, sub_value in entry.items()
+            }
+        return masked
+    if should_mask_value(default_path, sensitive_paths) and "default" in entry:
+        masked = dict(entry)
+        masked["default"] = SENSITIVE_MASK
+        return masked
+    return {
+        sub_key: mask_sensitive_in_structure(
+            sub_value, f"{segment}.{sub_key}", sensitive_paths
+        )
+        for sub_key, sub_value in entry.items()
+    }
+
+
+def mask_sensitive_in_structure(
+    node: Any,
+    path_prefix: str,
+    sensitive_paths: list[str],
+) -> Any:
+    """Return a copy of YAML data with @sensitive paths replaced by SENSITIVE_MASK."""
+    if not sensitive_paths:
+        return node
+    if isinstance(node, dict):
+        masked: dict[Any, Any] = {}
+        for key, value in node.items():
+            segment = f"{path_prefix}.{key}" if path_prefix else key
+            if isinstance(value, dict):
+                masked[key] = _mask_dict_entry_value(
+                    value,
+                    path_prefix=path_prefix,
+                    key=key,
+                    sensitive_paths=sensitive_paths,
+                )
+            elif isinstance(value, list):
+                masked[key] = [
+                    mask_sensitive_in_structure(item, segment, sensitive_paths)
+                    for item in value
+                ]
+            else:
+                value_path = value_path_for_variable(path_prefix, key, value)
+                if should_mask_value(value_path, sensitive_paths) or should_mask_value(
+                    segment, sensitive_paths
+                ):
+                    masked[key] = SENSITIVE_MASK
+                else:
+                    masked[key] = value
+        return masked
+    if isinstance(node, list):
+        return [
+            mask_sensitive_in_structure(item, path_prefix, sensitive_paths)
+            for item in node
+        ]
+    return node

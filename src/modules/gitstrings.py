@@ -259,6 +259,56 @@ def parse_directives(raw_block: str) -> tuple[GitstringsDirectives, str]:
     return directives, cleaned
 
 
+def _directive_prefix_lines(raw_block: str) -> list[str]:
+    """Lines at the start of a gitstrings block that are @directives (not YAML)."""
+    prefix: list[str] = []
+    lines = raw_block.splitlines()
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        match = DIRECTIVE_LINE_RE.match(line)
+        if not match:
+            break
+
+        name = match.group("name").lower().replace("-", "_")
+        value = (match.group("value") or "").strip()
+        prefix.append(line)
+        index += 1
+
+        if name == "description" and not value:
+            while index < len(lines):
+                next_line = lines[index]
+                if DIRECTIVE_LINE_RE.match(next_line):
+                    break
+                if next_line.strip().startswith("#"):
+                    prefix.append(next_line)
+                    index += 1
+                    continue
+                break
+
+    return prefix
+
+
+def _masked_source_yaml_body(block: GitstringsBlock, doc: dict) -> str:
+    """Source YAML for keep_source, with @sensitive paths redacted."""
+    sensitive = block.directives.sensitive
+    if not sensitive:
+        return block.raw_body.rstrip()
+
+    masked_doc = yaml_paths.mask_sensitive_in_structure(doc, "", sensitive)
+    masked_cleaned = yaml.dump(
+        masked_doc,
+        default_flow_style=False,
+        sort_keys=False,
+        allow_unicode=True,
+    ).rstrip("\n")
+
+    prefix_lines = _directive_prefix_lines(block.raw_body)
+    if prefix_lines:
+        return "\n".join(prefix_lines + [masked_cleaned])
+    return masked_cleaned
+
+
 def extract_gitstrings_blocks(markdown_text: str) -> list[GitstringsBlock]:
     blocks: list[GitstringsBlock] = []
     for match in GITSTRINGS_FENCE_RE.finditer(markdown_text):
@@ -742,7 +792,7 @@ def render_fragment(
         parts.append("<summary>Source YAML</summary>")
         parts.append("")
         parts.append("```yaml")
-        parts.append(block.raw_body.rstrip())
+        parts.append(_masked_source_yaml_body(block, doc))
         parts.append("```")
         parts.append("</details>")
         parts.append("")
