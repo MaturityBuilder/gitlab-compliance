@@ -28,8 +28,11 @@ poetry run pre-commit run --all-files
 
 Hooks are defined in
 [`.pre-commit-config.yaml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.pre-commit-config.yaml).
-CI runs the same checks via
-[`.github/workflows/pre-commit.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/pre-commit.yml).
+CI runs the same checks via the `pre-commit` job in
+[`.github/workflows/tests.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/tests.yml).
+
+Maintainers: see [branch protection settings](../.github/BRANCH_PROTECTION.md) for
+recommended `main` branch rules.
 
 ## Documentation
 
