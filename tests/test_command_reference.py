@@ -36,6 +36,8 @@ class TestDumpHelper:
         text = generate_md.read_text(encoding="utf-8")
         assert text.startswith("# generate")
         assert "../../assets/command-reference/generate-demo.gif" in text
+        assert "### Markdown output" in text
+        assert "### HTML output" in text
         assert "## Usage" in text
 
         index_md = tmp_path / "command-reference.md"

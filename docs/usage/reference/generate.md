@@ -6,6 +6,83 @@ Generate pipeline documentation from GitLab CI YAML.
 
 ![Animated terminal demo for gitlab-compliance generate](../../assets/command-reference/generate-demo.gif)
 
+## Output examples
+
+The `generate` command writes pipeline documentation in Markdown,
+swagger-markdown, or HTML formats.
+
+```bash
+gitlab-compliance generate -i .gitlab-ci.yml --format markdown -o GITLAB-COMPLIANCE.md
+gitlab-compliance generate -i .gitlab-ci.yml --format html -o public/index.html
+```
+
+### Markdown output
+
+```markdown
+## GITLAB COMPLIANCE - .gitlab-ci.yml
+
+## Inputs
+
+| Key       | Value               | Description | Options   | Expand |
+| --------- | ------------------- | ----------- | --------- | ------ |
+| job-stage | {'default': 'test'} | _not set_   | _not set_ | true   |
+
+## Variables
+
+| Key         | Value          | Description | Options   | Expand |
+| ----------- | -------------- | ----------- | --------- | ------ |
+| APPLICATION | gitlab-docs    | _not set_   | _not set_ | true   |
+
+## Jobs
+
+### JOB - test
+
+| Attribute | Value |
+| --------- | ----- |
+| stage     | test  |
+```
+
+### HTML output
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GitLab Docs - .gitlab-ci.yml</title>
+</head>
+<body>
+  <header class="topbar">
+    <h1>GitLab Docs</h1>
+    <span class="config-file">.gitlab-ci.yml</span>
+    <input class="search" id="search" type="search" placeholder="Filter jobs and sections">
+  </header>
+  <div class="layout">
+    <nav class="sidebar">
+      <a class="nav-link" href="#overview">Overview</a>
+      <a class="nav-link" href="#jobs">Jobs<span class="nav-count">1</span></a>
+    </nav>
+    <main class="content">
+      <section class="section" id="overview">
+        <h2>Overview</h2>
+        <p>Swagger-style documentation generated from <code>.gitlab-ci.yml</code>.</p>
+      </section>
+      <section class="section" id="jobs">
+        <h2>Jobs</h2>
+        <article class="opblock opblock-job" data-name="test" id="job-test">
+          <button class="opblock-summary" type="button" aria-expanded="false">
+            <span class="opblock-summary-method">JOB</span>
+            <span class="opblock-summary-path">test</span>
+          </button>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+```
+
 ## Usage
 
 ```text
