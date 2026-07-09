@@ -79,7 +79,7 @@ variables:
 | Directive | Purpose |
 |-----------|---------|
 | `# @title <heading>` | `##` heading above this fragment’s tables |
-| `# @render <mode>` | `variables`, `inputs`, `jobs`, or `auto` (default); or a **dot path** (e.g. `megalinter.variables`, `megalinter.variables.mode`, `spec.inputs`) |
+| `# @render <mode>` | `variables`, `inputs`, `jobs`, `includes` (or `include`), `auto`; or a **dot path** (e.g. `megalinter.variables`, `spec.inputs`, `include`) |
 | `# @sensitive <path>` | Mask values at a YAML path (repeatable; comma-separated). Rows still appear; value cells show `****` (e.g. `megalinter.variables.mode.value`) |
 | `# @output <path>` / `# @output-file` | Write this fragment to another file’s gitstrings markers (relative to `-i`). Ignored when you pass `-o` / `--output` on the CLI. |
 | `# @description` | Multi-line prose above tables (continuation lines are `#` comments) |
@@ -108,6 +108,24 @@ variables:
       Target environment.
       Use staging on feature branches only.
 ```
+
+### Includes fragment
+
+Document the pipeline `include` list as a table (local, project, component, remote, template):
+
+```yaml
+# @title Pipeline includes
+# @description
+#   External and local CI fragments consumed by this configuration.
+# @render includes
+include:
+  - local: gitlab-ci/hidden.jobs.yml
+  - project: my-group/my-project
+    ref: 1.2.3
+    file: ci/workflow.yml
+```
+
+Use `@render include` as an alias for `includes`. With `-i` set to a CI YAML file, `@render include` also resolves the full file’s `include` key when using path mode.
 
 ### Path-based render and sensitive values
 
@@ -155,4 +173,4 @@ See [GitLab CI/CD](../ci-cd/gitlab-ci.md) for broader pipeline integration.
 |-------|----------------|
 | No output updated | At least one ` ```yaml gitstrings ` fence in `-i` |
 | Invalid YAML | Remove or fix `# @` directives; they are stripped before parsing |
-| Tables empty | Set `# @render` explicitly or ensure YAML matches `variables` / `spec.inputs` / job shape |
+| Tables empty | Set `# @render` explicitly or ensure YAML matches `variables` / `spec.inputs` / `include` / job shape |

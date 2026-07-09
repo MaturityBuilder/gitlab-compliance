@@ -38,7 +38,7 @@ CI_BLOCK_START_RE = re.compile(
 
 CI_YAML_SUFFIXES = {".yml", ".yaml"}
 
-RENDER_MODES = frozenset({"variables", "inputs", "jobs", "auto"})
+RENDER_MODES = frozenset({"variables", "inputs", "jobs", "includes", "include", "auto"})
 
 
 def _find_git_dir(source_path: Path) -> tuple[Path | None, Path | None]:
@@ -242,7 +242,8 @@ def parse_directives(raw_block: str) -> tuple[GitstringsDirectives, str]:
         elif name == "render":
             raw = (value or "auto").strip()
             if "." not in raw and raw.lower() in RENDER_MODES:
-                directives.render = raw.lower()
+                lowered = raw.lower()
+                directives.render = "includes" if lowered == "include" else lowered
             else:
                 directives.render = raw or "auto"
         elif name == "sensitive":
@@ -471,6 +472,8 @@ def detect_render_mode(doc: object, directive_render: str) -> str:
         return "inputs"
     if "variables" in doc:
         return "variables"
+    if "include" in doc:
+        return "includes"
     if _looks_like_jobs_map(doc):
         return "jobs"
     return "auto"
@@ -481,6 +484,7 @@ def _render_table_for_doc(
     mode: str,
     *,
     sensitive_paths: list[str] | None = None,
+    config_file: str = "",
 ) -> str:
     if mode == "auto":
         mode = detect_render_mode(doc, "auto")
@@ -499,6 +503,9 @@ def _render_table_for_doc(
             path_prefix="variables",
             sensitive_paths=sensitive_paths,
         )
+    if mode == "includes":
+        entries = doc.get("include") or []
+        return table_render.render_includes_table(entries, config_file=config_file)
     if mode == "jobs":
         return table_render.render_jobs_table(doc)
     return table_render.render_generic_kv_table(doc, sensitive_paths=sensitive_paths)
@@ -632,6 +639,7 @@ def render_fragment(
         doc = {"value": doc}
 
     pipeline_root = doc
+    config_file = str(scan_path) if scan_path is not None else ""
     if scan_path is not None:
         pipeline_root = _load_pipeline_root(scan_path, doc)
 
@@ -660,6 +668,7 @@ def render_fragment(
                     pipeline_root,
                     render_spec,
                     sensitive_paths=directives.sensitive,
+                    config_file=config_file,
                 )
             )
         else:
@@ -668,6 +677,7 @@ def render_fragment(
                     doc,
                     mode,
                     sensitive_paths=directives.sensitive,
+                    config_file=config_file,
                 )
             )
     else:
@@ -676,6 +686,7 @@ def render_fragment(
                 pipeline_root,
                 render_spec,
                 sensitive_paths=directives.sensitive,
+                config_file=config_file,
             )
         )
     parts.append("")

@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-LEGACY_RENDER_MODES = frozenset({"variables", "inputs", "jobs", "auto"})
+LEGACY_RENDER_MODES = frozenset(
+    {"variables", "inputs", "jobs", "includes", "include", "auto"}
+)
 
 SENSITIVE_MASK = "****"
 
@@ -20,6 +22,8 @@ def is_legacy_render_mode(render: str) -> bool:
 
 def normalize_legacy_render(render: str) -> str:
     mode = (render or "auto").lower()
+    if mode == "include":
+        return "includes"
     return mode if mode in LEGACY_RENDER_MODES else "auto"
 
 

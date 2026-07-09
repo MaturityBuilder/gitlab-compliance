@@ -412,6 +412,63 @@ variables:
     )
 
 
+def test_render_includes_table():
+    from src.properties.table_render import render_includes_table
+
+    md = render_includes_table(
+        [
+            "gitlab-ci/child.yml",
+            {
+                "project": "group/app",
+                "ref": "1.0.0",
+                "file": "ci.yml",
+            },
+        ]
+    )
+    assert "|" in md
+    assert "local" in md
+    assert "project" in md
+    assert "group/app" in md
+
+
+def test_gitstrings_render_includes_fragment(tmp_path):
+    readme = tmp_path / "README.md"
+    readme.write_text(
+        MARKER_BLOCK
+        + """
+```yaml gitstrings
+# @title Includes
+# @render includes
+include:
+  - local: nested.yml
+  - component: gitlab.com/org/pkg@2.0.0
+```
+""",
+        encoding="utf-8",
+    )
+    process_gitstrings(readme, readme, keep_source=False)
+    body = readme.read_text(encoding="utf-8").split(GITSTRINGS_MARKER_OPEN)[1]
+    assert "nested.yml" in body
+    assert "component" in body
+    assert "|" in body
+
+
+def test_extract_gitstrings_includes_from_ci_yaml():
+    ci = """# @title Inc
+# @render include
+include:
+  - local: a.yml
+stages:
+  - test
+"""
+    blocks = extract_gitstrings_blocks_from_ci_yaml(ci)
+    assert len(blocks) == 1
+    assert blocks[0].directives.render == "includes"
+    out = render_fragment(blocks[0], keep_source=False)
+    assert "a.yml" in out
+    assert "|" in out
+
+
 def test_render_jobs_table_uses_markdown_pipe_not_bullets():
     from src.properties.table_render import render_jobs_table
 

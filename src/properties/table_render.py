@@ -237,6 +237,51 @@ def render_rules_table(rules: list, *, context: str = "job") -> str:
     return note + "\n" + common.markdown_table_from_prettytable(table)
 
 
+def _normalize_include_entries(raw) -> list:
+    if raw is None:
+        return []
+    if isinstance(raw, list):
+        return raw
+    return [raw]
+
+
+def render_includes_table(include_entries, *, config_file: str = "") -> str:
+    """Render GitLab ``include`` entries as a markdown table (gitstrings / docs)."""
+    from src.modules.pipeline_data import _parse_include_entry
+
+    entries = _normalize_include_entries(include_entries)
+    rows: list[list] = []
+    for entry in entries:
+        parsed = _parse_include_entry(entry, source_file=config_file)
+        if not parsed:
+            continue
+        rows.append(
+            [
+                parsed["include_type"],
+                parsed["project"],
+                parsed["version"],
+                "yes" if parsed["valid_version"] else "no",
+                parsed.get("file") or "",
+                common.format_dict_summary(parsed.get("variables") or {}),
+                common.format_rules_summary(parsed.get("rules") or []),
+            ]
+        )
+    if not rows:
+        return "_No includes defined._"
+    return common.render_table_or_list(
+        [
+            "Include Type",
+            "Project",
+            "Version",
+            "Valid",
+            "File",
+            "Variables",
+            "Rules",
+        ],
+        rows,
+    )
+
+
 def render_jobs_table(jobs: dict) -> str:
     parts = []
     for name, definition in jobs.items():
@@ -287,6 +332,7 @@ def render_path_markdown(
     path: str,
     *,
     sensitive_paths: list[str] | None = None,
+    config_file: str = "",
 ) -> str:
     """Render markdown tables for a dot-path into pipeline YAML."""
     sensitive_paths = sensitive_paths or []
@@ -296,6 +342,12 @@ def render_path_markdown(
 
     segments = [s for s in path.split(".") if s]
     last = segments[-1] if segments else ""
+
+    if path == "include" or path.endswith(".include") or last == "include":
+        entries = node
+        if isinstance(node, dict) and "include" in node:
+            entries = node["include"]
+        return render_includes_table(entries, config_file=config_file)
 
     if path == "inputs" or path.endswith(".inputs"):
         inputs = node if isinstance(node, dict) else {}
