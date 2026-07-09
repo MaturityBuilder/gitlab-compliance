@@ -11,7 +11,7 @@ the tool supports two primary workflows:
 4. Fail the job on violations (default exit code `1`)
 
 ```bash
-gitlab-compliance check -h
+gitlab-compliance check --help
 ```
 
 ### Documentation (`generate`)
@@ -21,7 +21,7 @@ gitlab-compliance check -h
 3. Optionally exclude sections or job attributes, or group jobs by attribute
 
 ```bash
-gitlab-compliance generate -h
+gitlab-compliance generate --help
 gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
 gitlab-compliance generate -i .gitlab-ci.yml --exclude variables,workflow --group-by stage
 ```
@@ -38,13 +38,14 @@ Directory of `.feature` policy files, or an OCI reference:
 
 ```bash
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml
-gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p
-.gitlab-ci.yml
+gitlab-compliance check \
+  -f oci://registry.example.com/org/policies:1.0.0 \
+  -p .gitlab-ci.yml
 ```
 
 Use `--update` with OCI references to pull the latest bundle before running.
 
-### `--with-builtin` {#with-builtin}
+### `--with-builtin`
 
 Also run bundled baseline policies shipped inside the `gitlab-compliance`
 package. Your `-f` directory remains **required**; `--with-builtin` **adds** the
@@ -69,12 +70,14 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 ### `--project` / `--group`
 
 Enable API-backed scenarios against project or group settings. Requires a GitLab
-token — see [Environment Variables](environment-variables.md).
+token - see [Environment Variables](environment-variables.md).
 
 ```bash
 export GITLAB_TOKEN="<token>"
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project
-my-group/my-project
+gitlab-compliance check \
+  -f policies/ \
+  -p .gitlab-ci.yml \
+  --project my-group/my-project
 ```
 
 API scenarios are **skipped** when connection info is missing unless you pass
@@ -93,8 +96,11 @@ Report format and output file:
 | `codequality` | GitLab Code Quality JSON (`gl-code-quality-report.json`) |
 
 ```bash
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format markdown -o
-COMPLIANCE-REPORT.md
+gitlab-compliance check \
+  -f policies/ \
+  -p .gitlab-ci.yml \
+  --format markdown \
+  -o COMPLIANCE-REPORT.md
 ```
 
 ### Other commands

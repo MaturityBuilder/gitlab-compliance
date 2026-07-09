@@ -26,8 +26,10 @@ class TestDumpHelper:
         assert "generate" in written
         assert "check" in written
         assert "policies doc" in written
+        assert "dumps" not in written
         assert (tmp_path / "check.md").is_file()
         assert (tmp_path / "policies-doc.md").is_file()
+        assert not (tmp_path / "dumps.md").exists()
 
         generate_md = tmp_path / "generate.md"
         assert generate_md.is_file()
@@ -61,7 +63,7 @@ class TestDumpsCli:
         assert (docs_dir / "policies-doc.md").is_file()
         index_text = (docs_dir / "command-reference.md").read_text(encoding="utf-8")
         assert "# Command Reference" in index_text
-        assert "Created 10 command docs" in result.output
+        assert "Created 8 command docs" in result.output
 
     def test_missing_module_reports_error(self, tmp_path):
         runner = CliRunner()
@@ -83,6 +85,22 @@ class TestDumpsCli:
 class TestCommandReferenceHelpers:
     def test_format_options_empty(self):
         assert _format_options({}) == "_No options._\n"
+
+    def test_format_options_table_uses_single_line_usage(self):
+        rendered = _format_options(
+            {
+                "features_dir": {
+                    "required": True,
+                    "kind": "option",
+                    "type": "text",
+                    "default": "None",
+                    "usage": "--features, -f",
+                    "help": "Directory containing .feature files.",
+                }
+            }
+        )
+
+        assert "| `features_dir` | Yes | `text` | `None` | `--features, -f` |" in rendered
 
     def test_render_command_page_without_description(self):
         @click.command()

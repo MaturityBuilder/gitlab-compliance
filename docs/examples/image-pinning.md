@@ -12,15 +12,13 @@ build:
   image: docker:latest
 ```
 
-## Good (sha256 digest — default)
+## Good (sha256 digest - default)
 
 ```yaml
 scan:
-  image:
-  python@sha256:826cce1bda4ecb1d8a6ce203ac1b519660ba85e808e1306a43a908f49f90f341
+  image: python@sha256:826cce1bda4ecb1d8a6ce203ac1b519660ba85e808e1306a43a908f49f90f341
 build:
-  image:
-  docker@sha256:61394709d9c9999b6b7d6d5b8c7c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8
+  image: docker@sha256:61394709d9c9999b6b7d6d5b8c7c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8
 ```
 
 ## Good (explicit semver tag)
@@ -65,7 +63,7 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
 
 ## Consume in GitLab CI
 
-Offline policy — use the shared compliance job templates from
+Offline policy - use the shared compliance job templates from
 [`example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/compliance-jobs.yml):
 
 ```yaml
@@ -90,8 +88,13 @@ compliance:
   extends: .compliance:api
   script:
     - pip install --quiet gitlab-compliance
-    - gitlab-compliance check -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
-        --project "$CI_PROJECT_PATH" --strict --fix
+    - >-
+      gitlab-compliance check
+      -f "$COMPLIANCE_POLICIES"
+      -p .gitlab-ci.yml
+      --project "$CI_PROJECT_PATH"
+      --strict
+      --fix
 ```
 
 ## Run locally

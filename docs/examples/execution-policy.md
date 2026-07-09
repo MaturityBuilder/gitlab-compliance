@@ -1,7 +1,7 @@
 # Execution Policy
 
 Control **when** pipeline jobs run. Jobs without `rules:` can execute on every
-push, tag, or schedule — including deploy stages that should be gated to
+push, tag, or schedule - including deploy stages that should be gated to
 protected branches or merge requests.
 
 ## Bad
@@ -11,7 +11,7 @@ deploy-production:
   stage: deploy
   script:
     - ./deploy.sh
-  # no rules — runs on every pipeline source
+  # no rules - runs on every pipeline source
 ```
 
 ```yaml
@@ -117,7 +117,7 @@ policies](https://docs.gitlab.com/user/application_security/policies/pipeline_ex
 inject the compliance job into every member project from a security policy
 project.
 
-**1. Security policy project** —
+**1. Security policy project** -
 [`.gitlab/security-policies/policy.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-gitlab-execution-policy/.gitlab/security-policies/policy.yml):
 
 ```yaml
@@ -137,7 +137,7 @@ pipeline_execution_policy:
           - full_path: my-group/*
 ```
 
-**2. Injected CI config** —
+**2. Injected CI config** -
 [`policy-ci.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-gitlab-execution-policy/policy-ci.yml)
 in the same repo:
 
@@ -152,8 +152,12 @@ policy::gitlab-compliance:
   image: python:3.12
   script:
     - pip install --quiet gitlab-compliance
-    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-        --project "$CI_PROJECT_PATH" --strict
+    - >-
+      gitlab-compliance check
+      -f policies/security/
+      -p .gitlab-ci.yml
+      --project "$CI_PROJECT_PATH"
+      --strict
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

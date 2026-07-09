@@ -7,16 +7,17 @@ import click
 md_base_template = """
 ## Usage
 
-```
+```text
 {usage}
 ```
 
 ## Options
+
 {options}
 
 ## CLI Help
 
-```
+```text
 {help}
 ```
 """
@@ -61,32 +62,74 @@ def _param_metadata(param):
     }
 
 
+def _normalise_text(value) -> str:
+    return " ".join(str(value or "").split())
+
+
+def _type_name(param_type) -> str:
+    if isinstance(param_type, click.Choice):
+        return "choice: " + ", ".join(param_type.choices)
+    if isinstance(param_type, click.Path):
+        return "path"
+    return getattr(param_type, "name", str(param_type))
+
+
+def _default_value(default) -> str:
+    if default is None:
+        return "None"
+    default_text = str(default)
+    if default_text == "sentinel.unset":
+        return "None"
+    return default_text
+
+
+def _option_usage(param) -> str:
+    if isinstance(param, click.Argument):
+        return param.name
+    return ", ".join([*param.opts, *param.secondary_opts])
+
+
+def _escape_table(value) -> str:
+    return str(value).replace("|", "\\|")
+
+
 def _format_options(options: dict) -> str:
     if not options:
         return "_No options._\n"
-    return "\n".join(
-        [
-            f"* `{opt_name}`{' (REQUIRED)' if opt.get('required') else ''}"
-            f"{' [argument]' if opt.get('kind') == 'argument' else ''}: \n"
-            f"  * Type: {opt.get('type')} \n"
-            f"  * Default: `{str(opt.get('default')).lower()}`\n"
-            f"  * Usage: `{opt.get('usage')}`\n"
-            "\n"
-            f"  {opt.get('help') or ''}\n"
-            for opt_name, opt in options.items()
-        ]
-    )
+
+    rows = [
+        "| Parameter | Required | Type | Default | Usage | Description |",
+        "| --------- | -------- | ---- | ------- | ----- | ----------- |",
+    ]
+    for opt_name, opt in options.items():
+        rows.append(
+            "| `{name}` | {required} | `{type}` | `{default}` | `{usage}` | {help} |".format(
+                name=_escape_table(opt_name),
+                required="Yes" if opt.get("required") else "No",
+                type=_escape_table(opt.get("type")),
+                default=_escape_table(opt.get("default")),
+                usage=_escape_table(opt.get("usage")),
+                help=_escape_table(_normalise_text(opt.get("help")) or "-"),
+            )
+        )
+    return "\n".join(rows) + "\n"
 
 
 def _render_command_page(helpdct: dict, title: str | None = None) -> str:
     command = helpdct["command"]
-    options = {opt.name: _param_metadata(opt) for opt in helpdct.get("params", [])}
-    description = (command.help or "").strip()
+    options = {}
+    for opt in helpdct.get("params", []):
+        metadata = _param_metadata(opt)
+        metadata["usage"] = _option_usage(opt)
+        metadata["type"] = _type_name(opt.type)
+        metadata["default"] = _default_value(opt.default)
+        options[opt.name] = metadata
+    description = _normalise_text(command.help)
     heading = title or command.name
     body = md_base_template.format(
-        usage=helpdct.get("usage"),
+        usage=(helpdct.get("usage") or "").strip(),
         options=_format_options(options),
-        help=helpdct.get("help"),
+        help=(helpdct.get("help") or "").strip(),
     )
     if description:
         return f"# {heading}\n\n{description}\n{body}"
@@ -117,6 +160,8 @@ def _iter_command_docs(base_command):
         }
 
         if cmd is not base_command:
+            if cmd.hidden:
+                return
             full_path = path + (cmd.name,)
             yield helpdct, full_path
 
@@ -146,8 +191,8 @@ def dump_helper(base_command, docs_dir) -> list[str]:
         written.append(command_path)
 
     index_lines = [
-        "# Command Reference\n",
-        f"Auto-generated reference for `{root_name}` subcommands.\n",
+        "# Command Reference\n\n",
+        f"Auto-generated reference for `{root_name}` subcommands.\n\n",
     ]
     for command_path in sorted(written, key=_command_doc_slug):
         display_name = " ".join(command_path)

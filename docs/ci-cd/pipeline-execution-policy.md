@@ -78,8 +78,12 @@ policy::gitlab-compliance:
     COMPLIANCE_POLICIES: policies/security
   script:
     - pip install --quiet gitlab-compliance
-    - gitlab-compliance check -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
-        --project "$CI_PROJECT_PATH" --strict
+    - >-
+      gitlab-compliance check
+      -f "$COMPLIANCE_POLICIES"
+      -p .gitlab-ci.yml
+      --project "$CI_PROJECT_PATH"
+      --strict
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -116,7 +120,7 @@ policy_scope:
 Pipeline execution policy pipelines run in **isolation** from the member
 project's `.gitlab-ci.yml`. Implications:
 
-- `CI_PROJECT_PATH` and `CI_JOB_TOKEN` refer to the **member project** — API
+- `CI_PROJECT_PATH` and `CI_JOB_TOKEN` refer to the **member project** - API
   checks work as expected.
 - Custom variables defined only in a member project's `.gitlab-ci.yml` are
   **not** available to the policy job. Define overrides as **project or group
@@ -128,7 +132,7 @@ project's `.gitlab-ci.yml`. Implications:
 
 The injected job enforces
 [`execution-policy.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/execution-policy.feature)
-against each member project's `.gitlab-ci.yml` — catching deploy jobs without
+against each member project's `.gitlab-ci.yml` - catching deploy jobs without
 `rules:` and weak `when: always` guards.
 
 See [Execution Policy](../examples/execution-policy.md) for the policy
@@ -136,9 +140,9 @@ definition and project-level alternative.
 
 ## Related
 
-- [GitLab CI/CD consumption](gitlab-ci.md) — project-level jobs and shared
+- [GitLab CI/CD consumption](gitlab-ci.md) - project-level jobs and shared
   templates
-- [Examples index](../examples/index.md) — all policy types and consumption
+- [Examples index](../examples/index.md) - all policy types and consumption
   patterns
 
 Back to [Using in CI/CD](index.md).

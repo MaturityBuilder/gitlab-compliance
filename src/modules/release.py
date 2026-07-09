@@ -290,8 +290,7 @@ def print_release_preview(commits) -> None:
 @click.option("--no-write", is_flag=True, help="Skip writing Markdown files")
 def release_notes(token, url, projects, since_tag, markdown_dir, no_write):
     """
-    Generate release notes for multiple GitLab projects based on commits since the last tag.
-    Optionally outputs Markdown files.
+    Generate release notes for GitLab projects and optionally write Markdown files.
     """
     gl = gitlab.Gitlab(url, private_token=token)
     gl.auth()

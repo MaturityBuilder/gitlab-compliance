@@ -1,40 +1,32 @@
+# gitlab-compliance
+
 ![gitlab-compliance by MaturityBuilder](assets/logo-light.png)
 
-<div class="mb-hero" markdown="1">
+`gitlab-compliance` is a lightweight compliance and documentation toolkit for
+GitLab CI/CD. It runs readable Gherkin policies against `.gitlab-ci.yml`, can
+include GitLab API-backed project or group checks, and can generate pipeline
+reference documentation from the same YAML file.
 
-<p class="mb-byline">GitLab Compliance</p>
-<hr class="mb-hero-divider" />
-<p class="mb-hero-brand">MaturityBuilder</p>
-<p class="mb-tagline">BDD compliance testing for GitLab CI/CD pipelines and project settings</p>
+Use it when you need to catch policy drift before merge, document how a pipeline
+is assembled, or distribute reusable compliance rules across projects.
 
-<div class="mb-hero-cta" markdown="1">
-[Get started](installation/index.md){ .md-button .md-button--primary }
-[Usage reference](usage/index.md){ .md-button }
-[BDD grammar](bdd-reference/index.md){ .md-button }
-</div>
-
-</div>
-
-`gitlab-compliance` (PyPI package
-[`gitlab-compliance`](https://pypi.org/project/gitlab-compliance/)) is a
-lightweight, security and compliance focused test framework for GitLab CI/CD. It
-runs Gherkin policies against `.gitlab-ci.yml` and optional GitLab API settings.
- You can also generate markdown documentation for your gitlab pipelines.
-
-— the same BDD model as
-[terraform-compliance](https://terraform-compliance.com/) uses for Terraform
-plans.
-Source code:
-[MaturityBuilder/gitlab-compliance](https://github.com/MaturityBuilder/gitlab-compliance).
+| Start here | Purpose |
+| ---------- | ------- |
+| [Installation](installation/index.md) | Install with pip or run the container image |
+| [Usage](usage/index.md) | Run compliance checks and generate pipeline docs |
+| [Command reference](usage/reference/command-reference.md) | Review current CLI commands and options |
+| [BDD reference](bdd-reference/index.md) | Write policies with supported Gherkin steps |
+| [Examples](examples/index.md) | Copy ready-to-adapt policies and CI snippets |
 
 ## Get started
 
-`gitlab-compliance` supports two core workflows from the same pipeline YAML:
+`gitlab-compliance` supports these core workflows from the same pipeline YAML:
 
 | Workflow | Command | What it does |
 | -------- | ------- | ------------ |
-| **Compliance** | [`check`](usage/reference/check.md) | Run Gherkin policies against `.gitlab-ci.yml` (and optional GitLab API settings) |
-| **Documentation** | [`generate`](usage/reference/generate.md) | Build Markdown, swagger-markdown, or HTML reference docs from `.gitlab-ci.yml` |
+| Compliance | [`check`](usage/reference/check.md) | Runs Gherkin policies against pipeline YAML and optional GitLab API settings |
+| Documentation | [`generate`](usage/reference/generate.md) | Builds Markdown, swagger-markdown, or HTML reference docs from pipeline YAML |
+| Policy bundles | [`policies`](usage/reference/policies.md) | Builds policy catalogs and moves policy packs to or from OCI registries |
 
 ```bash
 pip install gitlab-compliance
@@ -47,34 +39,39 @@ gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeli
 gitlab-compliance generate -i .gitlab-ci.yml --exclude variables,image --group-by stage
 ```
 
-See [Usage](usage/index.md) for compliance options and [Generate pipeline documentation](usage/reference/generate.md) for output formats, `--exclude`, and `--group-by`.
+See [Usage](usage/index.md) for compliance options and
+[Generate pipeline documentation](usage/reference/generate.md) for output
+formats, `--exclude`, and `--group-by`.
 
-- **compliance:** Ensure pipeline YAML and project settings follow your security
+## What it helps with
+
+- **Compliance:** Ensure pipeline YAML and project settings follow your security
   standards and custom policies
-- **behaviour driven development:** Policies are readable Gherkin scenarios that
+- **Behavior-driven development:** Policies are readable Gherkin scenarios that
   developers and security teams share
-- **portable:** Install from `pip`. See [Installation](installation/index.md)
-- **pre-merge:** Validate configuration before changes land on protected
+- **Portable:** Install from `pip` or run the container image. See
+  [Installation](installation/index.md)
+- **Pre-merge:** Validate configuration before changes land on protected
   branches
 - **YAML and API:** Offline checks against pipeline files; optional GitLab API
   checks for project settings and CI variables
-- **easy to integrate:** Run in GitLab CI or local git hooks
-- **segregation of duty:** Keep policy packs in a separate repository or OCI
+- **Easy to integrate:** Run in GitLab CI, GitHub Actions, or local git hooks
+- **Segregation of duty:** Keep policy packs in a separate repository or OCI
   registry
-- **documentation:** Generate Markdown or HTML reference docs from
+- **Documentation:** Generate Markdown or HTML reference docs from
   `.gitlab-ci.yml`
 
 ## Idea
 
 `gitlab-compliance` focuses on [negative
-testing](https://en.wikipedia.org/wiki/Negative_testing) — catching
-misconfigurations and policy violations — rather than proving that a job runs
-successfully end to end.
+testing](https://en.wikipedia.org/wiki/Negative_testing) - catching
+misconfigurations and policy violations - rather than proving that a job runs
+successfully end-to-end.
 
 GitLab CI pipelines are defined in YAML that composes jobs, includes, variables,
 and workflow rules. What was missing is a lightweight way to assert that this
 configuration follows organizational standards before merge. GitLab offers
-native compliance features in higher tiers; `gitlab-compliance` provides an
+native compliance features in higher tiers. `gitlab-compliance` provides an
 open, portable alternative inspired by
 [terraform-compliance](https://terraform-compliance.com/) and
 [Conftest](https://www.conftest.dev/).
@@ -108,7 +105,7 @@ so merge requests cannot introduce violations.
 
 See [Examples](examples/index.md) for more sample use cases.
 
-## Supporting / Requirements
+## Requirements
 
 - **Python:** 3.12 (see [Installing via pip](installation/pip.md))
 - **Pipeline file:** `.gitlab-ci.yml` or another path passed with `-p`
@@ -120,4 +117,4 @@ Reference](bdd-reference/index.md).
 
 ## How can you support the project?
 
-Contributions are welcome — see [Contributing](contributing.md).
+Contributions are welcome - see [Contributing](contributing.md).

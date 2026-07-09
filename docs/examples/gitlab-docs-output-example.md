@@ -1,8 +1,7 @@
 # Pipeline documentation example
 
-Sample `generate` output.
+Sample `generate` output for a GitLab CI pipeline.
 
-<!-- gitlab-compliance-opening-auto-generated -->
 ## GITLAB COMPLIANCE - .gitlab-ci.yml
 
 ## Inputs
@@ -26,7 +25,7 @@ Sample `generate` output.
 
 ## Jobs
 
-### TEMPLATE · .TEST:RULES
+### TEMPLATE - .TEST:RULES
 
 | **Attribute** | **Value** |
 | ------------- | --------- |
@@ -38,11 +37,11 @@ Sample `generate` output.
 | 2      | $CI_PIPELINE_SOURCE == "merge_request_event" |       |
 | 3      | $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      |       |
 
-### JOB · MEGALINTER
+### JOB - MEGALINTER
 
-- ****allow_failure**:** `True`
-- ****extends**:** `1. .test:rules`
-- ****image**:**
+- **allow_failure:** `True`
+- **extends:** `1. .test:rules`
+- **image:**
   `oxsecurity/megalinter-ci_light@sha256:54e221da51b3fb959dfd4fc5e21920e0a0fa339ba68e0e9162b894a01a52ed34`
 
 - **Rule # 1**
@@ -52,7 +51,7 @@ Sample `generate` output.
 | ------------- | ----------------- | --------------- |
 | variables     | DEFAULT_WORKSPACE | $CI_PROJECT_DIR |
 
-### JOB · BEHAVE-TESTS
+### JOB - BEHAVE-TESTS
 
 | **Attribute** | **Value**      |
 | ------------- | -------------- |
@@ -62,37 +61,37 @@ Sample `generate` output.
 | ------------- | ------------------------- | --------- |
 | variables     | POETRY_VIRTUALENVS_CREATE | false     |
 
-### JOB · BUMP-VERSION
+### JOB - BUMP-VERSION
 
-- ****image**:**
+- **image:**
   `python@sha256:c1a5d356638cc86bd865d9019efbc34a6b0c3ad15a21e5ab4eb57bd2d1c3f7ce`
-- ****stage**:** `publish`
+- **stage:** `publish`
 
 | Rule # | if                          |
 | ------ | --------------------------- |
 | 1      | $CI_COMMIT_BRANCH == "main" |
 
-### TEMPLATE · .BUILD:PYTHON
+### TEMPLATE - .BUILD:PYTHON
 
 | **Attribute**   | **Value** |
 | --------------- | --------- |
 | **environment** | release   |
 | **stage**       | build     |
 
-### JOB · TEST-BUILD
+### JOB - TEST-BUILD
 
-- ****extends**:**
+- **extends:**
   1. .build:python
   2. .test:rules
 
-### JOB · DOCS:REVIEW
+### JOB - DOCS:REVIEW
 
-- ****extends**:**
+- **extends:**
   1. .docs:zensical
   2. .test:rules
-- ****stage**:** `build`
+- **stage:** `build`
 
-### JOB · PAGES
+### JOB - PAGES
 
 | **Attribute** | **Value**      |
 | ------------- | -------------- |
@@ -103,7 +102,7 @@ Sample `generate` output.
 | ------ | --------------------------------------- |
 | 1      | $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH |
 
-### JOB · PUBLISH
+### JOB - PUBLISH
 
 | **Attribute**   | **Value** |
 | --------------- | --------- |
@@ -115,16 +114,15 @@ Sample `generate` output.
 | ------ | -------------- |
 | 1      | $CI_COMMIT_TAG |
 
-### JOB · DOCKER-BUILD
+### JOB - DOCKER-BUILD
 
-- ****image**:**
+- **image:**
   `docker@sha256:66d292e5c26bd33a6f6f61cacb880de2186339a524ecba1ce098dbbaceed6515`
-- ****services**:**
+- **services:**
   `1. docker@sha256:66d292e5c26bd33a6f6f61cacb880de2186339a524ecba1ce098dbbaceed6515`
-- ****stage**:** `build`
-- ****tags**:** `1. gitlab-org-docker`
+- **stage:** `build`
+- **tags:** `1. gitlab-org-docker`
 
 | Rule # | if                                    |
 | ------ | ------------------------------------- |
 | 1      | $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG |
-<!-- gitlab-compliance-closing-auto-generated -->

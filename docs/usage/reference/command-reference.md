@@ -3,9 +3,7 @@
 Auto-generated reference for `gitlab-compliance` subcommands.
 
 - [check](check.md)
-- [dumps](dumps.md)
 - [generate](generate.md)
-- [generate-html](generate-html.md)
 - [get-attributes](get-attributes.md)
 - [policies](policies.md)
 - [policies doc](policies-doc.md)

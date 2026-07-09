@@ -61,11 +61,11 @@ Minimal consumer example:
 
 ## Policy source options
 
-- **Local directory:** `-f policies/security/` — Default for most projects
+- **Local directory:** `-f policies/security/` - Default for most projects
 - **OCI registry:**
   - `-f oci://registry/...`
   - See [OCI Policy Packs](../examples/oci-policy-packs.md)
-- **Git include:** Vendor policies via `include:project` — Central security repo
+- **Git include:** Vendor policies via `include:project` - Central security repo
 
 OCI consumption:
 
@@ -88,7 +88,7 @@ compliance:
 Use for [API hardening](../examples/api-hardening.md) and when `--strict` must
 fail skipped API scenarios.
 
-**Include release checks** only need a token — `--project` is not required for
+**Include release checks** only need a token - `--project` is not required for
 comparing pinned include refs against GitLab tags. Token is still required:
 
 ```yaml
@@ -125,8 +125,13 @@ comment-compliance:
   image: python:3.12
   script:
     - pip install gitlab-compliance
-    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-        --format mr-comment -o comment.md || true
+    - >-
+      gitlab-compliance check
+      -f policies/security/
+      -p .gitlab-ci.yml
+      --format mr-comment
+      -o comment.md
+      || true
     - |
       curl --request POST \
         --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
