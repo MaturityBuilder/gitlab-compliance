@@ -123,7 +123,6 @@ Usage: gitlab-compliance check [OPTIONS]```
 
   Show this message and exit.
 
-
 ## CLI Help
 
 ```text
