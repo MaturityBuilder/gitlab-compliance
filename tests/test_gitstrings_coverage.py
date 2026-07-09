@@ -175,6 +175,40 @@ class TestGitstringsYamlAndRender:
         root = _load_yaml_root("---\n- one\n---\n- two\n")
         assert "documents" in root
 
+    def test_load_yaml_root_gitlab_reference_tag(self):
+        text = """job:
+  script:
+    - !reference [.base, script]
+.base:
+  script: echo hi
+"""
+        root = _load_yaml_root(text)
+        assert root["job"]["script"] == [None]
+        assert root[".base"]["script"] == "echo hi"
+
+    def test_load_pipeline_root_uses_full_ci_with_reference_tag(self, tmp_path):
+        ci = tmp_path / ".gitlab-ci.yml"
+        ci.write_text(
+            """variables:
+  FROM_FULL_CI: top-level
+.base:
+  script: echo hi
+megalinter:
+  script:
+    - !reference [.base, script]
+# @title Megalinter script
+# @render megalinter.script
+megalinter:
+  script:
+    - !reference [.base, script]
+""",
+            encoding="utf-8",
+        )
+        fragment = {"megalinter": {"script": ["fragment-only"]}}
+        loaded = gs._load_pipeline_root(ci, fragment)
+        assert loaded.get("variables", {}).get("FROM_FULL_CI") == "top-level"
+        assert ".base" in loaded
+
     def test_detect_render_mode_jobs_and_path(self):
         jobs_doc = {"build": {"stage": "test", "script": ["echo"]}}
         assert detect_render_mode(jobs_doc, "auto") == "jobs"

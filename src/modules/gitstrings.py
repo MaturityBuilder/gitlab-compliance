@@ -19,6 +19,7 @@ from src.modules.constants import (
     GITSTRINGS_MARKER_OPEN,
     GITSTRINGS_MARKER_OPEN_LEGACY,
 )
+from src.modules.common import EnvLoader
 from src.modules.doc_controller import update_marked_block
 from src.modules.logging import logger
 
@@ -484,9 +485,13 @@ def _load_yaml_root(text: str) -> object:
     inputs followed by ``---`` and the actual pipeline body. PyYAML's
     ``safe_load`` raises ``ComposerError`` for that shape, so load all documents
     and merge mapping documents into a single root for path/table rendering.
+    ``EnvLoader`` matches ``generate`` / ``read_yml`` and accepts GitLab tags
+    such as ``!reference``.
     """
     documents = [
-        document for document in yaml.safe_load_all(text) if document is not None
+        document
+        for document in yaml.load_all(text, Loader=EnvLoader)
+        if document is not None
     ]
     if not documents:
         return {}
