@@ -1,5 +1,4 @@
 from src.modules.gitstrings import (
-    extract_gitstrings_blocks,
     parse_directives,
     render_fragment,
 )
