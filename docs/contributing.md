@@ -9,6 +9,7 @@ git clone https://github.com/MaturityBuilder/gitlab-compliance.git
 cd gitlab-compliance
 poetry install --with docs
 poetry run gitlab-compliance --help
+
 ```
 
 ## Tests
@@ -16,6 +17,7 @@ poetry run gitlab-compliance --help
 ```bash
 poetry run pytest
 poetry run behave
+
 ```
 
 ## Pre-commit
@@ -24,6 +26,7 @@ poetry run behave
 poetry install
 bash scripts/setup-git-hooks.sh
 poetry run pre-commit run --all-files
+
 ```
 
 After `setup-git-hooks.sh`, every `git commit` runs `poetry run pre-commit run` on staged files via `.githooks/pre-commit` (`core.hooksPath`).
@@ -32,12 +35,14 @@ For the same check CI uses (entire tree):
 
 ```bash
 bash scripts/pre-commit-check.sh
+
 ```
 
 To commit only after that passes:
 
 ```bash
 bash scripts/git-commit.sh -m "your message"
+
 ```
 
 Hooks are defined in
@@ -54,6 +59,7 @@ Docs are built with [Zensical](https://zensical.org/). Structure mirrors
 poetry install --with docs
 poetry run zensical serve
 poetry run zensical build --strict
+
 ```
 
 When adding pages:

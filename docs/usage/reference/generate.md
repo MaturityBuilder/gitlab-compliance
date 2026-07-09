@@ -71,7 +71,6 @@ Usage: gitlab-compliance generate [OPTIONS]```
 
   Show this message and exit.
 
-
 ## CLI Help
 
 ```text

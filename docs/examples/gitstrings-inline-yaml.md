@@ -4,7 +4,7 @@ Generate README tables from decorated YAML snippets without editing the rest of 
 
 ## Before
 
-```markdown
+````markdown
 # My CI template
 
 Include this component from your pipeline.
@@ -29,13 +29,13 @@ spec:
 ## Support
 
 Open an issue in the template repository.
-
-```
+````
 
 ## Run locally
 
 ```bash
 gitlab-compliance document gitstrings -i README.md
+
 ```
 
 ## After
