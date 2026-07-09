@@ -183,6 +183,27 @@ class TestGetAttributesCli:
         assert output_file.exists()
         assert output_file.stat().st_size > 0
 
+    def test_list_attributes_render_formatted_not_python_literal(self, tmp_path):
+        output_file = tmp_path / "attrs.md"
+        runner = CliRunner()
+        result = runner.invoke(
+            get_attributes,
+            [
+                "--input-config",
+                str(SAMPLE_PIPELINE),
+                "--output-file",
+                str(output_file),
+                "--attributes",
+                "extends",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        content = output_file.read_text()
+        # List-valued attributes must be formatted for the table, not dumped as
+        # Python list literals (e.g. "['.gitleaks-template']").
+        assert "['" not in content
+        assert "1. .gitleaks-template" in content
+
 
 class TestComplianceCli:
     def test_passing_policies_exit_zero(self):

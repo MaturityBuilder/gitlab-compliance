@@ -59,7 +59,7 @@ def get_job_attribute(
 
                     if a in jobs[j]:
 
-                        job_result.append(jobs[j][a])
+                        job_result.append(common.format_value(jobs[j][a]))
 
                     else:
                         job_result.append("Not Found")
