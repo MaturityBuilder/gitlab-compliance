@@ -37,7 +37,13 @@ and `.gitlab-ci.yml` (`behave-tests` job). Key ones:
   - `python3 -m poetry run coverage run -a -m pytest tests/ -v`
   - `python3 -m poetry run coverage report --fail-under 70`
   - (or individually: `python3 -m poetry run behave` and `python3 -m poetry run pytest tests/ -v`)
-- Lint: `python3 -m poetry run pre-commit run --all-files` (black, isort, flake8, bandit)
+- Lint: `pre-commit run --all-files` (black, isort, flake8, bandit). `pre-commit` is not a
+  project dependency — install it separately (`pip install --user pre-commit`). Note: the
+  black/isort/end-of-file-fixer/trailing-whitespace hooks **rewrite files in place**, so this
+  command will modify the working tree; `git restore .` to undo. On the current codebase
+  black/isort/flake8/bandit already report pre-existing findings (e.g. bandit's configured
+  path `gitlab_docs` does not exist — the package dir is `src`). Real CI lint uses MegaLinter
+  via `npx mega-linter-runner` (needs npm), and the `.gitlab-ci.yml` test job does not gate on lint.
 - Build (wheel/sdist): `python3 -m poetry build`
 - Docs site (optional): `python3 -m poetry run mkdocs serve` / `mkdocs build --strict`
 
