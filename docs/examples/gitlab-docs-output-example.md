@@ -3,6 +3,7 @@
 Sample `generate` output.
 
 <!-- gitlab-compliance-opening-auto-generated -->
+
 ## GITLAB COMPLIANCE - .gitlab-ci.yml
 
 ## Inputs
