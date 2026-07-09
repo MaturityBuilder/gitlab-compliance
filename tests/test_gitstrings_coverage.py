@@ -41,7 +41,6 @@ from src.modules.gitstrings import (
     write_gitstrings_block,
 )
 from src.properties import table_render as tr
-from src.properties.yaml_paths import normalize_legacy_render
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SAMPLE = REPO_ROOT / "examples/sample-files" / ".gitlab-ci.yml"
