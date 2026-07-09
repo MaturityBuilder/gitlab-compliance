@@ -205,8 +205,13 @@ class TestGitstringsYamlAndRender:
         assert _count_variables_for_path(root, "job.variables.A") == 1
         assert _count_variables_for_path(root, "missing") == 0
 
-    def test_normalize_legacy_include_alias(self):
-        assert normalize_legacy_render("include") == "includes"
+    def test_include_render_uses_path_mode(self):
+        from src.properties.yaml_paths import is_legacy_render_mode, normalize_legacy_render
+
+        assert not is_legacy_render_mode("include")
+        assert normalize_legacy_render("include") == "auto"
+        assert is_legacy_render_mode("includes")
+        assert normalize_legacy_render("includes") == "includes"
 
     def test_resolve_fragment_output_honor_false(self, tmp_path):
         directives = GitstringsDirectives(output="other.md")

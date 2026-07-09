@@ -242,8 +242,7 @@ def parse_directives(raw_block: str) -> tuple[GitstringsDirectives, str]:
         elif name == "render":
             raw = (value or "auto").strip()
             if "." not in raw and raw.lower() in RENDER_MODES:
-                lowered = raw.lower()
-                directives.render = "includes" if lowered == "include" else lowered
+                directives.render = raw.lower()
             else:
                 directives.render = raw or "auto"
         elif name == "sensitive":

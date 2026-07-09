@@ -126,7 +126,7 @@ include:
     file: ci/workflow.yml
 ```
 
-Use `@render include` as an alias for `includes`. With `-i` set to a CI YAML file, `@render include` also resolves the full file’s `include` key when using path mode.
+Use `@render includes` for legacy fragment mode (the fenced `include` list in the block). Use `@render include` for **path mode** on the top-level `include` key — with `-i` set to a CI YAML file, that resolves the full file’s `include` list (not only the annotated fragment).
 
 #### `--include-nested` scope (on disk only)
 

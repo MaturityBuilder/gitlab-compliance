@@ -460,9 +460,31 @@ stages:
 """
     blocks = extract_gitstrings_blocks_from_ci_yaml(ci)
     assert len(blocks) == 1
-    assert blocks[0].directives.render == "includes"
+    assert blocks[0].directives.render == "include"
     out = render_fragment(blocks[0], keep_source=False)
     assert "a.yml" in out
+    assert "|" in out
+
+
+def test_render_include_path_uses_ci_top_level_include(tmp_path):
+    ci = tmp_path / ".gitlab-ci.yml"
+    ci.write_text(
+        """include:
+  - local: full-ci.yml
+megalinter:
+  script: ["true"]
+# @title Pipeline includes
+# @render include
+megalinter:
+  script: ["true"]
+""",
+        encoding="utf-8",
+    )
+    from src.modules.gitstrings import extract_gitstrings_blocks_from_ci_yaml
+
+    block = extract_gitstrings_blocks_from_ci_yaml(ci.read_text(encoding="utf-8"))[0]
+    out = render_fragment(block, keep_source=False, scan_path=ci)
+    assert "full-ci.yml" in out
     assert "|" in out
 
 
