@@ -87,6 +87,21 @@ image:
     assert blocks[1].directives.render == "variables"
 
 
+def test_extract_ci_yaml_block_with_leading_description():
+    ci = """# @description
+#   Intro prose for variables.
+# @title Vars
+# @render variables
+variables:
+  APP: one
+"""
+    blocks = extract_gitstrings_blocks_from_ci_yaml(ci)
+    assert len(blocks) == 1
+    assert blocks[0].directives.title == "Vars"
+    assert blocks[0].directives.description == "Intro prose for variables."
+    assert blocks[0].raw_body.startswith("# @description")
+
+
 def test_process_gitstrings_from_gitlab_ci_yml(tmp_path):
     ci = tmp_path / ".gitlab-ci.yml"
     readme = tmp_path / "README.md"

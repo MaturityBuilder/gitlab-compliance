@@ -31,8 +31,13 @@ DIRECTIVE_LINE_RE = re.compile(
     r"^\s*#\s*@(?P<name>[a-zA-Z0-9_-]+)(?:\s+(?P<value>.*))?\s*$"
 )
 
-CI_BLOCK_START_RE = re.compile(
+CI_BLOCK_ANCHOR_RE = re.compile(
     r"^\s*#\s*@(?:title|render|output(?:-file)?|sensitive)\b",
+    re.IGNORECASE,
+)
+
+CI_BLOCK_START_RE = re.compile(
+    r"^\s*#\s*@(?:title|render|output(?:-file)?|sensitive|description)\b",
     re.IGNORECASE,
 )
 
@@ -399,7 +404,7 @@ def _split_ci_decorated_block(
 
 
 def extract_gitstrings_blocks_from_ci_yaml(text: str) -> list[GitstringsBlock]:
-    """Find `# @title` / `# @render` / `# @output` decorated sections in CI YAML."""
+    """Find decorated gitstrings sections in CI YAML (`# @title`, `# @render`, etc.)."""
     lines = text.splitlines()
     blocks: list[GitstringsBlock] = []
     index = 0
@@ -412,6 +417,9 @@ def extract_gitstrings_blocks_from_ci_yaml(text: str) -> list[GitstringsBlock]:
             index += 1
             continue
         header, yaml_lines, end_idx = split
+        if not any(CI_BLOCK_ANCHOR_RE.match(line) for line in header):
+            index += 1
+            continue
         raw_body = "\n".join(header + yaml_lines).strip()
         if not raw_body:
             index = end_idx
