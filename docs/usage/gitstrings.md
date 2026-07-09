@@ -71,6 +71,7 @@ Only fences tagged `yaml gitstrings` are processed. Ordinary ` ```yaml ` blocks 
 # @render variables
 variables:
   APPLICATION: my-app
+
 ```
 ````
 

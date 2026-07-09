@@ -11,6 +11,7 @@ spec:
       default: test
       description: |
         Default stage for jobs that extend `.test:rules` in this pipeline.
+
 ```
 
 ```yaml gitstrings
@@ -21,6 +22,7 @@ variables:
     value: docker
     description: |
       Runner implementation label for sample jobs.
+
 ```
 
 <!-- gitlab-compliance-gitstrings-opening-auto-generated -->

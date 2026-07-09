@@ -20,6 +20,7 @@ spec:
       default: test
       description: |
         Stage for the compliance job.
+
 ```
 
 <!-- gitlab-compliance-gitstrings-opening-auto-generated -->
