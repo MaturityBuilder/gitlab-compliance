@@ -154,6 +154,30 @@ If you export the project as CSV or grant the automation account **Issues: Read*
 
 ## Cloud agent GitHub access (troubleshooting)
 
+### Preferred: `GITHUB_ISSUES` runtime secret
+
+Cloud Agents use **`cursor[bot]`** by default, which cannot list or edit issues. Add a **Runtime Secret** named **`GITHUB_ISSUES`** (PAT with **Issues** and **Projects** read, plus **repo** access to `MaturityBuilder/gitlab-compliance`) on your [Cloud Agent environment](https://cursor.com/dashboard/cloud-agents/environments/r/github.com/maturitybuilder/gitlab-compliance).
+
+This repository wires that secret at VM start:
+
+- `.cursor/environment.json` — runs `bash .cursor/setup-github-issues-auth.sh` on **start**
+- `.cursor/setup-github-issues-auth.sh` — `gh auth login --with-token` from `$GITHUB_ISSUES`
+
+After adding or changing the secret, run **Update Existing Env** in the dashboard, then start a **new** agent run.
+
+Manual login in an already-running agent:
+
+```bash
+source scripts/gh-issues-auth.sh
+gh auth status
+gh issue list -R MaturityBuilder/gitlab-compliance --limit 10
+gh project item-list 3 --owner MaturityBuilder --format json
+```
+
+Do not echo or commit the PAT. `gh` does not read `GITHUB_ISSUES` automatically; the start hook maps it to `gh auth login`.
+
+### App installation (optional, in addition to PAT)
+
 Cursor Cloud Agents call GitHub as **`cursor[bot]`** (GitHub App installation token), not your personal account. App settings in the UI can show **Issues: Read & write** while the **org installation** still blocks the bot until permissions are approved for `MaturityBuilder/gitlab-compliance`.
 
 Symptoms in the agent environment:
