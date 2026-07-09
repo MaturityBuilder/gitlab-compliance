@@ -11,7 +11,7 @@
 	// "forwardPorts": [],
 
 	// 👇 Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "",
+	"postCreateCommand": "poetry install --with docs && bash scripts/setup-git-hooks.sh",
 
 	// 👇 Configure tool-specific properties.
 	"customizations": {

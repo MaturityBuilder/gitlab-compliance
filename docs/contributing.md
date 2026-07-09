@@ -22,8 +22,22 @@ poetry run behave
 
 ```bash
 poetry install
-poetry run pre-commit install
+bash scripts/setup-git-hooks.sh
 poetry run pre-commit run --all-files
+```
+
+After `setup-git-hooks.sh`, every `git commit` runs `poetry run pre-commit run` on staged files via `.githooks/pre-commit` (`core.hooksPath`).
+
+For the same check CI uses (entire tree):
+
+```bash
+bash scripts/pre-commit-check.sh
+```
+
+To commit only after that passes:
+
+```bash
+bash scripts/git-commit.sh -m "your message"
 ```
 
 Hooks are defined in

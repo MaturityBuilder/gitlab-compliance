@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Run the same hooks as CI before each commit (staged files only).
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+if ! command -v poetry >/dev/null 2>&1; then
+  echo "pre-commit hook: Poetry is not installed or not on PATH." >&2
+  echo "  Install Poetry, then: poetry install && bash scripts/setup-git-hooks.sh" >&2
+  echo "  Or run checks manually: bash scripts/pre-commit-check.sh" >&2
+  exit 1
+fi
+
+exec poetry run pre-commit run
