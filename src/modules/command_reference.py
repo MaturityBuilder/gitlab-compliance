@@ -53,6 +53,8 @@ gitlab-compliance generate -i .gitlab-ci.yml --format html -o public/index.html
 
 ### Markdown output
 
+![Animated Markdown output preview](../../assets/command-reference/markdown-output-demo.gif)
+
 ```markdown
 ## GITLAB COMPLIANCE - .gitlab-ci.yml
 
@@ -77,7 +79,9 @@ gitlab-compliance generate -i .gitlab-ci.yml --format html -o public/index.html
 | stage     | test  |
 ```
 
-### HTML output
+### Swagger-style HTML output
+
+![Animated Swagger-style HTML output preview](../../assets/command-reference/swagger-output-demo.gif)
 
 ```html
 <!DOCTYPE html>
