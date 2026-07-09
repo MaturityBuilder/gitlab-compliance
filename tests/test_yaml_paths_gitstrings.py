@@ -41,6 +41,26 @@ def test_render_path_single_job_variable():
     assert "skip-me" not in md
 
 
+def test_render_path_variable_value_leaf_uses_parent_key():
+    pipeline = {
+        "MEGALINTER": {
+            "variables": {
+                "mode": {"value": "secret-token", "description": "Run mode"},
+            }
+        }
+    }
+    md = render_path_markdown(
+        pipeline,
+        "megalinter.variables.mode.value",
+        sensitive_paths=["megalinter.variables.mode.value"],
+    )
+    assert "| mode |" in md
+    assert "| value |" not in md
+    assert "secret-token" not in md
+    assert "****" in md
+    assert "Run mode" in md
+
+
 def test_render_path_parent_variables():
     pipeline = {
         "variables": {"APP": "my-app"},

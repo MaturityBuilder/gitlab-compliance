@@ -411,6 +411,20 @@ def render_path_markdown(
         )
 
     if ".inputs." in path:
+        if (
+            last == "default"
+            and len(segments) >= 2
+            and segments[-2] != "inputs"
+        ):
+            input_key = segments[-2]
+            parent = ".".join(segments[:-2])
+            input_entry = yaml_paths.resolve_yaml_path(root, ".".join(segments[:-1]))
+            if isinstance(input_entry, dict):
+                return render_inputs_table(
+                    {input_key: input_entry},
+                    path_prefix=parent,
+                    sensitive_paths=sensitive_paths,
+                )
         parent = ".".join(segments[:-1])
         return render_inputs_table(
             {last: node},
@@ -425,6 +439,20 @@ def render_path_markdown(
         )
 
     if ".variables." in path:
+        if (
+            last == "value"
+            and len(segments) >= 2
+            and segments[-2] != "variables"
+        ):
+            var_key = segments[-2]
+            parent = ".".join(segments[:-2])
+            var_entry = yaml_paths.resolve_yaml_path(root, ".".join(segments[:-1]))
+            if isinstance(var_entry, dict):
+                return render_variables_table(
+                    {var_key: var_entry},
+                    path_prefix=parent,
+                    sensitive_paths=sensitive_paths,
+                )
         parent = ".".join(segments[:-1])
         return render_variables_table(
             {last: node},
