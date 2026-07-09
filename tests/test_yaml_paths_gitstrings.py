@@ -153,8 +153,60 @@ megalinter:
     out = render_fragment(block, keep_source=False, scan_path=ci)
 
     assert "Megalinter" in out
+    assert "Limited render" in out
+    assert "Selected variable count: 1 variable" in out
     assert "megalinter-reports" in out
     assert "DEFAULT_WORKSPACE" in out
     assert "$CI_PROJECT_DIR" not in out
     assert "****" in out
     assert "allow_failure" not in out
+
+
+def test_render_job_rules_explains_ordered_evaluation():
+    pipeline = {
+        "megalinter": {
+            "rules": [
+                {
+                    "if": "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH",
+                    "when": "manual",
+                }
+            ]
+        }
+    }
+
+    md = render_path_markdown(pipeline, "megalinter.rules")
+
+    assert "Job rules are evaluated in order" in md
+    assert "$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH" in md
+    assert "manual" in md
+
+
+def test_render_workflow_rules_explains_pipeline_creation():
+    pipeline = {
+        "workflow": {
+            "rules": [
+                {"if": "$CI_PIPELINE_SOURCE == \"merge_request_event\""},
+                {"when": "never"},
+            ]
+        }
+    }
+
+    md = render_path_markdown(pipeline, "workflow.rules")
+
+    assert "Workflow rules are evaluated in order" in md
+    assert "whether the pipeline runs" in md
+    assert "$CI_PIPELINE_SOURCE" in md
+
+
+def test_render_workflow_block_explains_rules():
+    pipeline = {
+        "workflow": {
+            "name": "MR pipeline",
+            "rules": [{"when": "always"}],
+        }
+    }
+
+    md = render_path_markdown(pipeline, "workflow")
+
+    assert "Workflow rules are evaluated in order" in md
+    assert "MR pipeline" in md

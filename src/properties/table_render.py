@@ -191,12 +191,60 @@ def render_variables_table(
     return common.markdown_table_from_prettytable(table)
 
 
+def _rule_value(rule: dict, key: str) -> str:
+    value = rule.get(key)
+    if value is None:
+        return ""
+    return _gitstrings_table_cell(value)
+
+
+def render_rules_table(rules: list, *, context: str = "job") -> str:
+    """Render GitLab job or workflow rules with a short behavior note."""
+    if context == "workflow":
+        note = (
+            "> Workflow rules are evaluated in order before jobs are created; "
+            "the first matching rule decides whether the pipeline runs.\n"
+        )
+    else:
+        note = (
+            "> Job rules are evaluated in order; the first matching rule decides "
+            "whether the job is added to the pipeline and which `when` behavior applies.\n"
+        )
+
+    headers = ["Rule", "If", "When", "Changes", "Exists", "Allow failure"]
+    table = common.table_design(
+        headers=headers,
+        field_names=headers,
+        column_align={header: "l" for header in headers},
+    )
+    for index, rule in enumerate(rules, start=1):
+        if not isinstance(rule, dict):
+            table.add_row([index, _gitstrings_table_cell(rule), "", "", "", ""])
+            continue
+        table.add_row(
+            [
+                index,
+                _rule_value(rule, "if"),
+                _rule_value(rule, "when"),
+                _rule_value(rule, "changes"),
+                _rule_value(rule, "exists"),
+                _rule_value(rule, "allow_failure"),
+            ]
+        )
+    return note + "\n" + common.markdown_table_from_prettytable(table)
+
+
 def render_jobs_table(jobs: dict) -> str:
     parts = []
     for name, definition in jobs.items():
         if not isinstance(definition, dict):
             continue
         parts.append(f"### {name}\n")
+        if isinstance(definition.get("rules"), list):
+            parts.append(
+                "> This job defines `rules`; see the `rules` attribute for the "
+                "ordered conditions that control when it is added to a pipeline.\n"
+            )
         headers = ["Attribute", "Value"]
         table = common.table_design(
             headers=headers,
@@ -278,6 +326,25 @@ def render_path_markdown(
         return render_variables_table(
             node, path_prefix=path, sensitive_paths=sensitive_paths
         )
+
+    if last == "rules" and isinstance(node, list):
+        context = "workflow" if segments[:2] == ["workflow", "rules"] else "job"
+        return render_rules_table(node, context=context)
+
+    if path == "workflow" and isinstance(node, dict) and isinstance(
+        node.get("rules"), list
+    ):
+        parts = [render_rules_table(node["rules"], context="workflow")]
+        remaining = {key: value for key, value in node.items() if key != "rules"}
+        if remaining:
+            parts.append(
+                render_generic_kv_table(
+                    remaining,
+                    path_prefix=path,
+                    sensitive_paths=sensitive_paths,
+                )
+            )
+        return "\n\n".join(parts)
 
     if len(segments) == 1 and isinstance(node, dict):
         return render_jobs_table({segments[0]: node})

@@ -372,6 +372,42 @@ def _render_path_specs(
     return "\n\n".join(parts)
 
 
+def _count_variables_for_path(root: dict, path_spec: str) -> int:
+    node = yaml_paths.resolve_yaml_path(root, path_spec)
+    if node is None:
+        return 0
+    segments = [segment for segment in path_spec.split(".") if segment]
+    last = segments[-1] if segments else ""
+
+    if last == "variables" and isinstance(node, dict):
+        return len(node)
+    if ".variables." in path_spec:
+        return 1
+    if isinstance(node, dict):
+        variables = node.get("variables")
+        if isinstance(variables, dict):
+            return len(variables)
+    return 0
+
+
+def _limited_render_note(root: dict, render_spec: str) -> str:
+    if yaml_paths.is_legacy_render_mode(render_spec) or render_spec == "auto":
+        return ""
+    rendered_paths = yaml_paths.parse_path_list(render_spec)
+    if not rendered_paths:
+        return ""
+
+    variable_count = sum(
+        _count_variables_for_path(root, path_spec) for path_spec in rendered_paths
+    )
+    path_text = ", ".join(f"`{path_spec}`" for path_spec in rendered_paths)
+    note = f"> Limited render: only {path_text} are included in this section."
+    if variable_count:
+        suffix = "variable" if variable_count == 1 else "variables"
+        note += f" Selected variable count: {variable_count} {suffix}."
+    return note + "\n"
+
+
 def render_fragment(
     block: GitstringsBlock,
     *,
@@ -383,11 +419,6 @@ def render_fragment(
 
     if directives.title:
         parts.append(f"## {directives.title}\n")
-    if directives.description:
-        for paragraph in directives.description.split("\n\n"):
-            paragraph = paragraph.strip()
-            if paragraph:
-                parts.append(paragraph + "\n")
 
     doc = _load_yaml_root(block.cleaned_yaml) if block.cleaned_yaml else {}
     if doc is None:
@@ -400,6 +431,15 @@ def render_fragment(
         pipeline_root = _load_pipeline_root(scan_path, doc)
 
     render_spec = directives.render or "auto"
+    if directives.description:
+        for paragraph in directives.description.split("\n\n"):
+            paragraph = paragraph.strip()
+            if paragraph:
+                parts.append(paragraph + "\n")
+    limited_note = _limited_render_note(pipeline_root, render_spec)
+    if limited_note:
+        parts.append(limited_note)
+
     if yaml_paths.is_legacy_render_mode(render_spec) or render_spec == "auto":
         mode = detect_render_mode(doc, render_spec)
         if mode == "path":
