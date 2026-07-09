@@ -30,3 +30,8 @@ console script is available via `poetry run`.
   `files.pythonhosted.org` (and hook repos from `github.com`). If those domains
   are not allowlisted, dependency install and linting will fail with connection
   resets; add them under the agent's Network Access settings.
+- The `markdownlint-cli2` pre-commit hook pins Node `24.13.0` via
+  `default_language_version` and makes `pre-commit`/`nodeenv` download that Node
+  build from `nodejs.org` (the system Node is a different version and is not
+  used). Allowlist `nodejs.org` too, or run only the Python hooks (`black`,
+  `isort`, `flake8`, `bandit`) which need just PyPI/GitHub.
