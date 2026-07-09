@@ -5,7 +5,7 @@ from __future__ import annotations
 from configparser import ConfigParser
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import yaml
 
@@ -19,6 +19,7 @@ from src.modules.constants import (
 from src.modules.gitstrings import (
     GitstringsDirectives,
     _blob_url,
+    _count_variables_for_path,
     _find_git_dir,
     _git_ref,
     _limited_render_note,
@@ -26,11 +27,10 @@ from src.modules.gitstrings import (
     _looks_like_jobs_map,
     _read_head_ref,
     _read_origin_url,
-    _repo_url_without_credentials,
     _render_path_specs,
+    _repo_url_without_credentials,
     _source_code_link,
     _source_repository_url,
-    _count_variables_for_path,
     _upgrade_legacy_gitstrings_markers,
     detect_render_mode,
     extract_gitstrings_blocks_from_file,
@@ -92,7 +92,8 @@ class TestGitstringsGitUrlHelpers:
             parser.write(handle)
         ci = tmp_path / ".gitlab-ci.yml"
         ci.write_text("# @render variables\nvariables:\n  A: 1\n", encoding="utf-8")
-        blocks = gs.extract_gitstrings_blocks_from_ci_yaml(ci.read_text(encoding="utf-8"))
+        text = ci.read_text(encoding="utf-8")
+        blocks = gs.extract_gitstrings_blocks_from_ci_yaml(text)
         link = _source_code_link(blocks[0], scan_path=ci)
         assert "Source:" in link
         assert "/-/blob/" in link
@@ -180,7 +181,9 @@ class TestGitstringsYamlAndRender:
         assert detect_render_mode(jobs_doc, "build.stage") == "path"
         assert detect_render_mode({"spec": {"inputs": {"x": {}}}}, "auto") == "inputs"
         assert detect_render_mode({"variables": {"A": "1"}}, "auto") == "variables"
-        assert detect_render_mode({"include": [{"local": "x.yml"}]}, "auto") == "includes"
+        assert (
+            detect_render_mode({"include": [{"local": "x.yml"}]}, "auto") == "includes"
+        )
 
     def test_looks_like_jobs_map_false(self):
         assert _looks_like_jobs_map({"x": "str"}) is False
@@ -236,7 +239,8 @@ variables:
 """,
             encoding="utf-8",
         )
-        blocks = gs.extract_gitstrings_blocks_from_ci_yaml(ci.read_text(encoding="utf-8"))
+        text = ci.read_text(encoding="utf-8")
+        blocks = gs.extract_gitstrings_blocks_from_ci_yaml(text)
         out = render_fragment(
             blocks[0],
             keep_source=False,
@@ -521,8 +525,6 @@ class TestBehaveStepsSmoke:
         return SimpleNamespace(stash=stash, scenario_skipped=False, step_mode=None)
 
     def test_then_steps_with_patched_assert_all(self):
-        from unittest.mock import MagicMock
-
         from src.compliance.behave_support.steps import then_steps, when_steps
 
         entity = {"name": "job-a", "values": {"stage": "test", "script": "echo"}}
@@ -559,6 +561,8 @@ class TestBehaveStepsSmoke:
             when_steps.when_release_lag_exceeds_days(context, 7)
             when_steps.when_not_within_latest_tags(context, 3)
             when_steps.when_newer_image_release_available(context)
-            when_steps.when_newer_image_release_available_for_more_than_days(context, 14)
+            when_steps.when_newer_image_release_available_for_more_than_days(
+                context, 14
+            )
             when_steps.when_image_release_lag_exceeds_days(context, 7)
             when_steps.when_not_within_latest_image_tags(context, 5)
