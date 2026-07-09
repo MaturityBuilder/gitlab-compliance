@@ -105,7 +105,10 @@ stages:
     )
     readme.write_text(MARKER_BLOCK, encoding="utf-8")
     process_gitstrings(ci, keep_source=False)
-    assert "Z" in readme.read_text(encoding="utf-8")
+    text = readme.read_text(encoding="utf-8")
+    assert "Z" in text
+    assert "Source:" in text
+    assert ".gitlab-ci.yml#L1-" in text
 
 
 def test_process_gitstrings_from_multi_document_gitlab_ci_yml(tmp_path):

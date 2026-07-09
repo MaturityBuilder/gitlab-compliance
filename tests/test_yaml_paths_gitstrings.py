@@ -153,6 +153,8 @@ megalinter:
     out = render_fragment(block, keep_source=False, scan_path=ci)
 
     assert "Megalinter" in out
+    assert "Source:" in out
+    assert ".gitlab-ci.yml#L1-" in out
     assert "Limited render" in out
     assert "Selected variable count: 1 variable" in out
     assert "megalinter-reports" in out

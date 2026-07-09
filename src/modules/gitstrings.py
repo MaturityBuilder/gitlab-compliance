@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import quote
 
 import yaml
 
@@ -53,6 +55,8 @@ class GitstringsBlock:
     cleaned_yaml: str
     directives: GitstringsDirectives = field(default_factory=GitstringsDirectives)
     source_fence: str = ""
+    source_start_line: int | None = None
+    source_end_line: int | None = None
 
 
 def parse_directives(raw_block: str) -> tuple[GitstringsDirectives, str]:
@@ -115,12 +119,16 @@ def extract_gitstrings_blocks(markdown_text: str) -> list[GitstringsBlock]:
     for match in GITSTRINGS_FENCE_RE.finditer(markdown_text):
         body = match.group(1)
         directives, cleaned = parse_directives(body)
+        start_line = markdown_text.count("\n", 0, match.start()) + 1
+        end_line = markdown_text.count("\n", 0, match.end()) + 1
         blocks.append(
             GitstringsBlock(
                 raw_body=body.rstrip("\n"),
                 cleaned_yaml=cleaned,
                 directives=directives,
                 source_fence=match.group(0),
+                source_start_line=start_line,
+                source_end_line=end_line,
             )
         )
     return blocks
@@ -222,6 +230,8 @@ def extract_gitstrings_blocks_from_ci_yaml(text: str) -> list[GitstringsBlock]:
                 raw_body=raw_body,
                 cleaned_yaml=cleaned,
                 directives=directives,
+                source_start_line=index + 1,
+                source_end_line=end_idx,
             )
         )
         index = end_idx if end_idx > index else index + 1
@@ -408,11 +418,46 @@ def _limited_render_note(root: dict, render_spec: str) -> str:
     return note + "\n"
 
 
+def _source_code_link(
+    block: GitstringsBlock,
+    *,
+    scan_path: str | Path | None = None,
+    output_path: str | Path | None = None,
+) -> str:
+    if scan_path is None or block.source_start_line is None:
+        return ""
+
+    source_path = Path(scan_path)
+    if output_path is not None:
+        try:
+            relative = os.path.relpath(
+                source_path.resolve(),
+                start=Path(output_path).resolve().parent,
+            )
+        except (OSError, ValueError):
+            relative = source_path.name
+    else:
+        relative = source_path.name
+
+    relative = relative.replace(os.sep, "/")
+    line_fragment = f"#L{block.source_start_line}"
+    if block.source_end_line and block.source_end_line > block.source_start_line:
+        line_fragment += f"-L{block.source_end_line}"
+    href = quote(relative, safe="/._-") + line_fragment
+    label = f"`{relative}`"
+    if block.source_end_line and block.source_end_line > block.source_start_line:
+        label += f" lines {block.source_start_line}-{block.source_end_line}"
+    else:
+        label += f" line {block.source_start_line}"
+    return f"> Source: [{label}]({href})\n"
+
+
 def render_fragment(
     block: GitstringsBlock,
     *,
     keep_source: bool = True,
     scan_path: str | Path | None = None,
+    output_path: str | Path | None = None,
 ) -> str:
     parts: list[str] = []
     directives = block.directives
@@ -436,6 +481,13 @@ def render_fragment(
             paragraph = paragraph.strip()
             if paragraph:
                 parts.append(paragraph + "\n")
+    source_link = _source_code_link(
+        block,
+        scan_path=scan_path,
+        output_path=output_path,
+    )
+    if source_link:
+        parts.append(source_link)
     limited_note = _limited_render_note(pipeline_root, render_spec)
     if limited_note:
         parts.append(limited_note)
@@ -498,7 +550,10 @@ def render_gitstrings_by_output(
             honor_fragment_output=honor_fragment_output,
         )
         rendered = render_fragment(
-            block, keep_source=keep_source, scan_path=scan_path
+            block,
+            keep_source=keep_source,
+            scan_path=scan_path,
+            output_path=target,
         )
         grouped.setdefault(target, []).append(rendered)
     return {path: "\n".join(sections).strip() + "\n" for path, sections in grouped.items()}
