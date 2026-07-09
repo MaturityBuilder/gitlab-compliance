@@ -747,7 +747,7 @@ def document():
     "--output",
     "output_file",
     default=None,
-    help="Default markdown file for gitstrings marker updates when a fence has no # @output.",
+    help="Markdown file for gitstrings marker updates. When set, all fragments write here and # @output in YAML is ignored.",
 )
 @click.option(
     "--dry-mode",

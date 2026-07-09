@@ -81,7 +81,7 @@ variables:
 | `# @title <heading>` | `##` heading above this fragment’s tables |
 | `# @render <mode>` | `variables`, `inputs`, `jobs`, or `auto` (default); or a **dot path** (e.g. `megalinter.variables`, `megalinter.variables.mode`, `spec.inputs`) |
 | `# @sensitive <path>` | Mask values at a YAML path (repeatable; comma-separated). Rows still appear; value cells show `****` (e.g. `megalinter.variables.mode.value`) |
-| `# @output <path>` / `# @output-file` | Write this fragment to another file’s gitstrings markers (relative to `-i`) |
+| `# @output <path>` / `# @output-file` | Write this fragment to another file’s gitstrings markers (relative to `-i`). Ignored when you pass `-o` / `--output` on the CLI. |
 | `# @description` | Multi-line prose above tables (continuation lines are `#` comments) |
 
 ### Multi-line descriptions
@@ -128,8 +128,9 @@ When `-i` is a CI YAML file, paths resolve against the **entire** pipeline file,
 ## Output behavior
 
 - Only the **gitstrings marker block** on each target file is replaced.
-- Default output file: `-o` / `--output` / `--output-file`, or `-i` when omitted.
-- Per-fence `# @output` overrides the CLI default for that snippet.
+- Default output file: `-o` / `--output` / `--output-file`, or `-i` when omitted (for CI YAML, `README.md` beside the file).
+- When **`-o` is set**, every fragment writes to that file and **`# @output` is ignored**.
+- Without **`-o`**, per-fragment `# @output` overrides the default for that snippet only.
 - `--keep-source` (default): collapsible `<details>` with source YAML inside the marker block.
 - Safe to run on the same README as `generate`; each command updates its own marker pair.
 

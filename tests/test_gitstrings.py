@@ -250,7 +250,41 @@ def test_at_output_directive(tmp_path):
     inputs_doc = tmp_path / "INPUTS.md"
     default_readme = tmp_path / "README.md"
     scan.write_text(
-        f"""```yaml gitstrings
+        MARKER_BLOCK
+        + f"""
+```yaml gitstrings
+# @output INPUTS.md
+# @render inputs
+spec:
+  inputs:
+    job-stage:
+      default: test
+```
+
+```yaml gitstrings
+# @render variables
+variables:
+  APP: x
+```
+""",
+        encoding="utf-8",
+    )
+    inputs_doc.write_text(MARKER_BLOCK, encoding="utf-8")
+    default_readme.write_text(MARKER_BLOCK, encoding="utf-8")
+    process_gitstrings(scan, keep_source=False)
+    assert "job-stage" in inputs_doc.read_text(encoding="utf-8")
+    assert "APP" in scan.read_text(encoding="utf-8").split(GITSTRINGS_MARKER_OPEN)[1]
+    assert "APP" not in default_readme.read_text(encoding="utf-8").split(
+        GITSTRINGS_MARKER_OPEN
+    )[1]
+
+
+def test_cli_output_overrides_fragment_output_directive(tmp_path):
+    scan = tmp_path / "scan.md"
+    inputs_doc = tmp_path / "INPUTS.md"
+    default_readme = tmp_path / "README.md"
+    scan.write_text(
+        """```yaml gitstrings
 # @output INPUTS.md
 # @render inputs
 spec:
@@ -270,8 +304,14 @@ variables:
     default_readme.write_text(MARKER_BLOCK, encoding="utf-8")
     inputs_doc.write_text(MARKER_BLOCK, encoding="utf-8")
     process_gitstrings(scan, default_readme, keep_source=False)
-    assert "job-stage" in inputs_doc.read_text(encoding="utf-8")
-    assert "APP" in default_readme.read_text(encoding="utf-8")
+    marker_body = default_readme.read_text(encoding="utf-8").split(
+        GITSTRINGS_MARKER_OPEN
+    )[1]
+    assert "job-stage" in marker_body
+    assert "APP" in marker_body
+    assert "job-stage" not in inputs_doc.read_text(encoding="utf-8").split(
+        GITSTRINGS_MARKER_OPEN
+    )[1]
 
 
 def test_cli_document_gitstrings(tmp_path):
@@ -307,3 +347,29 @@ def test_resolve_fragment_output_relative_to_scan_dir(tmp_path):
     directives, _ = parse_directives("# @output ../README.md\nvariables: {}")
     target = resolve_fragment_output(directives, tmp_path / "default.md", scan)
     assert target == (tmp_path / "README.md").resolve()
+    forced = resolve_fragment_output(
+        directives,
+        tmp_path / "forced.md",
+        scan,
+        honor_fragment_output=False,
+    )
+    assert forced == (tmp_path / "forced.md").resolve()
+
+
+def test_ci_yaml_cli_output_overrides_at_output(tmp_path):
+    ci = tmp_path / ".gitlab-ci.yml"
+    out = tmp_path / "GITLAB-DOCS.md"
+    ci.write_text(
+        """# @render variables
+# @output README.md
+variables:
+  Z: 9
+""",
+        encoding="utf-8",
+    )
+    out.write_text(MARKER_BLOCK, encoding="utf-8")
+    readme = tmp_path / "README.md"
+    readme.write_text(MARKER_BLOCK, encoding="utf-8")
+    process_gitstrings(ci, out, keep_source=False)
+    assert "Z" in out.read_text(encoding="utf-8")
+    assert "Z" not in readme.read_text(encoding="utf-8").split(GITSTRINGS_MARKER_OPEN)[1]

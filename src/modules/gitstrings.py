@@ -240,8 +240,15 @@ def resolve_fragment_output(
     directives: GitstringsDirectives,
     default_output_path: str | Path,
     scan_path: str | Path,
+    *,
+    honor_fragment_output: bool = True,
 ) -> Path:
-    if directives.output:
+    """Resolve marker file for one fragment.
+
+    When ``honor_fragment_output`` is false (CLI ``-o`` / ``--output`` was set),
+    ``# @output`` on the fragment is ignored and ``default_output_path`` is used.
+    """
+    if honor_fragment_output and directives.output:
         base = Path(scan_path).resolve().parent
         return (base / directives.output).resolve()
     return Path(default_output_path).resolve()
@@ -392,11 +399,15 @@ def render_gitstrings_by_output(
     default_output_path: str | Path,
     scan_path: str | Path,
     keep_source: bool = True,
+    honor_fragment_output: bool = True,
 ) -> dict[Path, str]:
     grouped: dict[Path, list[str]] = {}
     for block in blocks:
         target = resolve_fragment_output(
-            block.directives, default_output_path, scan_path
+            block.directives,
+            default_output_path,
+            scan_path,
+            honor_fragment_output=honor_fragment_output,
         )
         rendered = render_fragment(
             block, keep_source=keep_source, scan_path=scan_path
@@ -440,6 +451,7 @@ def process_gitstrings(
 ) -> list[Path]:
     scan_path = Path(input_file)
     default_output = _default_gitstrings_output(scan_path, output_file)
+    honor_fragment_output = output_file is None
     blocks = extract_gitstrings_blocks_from_file(scan_path)
     if not blocks:
         logger.info(
@@ -452,6 +464,7 @@ def process_gitstrings(
         default_output_path=default_output,
         scan_path=scan_path,
         keep_source=keep_source,
+        honor_fragment_output=honor_fragment_output,
     )
     written: list[Path] = []
     for target_path, markdown in by_output.items():
