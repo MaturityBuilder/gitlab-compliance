@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import src.modules.common as common
 import src.properties.yaml_paths as yaml_paths
+from src.modules.logging import logger
 
 MISSING = "&#x274c;"
 
@@ -26,6 +27,32 @@ _VARIABLES_COLUMN_ALIGN = {
 }
 
 
+def _entry_field(entry: dict, field: str):
+    """Read one metadata field without using ``in`` (broken mappings may override __contains__)."""
+    try:
+        return entry[field]
+    except KeyError:
+        return None
+    except Exception:
+        logger.error(f"Unable to read {field!r} from variable or input entry")
+        return None
+
+
+def _metadata_cells_from_entry(entry: dict) -> tuple[str, str, str]:
+    description = MISSING
+    options = MISSING
+    expand = "true"
+    desc_val = _entry_field(entry, "description")
+    if desc_val is not None:
+        description = common.format_description_cell(desc_val)
+    opts_val = _entry_field(entry, "options")
+    if opts_val is not None:
+        options = common.format_options_cell(opts_val)
+    expand_val = _entry_field(entry, "expand")
+    if expand_val is not None:
+        expand = expand_val
+    return description, options, expand
+
 def _inputs_row_cells(
     key: str,
     raw_value,
@@ -42,24 +69,23 @@ def _inputs_row_cells(
         default_cell = raw_value
     elif isinstance(raw_value, dict):
         entry = raw_value
-        if "description" in entry:
-            description = common.format_description_cell(entry["description"])
-        if "options" in entry:
-            options = common.format_options_cell(entry["options"])
-        if "expand" in entry:
-            expand = entry["expand"]
-        payload = {k: v for k, v in entry.items() if k not in _METADATA_KEYS}
-        if not payload:
-            default_cell = MISSING
-        elif len(payload) == 1 and "default" in payload:
-            default_cell = common.format_structured_cell(payload["default"])
-        else:
-            default_cell = common.format_structured_cell(payload)
+        try:
+            description, options, expand = _metadata_cells_from_entry(entry)
+            payload = {k: v for k, v in entry.items() if k not in _METADATA_KEYS}
+            if not payload:
+                default_cell = MISSING
+            elif len(payload) == 1 and "default" in payload:
+                default_cell = common.format_structured_cell(payload["default"])
+            else:
+                default_cell = common.format_structured_cell(payload)
+        except Exception:
+            logger.error(f"Unable to extract input information for key {key!r}")
+            default_cell = common.format_structured_cell(raw_value)
     else:
         default_cell = common.format_structured_cell(raw_value)
 
     default_path = f"{path_prefix}.{key}" if path_prefix else key
-    if isinstance(raw_value, dict) and "default" in raw_value:
+    if isinstance(raw_value, dict) and _entry_field(raw_value, "default") is not None:
         default_path = f"{default_path}.default"
     if yaml_paths.should_mask_value(default_path, sensitive_paths or []):
         default_cell = yaml_paths.SENSITIVE_MASK
@@ -83,19 +109,22 @@ def _variables_row_cells(
         value_cell = raw_value
     elif isinstance(raw_value, dict):
         entry = raw_value
-        if "description" in entry:
-            description = common.format_description_cell(entry["description"])
-        if "options" in entry:
-            options = common.format_options_cell(entry["options"])
-        if "expand" in entry:
-            expand = entry["expand"]
-        payload = {k: v for k, v in entry.items() if k not in _METADATA_KEYS}
-        if not payload:
-            value_cell = MISSING
-        elif len(payload) == 1 and "value" in payload:
-            value_cell = common.format_structured_cell(payload["value"])
-        else:
-            value_cell = common.format_structured_cell(payload)
+        try:
+            description, options, expand = _metadata_cells_from_entry(entry)
+            payload = {k: v for k, v in entry.items() if k not in _METADATA_KEYS}
+            if not payload:
+                value_cell = MISSING
+            elif len(payload) == 1 and "value" in payload:
+                value_cell = common.format_structured_cell(payload["value"])
+            else:
+                value_cell = common.format_structured_cell(payload)
+        except Exception:
+            logger.error(f"Unable to extract variable information for key {key!r}")
+            val = _entry_field(entry, "value")
+            if val is not None:
+                value_cell = common.format_structured_cell(val)
+            else:
+                value_cell = common.format_structured_cell(raw_value)
     else:
         value_cell = common.format_structured_cell(raw_value)
 
