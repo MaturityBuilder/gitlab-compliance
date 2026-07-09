@@ -87,12 +87,16 @@ class TestCommandReferenceHelpers:
         assert _format_options({}) == "_No options._\n"
 
     def test_format_options_joins_flags_and_omits_unset_default(self):
+        class UnsetDefault:
+            def __str__(self):
+                return "Sentinel.UNSET"
+
         formatted = _format_options(
             {
                 "features": {
                     "usage": "-f, --features",
                     "required": True,
-                    "default": click.core.Parameter.UNSET,
+                    "default": UnsetDefault(),
                     "help": "Policy directory.",
                     "type": "TEXT",
                     "kind": "option",
