@@ -108,6 +108,39 @@ stages:
     assert "Z" in readme.read_text(encoding="utf-8")
 
 
+def test_process_gitstrings_from_multi_document_gitlab_ci_yml(tmp_path):
+    ci = tmp_path / ".gitlab-ci.yml"
+    readme = tmp_path / "README.md"
+    ci.write_text(
+        """---
+# @title Inputs
+# @render inputs
+spec:
+  inputs:
+    job-stage:
+      default: test
+---
+# @title Vars
+# @render variables
+variables:
+  APP: gitlab-compliance
+test:
+  stage: test
+  script:
+    - pytest
+""",
+        encoding="utf-8",
+    )
+    readme.write_text(MARKER_BLOCK, encoding="utf-8")
+
+    process_gitstrings(ci, keep_source=False)
+    text = readme.read_text(encoding="utf-8")
+
+    assert "job-stage" in text
+    assert "APP" in text
+    assert "gitlab-compliance" in text
+
+
 def test_render_inputs_table_multiline_description():
     table = render_inputs_table(
         {

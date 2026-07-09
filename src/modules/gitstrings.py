@@ -267,14 +267,39 @@ def _looks_like_jobs_map(doc: dict) -> bool:
     return all(job_keys & set(v.keys()) for v in dict_values)
 
 
+def _load_yaml_root(text: str) -> object:
+    """Load YAML that may contain one or more documents.
+
+    GitLab CI component files commonly use a first YAML document for ``spec:``
+    inputs followed by ``---`` and the actual pipeline body. PyYAML's
+    ``safe_load`` raises ``ComposerError`` for that shape, so load all documents
+    and merge mapping documents into a single root for path/table rendering.
+    """
+    documents = [
+        document for document in yaml.safe_load_all(text) if document is not None
+    ]
+    if not documents:
+        return {}
+    if len(documents) == 1:
+        return documents[0]
+
+    if all(isinstance(document, dict) for document in documents):
+        merged: dict = {}
+        for document in documents:
+            merged.update(document)
+        return merged
+
+    return {"documents": documents}
+
+
 def _load_pipeline_root(scan_path: str | Path, fragment_doc: dict) -> dict:
     path = Path(scan_path)
     if path.suffix.lower() in CI_YAML_SUFFIXES and path.is_file():
         try:
-            loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+            loaded = _load_yaml_root(path.read_text(encoding="utf-8"))
             if isinstance(loaded, dict):
                 return loaded
-        except OSError as exc:
+        except (OSError, yaml.YAMLError) as exc:
             logger.trace(exc)
     return fragment_doc
 
@@ -346,7 +371,7 @@ def render_fragment(
             if paragraph:
                 parts.append(paragraph + "\n")
 
-    doc = yaml.safe_load(block.cleaned_yaml) if block.cleaned_yaml else {}
+    doc = _load_yaml_root(block.cleaned_yaml) if block.cleaned_yaml else {}
     if doc is None:
         doc = {}
     if not isinstance(doc, dict):
