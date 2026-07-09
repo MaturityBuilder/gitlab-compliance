@@ -18,6 +18,8 @@ def _gitstrings_table_cell(value) -> str:
     if isinstance(value, (dict, list)):
         return common.format_structured_cell(value)
     return common.format_scalar(value)
+
+
 _INPUTS_COLUMN_ALIGN = {
     "Key": "l",
     "Default": "l",
@@ -60,6 +62,7 @@ def _metadata_cells_from_entry(entry: dict) -> tuple[str, str, str]:
     if expand_val is not None:
         expand = expand_val
     return description, options, expand
+
 
 def _inputs_row_cells(
     key: str,
@@ -331,8 +334,10 @@ def render_path_markdown(
         context = "workflow" if segments[:2] == ["workflow", "rules"] else "job"
         return render_rules_table(node, context=context)
 
-    if path == "workflow" and isinstance(node, dict) and isinstance(
-        node.get("rules"), list
+    if (
+        path == "workflow"
+        and isinstance(node, dict)
+        and isinstance(node.get("rules"), list)
     ):
         parts = [render_rules_table(node["rules"], context="workflow")]
         remaining = {key: value for key, value in node.items() if key != "rules"}

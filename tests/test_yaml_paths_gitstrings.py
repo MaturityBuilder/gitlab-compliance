@@ -1,6 +1,10 @@
+from src.modules.gitstrings import (
+    extract_gitstrings_blocks,
+    parse_directives,
+    render_fragment,
+)
 from src.properties.table_render import render_path_markdown, render_variables_table
 from src.properties.yaml_paths import resolve_yaml_path, should_mask_value
-from src.modules.gitstrings import extract_gitstrings_blocks, parse_directives, render_fragment
 
 
 def test_resolve_yaml_path_job_case_insensitive():
@@ -187,7 +191,7 @@ def test_render_workflow_rules_explains_pipeline_creation():
     pipeline = {
         "workflow": {
             "rules": [
-                {"if": "$CI_PIPELINE_SOURCE == \"merge_request_event\""},
+                {"if": '$CI_PIPELINE_SOURCE == "merge_request_event"'},
                 {"when": "never"},
             ]
         }

@@ -42,8 +42,8 @@ from src.modules.doc_controller import (
     remove_duplicate_headings,
     update_marked_block,
 )
-from src.modules.logging import logger
 from src.modules.gitstrings import process_gitstrings
+from src.modules.logging import logger
 from src.modules.output_filters import (
     parse_exclude,
     validate_exclude_sections,

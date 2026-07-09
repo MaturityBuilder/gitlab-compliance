@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import os
 import re
+from configparser import ConfigParser
 from dataclasses import dataclass, field
 from pathlib import Path
-from configparser import ConfigParser
 from urllib.parse import quote, urlsplit, urlunsplit
 
 import yaml
@@ -278,9 +278,7 @@ def extract_gitstrings_blocks(markdown_text: str) -> list[GitstringsBlock]:
     return blocks
 
 
-def _collect_yaml_body_lines(
-    lines: list[str], start: int
-) -> tuple[list[str], int]:
+def _collect_yaml_body_lines(lines: list[str], start: int) -> tuple[list[str], int]:
     """Collect YAML lines for one decorated fragment (single top-level key)."""
     body: list[str] = []
     i = start
@@ -503,9 +501,7 @@ def _render_table_for_doc(
         )
     if mode == "jobs":
         return table_render.render_jobs_table(doc)
-    return table_render.render_generic_kv_table(
-        doc, sensitive_paths=sensitive_paths
-    )
+    return table_render.render_generic_kv_table(doc, sensitive_paths=sensitive_paths)
 
 
 def _render_path_specs(
@@ -720,7 +716,9 @@ def render_gitstrings_by_output(
             output_path=target,
         )
         grouped.setdefault(target, []).append(rendered)
-    return {path: "\n".join(sections).strip() + "\n" for path, sections in grouped.items()}
+    return {
+        path: "\n".join(sections).strip() + "\n" for path, sections in grouped.items()
+    }
 
 
 def _upgrade_legacy_gitstrings_markers(path: Path) -> None:

@@ -135,10 +135,7 @@ variables:
     block = extract_gitstrings_blocks_from_ci_yaml(ci.read_text(encoding="utf-8"))[0]
     out = render_fragment(block, keep_source=False, scan_path=ci)
 
-    assert (
-        "https://gitlab.com/example/current/-/blob/abc123/.gitlab-ci.yml#L1-3"
-        in out
-    )
+    assert "https://gitlab.com/example/current/-/blob/abc123/.gitlab-ci.yml#L1-3" in out
     assert "secret" not in out
 
 
@@ -151,8 +148,7 @@ def test_source_link_uses_nested_repo_origin_over_current_ci_url(tmp_path, monke
     nested_git.mkdir()
     (nested_git / "HEAD").write_text("ref: refs/heads/release\n", encoding="utf-8")
     (nested_git / "config").write_text(
-        '[remote "origin"]\n'
-        "    url = git@gitlab.com:security/nested-policy.git\n",
+        '[remote "origin"]\n' "    url = git@gitlab.com:security/nested-policy.git\n",
         encoding="utf-8",
     )
     ci = nested / ".gitlab-ci.yml"
@@ -249,16 +245,14 @@ def test_format_structured_cell_nested_object():
 
 
 def test_render_fragment_block_description(tmp_path):
-    block = extract_gitstrings_blocks(
-        """```yaml gitstrings
+    block = extract_gitstrings_blocks("""```yaml gitstrings
 # @description
 #   Fragment prose here.
 # @render variables
 variables:
   APP: x
 ```
-"""
-    )[0]
+""")[0]
     out = render_fragment(block, keep_source=False)
     assert "Fragment prose here." in out
     assert "|" in out
@@ -275,9 +269,7 @@ variables:
   APP: my-app
 ```
 
-"""
-        + MARKER_BLOCK
-        + "\n# Footer\n",
+""" + MARKER_BLOCK + "\n# Footer\n",
         encoding="utf-8",
     )
     intro_before = "# Handwritten intro"
@@ -319,8 +311,7 @@ variables:
   Z: 1
 ```
 
-"""
-        + MARKER_BLOCK,
+""" + MARKER_BLOCK,
         encoding="utf-8",
     )
     process_gitstrings(readme, readme, keep_source=False)
@@ -344,9 +335,9 @@ variables:
     out.write_text(MARKER_BLOCK, encoding="utf-8")
     process_gitstrings(sources, out, keep_source=False)
     assert "from-source" in out.read_text(encoding="utf-8")
-    assert "gitstrings" not in sources.read_text(encoding="utf-8") or "APP" in sources.read_text(
+    assert "gitstrings" not in sources.read_text(
         encoding="utf-8"
-    )
+    ) or "APP" in sources.read_text(encoding="utf-8")
 
 
 def test_at_output_directive(tmp_path):
@@ -354,8 +345,7 @@ def test_at_output_directive(tmp_path):
     inputs_doc = tmp_path / "INPUTS.md"
     default_readme = tmp_path / "README.md"
     scan.write_text(
-        MARKER_BLOCK
-        + f"""
+        MARKER_BLOCK + f"""
 ```yaml gitstrings
 # @output INPUTS.md
 # @render inputs
@@ -378,9 +368,12 @@ variables:
     process_gitstrings(scan, keep_source=False)
     assert "job-stage" in inputs_doc.read_text(encoding="utf-8")
     assert "APP" in scan.read_text(encoding="utf-8").split(GITSTRINGS_MARKER_OPEN)[1]
-    assert "APP" not in default_readme.read_text(encoding="utf-8").split(
-        GITSTRINGS_MARKER_OPEN
-    )[1]
+    assert (
+        "APP"
+        not in default_readme.read_text(encoding="utf-8").split(GITSTRINGS_MARKER_OPEN)[
+            1
+        ]
+    )
 
 
 def test_cli_output_overrides_fragment_output_directive(tmp_path):
@@ -413,9 +406,10 @@ variables:
     )[1]
     assert "job-stage" in marker_body
     assert "APP" in marker_body
-    assert "job-stage" not in inputs_doc.read_text(encoding="utf-8").split(
-        GITSTRINGS_MARKER_OPEN
-    )[1]
+    assert (
+        "job-stage"
+        not in inputs_doc.read_text(encoding="utf-8").split(GITSTRINGS_MARKER_OPEN)[1]
+    )
 
 
 def test_render_jobs_table_uses_markdown_pipe_not_bullets():
@@ -466,8 +460,7 @@ def test_cli_document_gitstrings(tmp_path):
 variables:
   CLI: ok
 ```
-"""
-        + MARKER_BLOCK,
+""" + MARKER_BLOCK,
         encoding="utf-8",
     )
     runner = CliRunner()
@@ -516,4 +509,6 @@ variables:
     readme.write_text(MARKER_BLOCK, encoding="utf-8")
     process_gitstrings(ci, out, keep_source=False)
     assert "Z" in out.read_text(encoding="utf-8")
-    assert "Z" not in readme.read_text(encoding="utf-8").split(GITSTRINGS_MARKER_OPEN)[1]
+    assert (
+        "Z" not in readme.read_text(encoding="utf-8").split(GITSTRINGS_MARKER_OPEN)[1]
+    )
