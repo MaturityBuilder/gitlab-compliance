@@ -1,4 +1,3 @@
-
 from click.testing import CliRunner
 
 from src.gitlab_compliance import gitlab_compliance
@@ -344,7 +343,7 @@ def test_at_output_directive(tmp_path):
     inputs_doc = tmp_path / "INPUTS.md"
     default_readme = tmp_path / "README.md"
     scan.write_text(
-        MARKER_BLOCK + f"""
+        MARKER_BLOCK + """
 ```yaml gitstrings
 # @output INPUTS.md
 # @render inputs
@@ -433,8 +432,7 @@ def test_render_includes_table():
 def test_gitstrings_render_includes_fragment(tmp_path):
     readme = tmp_path / "README.md"
     readme.write_text(
-        MARKER_BLOCK
-        + """
+        MARKER_BLOCK + """
 ```yaml gitstrings
 # @title Includes
 # @render includes

@@ -16,9 +16,7 @@ _METADATA_KEYS = frozenset({"description", "options", "expand"})
 CI_YAML_SUFFIXES = {".yml", ".yaml"}
 
 
-def _resolve_ci_config_path(
-    scan_path: str | Path | None, config_file: str
-) -> str:
+def _resolve_ci_config_path(scan_path: str | Path | None, config_file: str) -> str:
     if scan_path is not None:
         path = Path(scan_path)
         if path.suffix.lower() in CI_YAML_SUFFIXES and path.is_file():

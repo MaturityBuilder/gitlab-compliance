@@ -498,9 +498,7 @@ def _render_includes_markdown(
     """Render includes; nested expansion is local-on-disk only (see docs)."""
     ci = _ci_yaml_path(scan_path)
     if include_nested and ci is not None:
-        return table_render.render_includes_from_config(
-            str(ci), include_nested=True
-        )
+        return table_render.render_includes_from_config(str(ci), include_nested=True)
     entries = doc.get("include") or []
     return table_render.render_includes_table(
         entries,

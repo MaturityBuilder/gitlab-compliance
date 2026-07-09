@@ -323,9 +323,7 @@ class TestTableRenderCoverage:
         assert "Job rules" in rules
 
     def test_render_jobs_table_valid_job(self):
-        md = tr.render_jobs_table(
-            {"build": {"stage": "test", "script": ["echo hi"]}}
-        )
+        md = tr.render_jobs_table({"build": {"stage": "test", "script": ["echo hi"]}})
         assert "build" in md
         assert "|" in md
 
@@ -463,15 +461,12 @@ include:
 
     def test_process_gitstrings_dry_mode(self, tmp_path):
         readme = tmp_path / "r.md"
-        before = (
-            """```yaml gitstrings
+        before = """```yaml gitstrings
 # @render variables
 variables:
   A: 1
 ```
-"""
-            + MARKER_BLOCK
-        )
+""" + MARKER_BLOCK
         readme.write_text(before, encoding="utf-8")
         written = process_gitstrings(readme, readme, dry=True, keep_source=False)
         assert len(written) == 1
