@@ -495,6 +495,7 @@ def _render_includes_markdown(
     scan_path: str | Path | None,
     include_nested: bool,
 ) -> str:
+    """Render includes; nested expansion is local-on-disk only (see docs)."""
     ci = _ci_yaml_path(scan_path)
     if include_nested and ci is not None:
         return table_render.render_includes_from_config(

@@ -769,7 +769,10 @@ def document():
     "include_nested",
     is_flag=True,
     default=False,
-    help="For @render includes: flatten nested local includes from the CI file (-i must be .yml).",
+    help=(
+        "Walk nested local: includes on disk when documenting @render includes "
+        "(-i must be .yml). Does not fetch project, component, remote, or template trees."
+    ),
 )
 def document_gitstrings(input_file, output_file, dry_mode, keep_source, include_nested):
     """

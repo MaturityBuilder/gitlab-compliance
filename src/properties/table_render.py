@@ -318,7 +318,12 @@ def render_includes_from_config(
     *,
     include_nested: bool = True,
 ) -> str:
-    """Collect includes from a CI file, optionally flattening nested local includes."""
+    """Collect includes from a CI file on disk.
+
+    When ``include_nested`` is true, only ``local:`` include files are read
+    recursively from the filesystem. Project, component, remote, and template
+    entries stay single-table rows (no upstream resolution).
+    """
     from src.modules.pipeline_data import collect_pipeline_data
 
     data = collect_pipeline_data(

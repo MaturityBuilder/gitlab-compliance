@@ -127,7 +127,19 @@ include:
 
 Use `@render include` as an alias for `includes`. With `-i` set to a CI YAML file, `@render include` also resolves the full file’s `include` key when using path mode.
 
-Pass **`--include-nested`** when `-i` is a CI YAML file to document **nested local includes** the same way as `generate` (walk `local:` files and merge their `include` entries into one table). Without the flag, only entries listed in the annotated fragment are shown.
+#### `--include-nested` scope (on disk only)
+
+| Include type | In the table | With `--include-nested` |
+|--------------|--------------|-------------------------|
+| **`local:`** | One row per entry | Also walks **files on disk** relative to `-i`, merges `include` entries from those YAML files (and their nested **`local:`** chains). Same behavior as `generate` / `collect_pipeline_data`. |
+| **`project:`**, **`component:`**, **`remote:`**, **`template:`** | One row per stanza (project/URL, ref/version, file, variables, rules) | **Not expanded** — no GitLab or registry fetch; upstream trees are out of scope for now. |
+
+Requirements for nesting:
+
+- `-i` must be the **root CI YAML file** (`.yml` / `.yaml`) so `local:` paths resolve on disk.
+- Markdown-only scans (fences in README) document only the fenced `include` list; nesting does not apply.
+
+Without `--include-nested`, only `include` entries in the **annotated fragment** are shown (or the full top-level `include` list when using path `include` on a CI file).
 
 ```bash
 gitlab-compliance document gitstrings -i .gitlab-ci.yml --include-nested -o GITLAB-DOCS.md
@@ -180,3 +192,4 @@ See [GitLab CI/CD](../ci-cd/gitlab-ci.md) for broader pipeline integration.
 | No output updated | At least one ` ```yaml gitstrings ` fence in `-i` |
 | Invalid YAML | Remove or fix `# @` directives; they are stripped before parsing |
 | Tables empty | Set `# @render` explicitly or ensure YAML matches `variables` / `spec.inputs` / `include` / job shape |
+| Nested includes missing | Use `-i` on the root `.gitlab-ci.yml` and `--include-nested`; only **`local:`** files on disk are walked (not project/component trees) |
