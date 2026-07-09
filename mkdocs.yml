@@ -87,6 +87,7 @@ nav:
     - Pipeline Execution Policy: ci-cd/pipeline-execution-policy.md
   - Contributing:
     - contributing.md
+    - Product roadmap: roadmap.md
     - Site build & publish: site-documentation.md
 
 markdown_extensions:
