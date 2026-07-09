@@ -6,7 +6,8 @@ import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from urllib.parse import quote
+from configparser import ConfigParser
+from urllib.parse import quote, urlsplit, urlunsplit
 
 import yaml
 
@@ -38,6 +39,149 @@ CI_BLOCK_START_RE = re.compile(
 CI_YAML_SUFFIXES = {".yml", ".yaml"}
 
 RENDER_MODES = frozenset({"variables", "inputs", "jobs", "auto"})
+
+
+def _find_git_dir(source_path: Path) -> tuple[Path | None, Path | None]:
+    """Return nearest worktree root and git dir without invoking git."""
+    try:
+        current = source_path.resolve()
+    except OSError:
+        current = source_path
+    if current.is_file():
+        current = current.parent
+
+    for candidate in (current, *current.parents):
+        git_path = candidate / ".git"
+        if git_path.is_dir():
+            return candidate, git_path
+        if git_path.is_file():
+            try:
+                text = git_path.read_text(encoding="utf-8").strip()
+            except OSError:
+                continue
+            if text.startswith("gitdir:"):
+                git_dir = text.split(":", 1)[1].strip()
+                resolved = (candidate / git_dir).resolve()
+                return candidate, resolved
+    return None, None
+
+
+def _read_origin_url(git_dir: Path | None) -> str | None:
+    if git_dir is None:
+        return None
+    config_path = git_dir / "config"
+    if not config_path.is_file():
+        return None
+    parser = ConfigParser()
+    try:
+        parser.read(config_path, encoding="utf-8")
+    except Exception:
+        return None
+    section = 'remote "origin"'
+    if parser.has_option(section, "url"):
+        return parser.get(section, "url")
+    return None
+
+
+def _read_head_ref(git_dir: Path | None) -> str | None:
+    if git_dir is None:
+        return None
+    head_path = git_dir / "HEAD"
+    try:
+        head = head_path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    if head.startswith("ref:"):
+        ref_name = head.split(":", 1)[1].strip()
+        prefix = "refs/heads/"
+        if ref_name.startswith(prefix):
+            return ref_name.removeprefix(prefix)
+        return ref_name
+    return head or None
+
+
+def _git_ref(git_dir: Path | None, *, prefer_ci_ref: bool) -> str:
+    if prefer_ci_ref:
+        for env_name in ("CI_COMMIT_SHA", "CI_COMMIT_REF_NAME", "CI_DEFAULT_BRANCH"):
+            value = os.environ.get(env_name)
+            if value:
+                return value
+    git_ref = _read_head_ref(git_dir)
+    if git_ref:
+        return git_ref
+    if not prefer_ci_ref:
+        return "HEAD"
+    return (
+        os.environ.get("CI_COMMIT_SHA")
+        or os.environ.get("CI_COMMIT_REF_NAME")
+        or os.environ.get("CI_DEFAULT_BRANCH")
+        or "HEAD"
+    )
+
+
+def _repo_url_without_credentials(repository_url: str) -> str:
+    if repository_url.startswith("git@") and ":" in repository_url:
+        host, path = repository_url[4:].split(":", 1)
+        repository_url = f"https://{host}/{path}"
+
+    parsed = urlsplit(repository_url)
+    if parsed.scheme and parsed.netloc:
+        host = parsed.hostname or parsed.netloc.rsplit("@", 1)[-1]
+        if parsed.port:
+            host = f"{host}:{parsed.port}"
+        repository_url = urlunsplit((parsed.scheme, host, parsed.path, "", ""))
+
+    return repository_url.removesuffix(".git").rstrip("/")
+
+
+def _source_repository_url(
+    source_path: Path,
+) -> tuple[str | None, Path | None, Path | None, bool]:
+    source_root, source_git_dir = _find_git_dir(source_path)
+    current_root, _current_git_dir = _find_git_dir(Path.cwd())
+    is_current_repo = (
+        source_root is not None
+        and current_root is not None
+        and source_root == current_root
+    )
+
+    if is_current_repo and os.environ.get("CI_REPOSITORY_URL"):
+        return os.environ["CI_REPOSITORY_URL"], source_root, source_git_dir, True
+
+    remote_url = _read_origin_url(source_git_dir)
+    if remote_url:
+        return remote_url, source_root, source_git_dir, False
+
+    if os.environ.get("CI_REPOSITORY_URL"):
+        return os.environ["CI_REPOSITORY_URL"], source_root, source_git_dir, True
+
+    return None, source_root, source_git_dir, False
+
+
+def _blob_url(
+    repository_url: str,
+    *,
+    ref: str,
+    relative_path: str,
+    start_line: int,
+    end_line: int | None,
+) -> str:
+    repo_url = _repo_url_without_credentials(repository_url)
+    parsed = urlsplit(repo_url)
+    blob_segment = "/blob/"
+    if parsed.hostname and "gitlab" in parsed.hostname.casefold():
+        blob_segment = "/-/blob/"
+
+    line_fragment = f"L{start_line}"
+    if end_line and end_line > start_line:
+        if parsed.hostname and "gitlab" in parsed.hostname.casefold():
+            line_fragment += f"-{end_line}"
+        else:
+            line_fragment += f"-L{end_line}"
+
+    encoded_ref = quote(ref, safe="")
+    encoded_path = quote(relative_path, safe="/._-")
+    return f"{repo_url}{blob_segment}{encoded_ref}/{encoded_path}#{line_fragment}"
 
 
 @dataclass
@@ -428,7 +572,18 @@ def _source_code_link(
         return ""
 
     source_path = Path(scan_path)
-    if output_path is not None:
+    (
+        repository_url,
+        repository_root,
+        repository_git_dir,
+        prefer_ci_ref,
+    ) = _source_repository_url(source_path)
+    if repository_root is not None:
+        try:
+            relative = source_path.resolve().relative_to(repository_root)
+        except ValueError:
+            relative = source_path.name
+    elif output_path is not None:
         try:
             relative = os.path.relpath(
                 source_path.resolve(),
@@ -439,11 +594,20 @@ def _source_code_link(
     else:
         relative = source_path.name
 
-    relative = relative.replace(os.sep, "/")
+    relative = str(relative).replace(os.sep, "/")
     line_fragment = f"#L{block.source_start_line}"
     if block.source_end_line and block.source_end_line > block.source_start_line:
         line_fragment += f"-L{block.source_end_line}"
-    href = quote(relative, safe="/._-") + line_fragment
+    if repository_url:
+        href = _blob_url(
+            repository_url,
+            ref=_git_ref(repository_git_dir, prefer_ci_ref=prefer_ci_ref),
+            relative_path=relative,
+            start_line=block.source_start_line,
+            end_line=block.source_end_line,
+        )
+    else:
+        href = quote(relative, safe="/._-") + line_fragment
     label = f"`{relative}`"
     if block.source_end_line and block.source_end_line > block.source_start_line:
         label += f" lines {block.source_start_line}-{block.source_end_line}"

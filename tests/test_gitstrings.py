@@ -111,6 +111,74 @@ stages:
     assert ".gitlab-ci.yml#L1-" in text
 
 
+def test_source_link_uses_ci_repository_url_for_current_repo(tmp_path, monkeypatch):
+    project = tmp_path / "project"
+    project.mkdir()
+    git_dir = project / ".git"
+    git_dir.mkdir()
+    (git_dir / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
+    ci = project / ".gitlab-ci.yml"
+    ci.write_text(
+        """# @render variables
+variables:
+  Z: 9
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(project)
+    monkeypatch.setenv(
+        "CI_REPOSITORY_URL",
+        "https://oauth2:secret@gitlab.com/example/current.git",
+    )
+    monkeypatch.setenv("CI_COMMIT_SHA", "abc123")
+
+    block = extract_gitstrings_blocks_from_ci_yaml(ci.read_text(encoding="utf-8"))[0]
+    out = render_fragment(block, keep_source=False, scan_path=ci)
+
+    assert (
+        "https://gitlab.com/example/current/-/blob/abc123/.gitlab-ci.yml#L1-3"
+        in out
+    )
+    assert "secret" not in out
+
+
+def test_source_link_uses_nested_repo_origin_over_current_ci_url(tmp_path, monkeypatch):
+    current = tmp_path / "current"
+    nested = current / "vendor" / "policy"
+    nested.mkdir(parents=True)
+    (current / ".git").mkdir()
+    nested_git = nested / ".git"
+    nested_git.mkdir()
+    (nested_git / "HEAD").write_text("ref: refs/heads/release\n", encoding="utf-8")
+    (nested_git / "config").write_text(
+        '[remote "origin"]\n'
+        "    url = git@gitlab.com:security/nested-policy.git\n",
+        encoding="utf-8",
+    )
+    ci = nested / ".gitlab-ci.yml"
+    ci.write_text(
+        """# @render variables
+variables:
+  Z: 9
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(current)
+    monkeypatch.setenv(
+        "CI_REPOSITORY_URL",
+        "https://gitlab.com/example/current.git",
+    )
+
+    block = extract_gitstrings_blocks_from_ci_yaml(ci.read_text(encoding="utf-8"))[0]
+    out = render_fragment(block, keep_source=False, scan_path=ci)
+
+    assert (
+        "https://gitlab.com/security/nested-policy/-/blob/release/.gitlab-ci.yml#L1-3"
+        in out
+    )
+    assert "example/current" not in out
+
+
 def test_process_gitstrings_from_multi_document_gitlab_ci_yml(tmp_path):
     ci = tmp_path / ".gitlab-ci.yml"
     readme = tmp_path / "README.md"
