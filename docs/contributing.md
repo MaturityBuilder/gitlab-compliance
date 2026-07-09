@@ -47,8 +47,8 @@ bash scripts/git-commit.sh -m "your message"
 
 Hooks are defined in
 [`.pre-commit-config.yaml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.pre-commit-config.yaml).
-CI runs the same checks via
-[`.github/workflows/pre-commit.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/pre-commit.yml).
+CI runs the same checks via the **pre-commit** job in
+[`.github/workflows/tests.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/tests.yml).
 
 ## Documentation
 
