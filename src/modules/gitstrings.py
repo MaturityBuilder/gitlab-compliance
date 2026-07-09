@@ -10,7 +10,12 @@ import yaml
 
 import src.properties.table_render as table_render
 import src.properties.yaml_paths as yaml_paths
-from src.modules.constants import GITSTRINGS_MARKER_CLOSE, GITSTRINGS_MARKER_OPEN
+from src.modules.constants import (
+    GITSTRINGS_MARKER_CLOSE,
+    GITSTRINGS_MARKER_CLOSE_LEGACY,
+    GITSTRINGS_MARKER_OPEN,
+    GITSTRINGS_MARKER_OPEN_LEGACY,
+)
 from src.modules.doc_controller import update_marked_block
 from src.modules.logging import logger
 
@@ -416,6 +421,17 @@ def render_gitstrings_by_output(
     return {path: "\n".join(sections).strip() + "\n" for path, sections in grouped.items()}
 
 
+def _upgrade_legacy_gitstrings_markers(path: Path) -> None:
+    """Replace reference-style markers (visible in some renderers) with HTML comments."""
+    if not path.is_file():
+        return
+    text = path.read_text(encoding="utf-8")
+    updated = text.replace(GITSTRINGS_MARKER_OPEN_LEGACY, GITSTRINGS_MARKER_OPEN)
+    updated = updated.replace(GITSTRINGS_MARKER_CLOSE_LEGACY, GITSTRINGS_MARKER_CLOSE)
+    if updated != text:
+        path.write_text(updated, encoding="utf-8")
+
+
 def write_gitstrings_block(
     target_path: str | Path,
     content: str,
@@ -425,6 +441,7 @@ def write_gitstrings_block(
     path = Path(target_path)
     if not dry:
         path.parent.mkdir(parents=True, exist_ok=True)
+        _upgrade_legacy_gitstrings_markers(path)
     update_marked_block(
         file_path=str(path),
         content=content,

@@ -22,8 +22,8 @@ spec:
         Stage for the compliance job.
 ```
 
-[comment]: <> (gitlab-compliance-gitstrings-opening-auto-generated)
-[comment]: <> (gitlab-compliance-gitstrings-closing-auto-generated)
+<!-- gitlab-compliance-gitstrings-opening-auto-generated -->
+<!-- gitlab-compliance-gitstrings-closing-auto-generated -->
 
 ## Support
 

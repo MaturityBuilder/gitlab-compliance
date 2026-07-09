@@ -33,8 +33,8 @@ Use gitstrings for **documented fragments** (inputs, variables, small job snippe
 Add gitstrings markers once where generated tables should appear:
 
 ```markdown
-[comment]: <> (gitlab-compliance-gitstrings-opening-auto-generated)
-[comment]: <> (gitlab-compliance-gitstrings-closing-auto-generated)
+<!-- gitlab-compliance-gitstrings-opening-auto-generated -->
+<!-- gitlab-compliance-gitstrings-closing-auto-generated -->
 ```
 
 Annotate `.gitlab-ci.yml` (or use markdown fences), then run:

@@ -314,6 +314,30 @@ variables:
     )[1]
 
 
+def test_gitstrings_markers_are_html_comments():
+    assert GITSTRINGS_MARKER_OPEN.startswith("<!--")
+    assert GITSTRINGS_MARKER_CLOSE.startswith("<!--")
+
+
+def test_upgrade_legacy_gitstrings_markers(tmp_path):
+    readme = tmp_path / "README.md"
+    from src.modules.constants import (
+        GITSTRINGS_MARKER_CLOSE_LEGACY,
+        GITSTRINGS_MARKER_OPEN_LEGACY,
+    )
+    from src.modules.gitstrings import _upgrade_legacy_gitstrings_markers
+
+    readme.write_text(
+        f"{GITSTRINGS_MARKER_OPEN_LEGACY}\nold\n{GITSTRINGS_MARKER_CLOSE_LEGACY}\n",
+        encoding="utf-8",
+    )
+    _upgrade_legacy_gitstrings_markers(readme)
+    text = readme.read_text(encoding="utf-8")
+    assert GITSTRINGS_MARKER_OPEN in text
+    assert GITSTRINGS_MARKER_CLOSE in text
+    assert GITSTRINGS_MARKER_CLOSE_LEGACY not in text
+
+
 def test_cli_document_gitstrings(tmp_path):
     readme = tmp_path / "README.md"
     readme.write_text(
