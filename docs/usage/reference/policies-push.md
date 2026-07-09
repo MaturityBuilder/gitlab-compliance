@@ -15,8 +15,7 @@ Usage: gitlab-compliance policies push [OPTIONS] TARGET
 * `features_dir` (REQUIRED):
   * Type: STRING
   * Default: `sentinel.unset`
-  * Usage: `--features
--f`
+  * Usage: `--features, -f`
 
 Directory containing compliance policy .feature files to publish.
 
@@ -31,6 +30,12 @@ Directory containing compliance policy .feature files to publish.
   * Usage: `--help`
 
   Show this message and exit.
+
+## Examples
+
+```bash
+gitlab-compliance policies push -f policies/security/ registry.example.com/org/gitlab-ci-policies:1.0.0
+```
 
 ## CLI Help
 

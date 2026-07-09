@@ -42,7 +42,7 @@ Usage: gitlab-compliance release-notes [OPTIONS]
   Baseline tag name (default: latest semver tag, else most recent by date)
 
 * `markdown_dir`:
-  * Type: <click.types.Path object at 0x7349b62052b0>
+  * Type: PATH
   * Default: `.`
   * Usage: `--markdown`
 
@@ -61,6 +61,13 @@ Usage: gitlab-compliance release-notes [OPTIONS]
   * Usage: `--help`
 
   Show this message and exit.
+
+## Examples
+
+```bash
+gitlab-compliance release-notes --projects my-group/my-project --markdown release-notes
+gitlab-compliance release-notes --projects 12345 --since-tag v1.2.0 --no-write
+```
 
 ## CLI Help
 

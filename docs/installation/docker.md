@@ -1,31 +1,51 @@
 # Docker
 
-![gitlab-compliance](../assets/logo-light.png){ width="280" }
+Run `gitlab-compliance` from the published container image when you do not want
+to install Python dependencies on the host.
 
-A pre-built Docker image on Python Alpine Linux, published by
-[MaturityBuilder](https://github.com/MaturityBuilder/gitlab-compliance).
+Image:
+[`maturitybuilder/gitlab-compliance`](https://hub.docker.com/r/maturitybuilder/gitlab-compliance)
+on Docker Hub.
 
-`gitlab-compliance` is published on [Docker
-Hub](https://hub.docker.com/_/gitlab-compliance/) as the `gitlab-compliance`
-package.
+## Local run
+
+Mount the repository and run `check` from the working tree:
 
 ```bash
-docker run -it -v $PWD:/src -w /src -e GITLAB_TOKEN=$GITLAB_TOKEN -e
-maturitybuilder/gitlab-compliance check -f example-policies --include-nested
---project <my gitlab project path>
+docker run --rm -it \
+  -v "$PWD:/src" \
+  -w /src \
+  -e GITLAB_TOKEN="$GITLAB_TOKEN" \
+  maturitybuilder/gitlab-compliance:latest \
+  gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
-## Audit Pipeline Yaml
+Add API-backed project checks when a token is available:
 
-```yml
+```bash
+docker run --rm -it \
+  -v "$PWD:/src" \
+  -w /src \
+  -e GITLAB_TOKEN="$GITLAB_TOKEN" \
+  maturitybuilder/gitlab-compliance:latest \
+  gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
+    --project my-group/my-project --strict
+```
+
+## GitLab CI/CD
+
+```yaml
 gitlab-compliance:
-    image: maturitybuilder/gitlab-compliance
-    script:
-        - gitlab-compliance check -f example-policies --include-nested --project
-          <my gitlab project path>
-
+  image: maturitybuilder/gitlab-compliance:latest
+  stage: test
+  script:
+    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 ```
 
-Depending on your workflow and security policy the pipeline can potentially auto
-resolve includes and image updates by passing arg `--fix`
+Depending on your workflow and security policy, the pipeline can auto-resolve
+outdated include refs and pin container images by adding `--fix`.
+
 Next: [Usage](../usage/index.md).

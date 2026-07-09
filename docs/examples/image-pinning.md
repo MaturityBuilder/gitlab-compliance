@@ -97,7 +97,8 @@ compliance:
 ## Run locally
 
 ```bash
-cp -r examples/example-policies/security/ policies/security/
+mkdir -p policies
+cp -r examples/example-policies/security policies/security
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 

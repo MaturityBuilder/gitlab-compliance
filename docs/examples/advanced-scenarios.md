@@ -65,7 +65,7 @@ A row fails when, for example, `mode: execute` is paired with `workflow: gitops`
 Enable the package baseline pack alongside your own policies:
 
 ```bash
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --with-builtin
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --with-builtin
 ```
 
 Bundled files under `src/compliance/builtin_policies/` include:

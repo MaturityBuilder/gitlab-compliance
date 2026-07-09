@@ -7,19 +7,101 @@ import click
 md_base_template = """
 ## Usage
 
-```
+```text
 {usage}
 ```
 
 ## Options
-{options}
 
+{options}
+{examples}
 ## CLI Help
 
-```
+```text
 {help}
 ```
 """
+
+COMMAND_EXAMPLES = {
+    "check": [
+        "gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml",
+        (
+            "gitlab-compliance check -f oci://registry.example.com/org/"
+            "gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update"
+        ),
+        (
+            "gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml "
+            "--format markdown -o COMPLIANCE-REPORT.md"
+        ),
+    ],
+    "generate": [
+        (
+            "gitlab-compliance generate -i .gitlab-ci.yml --format "
+            "swagger-markdown -o pipeline-reference.md"
+        ),
+        (
+            "gitlab-compliance generate -i .gitlab-ci.yml --format "
+            "swagger-markdown --exclude variables,image --group-by stage"
+        ),
+        (
+            "gitlab-compliance generate -i .gitlab-ci.yml --format html "
+            "-o pipeline-reference.html"
+        ),
+    ],
+    "generate-html": [
+        (
+            "gitlab-compliance generate -i .gitlab-ci.yml --format html "
+            "-o gitlab-compliance.html"
+        ),
+    ],
+    "get-attributes": [
+        (
+            "gitlab-compliance get-attributes -i .gitlab-ci.yml "
+            "-a stage,image,rules -o attributes.md"
+        ),
+        "gitlab-compliance get-attributes -i .gitlab-ci.yml -a image -j true",
+    ],
+    "policies": [
+        "gitlab-compliance policies doc -f policies/security/ -o policy-catalog.md",
+        (
+            "gitlab-compliance policies push -f policies/security/ "
+            "registry.example.com/org/gitlab-ci-policies:1.0.0"
+        ),
+        (
+            "gitlab-compliance policies pull "
+            "registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/security/"
+        ),
+    ],
+    "policies doc": [
+        "gitlab-compliance policies doc -f policies/security/ -o policy-catalog.md",
+        (
+            "gitlab-compliance policies doc -f policies/security/ --format html "
+            "-o policy-catalog.html"
+        ),
+    ],
+    "policies push": [
+        (
+            "gitlab-compliance policies push -f policies/security/ "
+            "registry.example.com/org/gitlab-ci-policies:1.0.0"
+        ),
+    ],
+    "policies pull": [
+        (
+            "gitlab-compliance policies pull "
+            "registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/security/"
+        ),
+    ],
+    "release-notes": [
+        (
+            "gitlab-compliance release-notes --projects my-group/my-project "
+            "--markdown release-notes"
+        ),
+        (
+            "gitlab-compliance release-notes --projects 12345 --since-tag v1.2.0 "
+            "--no-write"
+        ),
+    ],
+}
 
 
 def recursive_help(cmd, parent=None):
@@ -40,6 +122,16 @@ def recursive_help(cmd, parent=None):
             yield helpdct
 
 
+def _type_label(param_type) -> str:
+    rendered = str(param_type)
+    if not rendered.startswith("<click.types."):
+        return rendered
+    name = getattr(param_type, "name", None)
+    if name:
+        return str(name).upper()
+    return param_type.__class__.__name__.replace("ParamType", "").upper()
+
+
 def _param_metadata(param):
     if isinstance(param, click.Argument):
         return {
@@ -47,16 +139,16 @@ def _param_metadata(param):
             "required": param.required,
             "default": param.default,
             "help": getattr(param, "help", None),
-            "type": str(param.type),
+            "type": _type_label(param.type),
             "kind": "argument",
         }
     return {
-        "usage": "\n".join(param.opts),
+        "usage": ", ".join(param.opts),
         "prompt": getattr(param, "prompt", None),
         "required": param.required,
         "default": param.default,
         "help": getattr(param, "help", None),
-        "type": str(param.type),
+        "type": _type_label(param.type),
         "kind": "option",
     }
 
@@ -78,6 +170,14 @@ def _format_options(options: dict) -> str:
     )
 
 
+def _format_examples(command_name: str) -> str:
+    examples = COMMAND_EXAMPLES.get(command_name, [])
+    if not examples:
+        return ""
+    body = "\n".join(f"{example}" for example in examples)
+    return f"## Examples\n\n```bash\n{body}\n```\n\n"
+
+
 def _render_command_page(helpdct: dict, title: str | None = None) -> str:
     command = helpdct["command"]
     options = {opt.name: _param_metadata(opt) for opt in helpdct.get("params", [])}
@@ -86,6 +186,7 @@ def _render_command_page(helpdct: dict, title: str | None = None) -> str:
     body = md_base_template.format(
         usage=helpdct.get("usage"),
         options=_format_options(options),
+        examples=_format_examples(heading),
         help=helpdct.get("help"),
     )
     if description:
@@ -148,6 +249,30 @@ def dump_helper(base_command, docs_dir) -> list[str]:
     index_lines = [
         "# Command Reference\n",
         f"Auto-generated reference for `{root_name}` subcommands.\n",
+        "\n",
+        "| Workflow | Commands |\n",
+        "| -------- | -------- |\n",
+        (
+            "| Compliance checks | [`check`](check.md), "
+            "[`policies`](policies.md), [`policies doc`](policies-doc.md) |\n"
+        ),
+        (
+            "| Policy distribution | [`policies push`](policies-push.md), "
+            "[`policies pull`](policies-pull.md) |\n"
+        ),
+        (
+            "| Pipeline documentation | [`generate`](generate.md), "
+            "[`get-attributes`](get-attributes.md) |\n"
+        ),
+        (
+            "| Release support | [`release-notes`](release-notes.md) |\n"
+        ),
+        (
+            "| Legacy and maintenance | [`generate-html`](generate-html.md), "
+            "[`dumps`](dumps.md) |\n"
+        ),
+        "\n",
+        "## All commands\n",
     ]
     for command_path in sorted(written, key=_command_doc_slug):
         display_name = " ".join(command_path)

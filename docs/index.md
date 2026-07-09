@@ -1,30 +1,34 @@
-![gitlab-compliance by MaturityBuilder](assets/logo-light.png)
+# GitLab Compliance
 
-<div class="mb-hero" markdown="1">
+![gitlab-compliance by MaturityBuilder](assets/logo-wordmark.png)
 
-<p class="mb-byline">GitLab Compliance</p>
-<hr class="mb-hero-divider" />
-<p class="mb-hero-brand">MaturityBuilder</p>
-<p class="mb-tagline">BDD compliance testing for GitLab CI/CD pipelines and project settings</p>
+`gitlab-compliance` is a lightweight, security- and compliance-focused test
+framework for GitLab CI/CD. It runs readable Gherkin policies against
+`.gitlab-ci.yml`, resolved local includes, and optional GitLab API settings. The
+same CLI can also generate Markdown, Swagger-style Markdown, or HTML reference
+documentation for your pipeline.
 
-<div class="mb-hero-cta" markdown="1">
 [Get started](installation/index.md){ .md-button .md-button--primary }
 [Usage reference](usage/index.md){ .md-button }
 [BDD grammar](bdd-reference/index.md){ .md-button }
-</div>
 
-</div>
+BDD compliance testing for GitLab CI/CD pipelines and project settings.
+{: .mb-tagline }
 
-`gitlab-compliance` (PyPI package
-[`gitlab-compliance`](https://pypi.org/project/gitlab-compliance/)) is a
-lightweight, security and compliance focused test framework for GitLab CI/CD. It
-runs Gherkin policies against `.gitlab-ci.yml` and optional GitLab API settings.
- You can also generate markdown documentation for your gitlab pipelines.
+![Terminal demo showing gitlab-compliance check and generate commands](assets/gitlab-compliance-terminal-demo.gif){ .mb-demo }
 
-— the same BDD model as
+## Why teams use it
+
+| Capability | How it helps |
+| ---------- | ------------ |
+| Pipeline policy checks | Block risky images, unpinned includes, missing rules, and non-standard jobs before merge |
+| API-backed policies | Check project, group, and variable settings when GitLab API context is available |
+| Policy packs | Keep reusable `.feature` files locally, in shared repos, or in OCI registries |
+| Documentation generation | Create pipeline references that show jobs, variables, includes, rules, and selected attributes |
+
+The policy model follows the same BDD style as
 [terraform-compliance](https://terraform-compliance.com/) uses for Terraform
-plans.
-Source code:
+plans. Source code:
 [MaturityBuilder/gitlab-compliance](https://github.com/MaturityBuilder/gitlab-compliance).
 
 ## Get started
@@ -40,7 +44,7 @@ Source code:
 pip install gitlab-compliance
 
 # Validate pipeline configuration against policies
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 
 # Generate pipeline documentation (filter and group output as needed)
 gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
@@ -49,20 +53,36 @@ gitlab-compliance generate -i .gitlab-ci.yml --exclude variables,image --group-b
 
 See [Usage](usage/index.md) for compliance options and [Generate pipeline documentation](usage/reference/generate.md) for output formats, `--exclude`, and `--group-by`.
 
-- **compliance:** Ensure pipeline YAML and project settings follow your security
-  standards and custom policies
-- **behaviour driven development:** Policies are readable Gherkin scenarios that
-  developers and security teams share
-- **portable:** Install from `pip`. See [Installation](installation/index.md)
-- **pre-merge:** Validate configuration before changes land on protected
-  branches
-- **YAML and API:** Offline checks against pipeline files; optional GitLab API
-  checks for project settings and CI variables
-- **easy to integrate:** Run in GitLab CI or local git hooks
-- **segregation of duty:** Keep policy packs in a separate repository or OCI
-  registry
-- **documentation:** Generate Markdown or HTML reference docs from
-  `.gitlab-ci.yml`
+## Common workflows
+
+| Workflow | Example |
+| -------- | ------- |
+| Local policy directory | `gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml` |
+| OCI policy pack | `gitlab-compliance check -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update` |
+| Markdown report | `gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --format markdown -o COMPLIANCE-REPORT.md` |
+| Pipeline reference | `gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md` |
+
+## Product strengths
+
+### Compliance as readable tests
+
+Policies are Gherkin scenarios that developers, platform engineers, and security
+teams can review together.
+
+### Pre-merge feedback
+
+Run checks in merge requests, local hooks, GitLab CI/CD, or GitHub Actions before
+configuration reaches protected branches.
+
+### Portable policy distribution
+
+Keep policy packs in the application repo, a central compliance repo, or an OCI
+registry.
+
+### Documentation from source
+
+Generate reference docs from real `.gitlab-ci.yml` content so pipeline docs stay
+close to the configuration they describe.
 
 ## Idea
 

@@ -1,0 +1,51 @@
+.mb-hero {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 1.25rem;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top left, rgba(232, 93, 58, 0.18), transparent 28rem),
+    linear-gradient(135deg, rgba(30, 42, 58, 0.06), rgba(30, 42, 58, 0.01));
+}
+
+.mb-hero h1 {
+  margin-top: 0;
+}
+
+.mb-tagline {
+  color: var(--md-default-fg-color--light);
+  font-size: 1.05rem;
+}
+
+.mb-badges,
+.mb-card-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.mb-badges {
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  margin: 1.5rem 0;
+}
+
+.mb-badge,
+.mb-card {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.9rem;
+  padding: 1rem;
+  background: var(--md-default-bg-color);
+}
+
+.mb-badge strong,
+.mb-card strong {
+  display: block;
+}
+
+.mb-card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.mb-demo {
+  border-radius: 1rem;
+  box-shadow: 0 1rem 2.5rem rgba(15, 23, 42, 0.18);
+  margin: 1rem 0;
+}

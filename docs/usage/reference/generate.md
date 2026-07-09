@@ -5,7 +5,8 @@ Will scan through your gitlab-ci yml and build documentation from the yml.
 ## Usage
 
 ```text
-Usage: gitlab-compliance generate [OPTIONS]```
+Usage: gitlab-compliance generate [OPTIONS]
+```
 
 ## Options
 
@@ -19,48 +20,42 @@ Usage: gitlab-compliance generate [OPTIONS]```
 * `output_format`:
   * Type: Choice(['markdown', 'swagger-markdown', 'html'])
   * Default: `markdown`
-  * Usage: `--format
--f`
+  * Usage: `--format, -f`
 
   Output format for generated documentation.
 
 * `DRY_MODE`:
   * Type: BOOL
   * Default: `false`
-  * Usage: `--dry-mode
--d`
+  * Usage: `--dry-mode, -d`
 
   If set will disable documentation from being written
 
 * `OUTPUT_FILE`:
   * Type: STRING
   * Default: `none`
-  * Usage: `--output-file
--o`
+  * Usage: `--output-file, -o`
 
   Output location of the generated documentation.
 
 * `GLDOCS_CONFIG_FILE`:
   * Type: STRING
   * Default: `.gitlab-ci.yml`
-  * Usage: `--input-config
--i`
+  * Usage: `--input-config, -i`
 
   The Gitlab CI Input configuration file to generated documentation from.
 
 * `exclude`:
   * Type: STRING
   * Default: `none`
-  * Usage: `--exclude
--x`
+  * Usage: `--exclude, -x`
 
   Comma-separated sections or job attributes to omit from output. Sections: inputs, variables, includes, workflow, jobs, container_images.
 
 * `group_by`:
   * Type: STRING
   * Default: `none`
-  * Usage: `--group-by
--g`
+  * Usage: `--group-by, -g`
 
   Group jobs in the Jobs section by this job attribute (e.g. stage).
 
@@ -71,6 +66,13 @@ Usage: gitlab-compliance generate [OPTIONS]```
 
   Show this message and exit.
 
+## Examples
+
+```bash
+gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
+gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown --exclude variables,image --group-by stage
+gitlab-compliance generate -i .gitlab-ci.yml --format html -o pipeline-reference.html
+```
 
 ## CLI Help
 

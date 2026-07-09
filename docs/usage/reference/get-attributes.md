@@ -20,32 +20,28 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
 * `attributes`:
   * Type: STRING
   * Default: `readme.md`
-  * Usage: `--attributes
--a`
+  * Usage: `--attributes, -a`
 
   Pass a comma seperated list of gitlab ci yml attributes
 
 * `OUTPUT_FILE`:
   * Type: STRING
   * Default: `readme.md`
-  * Usage: `--output-file
--o`
+  * Usage: `--output-file, -o`
 
   Output location of the markdown documentation.
 
 * `GLDOCS_CONFIG_FILE`:
   * Type: STRING
   * Default: `.gitlab-ci.yml`
-  * Usage: `--input-config
--i`
+  * Usage: `--input-config, -i`
 
   The Gitlab CI Input configuration file to generated documentation from.
 
 * `json_format`:
   * Type: BOOL
   * Default: `false`
-  * Usage: `--json
--j`
+  * Usage: `--json, -j`
 
   Return results in json format.
 
@@ -55,6 +51,13 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
   * Usage: `--help`
 
   Show this message and exit.
+
+## Examples
+
+```bash
+gitlab-compliance get-attributes -i .gitlab-ci.yml -a stage,image,rules -o attributes.md
+gitlab-compliance get-attributes -i .gitlab-ci.yml -a image -j true
+```
 
 ## CLI Help
 

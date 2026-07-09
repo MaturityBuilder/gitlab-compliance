@@ -65,34 +65,34 @@ are independent of the documentation site.
 ## GitHub Actions
 
 - **[`tests.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/tests.yml):**
-  PR + push
-  - behave, pytest, coverage
-- **[`pre-commit.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/pre-commit.yml):**
-  PR + push
-  - pre-commit hooks
-- **[`danger.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/danger.yml):**
-  PR
-  - Danger PR review
+  pull requests to `main`
+  - `pre-commit run --all-files`
+  - behave, pytest, coverage, and the `95%` coverage threshold
 - **[`docker.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/docker.yml):**
-  PR + push
-  - Build, Trivy scan, smoke test (no push)
+  pull requests to `main` / `master`
+  - Docker Buildx build, Trivy filesystem scan, Trivy image scan, SARIF artifact,
+    and CLI smoke test
 - **[`release.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/release.yml):**
-  push `main` / tags `v*`
-  - release-please; PyPI + Docker Hub on tags
+  pushes to `main` and tags matching `v*`
+  - release-please on `main`
+  - tagged releases run tests, publish to PyPI, publish Docker Hub images, and
+    smoke-test `maturitybuilder/gitlab-compliance:latest`
 - **[`zensical-gh-pages.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/zensical-gh-pages.yml):**
-  PR + push
-  - Zensical build and GitHub Pages
+  pull requests and pushes to `main` / `master`
+  - strict Zensical build
+  - pull requests upload a `docs-preview` artifact
+  - pushes deploy `public/` to GitHub Pages
 
 See [GitHub Actions CI/CD](ci-cd/github-actions.md) for consumer examples (pip
 vs container) and Docker Hub publish setup.
 
-### Documentation site
+### GitHub Pages documentation site
 
-- **`review`:** Pull requests to `main` / `master`
+- **`review`:** pull requests to `main` / `master`
   - `zensical build --strict`; upload `docs-preview` artifact
-- **`build`:** Push to `main` / `master`
+- **`build`:** pushes to `main` / `master`
   - Build site for production
-- **`deploy`:** After `build` on push
+- **`deploy`:** after `build` on push
   - Deploy `public/` to GitHub Pages
 
 Enable **Settings → Pages → Build and deployment → GitHub Actions** if the site

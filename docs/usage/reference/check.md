@@ -5,22 +5,22 @@ Run Gherkin compliance policies against GitLab CI YAML and optional API settings
 ## Usage
 
 ```text
-Usage: gitlab-compliance check [OPTIONS]```
+Usage: gitlab-compliance check [OPTIONS]
+```
 
 ## Options
+
 * `features_dir` (REQUIRED):
   * Type: STRING
   * Default: `sentinel.unset`
-  * Usage: `--features
--f`
+  * Usage: `--features, -f`
 
   Directory containing compliance policy .feature files or an OCI reference (oci://registry.example.com/policies:1.0.0).
 
 * `pipeline_file`:
   * Type: STRING
   * Default: `.gitlab-ci.yml`
-  * Usage: `--pipeline
--p`
+  * Usage: `--pipeline, -p`
 
   Path to the GitLab CI pipeline YAML file.
 
@@ -34,8 +34,7 @@ Usage: gitlab-compliance check [OPTIONS]```
 * `output_file`:
   * Type: STRING
   * Default: `none`
-  * Usage: `--output-file
--o`
+  * Usage: `--output-file, -o`
 
   Write rendered report to this file (markdown, html, mr-comment).
 
@@ -123,6 +122,13 @@ Usage: gitlab-compliance check [OPTIONS]```
 
   Show this message and exit.
 
+## Examples
+
+```bash
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
+gitlab-compliance check -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --format markdown -o COMPLIANCE-REPORT.md
+```
 
 ## CLI Help
 

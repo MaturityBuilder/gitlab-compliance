@@ -21,7 +21,8 @@ compliance:
 Copy policies first:
 
 ```bash
-cp -r examples/example-policies/security/ policies/security/
+mkdir -p policies
+cp -r examples/example-policies/security policies/security
 ```
 
 ## Include shared compliance jobs

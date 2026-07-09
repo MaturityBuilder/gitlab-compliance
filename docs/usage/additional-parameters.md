@@ -11,7 +11,7 @@ into the compliance entity stash so policies can see jobs and variables from
 included fragments.
 
 ```bash
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --no-include-nested
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --no-include-nested
 ```
 
 ## `--strict`
@@ -22,7 +22,7 @@ When enabled, API-backed `Given` steps fail instead of skipping if
 `GITLAB_TOKEN` / `CI_JOB_TOKEN` and `--project` or `--group` are not available.
 
 ```bash
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --strict
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --strict
 ```
 
 Use `--strict` in CI jobs that must enforce API checks.
@@ -32,7 +32,7 @@ Use `--strict` in CI jobs that must enforce API checks.
 Parse scenarios and list them without running assertions.
 
 ```bash
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --dry-run
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --dry-run
 ```
 
 ## `--fix`
@@ -57,8 +57,8 @@ With an OCI `-f` reference, pull the latest policy bundle before executing
 checks.
 
 ```bash
-gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p
-.gitlab-ci.yml --update
+gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 \
+  -p .gitlab-ci.yml --update
 ```
 
 ## `--policy-cache-dir`
@@ -77,7 +77,7 @@ GitLab instance URL for API checks. Defaults to `CI_SERVER_URL` or
 `https://gitlab.com`.
 
 ```bash
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml \
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
   --gitlab-url https://gitlab.example.com --project my-group/my-project
 ```
 
@@ -119,8 +119,8 @@ gitlab-compliance generate -i .gitlab-ci.yml \
 ### `policies push` / `policies pull`
 
 ```bash
-gitlab-compliance policies push -f policies/
-registry.example.com/org/policies:1.0.0
-gitlab-compliance policies pull oci://registry.example.com/org/policies:1.0.0 -o
-policies/
+gitlab-compliance policies push -f policies/security/ \
+  registry.example.com/org/policies:1.0.0
+gitlab-compliance policies pull registry.example.com/org/policies:1.0.0 \
+  -o policies/security/
 ```

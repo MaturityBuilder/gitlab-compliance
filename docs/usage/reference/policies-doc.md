@@ -15,8 +15,7 @@ Usage: gitlab-compliance policies doc [OPTIONS]
 * `features_dir` (REQUIRED):
   * Type: STRING
   * Default: `sentinel.unset`
-  * Usage: `--features
--f`
+  * Usage: `--features, -f`
 
   Directory containing compliance policy .feature files.
 
@@ -30,8 +29,7 @@ Usage: gitlab-compliance policies doc [OPTIONS]
 * `output_file`:
   * Type: STRING
   * Default: `none`
-  * Usage: `--output-file
--o`
+  * Usage: `--output-file, -o`
 
   Write the policy catalog to this file.
 
@@ -41,6 +39,13 @@ Usage: gitlab-compliance policies doc [OPTIONS]
   * Usage: `--help`
 
   Show this message and exit.
+
+## Examples
+
+```bash
+gitlab-compliance policies doc -f policies/security/ -o policy-catalog.md
+gitlab-compliance policies doc -f policies/security/ --format html -o policy-catalog.html
+```
 
 ## CLI Help
 

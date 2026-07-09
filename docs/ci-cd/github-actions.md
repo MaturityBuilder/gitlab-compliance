@@ -1,9 +1,9 @@
 # GitHub Actions
 
 Run **gitlab-compliance** in GitHub Actions to gate pull requests and
-default-branch builds. This repository also ships workflows for pre-commit,
-Danger PR review, tests, documentation, release-please, and tag-gated PyPI and
-Docker publish.
+default-branch builds. This repository also ships workflows for tests,
+pre-commit checks, documentation, Docker scanning, release-please, and
+tag-gated PyPI and Docker publish.
 
 ## Quick start (consumer projects)
 
@@ -18,7 +18,7 @@ compliance:
       with:
         python-version: "3.12"
     - run: pip install gitlab-compliance
-    - run: gitlab-compliance check -f policies/security -p .gitlab-ci.yml
+    - run: gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
 Full example:
@@ -34,7 +34,7 @@ compliance:
     - run: |
         docker run --rm -v "$PWD:/work" -w /work \
           maturitybuilder/gitlab-compliance:latest \
-          compliance -f policies/security -p .gitlab-ci.yml
+          gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
 Full example:
@@ -43,30 +43,26 @@ Full example:
 Copy policies first:
 
 ```bash
+mkdir -p policies
 cp -r examples/example-policies/security policies/security
 ```
 
 ## Repository workflows
 
-- **Tests:** [tests.yml](../../.github/workflows/tests.yml)
-  - PR + push
-  - behave + pytest, 95% coverage
-- **Pre-commit:** [pre-commit.yml](../../.github/workflows/pre-commit.yml)
-  - PR + push
-  - `pre-commit run --all-files`
-- **Danger:** [danger.yml](../../.github/workflows/danger.yml)
-  - PR
-  - PR review via [dangerfile.py](../../dangerfile.py)
-- **Docker:** [docker.yml](../../.github/workflows/docker.yml)
-  - PR + push
-  - Build, Trivy scan, smoke test
-- **Release:** [release.yml](../../.github/workflows/release.yml)
+- **Tests:** [tests.yml](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/tests.yml)
+  - pull requests to `main`
+  - pre-commit, behave, pytest, coverage, and `95%` coverage threshold
+- **Docker:** [docker.yml](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/docker.yml)
+  - pull requests to `main` / `master`
+  - Buildx build, Trivy filesystem scan, Trivy image scan, SARIF artifact, and
+    CLI smoke test
+- **Release:** [release.yml](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/release.yml)
   - push `main` / tags
   - release-please; PyPI + Docker
 - **Documentation:**
-  [zensical-gh-pages.yml](../../.github/workflows/zensical-gh-pages.yml)
-  - PR + push
-  - Zensical build and GitHub Pages
+  [zensical-gh-pages.yml](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/zensical-gh-pages.yml)
+  - pull requests and pushes to `main` / `master`
+  - strict Zensical build, `docs-preview` artifacts, and GitHub Pages deploys
 
 ## Pre-commit (local and CI)
 
@@ -81,18 +77,18 @@ poetry run pre-commit run --all-files
 Configuration:
 [`.pre-commit-config.yaml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.pre-commit-config.yaml).
 
-## Danger PR review
+## Review guidance file
 
 [`dangerfile.py`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/dangerfile.py)
-warns on:
+contains review rules for:
 
 - Very large PRs
 - `src/` changes without `tests/` or `docs/` updates
-- CI file changes (links to this guide)
+- CI file changes
 - Non-conventional PR titles (informational)
 
-Enable **Settings → Actions → General → Workflow permissions → Read and write**
-so `GITHUB_TOKEN` can post PR comments.
+There is no dedicated Danger GitHub Actions workflow in the current repository;
+the file is kept as reusable review guidance.
 
 ## Release (release-please, PyPI, Docker Hub)
 
@@ -131,7 +127,7 @@ publishing](https://docs.pypi.org/trusted-publishers/) (OIDC) — no long-lived
 add a **trusted publisher** for GitHub Actions:
 
    | Field | Value |
-   |-------|-------|
+   | ----- | ----- |
    | Owner | `MaturityBuilder` |
    | Repository | `gitlab-compliance` |
    | Workflow name | `release.yml` |
@@ -164,14 +160,14 @@ Image: **`maturitybuilder/gitlab-compliance`**
 
 The `build-and-scan` job in
 [`docker.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/docker.yml)
-runs on pull requests and pushes to `main` / `master`:
+runs on pull requests to `main` / `master`:
 
 1. Builds from
 [`dockerfile`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/dockerfile)
 (no push)
 2. Runs Trivy filesystem and image scans (`CRITICAL`, `HIGH` severities fail the
 job)
-3. Uploads image scan SARIF to the Security tab
+3. Uploads the image scan SARIF file as a pull request artifact
 4. Smoke-tests `gitlab-compliance --help`
 
 Docker Hub push happens only from the **publish-docker** job in
@@ -186,7 +182,7 @@ path:
 ```yaml
 - run: |
     gitlab-compliance check \
-      -f policies/security \
+      -f policies/security/ \
       -p .gitlab-ci.yml \
       --project my-group/my-project \
       --strict

@@ -19,8 +19,7 @@ Usage: gitlab-compliance policies pull [OPTIONS] TARGET
 * `output_dir`:
   * Type: STRING
   * Default: `policy`
-  * Usage: `--output-dir
--o`
+  * Usage: `--output-dir, -o`
 
   Directory to extract pulled policies into.
 
@@ -30,6 +29,12 @@ Usage: gitlab-compliance policies pull [OPTIONS] TARGET
   * Usage: `--help`
 
   Show this message and exit.
+
+## Examples
+
+```bash
+gitlab-compliance policies pull registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/security/
+```
 
 ## CLI Help
 
