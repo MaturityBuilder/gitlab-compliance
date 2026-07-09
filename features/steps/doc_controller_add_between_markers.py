@@ -9,8 +9,8 @@ from src.modules.doc_controller import add_between_markers
 
 
 file_path = "README.md"
-marker_start = "[comment]: <> (gitlab-compliance-opening-auto-generated)"
-marker_end = "[comment]: <> (gitlab-compliance-closing-auto-generated)"
+marker_start = "<!-- gitlab-compliance-opening-auto-generated -->"
+marker_end = "<!-- gitlab-compliance-closing-auto-generated -->"
 
 
 @given("a non-existent file path")

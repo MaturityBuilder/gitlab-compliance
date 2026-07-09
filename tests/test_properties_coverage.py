@@ -27,8 +27,8 @@ class TestIncludes:
         cfg.write_text("variables:\n  FOO: bar\n", encoding="utf-8")
         out = tmp_path / "out.md"
         Path(out).write_text(
-            "[comment]: <> (gitlab-compliance-opening-auto-generated)\n"
-            "[comment]: <> (gitlab-compliance-closing-auto-generated)\n",
+            "<!-- gitlab-compliance-opening-auto-generated -->\n"
+            "<!-- gitlab-compliance-closing-auto-generated -->\n",
             encoding="utf-8",
         )
         document_includes(str(out), str(cfg))
@@ -41,8 +41,8 @@ class TestIncludes:
         )
         out = tmp_path / "out.md"
         out.write_text(
-            "[comment]: <> (gitlab-compliance-opening-auto-generated)\n"
-            "[comment]: <> (gitlab-compliance-closing-auto-generated)\n",
+            "<!-- gitlab-compliance-opening-auto-generated -->\n"
+            "<!-- gitlab-compliance-closing-auto-generated -->\n",
             encoding="utf-8",
         )
         document_includes(str(out), str(cfg))
@@ -54,8 +54,8 @@ class TestIncludes:
         )
         out = tmp_path / "out.md"
         out.write_text(
-            "[comment]: <> (gitlab-compliance-opening-auto-generated)\n"
-            "[comment]: <> (gitlab-compliance-closing-auto-generated)\n",
+            "<!-- gitlab-compliance-opening-auto-generated -->\n"
+            "<!-- gitlab-compliance-closing-auto-generated -->\n",
             encoding="utf-8",
         )
         document_includes(str(out), str(cfg))
@@ -78,8 +78,8 @@ class TestJobsAndProperties:
     def _prepare_output(self, tmp_path):
         out = tmp_path / "out.md"
         out.write_text(
-            "[comment]: <> (gitlab-compliance-opening-auto-generated)\n"
-            "[comment]: <> (gitlab-compliance-closing-auto-generated)\n",
+            "<!-- gitlab-compliance-opening-auto-generated -->\n"
+            "<!-- gitlab-compliance-closing-auto-generated -->\n",
             encoding="utf-8",
         )
         return out

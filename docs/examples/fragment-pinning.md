@@ -1,6 +1,7 @@
 # Fragment Pinning
 
-Shared YAML from other projects must pin `ref:` to a tag or SHA, not a moving branch.
+Shared YAML from other projects must pin `ref:` to a tag or SHA, not a moving
+branch.
 
 ## Bad
 
@@ -22,7 +23,8 @@ include:
 
 ## Policy
 
-From [`security/fragment-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/fragment-pinning.feature):
+From
+[`security/fragment-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/fragment-pinning.feature):
 
 ```gherkin
 Scenario: Project includes must not use branch refs
@@ -46,7 +48,8 @@ compliance:
   extends: .compliance:offline
 ```
 
-Pair with [Include Versions](include-versions.md) when you also want API-backed release checks.
+Pair with [Include Versions](include-versions.md) when you also want API-backed
+release checks.
 
 ## Run locally
 

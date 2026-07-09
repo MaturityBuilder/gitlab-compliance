@@ -1,6 +1,7 @@
 # Image Pinning
 
-Prevent jobs from using mutable or unpinned container images. **Sha256 digest pinning** is the recommended default for supply-chain security.
+Prevent jobs from using mutable or unpinned container images. **Sha256 digest
+pinning** is the recommended default for supply-chain security.
 
 ## Bad
 
@@ -15,9 +16,11 @@ build:
 
 ```yaml
 scan:
-  image: python@sha256:826cce1bda4ecb1d8a6ce203ac1b519660ba85e808e1306a43a908f49f90f341
+  image:
+  python@sha256:826cce1bda4ecb1d8a6ce203ac1b519660ba85e808e1306a43a908f49f90f341
 build:
-  image: docker@sha256:61394709d9c9999b6b7d6d5b8c7c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8
+  image:
+  docker@sha256:61394709d9c9999b6b7d6d5b8c7c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8c8
 ```
 
 ## Good (explicit semver tag)
@@ -31,7 +34,8 @@ build:
 
 ## Policy
 
-From [`security/image-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/image-pinning.feature):
+From
+[`security/image-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/image-pinning.feature):
 
 ```gherkin
 Scenario: Job images must use sha256 digest
@@ -48,7 +52,8 @@ Scenario: Container images must not lag behind registry latest
   Then a newer image release must not be available
 ```
 
-Registry-backed checks resolve tags from Docker Hub (public images) and GitLab Container Registry (when the image host matches your GitLab instance).
+Registry-backed checks resolve tags from Docker Hub (public images) and GitLab
+Container Registry (when the image host matches your GitLab instance).
 
 ## Auto-fix (`--fix`)
 
@@ -60,7 +65,8 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
 
 ## Consume in GitLab CI
 
-Offline policy — use the shared compliance job templates from [`example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/compliance-jobs.yml):
+Offline policy — use the shared compliance job templates from
+[`example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/compliance-jobs.yml):
 
 ```yaml
 include:

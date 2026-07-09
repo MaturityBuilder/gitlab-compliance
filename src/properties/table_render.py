@@ -92,7 +92,7 @@ def render_inputs_table(inputs: dict) -> str:
     )
     for key in inputs:
         table.add_row(_inputs_row_cells(key, inputs[key]))
-    return str(table)
+    return common.markdown_table_from_prettytable(table)
 
 
 def render_variables_table(variables: dict) -> str:
@@ -104,7 +104,7 @@ def render_variables_table(variables: dict) -> str:
     )
     for key in variables:
         table.add_row(_variables_row_cells(key, variables[key]))
-    return str(table)
+    return common.markdown_table_from_prettytable(table)
 
 
 def render_jobs_table(jobs: dict) -> str:

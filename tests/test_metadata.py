@@ -5,10 +5,14 @@ from pathlib import Path
 from src.compliance.metadata import (
     _parse_metadata_yaml,
     build_policy_catalog,
+    normalize_scenario_name,
     parse_feature_policies,
 )
 
 EXAMPLE_POLICIES = Path(__file__).resolve().parents[1] / "examples/example-policies"
+OUTLINE_POLICIES = (
+    Path(__file__).resolve().parents[1] / "tests/compliance_policies/outlines"
+)
 
 
 class TestParseMetadataYaml:
@@ -61,3 +65,30 @@ class TestBuildPolicyCatalog:
     def test_example_policies_load_without_yaml_error(self):
         catalog = build_policy_catalog(str(EXAMPLE_POLICIES))
         assert len(catalog.features) > 0
+
+
+class TestScenarioOutlineMetadata:
+    def test_outline_scenario_indexed(self):
+        feature_file = OUTLINE_POLICIES / "metadata-outline.feature"
+        policies = parse_feature_policies(str(feature_file))
+        scenario = next(
+            s
+            for s in policies.scenarios
+            if s.scenario_name == "Variables must match pattern"
+        )
+        assert scenario.policy_id == "GLCI-OUTLINE-TEST-001"
+        assert scenario.scope == "scenario"
+
+    def test_normalize_scenario_name_strips_behave_suffix(self):
+        expanded = "Variables must match pattern -- @1.1"
+        assert normalize_scenario_name(expanded) == "Variables must match pattern"
+
+    def test_lookup_scenario_with_behave_outline_suffix(self):
+        feature_file = OUTLINE_POLICIES / "metadata-outline.feature"
+        catalog = build_policy_catalog(str(OUTLINE_POLICIES))
+        annotation = catalog.lookup_scenario(
+            str(feature_file), "Variables must match pattern -- @1.1"
+        )
+        assert annotation is not None
+        assert annotation.policy_id == "GLCI-OUTLINE-TEST-001"
+        assert annotation.scenario_name == "Variables must match pattern"

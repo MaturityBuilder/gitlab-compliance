@@ -2,13 +2,15 @@
 
 Manage compliance policy bundles (catalog, OCI push/pull).
 
-### Usage
+## Usage
 
-```
+```text
+
 Usage: gitlab-compliance policies [OPTIONS] COMMAND [ARGS]...
 ```
 
-### Options
+## Options
+
 * `help`:
   * Type: BOOL
   * Default: `false`
@@ -16,10 +18,10 @@ Usage: gitlab-compliance policies [OPTIONS] COMMAND [ARGS]...
 
   Show this message and exit.
 
+## CLI Help
 
-### CLI Help
+```text
 
-```
 Usage: gitlab-compliance policies [OPTIONS] COMMAND [ARGS]...
 
   Manage compliance policy bundles (catalog, OCI push/pull).
@@ -31,4 +33,5 @@ Commands:
   doc   Generate a searchable policy catalog from Conftest-style #...
   pull  Pull a compliance policy bundle from an OCI registry.
   push  Push a compliance policy bundle to an OCI registry (Conftest-style).
+
 ```

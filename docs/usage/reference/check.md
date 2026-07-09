@@ -2,13 +2,12 @@
 
 Run Gherkin compliance policies against GitLab CI YAML and optional API settings.
 
-### Usage
+## Usage
 
-```
-Usage: gitlab-compliance check [OPTIONS]
-```
+```text
+Usage: gitlab-compliance check [OPTIONS]```
 
-### Options
+## Options
 * `features_dir` (REQUIRED):
   * Type: STRING
   * Default: `sentinel.unset`
@@ -110,6 +109,13 @@ Usage: gitlab-compliance check [OPTIONS]
 
   Auto-fix outdated include refs and pin container images to sha256 digests.
 
+* `with_builtin`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--with-builtin`
+
+  Also run bundled baseline policies shipped with gitlab-compliance.
+
 * `help`:
   * Type: BOOL
   * Default: `false`
@@ -118,9 +124,9 @@ Usage: gitlab-compliance check [OPTIONS]
   Show this message and exit.
 
 
-### CLI Help
+## CLI Help
 
-```
+```text
 Usage: gitlab-compliance check [OPTIONS]
 
   Run Gherkin compliance policies against GitLab CI YAML and optional API
@@ -156,5 +162,7 @@ Options:
   --dry-run                       Parse and list scenarios without asserting.
   --fix                           Auto-fix outdated include refs and pin
                                   container images to sha256 digests.
+  --with-builtin                  Also run bundled baseline policies shipped
+                                  with gitlab-compliance.
   --help                          Show this message and exit.
 ```

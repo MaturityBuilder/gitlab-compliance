@@ -2,13 +2,13 @@
 
 Create one markdown file per subcommand under --docsPath.
 
-### Usage
+## Usage
 
-```
-Usage: gitlab-compliance dumps [OPTIONS]
-```
+```text
+Usage: gitlab-compliance dumps [OPTIONS]```
 
-### Options
+## Options
+
 * `base_module` (REQUIRED):
   * Type: STRING
   * Default: `src.gitlab_compliance`
@@ -38,9 +38,9 @@ Usage: gitlab-compliance dumps [OPTIONS]
   Show this message and exit.
 
 
-### CLI Help
+## CLI Help
 
-```
+```text
 Usage: gitlab-compliance dumps [OPTIONS]
 
   Create one markdown file per subcommand under --docsPath.

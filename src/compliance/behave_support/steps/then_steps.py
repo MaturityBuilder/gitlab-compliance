@@ -22,7 +22,7 @@ from src.compliance.stash import (
     include_within_latest_tags,
     normalize_value,
     property_matches,
-    property_matches_regex,
+    property_matches_conditional,
     property_not_matches_regex,
 )
 
@@ -75,7 +75,7 @@ def then_property_must_match(context, property_name, pattern):
         return
     assert_all(
         context.stash,
-        lambda e: property_matches_regex(e, property_name, pattern),
+        lambda e: property_matches_conditional(e, property_name, pattern),
         f"Entities where {property_name} must match /{pattern}/",
     )
 

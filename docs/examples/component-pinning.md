@@ -1,6 +1,7 @@
 # Component Pinning
 
-CI/CD components in `include:` must use immutable version refs, not branch names like `@main`.
+CI/CD components in `include:` must use immutable version refs, not branch names
+like `@main`.
 
 ## Bad
 
@@ -18,7 +19,8 @@ include:
 
 ## Policy
 
-From [`security/component-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/component-pinning.feature):
+From
+[`security/component-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/component-pinning.feature):
 
 ```gherkin
 Scenario: Component includes must use semver
@@ -38,7 +40,8 @@ compliance:
   extends: .compliance:offline
 ```
 
-The job runs all policies under `policies/security/`, including `component-pinning.feature`.
+The job runs all policies under `policies/security/`, including
+`component-pinning.feature`.
 
 ## Run locally
 

@@ -11,7 +11,7 @@ Repository = "https://github.com/MaturityBuilder/gitlab-compliance"
 
 [tool.poetry]
 name = "gitlab-compliance"
-description = "Gitlab automatically generates gitlab documentation from yaml files"
+description = "BDD compliance testing for GitLab CI/CD pipelines and project settings — by MaturityBuilder"
 authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
 readme = ["docs/index.md"]
 

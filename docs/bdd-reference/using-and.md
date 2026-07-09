@@ -1,6 +1,7 @@
 # Using AND
 
-`And` continues the **same step type** as the line above it (`Given`, `When`, or `Then`).
+`And` continues the **same step type** as the line above it (`Given`, `When`, or
+`Then`).
 
 ```gherkin
 Scenario: Production tokens must be protected and masked
@@ -19,8 +20,12 @@ This is equivalent to:
 
 ## Rules
 
-- `And` after `When` is still a filter — all conditions must be satisfiable by the same entity through sequential filtering, or use a single `When` with a regex.
-- `And` after `Then` adds another assertion on the **same stash**; every entity must pass **all** `Then` / `And` assertions.
-- Do not use `And` to switch from `Given` to a different entity type; use another `Given` or a new scenario.
+- `And` after `When` is still a filter — all conditions must be satisfiable by
+  the same entity through sequential filtering, or use a single `When` with a
+  regex.
+- `And` after `Then` adds another assertion on the **same stash**; every entity
+  must pass **all** `Then` / `And` assertions.
+- Do not use `And` to switch from `Given` to a different entity type; use
+  another `Given` or a new scenario.
 
 See [Overview of Scenario Flow](overview.md) for stash behavior.

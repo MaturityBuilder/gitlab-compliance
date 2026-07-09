@@ -35,7 +35,7 @@ class TestDumpHelper:
         assert generate_md.is_file()
         text = generate_md.read_text(encoding="utf-8")
         assert text.startswith("# generate")
-        assert "### Usage" in text
+        assert "## Usage" in text
 
         index_md = tmp_path / "command-reference.md"
         assert index_md.is_file()

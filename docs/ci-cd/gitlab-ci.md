@@ -26,7 +26,8 @@ cp -r examples/example-policies/security/ policies/security/
 
 ## Include shared compliance jobs
 
-Reuse hidden job templates from [`example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/compliance-jobs.yml):
+Reuse hidden job templates from
+[`example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/compliance-jobs.yml):
 
 **Local include** (vendored in your repo):
 
@@ -50,22 +51,21 @@ compliance:
   extends: .compliance:offline
 ```
 
-Minimal consumer example: [`example-ci/.gitlab-ci.consumer.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/.gitlab-ci.consumer.yml).
+Minimal consumer example:
+[`example-ci/.gitlab-ci.consumer.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/.gitlab-ci.consumer.yml).
 
-| Template | Purpose |
-|----------|---------|
-| `.compliance:offline` | YAML-only policies |
-| `.compliance:api` | API-backed policies with `--project` and `--strict` |
-| `.compliance:codequality` | GitLab Code Quality report artifact |
-| `.compliance:oci` | Policies from OCI registry with `--update` |
+- **`.compliance:offline`:** YAML-only policies
+- **`.compliance:api`:** API-backed policies with `--project` and `--strict`
+- **`.compliance:codequality`:** GitLab Code Quality report artifact
+- **`.compliance:oci`:** Policies from OCI registry with `--update`
 
 ## Policy source options
 
-| Source | Command flag | Example |
-|--------|--------------|---------|
-| Local directory | `-f policies/security/` | Default for most projects |
-| OCI registry | `-f oci://registry/...` | See [OCI Policy Packs](../examples/oci-policy-packs.md) |
-| Git include | Vendor policies via `include:project` | Central security repo |
+- **Local directory:** `-f policies/security/` — Default for most projects
+- **OCI registry:**
+  - `-f oci://registry/...`
+  - See [OCI Policy Packs](../examples/oci-policy-packs.md)
+- **Git include:** Vendor policies via `include:project` — Central security repo
 
 OCI consumption:
 
@@ -85,9 +85,11 @@ compliance:
   extends: .compliance:api
 ```
 
-Use for [API hardening](../examples/api-hardening.md) and when `--strict` must fail skipped API scenarios.
+Use for [API hardening](../examples/api-hardening.md) and when `--strict` must
+fail skipped API scenarios.
 
-**Include release checks** only need a token — `--project` is not required for comparing pinned include refs against GitLab tags. Token is still required:
+**Include release checks** only need a token — `--project` is not required for
+comparing pinned include refs against GitLab tags. Token is still required:
 
 ```yaml
 compliance:includes:
@@ -99,7 +101,9 @@ compliance:includes:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```
 
-Use a [project access token](https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html) when `CI_JOB_TOKEN` lacks access to included projects.
+Use a [project access
+token](https://docs.gitlab.com/ee/user/project/settings/project_access_tokens.html)
+when `CI_JOB_TOKEN` lacks access to included projects.
 
 ## Reports
 
@@ -144,12 +148,17 @@ compliance:
   allow_failure: true   # remove once baseline is clean
 ```
 
-Pair with [Execution Policy](../examples/execution-policy.md) policies to catch jobs missing `rules:` before blocking.
+Pair with [Execution Policy](../examples/execution-policy.md) policies to catch
+jobs missing `rules:` before blocking.
 
 ## Org-wide enforcement
 
-For GitLab tiers with security policies, inject the compliance job into every member project via a **Pipeline Execution Policy** instead of adding a job to each `.gitlab-ci.yml`.
+For GitLab tiers with security policies, inject the compliance job into every
+member project via a **Pipeline Execution Policy** instead of adding a job to
+each `.gitlab-ci.yml`.
 
-See [Pipeline Execution Policy](pipeline-execution-policy.md) for the full walkthrough using [`examples/example-gitlab-execution-policy/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-gitlab-execution-policy).
+See [Pipeline Execution Policy](pipeline-execution-policy.md) for the full
+walkthrough using
+[`examples/example-gitlab-execution-policy/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-gitlab-execution-policy).
 
 Back to [Using in CI/CD](index.md).

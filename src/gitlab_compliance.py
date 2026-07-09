@@ -44,9 +44,15 @@ from src.modules.doc_controller import (
 )
 from src.modules.logging import logger
 from src.modules.gitstrings import process_gitstrings
+from src.modules.output_filters import (
+    parse_exclude,
+    validate_exclude_sections,
+    warn_group_by_excluded,
+)
 from src.modules.pipeline_data import collect_pipeline_data
 from src.modules.release import release_notes
 from src.modules.swagger_html import render_swagger_html
+from src.modules.swagger_markdown import render_swagger_markdown
 from src.properties.extract_job_attribute import get_job_attribute
 
 __all__ = [
@@ -75,58 +81,105 @@ __all__ = [
 ]
 
 
+def _parse_generate_filters(exclude, group_by):
+    """Parse and validate generate filter options."""
+    exclude_sections, exclude_attributes = parse_exclude(exclude)
+    validate_exclude_sections(exclude_sections)
+    warn_group_by_excluded(group_by, exclude_attributes)
+    return exclude_sections, exclude_attributes, group_by
+
+
 def _generate_markdown(
     OUTPUT_FILE,
     GLDOCS_CONFIG_FILE,
     detailed=False,
+    exclude_sections=None,
+    exclude_attributes=None,
+    group_by=None,
 ):
     ENABLE_WORKFLOW_DOCUMENTATION = detailed
+    exclude_sections = exclude_sections or set()
     update_marked_block(file_path=OUTPUT_FILE, content="\n")
-    bootstrap = f"""# GITLAB COMPLIANCE - {GLDOCS_CONFIG_FILE}"""
+    bootstrap = f"""## GITLAB COMPLIANCE - {GLDOCS_CONFIG_FILE}"""
     add_between_markers(file_path=OUTPUT_FILE, content=bootstrap)
-    inputs.document_inputs(
-        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
-        DISABLE_TITLE=True,
-        OUTPUT_FILE=OUTPUT_FILE,
-    )
-    variables.document_variables(
-        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
-        DISABLE_TITLE=True,
-        OUTPUT_FILE=OUTPUT_FILE,
-    )
-    includes.document_includes(
-        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
-        DISABLE_TITLE=True,
-        DISABLE_TYPE_HEADING=False,
-        OUTPUT_FILE=OUTPUT_FILE,
-    )
-    if ENABLE_WORKFLOW_DOCUMENTATION is True:
+    if "inputs" not in exclude_sections:
+        inputs.document_inputs(
+            GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+            DISABLE_TITLE=True,
+            OUTPUT_FILE=OUTPUT_FILE,
+        )
+    if "variables" not in exclude_sections:
+        variables.document_variables(
+            GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+            DISABLE_TITLE=True,
+            OUTPUT_FILE=OUTPUT_FILE,
+        )
+    if "includes" not in exclude_sections:
+        includes.document_includes(
+            GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+            DISABLE_TITLE=True,
+            DISABLE_TYPE_HEADING=False,
+            OUTPUT_FILE=OUTPUT_FILE,
+        )
+    if ENABLE_WORKFLOW_DOCUMENTATION is True and "workflow" not in exclude_sections:
         workflows.document_workflows(
             GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
             DISABLE_TITLE=True,
             OUTPUT_FILE=OUTPUT_FILE,
         )
-    jobs.get_jobs(
-        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
-        DISABLE_TITLE=True,
-        DISABLE_TYPE_HEADING=False,
-        OUTPUT_FILE=OUTPUT_FILE,
-        detailed=detailed,
-    )
+    if "jobs" not in exclude_sections:
+        pipeline_data = collect_pipeline_data(
+            config_file=GLDOCS_CONFIG_FILE,
+            detailed=detailed,
+            exclude_sections=exclude_sections,
+            exclude_attributes=exclude_attributes,
+            group_by=group_by,
+        )
+        jobs.render_jobs_from_pipeline(
+            OUTPUT_FILE=OUTPUT_FILE,
+            pipeline_data=pipeline_data,
+            detailed=detailed,
+        )
 
 
 def _generate_html(
     OUTPUT_FILE,
     GLDOCS_CONFIG_FILE,
     detailed=False,
+    exclude_sections=None,
+    exclude_attributes=None,
+    group_by=None,
 ):
     pipeline_data = collect_pipeline_data(
         config_file=GLDOCS_CONFIG_FILE,
         detailed=detailed,
+        exclude_sections=exclude_sections,
+        exclude_attributes=exclude_attributes,
+        group_by=group_by,
     )
     html_output = render_swagger_html(pipeline_data)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as output_file:
         output_file.write(html_output)
+
+
+def _generate_swagger_markdown(
+    OUTPUT_FILE,
+    GLDOCS_CONFIG_FILE,
+    detailed=False,
+    exclude_sections=None,
+    exclude_attributes=None,
+    group_by=None,
+):
+    pipeline_data = collect_pipeline_data(
+        config_file=GLDOCS_CONFIG_FILE,
+        detailed=detailed,
+        exclude_sections=exclude_sections,
+        exclude_attributes=exclude_attributes,
+        group_by=group_by,
+    )
+    markdown_output = render_swagger_markdown(pipeline_data)
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as output_file:
+        output_file.write(markdown_output)
 
 
 def _resolve_output_file(output_format, output_file):
@@ -274,7 +327,34 @@ def get_attributes(OUTPUT_FILE, GLDOCS_CONFIG_FILE, attributes, json_format):
     help="The Gitlab CI Input configuration file to generated documentation from.",
     default=".gitlab-ci.yml",
 )
-def generate(detailed, output_format, OUTPUT_FILE, DRY_MODE, GLDOCS_CONFIG_FILE):
+@click.option(
+    "--exclude",
+    "-x",
+    "exclude",
+    required=False,
+    default=None,
+    help=(
+        "Comma-separated sections or job attributes to omit from output. "
+        "Sections: inputs, variables, includes, workflow, jobs, container_images."
+    ),
+)
+@click.option(
+    "--group-by",
+    "-g",
+    "group_by",
+    required=False,
+    default=None,
+    help="Group jobs in the Jobs section by this job attribute (e.g. stage).",
+)
+def generate(
+    detailed,
+    output_format,
+    OUTPUT_FILE,
+    DRY_MODE,
+    GLDOCS_CONFIG_FILE,
+    exclude,
+    group_by,
+):
     """
     Will scan through your gitlab-ci yml and build documentation from the yml.
     """
@@ -282,24 +362,34 @@ def generate(detailed, output_format, OUTPUT_FILE, DRY_MODE, GLDOCS_CONFIG_FILE)
     OUTPUT_FILE = _resolve_output_file(output_format, OUTPUT_FILE)
     logger.success("Welcome to Gitlab Compliance")
 
+    try:
+        exclude_sections, exclude_attributes, group_by = _parse_generate_filters(
+            exclude, group_by
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+
     if DRY_MODE:
         logger.info(
             f"Dry mode enabled; skipping write for {GLDOCS_CONFIG_FILE} ({output_format})"
         )
         return
 
+    gen_kwargs = dict(
+        OUTPUT_FILE=OUTPUT_FILE,
+        GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
+        detailed=detailed,
+        exclude_sections=exclude_sections,
+        exclude_attributes=exclude_attributes,
+        group_by=group_by,
+    )
+
     if output_format == "html":
-        _generate_html(
-            OUTPUT_FILE=OUTPUT_FILE,
-            GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
-            detailed=detailed,
-        )
+        _generate_html(**gen_kwargs)
+    elif output_format == "swagger-markdown":
+        _generate_swagger_markdown(**gen_kwargs)
     else:
-        _generate_markdown(
-            OUTPUT_FILE=OUTPUT_FILE,
-            GLDOCS_CONFIG_FILE=GLDOCS_CONFIG_FILE,
-            detailed=detailed,
-        )
+        _generate_markdown(**gen_kwargs)
 
     logger.info(
         f"Successfully generated {output_format} documentation for "
@@ -470,6 +560,12 @@ def _resolve_policies_dir(
     default=False,
     help="Auto-fix outdated include refs and pin container images to sha256 digests.",
 )
+@click.option(
+    "--with-builtin",
+    is_flag=True,
+    default=False,
+    help="Also run bundled baseline policies shipped with gitlab-compliance.",
+)
 def check(
     features_dir,
     pipeline_file,
@@ -485,6 +581,7 @@ def check(
     policy_cache_dir,
     dry_run,
     fix,
+    with_builtin,
 ):
     """
     Run Gherkin compliance policies against GitLab CI YAML and optional API settings.
@@ -512,6 +609,7 @@ def check(
         policies_source=features_dir,
         policy_cache_dir=policy_cache_dir,
         fix=fix,
+        with_builtin=with_builtin,
     )
 
     if output_format != "console":

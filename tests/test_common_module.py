@@ -46,6 +46,8 @@ class TestFormatHelpers:
     def test_build_dict_list_table(self):
         table = build_dict_list_table([{"if": "main", "when": "always"}])
         assert table is not None
+        assert "if" in table
+        assert "when" in table
 
 
 class TestReadYml:

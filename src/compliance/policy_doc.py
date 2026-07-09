@@ -20,6 +20,13 @@ def _relative_path(features_dir: str, feature_file: str) -> str:
         return feature_file
 
 
+def _short_location(features_dir: str, annotation: PolicyAnnotation) -> str:
+    loc = _location(features_dir, annotation)
+    if len(loc) > 24:
+        return "…" + loc[-23:]
+    return loc
+
+
 def _location(features_dir: str, annotation: PolicyAnnotation) -> str:
     rel_path = _relative_path(features_dir, annotation.feature_file)
     if annotation.line:
@@ -36,13 +43,12 @@ def render_policy_catalog_markdown(catalog: PolicyCatalog, features_dir: str) ->
         "",
         "## Index",
         "",
-        "| ID | Title | Scope | Location |",
-        "|----|-------|-------|----------|",
     ]
 
     for policy in collect_policy_index(catalog):
+        loc = _short_location(features_dir, policy)
         lines.append(
-            f"| `{policy.policy_id}` | {policy.title} | {policy.scope} | `{_location(features_dir, policy)}` |"
+            f"- `{policy.policy_id}` — {policy.title} " f"({policy.scope}, `{loc}`)"
         )
 
     lines.append("")

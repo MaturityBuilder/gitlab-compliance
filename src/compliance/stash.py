@@ -44,14 +44,49 @@ def property_matches(entity: dict, property_name: str, expected: str) -> bool:
     return normalize_value(get_property(entity, property_name)) == expected
 
 
+def _unwrap_slash_regex(spec: str) -> str:
+    if len(spec) >= 2 and spec.startswith("/") and spec.endswith("/"):
+        return spec[1:-1]
+    return spec
+
+
+def _looks_like_regex_spec(spec: str) -> bool:
+    stripped = spec.strip()
+    if stripped.startswith("^") or stripped.endswith("$"):
+        return True
+    if "|" in stripped:
+        return True
+    if _unwrap_slash_regex(stripped) != stripped:
+        return True
+    return bool(re.search(r"[.+*?\[\]()]", stripped))
+
+
+def match_value_spec(actual: Any, spec: str) -> bool:
+    """Match actual value against literal, comma-separated list, or regex spec."""
+    actual_norm = normalize_value(actual)
+    spec = spec.strip()
+    if not spec:
+        return actual_norm == ""
+
+    if "," in spec and not _looks_like_regex_spec(spec):
+        options = [part.strip() for part in spec.split(",") if part.strip()]
+        return actual_norm in options
+
+    if _looks_like_regex_spec(spec):
+        try:
+            return re.search(_unwrap_slash_regex(spec), actual_norm) is not None
+        except re.error as exc:
+            raise ValueError(f"Invalid regex pattern: {spec}") from exc
+
+    return actual_norm == spec
+
+
+def property_matches_spec(entity: dict, property_name: str, spec: str) -> bool:
+    return match_value_spec(get_property(entity, property_name), spec)
+
+
 def property_matches_regex(entity: dict, property_name: str, pattern: str) -> bool:
-    value = normalize_value(get_property(entity, property_name))
-    try:
-        return re.search(pattern, value) is not None
-    except re.error as exc:
-        raise ValueError(
-            f"Invalid regex pattern for property '{property_name}': {pattern}"
-        ) from exc
+    return property_matches_spec(entity, property_name, pattern)
 
 
 def property_not_matches_regex(entity: dict, property_name: str, pattern: str) -> bool:
@@ -181,6 +216,34 @@ def filter_entities(
     entities: list[dict], predicate: Callable[[dict], bool]
 ) -> list[dict]:
     return [entity for entity in entities if predicate(entity)]
+
+
+def get_inputs(entity: dict) -> dict:
+    values = entity.get("values", {})
+    if not isinstance(values, dict):
+        return {}
+    inputs = values.get("inputs")
+    if inputs is None:
+        inputs = values.get("variables")
+    return inputs if isinstance(inputs, dict) else {}
+
+
+def input_matches(entity: dict, name: str, value_spec: str) -> bool:
+    inputs = get_inputs(entity)
+    if name not in inputs:
+        return False
+    return match_value_spec(inputs.get(name), value_spec)
+
+
+def get_conditional_property(entity: dict, key: str) -> Any:
+    inputs = get_inputs(entity)
+    if key in inputs:
+        return inputs[key]
+    return get_property(entity, key)
+
+
+def property_matches_conditional(entity: dict, key: str, spec: str) -> bool:
+    return match_value_spec(get_conditional_property(entity, key), spec)
 
 
 def format_entity_ref(entity: dict) -> str:

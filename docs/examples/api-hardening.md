@@ -1,12 +1,15 @@
 # API Hardening
 
-Some controls cannot be expressed in YAML alone. API-backed scenarios read project settings and CI variables via the GitLab API.
+Some controls cannot be expressed in YAML alone. API-backed scenarios read
+project settings and CI variables via the GitLab API.
 
-Requires `--project`, a token, and optionally `--strict` in CI. See [Environment Variables](../usage/environment-variables.md).
+Requires `--project`, a token, and optionally `--strict` in CI. See [Environment
+Variables](../usage/environment-variables.md).
 
 ## Policy examples
 
-From [`security/api-hardening.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/api-hardening.feature):
+From
+[`security/api-hardening.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-policies/security/api-hardening.feature):
 
 ```gherkin
 Scenario: Job logs must not be public
@@ -57,6 +60,7 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
   --project my-group/my-project --strict
 ```
 
-Without API credentials, these scenarios are **skipped** unless `--strict` is set.
+Without API credentials, these scenarios are **skipped** unless `--strict` is
+set.
 
 Back to [Examples](index.md).

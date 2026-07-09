@@ -1,7 +1,8 @@
-SUPPORTED_OUTPUT_FORMATS = ("markdown", "html")
+SUPPORTED_OUTPUT_FORMATS = ("markdown", "swagger-markdown", "html")
 
 DEFAULT_OUTPUT_FILES = {
     "markdown": "README.md",
+    "swagger-markdown": "gitlab-compliance-swagger.md",
     "html": "gitlab-compliance.html",
 }
 

@@ -10,6 +10,7 @@ import re
 from datetime import datetime, timezone
 
 from src.compliance.models import ComplianceResult, ScenarioResult
+from src.modules.common import render_markdown_table
 
 LOCATION_RE = re.compile(r"\(([^():]+):(\d+)\)")
 GITLAB_SEVERITIES = frozenset({"info", "minor", "major", "critical", "blocker"})
@@ -30,9 +31,9 @@ def _status_icon(status: str, for_mr: bool = False) -> str:
             "skipped": ":fast_forward:",
         }.get(status, ":grey_question:")
     return {
-        "passed": "PASS",
-        "failed": "FAIL",
-        "skipped": "SKIP",
+        "passed": "✅ PASS",
+        "failed": "❌ FAIL",
+        "skipped": "⏭️ SKIP",
     }.get(status, status.upper())
 
 
@@ -58,12 +59,15 @@ def render_compliance_markdown(
         "",
         "## Summary",
         "",
-        "| Status | Count |",
-        "|--------|-------|",
-        f"| Passed | {result.passed} |",
-        f"| Failed | {result.failed} |",
-        f"| Skipped | {result.skipped} |",
-        f"| **Overall** | **{'PASS' if result.success else 'FAIL'}** |",
+        render_markdown_table(
+            ["Status", "Count"],
+            [
+                ["Passed", str(result.passed)],
+                ["Failed", str(result.failed)],
+                ["Skipped", str(result.skipped)],
+                ["Overall", "PASS" if result.success else "FAIL"],
+            ],
+        ),
         "",
     ]
 
@@ -134,7 +138,7 @@ def render_compliance_mr_comment(
                 lines.extend([html.escape(scenario.description), ""])
             lines.extend(
                 [
-                    "```text",
+                    "```",
                     scenario.message or "Scenario failed.",
                     "```",
                     "",

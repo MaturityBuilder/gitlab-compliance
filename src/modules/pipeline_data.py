@@ -8,6 +8,7 @@ from typing import Any
 
 import src.modules.common as common
 from src.compliance.include_versions import is_valid_semver_version
+from src.modules.output_filters import apply_output_filters
 
 JOB_EXCLUDE_KEYWORDS = [
     "default",
@@ -274,6 +275,9 @@ def collect_pipeline_data(
     config_file: str,
     detailed: bool = False,
     include_nested: bool = True,
+    exclude_sections: set[str] | None = None,
+    exclude_attributes: set[str] | None = None,
+    group_by: str | None = None,
 ) -> dict:
     if not os.path.exists(config_file):
         raise FileNotFoundError(f"Config file not found: {config_file}")
@@ -287,6 +291,8 @@ def collect_pipeline_data(
     except Exception:
         line_index = {"jobs": {}, "includes": [], "variables": {}, "workflow_rules": []}
 
+    skip_jobs = exclude_sections and "jobs" in exclude_sections
+
     data: dict[str, Any] = {
         "config_file": config_file,
         "inputs": [],
@@ -298,11 +304,15 @@ def collect_pipeline_data(
     }
 
     for document in documents:
-        if "spec" in document and "inputs" in document["spec"]:
+        if exclude_sections and "inputs" in exclude_sections:
+            pass
+        elif "spec" in document and "inputs" in document["spec"]:
             for key, value in document["spec"]["inputs"].items():
                 data["inputs"].append(_parse_input_entry(key, value))
 
-        if "variables" in document:
+        if exclude_sections and "variables" in exclude_sections:
+            pass
+        elif "variables" in document:
             for key, value in document["variables"].items():
                 data["variables"].append(
                     _parse_variable_entry(
@@ -313,7 +323,9 @@ def collect_pipeline_data(
                     )
                 )
 
-        if "include" in document:
+        if exclude_sections and "includes" in exclude_sections:
+            pass
+        elif "include" in document:
             for index, entry in enumerate(document["include"]):
                 include_line = (
                     line_index["includes"][index]
@@ -334,31 +346,45 @@ def collect_pipeline_data(
                                 sub_config,
                                 detailed=detailed,
                                 include_nested=include_nested,
+                                exclude_sections=exclude_sections,
+                                exclude_attributes=exclude_attributes,
+                                group_by=group_by,
                             )
                             data["includes"].extend(nested["includes"])
                             data["jobs"].extend(nested["jobs"])
 
-        if detailed and "workflow" in document:
+        if exclude_sections and "workflow" in exclude_sections:
+            pass
+        elif detailed and "workflow" in document:
             workflow = document["workflow"]
             if isinstance(workflow, dict) and "rules" in workflow:
                 data["workflow_rules"] = workflow["rules"]
             elif isinstance(workflow, list):
                 data["workflow_rules"] = workflow
 
-        for key, value in document.items():
-            if key in JOB_EXCLUDE_KEYWORDS and not key.startswith("."):
-                continue
-            if not isinstance(value, dict):
-                continue
-            data["jobs"].append(
-                _parse_job(
-                    key,
-                    value,
-                    source_file=config_file,
-                    line=line_index["jobs"].get(key, 0),
+        if not skip_jobs:
+            for key, value in document.items():
+                if key in JOB_EXCLUDE_KEYWORDS and not key.startswith("."):
+                    continue
+                if not isinstance(value, dict):
+                    continue
+                data["jobs"].append(
+                    _parse_job(
+                        key,
+                        value,
+                        source_file=config_file,
+                        line=line_index["jobs"].get(key, 0),
+                    )
                 )
-            )
 
-    data["container_images"] = _collect_container_images(data["jobs"])
+    if not skip_jobs and not (
+        exclude_sections and "container_images" in exclude_sections
+    ):
+        data["container_images"] = _collect_container_images(data["jobs"])
     data["line_index"] = line_index
-    return data
+    return apply_output_filters(
+        data,
+        exclude_sections=exclude_sections,
+        exclude_attributes=exclude_attributes,
+        group_by=group_by,
+    )

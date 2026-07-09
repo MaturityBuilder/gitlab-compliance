@@ -2,13 +2,13 @@
 
 Deprecated: use `generate --format html` instead.
 
-### Usage
+## Usage
 
-```
-Usage: gitlab-compliance generate-html [OPTIONS]
-```
+```text
+Usage: gitlab-compliance generate-html [OPTIONS]```
 
-### Options
+## Options
+
 * `detailed`:
   * Type: BOOL
   * Default: `false`
@@ -40,9 +40,9 @@ Usage: gitlab-compliance generate-html [OPTIONS]
   Show this message and exit.
 
 
-### CLI Help
+## CLI Help
 
-```
+```text
 Usage: gitlab-compliance generate-html [OPTIONS]
 
   Deprecated: use `generate --format html` instead. (DEPRECATED)

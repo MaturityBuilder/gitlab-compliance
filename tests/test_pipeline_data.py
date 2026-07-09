@@ -58,3 +58,17 @@ class TestCollectPipelineData:
             if image["image_source"] == "job"
         ]
         assert any(image["image"] == "python:3.12.0" for image in job_images)
+
+    def test_exclude_variables_and_group_by_stage(self):
+        data = collect_pipeline_data(
+            str(FIXTURE),
+            detailed=True,
+            exclude_sections={"variables"},
+            exclude_attributes={"image"},
+            group_by="stage",
+        )
+        assert data["variables"] == []
+        assert data["group_by"] == "stage"
+        assert data["jobs_grouped"]
+        for job in data["jobs"]:
+            assert all(item["key"] != "image" for item in job["attributes"])

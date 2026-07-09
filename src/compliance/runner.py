@@ -8,12 +8,18 @@ import shutil
 import tempfile
 
 from behave.configuration import Configuration
+from behave.model import ScenarioOutline
 from behave.runner import Runner
 from behave.step_registry import registry
 
 from src.compliance.api_enrichment import policies_require_api_enrichment
+from src.compliance.builtin_policies import BUILTIN_POLICIES_DIR
 from src.compliance.console import render_compliance_console
-from src.compliance.metadata import build_policy_catalog
+from src.compliance.metadata import (
+    build_policy_catalog_from_dirs,
+    iter_feature_files,
+    normalize_scenario_name,
+)
 from src.compliance.models import ComplianceResult, ScenarioResult
 from src.compliance.oci_registry import resolve_features_dir
 from src.modules.logging import logger
@@ -72,29 +78,58 @@ def _assert_within_directory(root: str, candidate: str) -> None:
 
 
 def _collect_feature_files(features_dir: str) -> list[str]:
-    feature_files = []
-    for root, _dirs, files in os.walk(features_dir):
-        for filename in files:
-            if filename.endswith(".feature"):
-                feature_files.append(os.path.join(root, filename))
-    return feature_files
+    return list(iter_feature_files(features_dir))
 
 
-def _build_behave_workspace(features_dir: str) -> str:
+def _resolve_policy_directories(
+    features_dir: str, with_builtin: bool = False
+) -> list[str]:
+    directories = []
+    if with_builtin:
+        directories.append(os.path.abspath(BUILTIN_POLICIES_DIR))
+    directories.append(os.path.abspath(features_dir))
+    return directories
+
+
+def _collect_feature_files_from_dirs(features_dirs: list[str]) -> list[tuple[str, str]]:
+    """Return (source_dir, feature_path) pairs from one or more policy roots."""
+    collected: list[tuple[str, str]] = []
+    for features_dir in features_dirs:
+        for feature_file in _collect_feature_files(features_dir):
+            collected.append((features_dir, feature_file))
+    return collected
+
+
+def _build_behave_workspace(features_dirs: list[str]) -> str:
     workspace = tempfile.mkdtemp(prefix="gitlab-compliance-compliance-")
-    feature_files = _collect_feature_files(features_dir)
+    collected = _collect_feature_files_from_dirs(features_dirs)
 
-    if not feature_files:
-        raise FileNotFoundError(f"No .feature files found in {features_dir}")
+    if not collected:
+        raise FileNotFoundError(
+            f"No .feature files found in policy directories: {features_dirs}"
+        )
 
-    for feature_file in feature_files:
-        _assert_within_directory(features_dir, feature_file)
+    seen_targets: set[str] = set()
+    for source_dir, feature_file in collected:
+        _assert_within_directory(source_dir, feature_file)
         rel_path = os.path.relpath(
-            os.path.realpath(feature_file), os.path.realpath(features_dir)
+            os.path.realpath(feature_file), os.path.realpath(source_dir)
         )
         if rel_path.startswith(".."):
             raise ValueError(f"Feature file escapes policies directory: {feature_file}")
-        target = os.path.join(workspace, rel_path)
+
+        source_label = os.path.basename(source_dir.rstrip(os.sep))
+        target_rel = (
+            rel_path
+            if len(features_dirs) == 1
+            else os.path.join(source_label, rel_path)
+        )
+        if target_rel in seen_targets:
+            base, ext = os.path.splitext(target_rel)
+            target_rel = f"{base}__{source_label}{ext}"
+        seen_targets.add(target_rel)
+
+        target = os.path.join(workspace, target_rel)
         os.makedirs(os.path.dirname(target), exist_ok=True)
         os.symlink(os.path.realpath(feature_file), target)
 
@@ -129,20 +164,39 @@ def _scenario_message(scenario) -> str:
     return ""
 
 
+def _iter_feature_scenarios(feature) -> list:
+    """Return executed scenarios, expanding Scenario Outline example rows."""
+    expanded: list = []
+    for run_item in feature.scenarios:
+        if isinstance(run_item, ScenarioOutline):
+            expanded.extend(run_item.scenarios)
+        else:
+            expanded.append(run_item)
+    return expanded
+
+
 def _collect_scenario_results(runner: Runner, policy_catalog) -> list[ScenarioResult]:
     results = []
     for feature in runner.features:
         feature_name = _feature_name(feature)
         feature_file = _feature_file_path(feature)
-        for scenario in feature.scenarios:
+        for scenario in _iter_feature_scenarios(feature):
             annotation = policy_catalog.lookup_scenario(feature_file, scenario.name)
             custom = annotation.custom if annotation else {}
+            message = _scenario_message(scenario)
+            normalized = normalize_scenario_name(scenario.name)
+            if scenario.name != normalized:
+                message = (
+                    f"{message} [{normalized}]"
+                    if message
+                    else f"Example row for: {normalized}"
+                )
             results.append(
                 ScenarioResult(
                     feature=feature_name,
                     name=scenario.name,
                     status=scenario.status.name,
-                    message=_scenario_message(scenario),
+                    message=message,
                     policy_id=annotation.policy_id if annotation else "",
                     title=annotation.title if annotation else scenario.name,
                     description=annotation.description if annotation else "",
@@ -166,6 +220,7 @@ def run_compliance(
     policies_source: str | None = None,
     policy_cache_dir: str | None = None,
     fix: bool = False,
+    with_builtin: bool = False,
 ) -> ComplianceResult:
     policies_source = policies_source or features_dir
     resolved_features_dir = (
@@ -199,9 +254,12 @@ def run_compliance(
             group=group,
         )
 
-    workspace = _build_behave_workspace(resolved_features_dir)
-    policy_catalog = build_policy_catalog(resolved_features_dir)
-    api_requirements = policies_require_api_enrichment(resolved_features_dir)
+    policy_directories = _resolve_policy_directories(
+        resolved_features_dir, with_builtin=with_builtin
+    )
+    workspace = _build_behave_workspace(policy_directories)
+    policy_catalog = build_policy_catalog_from_dirs(policy_directories)
+    api_requirements = policies_require_api_enrichment(policy_directories)
 
     exit_code: int | None = None
     scenario_results: list[ScenarioResult] = []
@@ -255,24 +313,20 @@ def run_compliance(
             exit_code = runner.run()
             scenario_results = _collect_scenario_results(runner, policy_catalog)
             features = len(runner.features)
-            scenarios = sum(len(feature.scenarios) for feature in runner.features)
-            passed = sum(
-                1
+            all_scenarios = [
+                scenario
                 for feature in runner.features
-                for scenario in feature.scenarios
-                if scenario.status.name == "passed"
+                for scenario in _iter_feature_scenarios(feature)
+            ]
+            scenarios = len(all_scenarios)
+            passed = sum(
+                1 for scenario in all_scenarios if scenario.status.name == "passed"
             )
             failed_count = sum(
-                1
-                for feature in runner.features
-                for scenario in feature.scenarios
-                if scenario.status.name == "failed"
+                1 for scenario in all_scenarios if scenario.status.name == "failed"
             )
             skipped = sum(
-                1
-                for feature in runner.features
-                for scenario in feature.scenarios
-                if scenario.status.name == "skipped"
+                1 for scenario in all_scenarios if scenario.status.name == "skipped"
             )
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
