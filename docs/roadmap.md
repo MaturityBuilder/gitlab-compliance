@@ -152,6 +152,37 @@ Expand what policies can assert beyond static YAML.
 
 If you export the project as CSV or grant the automation account **Issues: Read** and **Projects: Read** on the org, this document can be updated to mirror issue numbers and statuses automatically.
 
+## Cloud agent GitHub access (troubleshooting)
+
+Cursor Cloud Agents call GitHub as **`cursor[bot]`** (GitHub App installation token), not your personal account. App settings in the UI can show **Issues: Read & write** while the **org installation** still blocks the bot until permissions are approved for `MaturityBuilder/gitlab-compliance`.
+
+Symptoms in the agent environment:
+
+| Check | Expected when access works | Observed when blocked |
+| ----- | ------------------------ | --------------------- |
+| `gh api repos/MaturityBuilder/gitlab-compliance/issues` | `200` + issue list | `403` Resource not accessible by integration |
+| `gh project list --owner MaturityBuilder` | Includes project `3` | `totalCount: 0` |
+| `organization.projectV2(number: 3)` | Project title + items | `NOT_FOUND` |
+
+**Fix (org owner):**
+
+1. GitHub → **MaturityBuilder** → **Settings** → **GitHub Apps** → **Cursor** → **Configure**.
+2. Under **Repository permissions**, set **Issues** and **Projects** to at least **Read** (Read & write if agents should open issues).
+3. Under **Repository access**, include **gitlab-compliance** (or all repositories).
+4. Approve any pending **organization permission request** for the updated scopes.
+5. Re-run the Cloud Agent (or ask it to refresh the roadmap from Project 3).
+
+**Workaround (export locally with your user token):**
+
+```bash
+gh auth login   # your user, with project + repo scopes
+gh project item-list 3 --owner MaturityBuilder --format json > project-3-items.json
+gh issue list -R MaturityBuilder/gitlab-compliance --state all --limit 200 \
+  --json number,title,state,labels,url,body > gitlab-compliance-issues.json
+```
+
+Commit those JSON files (or paste them into the agent chat) to regenerate this roadmap from live board data.
+
 ## Related links
 
 - [Contributing](contributing.md)
