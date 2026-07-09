@@ -9,6 +9,7 @@ from pathlib import Path
 import yaml
 
 import src.properties.table_render as table_render
+import src.properties.yaml_paths as yaml_paths
 from src.modules.constants import GITSTRINGS_MARKER_CLOSE, GITSTRINGS_MARKER_OPEN
 from src.modules.doc_controller import update_marked_block
 from src.modules.logging import logger
@@ -23,7 +24,7 @@ DIRECTIVE_LINE_RE = re.compile(
 )
 
 CI_BLOCK_START_RE = re.compile(
-    r"^\s*#\s*@(?:title|render|output(?:-file)?)\b",
+    r"^\s*#\s*@(?:title|render|output(?:-file)?|sensitive)\b",
     re.IGNORECASE,
 )
 
@@ -38,6 +39,7 @@ class GitstringsDirectives:
     render: str = "auto"
     description: str | None = None
     output: str | None = None
+    sensitive: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -85,7 +87,13 @@ def parse_directives(raw_block: str) -> tuple[GitstringsDirectives, str]:
         if name == "title":
             directives.title = value or None
         elif name == "render":
-            directives.render = value.lower() if value else "auto"
+            raw = (value or "auto").strip()
+            if "." not in raw and raw.lower() in RENDER_MODES:
+                directives.render = raw.lower()
+            else:
+                directives.render = raw or "auto"
+        elif name == "sensitive":
+            directives.sensitive.extend(yaml_paths.parse_path_list(value))
         elif name in ("output", "output_file"):
             directives.output = value or None
         elif name == "description":
@@ -247,10 +255,26 @@ def _looks_like_jobs_map(doc: dict) -> bool:
     return all(job_keys & set(v.keys()) for v in dict_values)
 
 
+def _load_pipeline_root(scan_path: str | Path, fragment_doc: dict) -> dict:
+    path = Path(scan_path)
+    if path.suffix.lower() in CI_YAML_SUFFIXES and path.is_file():
+        try:
+            loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                return loaded
+        except OSError as exc:
+            logger.trace(exc)
+    return fragment_doc
+
+
 def detect_render_mode(doc: object, directive_render: str) -> str:
-    mode = (directive_render or "auto").lower()
+    mode = yaml_paths.normalize_legacy_render(directive_render)
+    if (directive_render or "auto") != "auto" and not yaml_paths.is_legacy_render_mode(
+        directive_render
+    ):
+        return "path"
     if mode != "auto":
-        return mode if mode in RENDER_MODES else "auto"
+        return mode
     if not isinstance(doc, dict):
         return "auto"
     spec = doc.get("spec")
@@ -263,25 +287,41 @@ def detect_render_mode(doc: object, directive_render: str) -> str:
     return "auto"
 
 
-def _render_table_for_doc(doc: dict, mode: str) -> str:
+def _render_table_for_doc(
+    doc: dict,
+    mode: str,
+    *,
+    sensitive_paths: list[str] | None = None,
+) -> str:
     if mode == "auto":
         mode = detect_render_mode(doc, "auto")
     if mode == "inputs":
         spec = doc.get("spec") or {}
         inputs = spec.get("inputs") or {}
-        return table_render.render_inputs_table(inputs)
+        return table_render.render_inputs_table(
+            inputs,
+            path_prefix="spec.inputs",
+            sensitive_paths=sensitive_paths,
+        )
     if mode == "variables":
         variables = doc.get("variables") or {}
-        return table_render.render_variables_table(variables)
+        return table_render.render_variables_table(
+            variables,
+            path_prefix="variables",
+            sensitive_paths=sensitive_paths,
+        )
     if mode == "jobs":
         return table_render.render_jobs_table(doc)
-    return table_render.render_generic_kv_table(doc)
+    return table_render.render_generic_kv_table(
+        doc, sensitive_paths=sensitive_paths
+    )
 
 
 def render_fragment(
     block: GitstringsBlock,
     *,
     keep_source: bool = True,
+    scan_path: str | Path | None = None,
 ) -> str:
     parts: list[str] = []
     directives = block.directives
@@ -300,8 +340,37 @@ def render_fragment(
     if not isinstance(doc, dict):
         doc = {"value": doc}
 
-    mode = detect_render_mode(doc, directives.render)
-    parts.append(_render_table_for_doc(doc, mode))
+    pipeline_root = doc
+    if scan_path is not None:
+        pipeline_root = _load_pipeline_root(scan_path, doc)
+
+    render_spec = directives.render or "auto"
+    if yaml_paths.is_legacy_render_mode(render_spec) or render_spec == "auto":
+        mode = detect_render_mode(doc, render_spec)
+        if mode == "path":
+            parts.append(
+                table_render.render_path_markdown(
+                    pipeline_root,
+                    render_spec,
+                    sensitive_paths=directives.sensitive,
+                )
+            )
+        else:
+            parts.append(
+                _render_table_for_doc(
+                    doc,
+                    mode,
+                    sensitive_paths=directives.sensitive,
+                )
+            )
+    else:
+        parts.append(
+            table_render.render_path_markdown(
+                pipeline_root,
+                render_spec,
+                sensitive_paths=directives.sensitive,
+            )
+        )
     parts.append("")
 
     if keep_source:
@@ -329,7 +398,9 @@ def render_gitstrings_by_output(
         target = resolve_fragment_output(
             block.directives, default_output_path, scan_path
         )
-        rendered = render_fragment(block, keep_source=keep_source)
+        rendered = render_fragment(
+            block, keep_source=keep_source, scan_path=scan_path
+        )
         grouped.setdefault(target, []).append(rendered)
     return {path: "\n".join(sections).strip() + "\n" for path, sections in grouped.items()}
 

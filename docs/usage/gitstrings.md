@@ -79,7 +79,8 @@ variables:
 | Directive | Purpose |
 |-----------|---------|
 | `# @title <heading>` | `##` heading above this fragment’s tables |
-| `# @render <mode>` | `variables`, `inputs`, `jobs`, or `auto` (default) |
+| `# @render <mode>` | `variables`, `inputs`, `jobs`, or `auto` (default); or a **dot path** (e.g. `megalinter.variables`, `megalinter.variables.mode`, `spec.inputs`) |
+| `# @sensitive <path>` | Mask values at a YAML path (repeatable; comma-separated). Rows still appear; value cells show `****` (e.g. `megalinter.variables.mode.value`) |
 | `# @output <path>` / `# @output-file` | Write this fragment to another file’s gitstrings markers (relative to `-i`) |
 | `# @description` | Multi-line prose above tables (continuation lines are `#` comments) |
 
@@ -107,6 +108,22 @@ variables:
       Target environment.
       Use staging on feature branches only.
 ```
+
+### Path-based render and sensitive values
+
+Use dot paths on `@render` to control exactly which YAML subtree becomes a table. Parent segments work too (`variables`, `megalinter.variables`). Job names match case-insensitively when resolving paths against a full `.gitlab-ci.yml`.
+
+Use `@sensitive` with a path to the **value leaf** (often ending in `.value` or `.default`) so the row is still documented but the cell is masked.
+
+```yaml
+# @title Megalinter mode (masked)
+# @render megalinter.variables.mode
+# @sensitive megalinter.variables.mode.value
+variables:
+  APPLICATION: my-app
+```
+
+When `-i` is a CI YAML file, paths resolve against the **entire** pipeline file, not only the annotated fragment.
 
 ## Output behavior
 
