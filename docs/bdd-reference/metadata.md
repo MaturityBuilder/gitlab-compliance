@@ -35,8 +35,10 @@ Generate a searchable index from annotations:
 
 ```bash
 gitlab-compliance policies doc -f policies/ -o COMPLIANCE-POLICIES.md
-gitlab-compliance policies doc -f policies/ --format html -o
-COMPLIANCE-POLICIES.html
+gitlab-compliance policies doc \
+  -f policies/ \
+  --format html \
+  -o COMPLIANCE-POLICIES.html
 ```
 
 Compliance reports (console, markdown, HTML, MR comment, Code Quality) include

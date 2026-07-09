@@ -1,9 +1,10 @@
 # Usage
 
 Regardless of how you [install](../installation/index.md) `gitlab-compliance`,
-the tool supports two primary workflows:
+the CLI supports compliance checks, generated pipeline documentation, policy
+catalogs, OCI policy bundles, and release-note helpers.
 
-### Compliance (`check`)
+## Compliance checks
 
 1. Author Gherkin policies (`.feature` files) in a directory or OCI registry
 2. Point the CLI at your pipeline YAML
@@ -11,19 +12,24 @@ the tool supports two primary workflows:
 4. Fail the job on violations (default exit code `1`)
 
 ```bash
-gitlab-compliance check -h
+gitlab-compliance check --help
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
-### Documentation (`generate`)
+## Pipeline documentation
 
 1. Point the CLI at your pipeline YAML
 2. Choose an output format (`markdown`, `swagger-markdown`, or `html`)
 3. Optionally exclude sections or job attributes, or group jobs by attribute
 
 ```bash
-gitlab-compliance generate -h
-gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
-gitlab-compliance generate -i .gitlab-ci.yml --exclude variables,workflow --group-by stage
+gitlab-compliance generate --help
+gitlab-compliance generate -i .gitlab-ci.yml \
+  --format swagger-markdown \
+  --output-file pipeline-reference.md
+gitlab-compliance generate -i .gitlab-ci.yml \
+  --exclude variables,workflow \
+  --group-by stage
 ```
 
 See [Generate pipeline documentation](reference/generate.md) and [Additional Parameters](additional-parameters.md).
@@ -38,8 +44,9 @@ Directory of `.feature` policy files, or an OCI reference:
 
 ```bash
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml
-gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p
-.gitlab-ci.yml
+gitlab-compliance check \
+  -f oci://registry.example.com/org/policies:1.0.0 \
+  -p .gitlab-ci.yml
 ```
 
 Use `--update` with OCI references to pull the latest bundle before running.
@@ -73,8 +80,10 @@ token — see [Environment Variables](environment-variables.md).
 
 ```bash
 export GITLAB_TOKEN="<token>"
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project
-my-group/my-project
+gitlab-compliance check \
+  -f policies/ \
+  -p .gitlab-ci.yml \
+  --project my-group/my-project
 ```
 
 API scenarios are **skipped** when connection info is missing unless you pass
@@ -93,8 +102,11 @@ Report format and output file:
 | `codequality` | GitLab Code Quality JSON (`gl-code-quality-report.json`) |
 
 ```bash
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format markdown -o
-COMPLIANCE-REPORT.md
+gitlab-compliance check \
+  -f policies/ \
+  -p .gitlab-ci.yml \
+  --format markdown \
+  --output-file COMPLIANCE-REPORT.md
 ```
 
 ### Other commands
@@ -126,7 +138,8 @@ pip install gitlab-compliance
 gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
 ```
 
-Sample generated output: [GitLab Docs output example](../examples/gitlab-docs-output-example.md).
+Sample generated output:
+[Generated pipeline docs output](../examples/gitlab-docs-output-example.md).
 
 See also [Additional Parameters](additional-parameters.md) and [Environment
 Variables](environment-variables.md).

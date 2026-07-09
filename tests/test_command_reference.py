@@ -4,6 +4,7 @@ from click.testing import CliRunner
 from src.gitlab_compliance import gitlab_compliance
 from src.modules.command_reference import (
     _format_options,
+    _param_metadata,
     _render_command_page,
     dump_helper,
     dumps,
@@ -83,6 +84,22 @@ class TestDumpsCli:
 class TestCommandReferenceHelpers:
     def test_format_options_empty(self):
         assert _format_options({}) == "_No options._\n"
+
+    def test_format_options_includes_secondary_flags(self):
+        param = click.Option(["--enabled/--disabled"], default=True)
+
+        rendered = _format_options({"enabled": _param_metadata(param)})
+
+        assert "Usage: `--enabled, --disabled`" in rendered
+        assert "Default: `true`" in rendered
+
+    def test_format_options_uses_stable_path_type_name(self):
+        param = click.Option(["--markdown"], type=click.Path(file_okay=False))
+
+        rendered = _format_options({"markdown": _param_metadata(param)})
+
+        assert "Type: directory" in rendered
+        assert "click.types.Path object" not in rendered
 
     def test_render_command_page_without_description(self):
         @click.command()

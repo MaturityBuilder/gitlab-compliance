@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 240" role="img" aria-label="gitlab-compliance by MaturityBuilder">
+  <rect width="900" height="240" rx="38" fill="#0f172a"/>
+  <path fill="#1e2a3a" d="M118 40 58 60v46c0 38 26.7 72.4 60 82 33.3-9.6 60-44 60-82V60l-60-20z"/>
+  <path fill="none" stroke="#f8fafc" stroke-width="7" stroke-linecap="round" d="M91 82h28M91 104h40M91 126h32"/>
+  <circle cx="79" cy="82" r="6" fill="#f8fafc"/>
+  <circle cx="79" cy="104" r="6" fill="#E85D3A"/>
+  <circle cx="79" cy="126" r="6" fill="#f8fafc"/>
+  <circle cx="149" cy="141" r="24" fill="#E85D3A"/>
+  <path fill="none" stroke="#f8fafc" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" d="m137 141 8 9 16-20"/>
+  <text x="220" y="102" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="48" font-weight="800">gitlab-compliance</text>
+  <text x="224" y="146" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="22">BDD compliance testing and CI/CD documentation for GitLab</text>
+  <text x="224" y="184" fill="#E85D3A" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700">by MaturityBuilder</text>
+</svg>

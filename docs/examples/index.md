@@ -16,10 +16,13 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 **Documentation**
 
 ```bash
-gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
+gitlab-compliance generate -i .gitlab-ci.yml \
+  --format swagger-markdown \
+  --output-file pipeline-reference.md
 ```
 
-See [GitLab Docs output example](gitlab-docs-output-example.md) for sample `generate` output.
+See [Generated pipeline docs output](gitlab-docs-output-example.md) for sample
+`generate` output.
 
 ## Policy index
 

@@ -4,19 +4,19 @@ import re
 
 import click
 
-md_base_template = """
-## Usage
+md_base_template = """## Usage
 
-```
+```text
 {usage}
 ```
 
 ## Options
+
 {options}
 
 ## CLI Help
 
-```
+```text
 {help}
 ```
 """
@@ -47,18 +47,38 @@ def _param_metadata(param):
             "required": param.required,
             "default": param.default,
             "help": getattr(param, "help", None),
-            "type": str(param.type),
+            "type": param.type,
             "kind": "argument",
         }
     return {
-        "usage": "\n".join(param.opts),
+        "usage": "\n".join(param.opts + param.secondary_opts),
         "prompt": getattr(param, "prompt", None),
         "required": param.required,
         "default": param.default,
         "help": getattr(param, "help", None),
-        "type": str(param.type),
+        "type": param.type,
         "kind": "option",
     }
+
+
+def _format_param_type(param_type) -> str:
+    if isinstance(param_type, click.Choice):
+        return "choice: " + ", ".join(f"`{choice}`" for choice in param_type.choices)
+    return getattr(param_type, "name", str(param_type))
+
+
+def _format_default(value) -> str:
+    if value is None:
+        return "none"
+    if isinstance(value, bool):
+        return str(value).lower()
+    if value.__class__.__name__ == "_Sentinel":
+        return "not set"
+    return str(value)
+
+
+def _format_usage(value: str) -> str:
+    return ", ".join(part.strip() for part in value.splitlines() if part.strip())
 
 
 def _format_options(options: dict) -> str:
@@ -66,13 +86,12 @@ def _format_options(options: dict) -> str:
         return "_No options._\n"
     return "\n".join(
         [
-            f"* `{opt_name}`{' (REQUIRED)' if opt.get('required') else ''}"
-            f"{' [argument]' if opt.get('kind') == 'argument' else ''}: \n"
-            f"  * Type: {opt.get('type')} \n"
-            f"  * Default: `{str(opt.get('default')).lower()}`\n"
-            f"  * Usage: `{opt.get('usage')}`\n"
-            "\n"
-            f"  {opt.get('help') or ''}\n"
+            f"- `{opt_name}`{' (required)' if opt.get('required') else ''}"
+            f"{' [argument]' if opt.get('kind') == 'argument' else ''}\n"
+            f"  - Type: {_format_param_type(opt.get('type'))}\n"
+            f"  - Default: `{_format_default(opt.get('default'))}`\n"
+            f"  - Usage: `{_format_usage(opt.get('usage'))}`\n"
+            f"  - {opt.get('help') or 'No description provided.'}\n"
             for opt_name, opt in options.items()
         ]
     )
@@ -84,13 +103,13 @@ def _render_command_page(helpdct: dict, title: str | None = None) -> str:
     description = (command.help or "").strip()
     heading = title or command.name
     body = md_base_template.format(
-        usage=helpdct.get("usage"),
+        usage=helpdct.get("usage", "").strip(),
         options=_format_options(options),
-        help=helpdct.get("help"),
+        help=helpdct.get("help", "").strip(),
     )
     if description:
-        return f"# {heading}\n\n{description}\n{body}"
-    return f"# {heading}\n{body}"
+        return f"# {heading}\n\n{description}\n\n{body}"
+    return f"# {heading}\n\n{body}"
 
 
 def _command_doc_slug(path: tuple[str, ...]) -> str:
@@ -147,7 +166,9 @@ def dump_helper(base_command, docs_dir) -> list[str]:
 
     index_lines = [
         "# Command Reference\n",
+        "\n",
         f"Auto-generated reference for `{root_name}` subcommands.\n",
+        "\n",
     ]
     for command_path in sorted(written, key=_command_doc_slug):
         display_name = " ".join(command_path)

@@ -1,0 +1,23 @@
+.mb-hero-image {
+  border-radius: 1rem;
+  box-shadow: 0 1rem 2.5rem rgb(15 23 42 / 18%);
+}
+
+.mb-command-demo {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.85rem;
+  box-shadow: 0 0.75rem 2rem rgb(15 23 42 / 12%);
+}
+
+.mb-card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  margin: 1.5rem 0;
+}
+
+.mb-card-grid > * {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.8rem;
+  padding: 1rem;
+}

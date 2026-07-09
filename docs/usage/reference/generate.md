@@ -1,75 +1,62 @@
 # generate
 
-Will scan through your gitlab-ci yml and build documentation from the yml.
+Generate pipeline documentation from a GitLab CI YAML file.
 
 ## Usage
 
 ```text
-Usage: gitlab-compliance generate [OPTIONS]```
+Usage: gitlab-compliance generate [OPTIONS]
+```
 
 ## Options
 
-* `detailed`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--detailed`
+- `detailed`
+  - Type: boolean
+  - Default: `false`
+  - Usage: `--detailed`
+  - Will include workflow and rules from jobs.
 
-  Will include workflow and rules from jobs.
+- `output_format`
+  - Type: choice: `markdown`, `swagger-markdown`, `html`
+  - Default: `markdown`
+  - Usage: `--format, -f`
+  - Output format for generated documentation.
 
-* `output_format`:
-  * Type: Choice(['markdown', 'swagger-markdown', 'html'])
-  * Default: `markdown`
-  * Usage: `--format
--f`
+- `DRY_MODE`
+  - Type: boolean
+  - Default: `false`
+  - Usage: `--dry-mode, -d`
+  - If set will disable documentation from being written
 
-  Output format for generated documentation.
+- `OUTPUT_FILE`
+  - Type: text
+  - Default: `none`
+  - Usage: `--output-file, -o`
+  - Output location of the generated documentation.
 
-* `DRY_MODE`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--dry-mode
--d`
+- `GLDOCS_CONFIG_FILE`
+  - Type: text
+  - Default: `.gitlab-ci.yml`
+  - Usage: `--input-config, -i`
+  - GitLab CI YAML file to read.
 
-  If set will disable documentation from being written
+- `exclude`
+  - Type: text
+  - Default: `none`
+  - Usage: `--exclude, -x`
+  - Comma-separated sections or job attributes to omit from output. Sections: inputs, variables, includes, workflow, jobs, container_images.
 
-* `OUTPUT_FILE`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--output-file
--o`
+- `group_by`
+  - Type: text
+  - Default: `none`
+  - Usage: `--group-by, -g`
+  - Group jobs in the Jobs section by this job attribute (e.g. stage).
 
-  Output location of the generated documentation.
-
-* `GLDOCS_CONFIG_FILE`:
-  * Type: STRING
-  * Default: `.gitlab-ci.yml`
-  * Usage: `--input-config
--i`
-
-  The Gitlab CI Input configuration file to generated documentation from.
-
-* `exclude`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--exclude
--x`
-
-  Comma-separated sections or job attributes to omit from output. Sections: inputs, variables, includes, workflow, jobs, container_images.
-
-* `group_by`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--group-by
--g`
-
-  Group jobs in the Jobs section by this job attribute (e.g. stage).
-
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
-
-  Show this message and exit.
+- `help`
+  - Type: boolean
+  - Default: `false`
+  - Usage: `--help`
+  - Show this message and exit.
 
 
 ## CLI Help
@@ -77,7 +64,7 @@ Usage: gitlab-compliance generate [OPTIONS]```
 ```text
 Usage: gitlab-compliance generate [OPTIONS]
 
-  Will scan through your gitlab-ci yml and build documentation from the yml.
+  Generate pipeline documentation from a GitLab CI YAML file.
 
 Options:
   --detailed                      Will include workflow and rules from jobs.
@@ -87,8 +74,7 @@ Options:
                                   written
   -o, --output-file TEXT          Output location of the generated
                                   documentation.
-  -i, --input-config TEXT         The Gitlab CI Input configuration file to
-                                  generated documentation from.
+  -i, --input-config TEXT         GitLab CI YAML file to read.
   -x, --exclude TEXT              Comma-separated sections or job attributes
                                   to omit from output. Sections: inputs,
                                   variables, includes, workflow, jobs,

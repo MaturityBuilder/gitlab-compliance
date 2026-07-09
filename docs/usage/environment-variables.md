@@ -23,8 +23,11 @@ Example in CI (GitLab):
 compliance:
   script:
     - pip install gitlab-compliance
-    - gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project
-      $CI_PROJECT_PATH
+    - >
+      gitlab-compliance check
+      -f policies/
+      -p .gitlab-ci.yml
+      --project "$CI_PROJECT_PATH"
 ```
 
 Locally:

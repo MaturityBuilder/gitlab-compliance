@@ -107,7 +107,7 @@ compliance:
 Remove `allow_failure` once every job has proper `rules:`.
 
 See also
-[`example-ci/.gitlab-ci.consumer.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/.gitlab-ci.consumer.yml)
+[`examples/example-ci/.gitlab-ci.consumer.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-ci/.gitlab-ci.consumer.yml)
 for a minimal consumer project.
 
 ## Org-wide rollout (GitLab Pipeline Execution Policy)

@@ -7,7 +7,7 @@ package.
 It requires **Python 3.12**. Installation is standard:
 
 ```bash
-pip install --user gitlab-compliance
+python3.12 -m pip install --user gitlab-compliance
 gitlab-compliance --help
 ```
 
@@ -32,7 +32,8 @@ poetry run gitlab-compliance --help
 ```bash
 python3.12 -m venv venv
 source venv/bin/activate
-pip install gitlab-compliance
+python -m pip install gitlab-compliance
+gitlab-compliance check --help
 ```
 
 Next: [Usage](../usage/index.md).

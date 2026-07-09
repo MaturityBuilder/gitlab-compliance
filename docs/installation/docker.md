@@ -1,31 +1,52 @@
 # Docker
 
-![gitlab-compliance](../assets/logo-light.png){ width="280" }
+![gitlab-compliance](../assets/logo-light.svg){ width="280" }
 
-A pre-built Docker image on Python Alpine Linux, published by
-[MaturityBuilder](https://github.com/MaturityBuilder/gitlab-compliance).
+The published image runs `gitlab-compliance` as its entrypoint, so pass
+subcommands such as `check`, `generate`, or `policies` after the image name.
 
-`gitlab-compliance` is published on [Docker
-Hub](https://hub.docker.com/_/gitlab-compliance/) as the `gitlab-compliance`
-package.
+Image repository:
+[`maturitybuilder/gitlab-compliance`](https://hub.docker.com/r/maturitybuilder/gitlab-compliance).
+
+## Run a compliance check
 
 ```bash
-docker run -it -v $PWD:/src -w /src -e GITLAB_TOKEN=$GITLAB_TOKEN -e
-maturitybuilder/gitlab-compliance check -f example-policies --include-nested
---project <my gitlab project path>
+docker run --rm \
+  -v "$PWD:/work" \
+  -w /work \
+  -e GITLAB_TOKEN \
+  maturitybuilder/gitlab-compliance:latest \
+  check -f policies/security/ -p .gitlab-ci.yml --project my-group/my-project
 ```
 
-## Audit Pipeline Yaml
+## Generate pipeline documentation
 
-```yml
+```bash
+docker run --rm \
+  -v "$PWD:/work" \
+  -w /work \
+  maturitybuilder/gitlab-compliance:latest \
+  generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
+```
+
+## GitLab CI example
+
+```yaml
 gitlab-compliance:
-    image: maturitybuilder/gitlab-compliance
-    script:
-        - gitlab-compliance check -f example-policies --include-nested --project
-          <my gitlab project path>
-
+  image:
+    name: maturitybuilder/gitlab-compliance:latest
+    entrypoint: [""]
+  script:
+    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
-Depending on your workflow and security policy the pipeline can potentially auto
-resolve includes and image updates by passing arg `--fix`
+Pin a digest for production runners when your supply-chain policy requires it:
+
+```yaml
+image: maturitybuilder/gitlab-compliance@sha256:<digest>
+```
+
+Depending on your workflow and security policy, `check --fix` can update stale
+include versions and pin images to digests before running assertions.
+
 Next: [Usage](../usage/index.md).

@@ -14,7 +14,7 @@ policy::gitlab-compliance:
   variables:
     COMPLIANCE_POLICIES: policies/security
   script:
-    - pip install --quiet gitlab-docs
+    - pip install --quiet gitlab-compliance
     - gitlab-compliance check -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
         --project "$CI_PROJECT_PATH" --strict
   rules:

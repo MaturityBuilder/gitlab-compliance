@@ -1,114 +1,92 @@
-![gitlab-compliance by MaturityBuilder](assets/logo-light.png)
+![gitlab-compliance by MaturityBuilder](assets/logo-light.svg){ .mb-hero-image }
 
-<hr class="mb-hero-divider" />
-<p class="mb-tagline">Gitlab Compliance a BDD compliance testing and documentation generation toolkit for GitLab CI/CD pipelines and project settings</p>
+# GitLab Compliance
+
+`gitlab-compliance` is a lightweight command-line toolkit for GitLab CI/CD
+security controls. It runs readable Gherkin policies against `.gitlab-ci.yml`,
+can enrich checks with GitLab API settings, and can generate pipeline reference
+documentation from the same YAML.
 
 [Get started](installation/index.md){ .md-button .md-button--primary }
 [Usage reference](usage/index.md){ .md-button }
 [BDD grammar](bdd-reference/index.md){ .md-button }
 
-`gitlab-compliance` (PyPI package
-[gitlab-compliance](https://pypi.org/project/gitlab-compliance/)) is a
-lightweight, security and compliance focused test framework for GitLab CI/CD. It
-runs Gherkin policies against `.gitlab-ci.yml` and optional GitLab API settings.
- You can also generate markdown documentation for your gitlab pipelines.
+## What you can do
 
-— the same BDD model as [terraform-compliance](https://terraform-compliance.com/) uses for Terraform
-plans.
-Source code:
-[MaturityBuilder/gitlab-compliance](https://github.com/MaturityBuilder/gitlab-compliance).
+| Workflow | Command | Result |
+| -------- | ------- | ------ |
+| Compliance checks | [`gitlab-compliance check`](usage/reference/check.md) | Fail merge requests when jobs, includes, variables, or project settings violate policy |
+| Pipeline docs | [`gitlab-compliance generate`](usage/reference/generate.md) | Produce Markdown, swagger-markdown, or HTML reference docs from `.gitlab-ci.yml` |
+| Policy catalogs | [`gitlab-compliance policies doc`](usage/reference/policies-doc.md) | Turn policy metadata into a searchable compliance catalog |
+| OCI policy packs | [`gitlab-compliance policies push`](usage/reference/policies-push.md) | Publish and consume versioned policy bundles from an OCI registry |
 
-## Get started
-
-`gitlab-compliance` supports two core workflows from the same pipeline YAML:
-
-| Workflow | Command | What it does |
-| -------- | ------- | ------------ |
-| **Compliance** | [`check`](usage/reference/check.md) | Run Gherkin policies against `.gitlab-ci.yml` (and optional GitLab API settings) |
-| **Documentation** | [`generate`](usage/reference/generate.md) | Build Markdown, swagger-markdown, or HTML reference docs from `.gitlab-ci.yml` |
+## Quick start
 
 ```bash
 pip install gitlab-compliance
+cp -r examples/example-policies/security/ policies/security/
 
-# Validate pipeline configuration against policies
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml
-
-# Generate pipeline documentation (filter and group output as needed)
-gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
-gitlab-compliance generate -i .gitlab-ci.yml --exclude variables,image --group-by stage
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
+gitlab-compliance generate -i .gitlab-ci.yml \
+  --format swagger-markdown \
+  --output-file pipeline-reference.md
 ```
 
-See [Usage](usage/index.md) for compliance options and [Generate pipeline documentation](usage/reference/generate.md) for output formats, `--exclude`, and `--group-by`.
+![Terminal demo of installing, checking, and generating documentation](assets/gitlab-compliance-quickstart.gif){ .mb-command-demo }
 
-- **compliance:** Ensure pipeline YAML and project settings follow your security
-  standards and custom policies
-- **behaviour driven development:** Policies are readable Gherkin scenarios that
-  developers and security teams share
-- **portable:** Install from `pip`. See [Installation](installation/index.md)
-- **pre-merge:** Validate configuration before changes land on protected
-  branches
-- **YAML and API:** Offline checks against pipeline files; optional GitLab API
-  checks for project settings and CI variables
-- **easy to integrate:** Run in GitLab CI or local git hooks
-- **segregation of duty:** Keep policy packs in a separate repository or OCI
-  registry
-- **documentation:** Generate Markdown or HTML reference docs from
-  `.gitlab-ci.yml`
+## Why teams use it
 
-## Idea
+- **Readable controls:** Policies are Gherkin scenarios that security,
+  platform, and application teams can review together.
+- **Pre-merge feedback:** Run in GitLab CI, GitHub Actions, or local hooks
+  before changes land on protected branches.
+- **YAML and API coverage:** Check pipeline files offline, then add token-backed
+  GitLab project, group, and variable assertions when needed.
+- **Supply-chain guardrails:** Detect or auto-fix unpinned includes, components,
+  fragments, images, and services.
+- **Reusable policies:** Keep policy packs in a central repository or publish
+  them to an OCI registry.
+- **Useful documentation:** Generate pipeline references for developers without
+  maintaining docs by hand.
 
-`gitlab-compliance` focuses on [negative
-testing](https://en.wikipedia.org/wiki/Negative_testing) — catching
-misconfigurations and policy violations — rather than proving that a job runs
-successfully end to end.
+## Policy example
 
-GitLab CI pipelines are defined in YAML that composes jobs, includes, variables,
-and workflow rules. What was missing is a lightweight way to assert that this
-configuration follows organizational standards before merge. GitLab offers
-native compliance features in higher tiers; `gitlab-compliance` provides an
-open, portable alternative inspired by
-[terraform-compliance](https://terraform-compliance.com/) and
-[Conftest](https://www.conftest.dev/).
-
-For example, a policy might require that no job uses a floating `latest` image
-tag:
+This policy blocks mutable `latest` container images:
 
 ```gherkin
-if a job defines an image, it must not use the :latest tag
+Feature: Container image pinning
+
+  Scenario: Job images must not use the latest tag
+    Given I have any job defined
+    When it has image
+    Then its image must not match ":latest$"
 ```
 
-translates into:
-
-```gherkin
-Given I have any job defined
-When it has image
-Then its image must not match ":latest$"
-```
-
-The `image` value comes from your pipeline YAML:
+Given this pipeline, `build` fails the policy:
 
 ```yaml
 scan:
   image: python:3.12
+
 build:
-  image: docker:latest   # violates the policy above
+  image: docker:latest
 ```
 
-In CI, this scenario runs against `.gitlab-ci.yml` (and resolved local includes)
-so merge requests cannot introduce violations.
+Run the policy locally or in CI:
 
-See [Examples](examples/index.md) for more sample use cases.
+```bash
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
+```
 
-## Supporting / Requirements
+See [Examples](examples/index.md) for include pinning, component pinning, API
+hardening, execution policies, and OCI policy packs.
 
-- **Python:** 3.12 (see [Installing via pip](installation/pip.md))
-- **Pipeline file:** `.gitlab-ci.yml` or another path passed with `-p`
-- **API checks (optional):** GitLab token plus `--project` or `--group` for
-  settings and CI variable policies
+## Requirements
 
-Full CLI options: [Usage](usage/index.md). Step grammar: [BDD
-Reference](bdd-reference/index.md).
+- Python 3.12 for the pip package
+- A GitLab CI YAML file, usually `.gitlab-ci.yml`
+- Gherkin `.feature` policy files for `check`
+- Optional GitLab token for API-backed policies and `--fix`
 
-## How can you support the project?
-
-Contributions are welcome — see [Contributing](contributing.md).
+Full CLI options are in [Usage](usage/index.md). Step grammar is in the
+[BDD Reference](bdd-reference/index.md).

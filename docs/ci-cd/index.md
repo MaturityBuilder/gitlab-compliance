@@ -23,8 +23,10 @@ You can also publish pipeline documentation in CI with
 [`generate`](../usage/reference/generate.md):
 
 ```bash
-gitlab-compliance generate -i .gitlab-ci.yml --format html -o public/index.html
+gitlab-compliance generate -i .gitlab-ci.yml \
+  --format html \
+  --output-file public/index.html
 ```
 
 Example policies: [Examples](../examples/index.md). Sample generated docs:
-[GitLab Docs output example](../examples/gitlab-docs-output-example.md).
+[Generated pipeline docs output](../examples/gitlab-docs-output-example.md).

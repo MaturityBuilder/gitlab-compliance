@@ -9,8 +9,8 @@ edit_uri: edit/main/
 theme:
   variant: modern
   custom_dir: overrides
-  logo: assets/logo-square.png
-  favicon: assets/favicon.png
+  logo: assets/logo-square.svg
+  favicon: assets/favicon.svg
   language: en
   font:
     text: DM Sans
@@ -79,7 +79,7 @@ nav:
       - OCI Policy Packs: examples/oci-policy-packs.md
       - Compliance Security Examples: examples/compliance-security-examples.md
 
-    - Gitlab Docs Output (generate command): examples/gitlab-docs-output-example.md
+    - Generated Pipeline Docs Output: examples/gitlab-docs-output-example.md
   - Using in CI/CD:
     - ci-cd/index.md
     - GitLab CI/CD: ci-cd/gitlab-ci.md

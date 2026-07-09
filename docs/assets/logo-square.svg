@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="gitlab-compliance">
+  <rect width="128" height="128" rx="28" fill="#0f172a"/>
+  <path fill="#1e2a3a" d="M64 14 24 28v31c0 26 17.8 48.7 40 55 22.2-6.3 40-29 40-55V28L64 14z"/>
+  <path fill="none" stroke="#f8fafc" stroke-width="5" stroke-linecap="round" d="M45 43h19M45 58h28M45 73h23"/>
+  <circle cx="37" cy="43" r="4.8" fill="#f8fafc"/>
+  <circle cx="37" cy="58" r="4.8" fill="#E85D3A"/>
+  <circle cx="37" cy="73" r="4.8" fill="#f8fafc"/>
+  <circle cx="84" cy="82" r="17" fill="#E85D3A"/>
+  <path fill="none" stroke="#f8fafc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" d="m76 82 6 7 11-14"/>
+</svg>
