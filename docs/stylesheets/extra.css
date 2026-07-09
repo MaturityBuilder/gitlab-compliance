@@ -1,0 +1,27 @@
+.md-content h1 {
+  font-weight: 800;
+}
+
+.md-content h2 {
+  margin-top: 2.2rem;
+}
+
+.md-content table:not([class]) {
+  border-radius: 0.6rem;
+  box-shadow: 0 0.35rem 1.4rem rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.md-content img[src$=".gif"] {
+  border-radius: 0.8rem;
+  box-shadow: 0 0.5rem 1.6rem rgba(0, 0, 0, 0.14);
+  display: block;
+  margin: 1.5rem auto;
+  max-width: 920px;
+  width: 100%;
+}
+
+.md-typeset .md-button {
+  margin-bottom: 0.5rem;
+  margin-right: 0.35rem;
+}

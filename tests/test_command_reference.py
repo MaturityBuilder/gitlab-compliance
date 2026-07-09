@@ -34,6 +34,8 @@ class TestDumpHelper:
         text = generate_md.read_text(encoding="utf-8")
         assert text.startswith("# generate")
         assert "## Usage" in text
+        assert "Usage: gitlab-compliance generate [OPTIONS]\n```" in text
+        assert "sentinel.unset" not in text
 
         index_md = tmp_path / "command-reference.md"
         assert index_md.is_file()
@@ -83,6 +85,24 @@ class TestDumpsCli:
 class TestCommandReferenceHelpers:
     def test_format_options_empty(self):
         assert _format_options({}) == "_No options._\n"
+
+    def test_format_options_joins_flags_and_omits_unset_default(self):
+        formatted = _format_options(
+            {
+                "features": {
+                    "usage": "-f, --features",
+                    "required": True,
+                    "default": click.core.Parameter.UNSET,
+                    "help": "Policy directory.",
+                    "type": "TEXT",
+                    "kind": "option",
+                }
+            }
+        )
+
+        assert "### `-f, --features` (required)" in formatted
+        assert "- **Default:**" not in formatted
+        assert "Policy directory." in formatted
 
     def test_render_command_page_without_description(self):
         @click.command()

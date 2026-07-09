@@ -1,71 +1,73 @@
 # release-notes
 
 Generate release notes for multiple GitLab projects based on commits since the last tag.
-    Optionally outputs Markdown files.
+Optionally outputs Markdown files.
 
 ## Usage
 
-```text
-
+```
 Usage: gitlab-compliance release-notes [OPTIONS]
-
 ```
 
 ## Options
 
-* `token` (REQUIRED):
-  * Type: STRING
-  * Default: `sentinel.unset`
-  * Usage: `--token`
+### `--token` (required)
 
-  GitLab personal access token
+- **Type:** `STRING`
+- **Usage:** `--token`
 
-* `url`:
-  * Type: STRING
-  * Default: `https://gitlab.com`
-  * Usage: `--url`
+GitLab personal access token
 
-  GitLab instance URL
+### `--url`
 
-* `projects` (REQUIRED):
-  * Type: STRING
-  * Default: `sentinel.unset`
-  * Usage: `--projects`
+- **Type:** `STRING`
+- **Default:** `https://gitlab.com`
+- **Usage:** `--url`
 
-  List of GitLab project IDs or full paths
+GitLab instance URL
 
-* `since_tag`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--since-tag`
+### `--projects` (required)
 
-  Baseline tag name (default: latest semver tag, else most recent by date)
+- **Type:** `STRING`
+- **Usage:** `--projects`
 
-* `markdown_dir`:
-  * Type: <click.types.Path object at 0x7349b62052b0>
-  * Default: `.`
-  * Usage: `--markdown`
+List of GitLab project IDs or full paths
 
-  Directory to output Markdown release notes
+### `--since-tag`
 
-* `no_write`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--no-write`
+- **Type:** `STRING`
+- **Usage:** `--since-tag`
 
-  Skip writing Markdown files
+Baseline tag name (default: latest semver tag, else most recent by date)
 
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
+### `--markdown`
 
-  Show this message and exit.
+- **Type:** `path`
+- **Default:** `.`
+- **Usage:** `--markdown`
+
+Directory to output Markdown release notes
+
+### `--no-write`
+
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `--no-write`
+
+Skip writing Markdown files
+
+### `--help`
+
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `--help`
+
+Show this message and exit.
+
 
 ## CLI Help
 
-```text
-
+```
 Usage: gitlab-compliance release-notes [OPTIONS]
 
   Generate release notes for multiple GitLab projects based on commits since
@@ -80,5 +82,4 @@ Options:
   --markdown DIRECTORY  Directory to output Markdown release notes
   --no-write            Skip writing Markdown files
   --help                Show this message and exit.
-
 ```

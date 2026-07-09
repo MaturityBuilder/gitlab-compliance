@@ -4,48 +4,46 @@ Generate a searchable policy catalog from Conftest-style # METADATA annotations.
 
 ## Usage
 
-```text
-
+```
 Usage: gitlab-compliance policies doc [OPTIONS]
-
 ```
 
 ## Options
 
-* `features_dir` (REQUIRED):
-  * Type: STRING
-  * Default: `sentinel.unset`
-  * Usage: `--features
--f`
+### `-f, --features` (required)
 
-  Directory containing compliance policy .feature files.
+- **Type:** `STRING`
+- **Usage:** `-f, --features`
 
-* `output_format`:
-  * Type: Choice(['markdown', 'html'])
-  * Default: `markdown`
-  * Usage: `--format`
+Directory containing compliance policy .feature files.
 
-  Output format for the policy catalog.
+### `--format`
 
-* `output_file`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--output-file
--o`
+- **Type:** `choice: markdown, html`
+- **Default:** `markdown`
+- **Usage:** `--format`
 
-  Write the policy catalog to this file.
+Output format for the policy catalog.
 
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
+### `-o, --output-file`
 
-  Show this message and exit.
+- **Type:** `STRING`
+- **Usage:** `-o, --output-file`
+
+Write the policy catalog to this file.
+
+### `--help`
+
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `--help`
+
+Show this message and exit.
+
 
 ## CLI Help
 
-```text
-
+```
 Usage: gitlab-compliance policies doc [OPTIONS]
 
   Generate a searchable policy catalog from Conftest-style # METADATA
@@ -57,5 +55,4 @@ Options:
   --format [markdown|html]  Output format for the policy catalog.
   -o, --output-file TEXT    Write the policy catalog to this file.
   --help                    Show this message and exit.
-
 ```

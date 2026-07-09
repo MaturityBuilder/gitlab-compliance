@@ -2,47 +2,53 @@
 
 Deprecated: use `generate --format html` instead.
 
+> Hidden maintenance command. Deprecated command.
+
+
 ## Usage
 
-```text
-Usage: gitlab-compliance generate-html [OPTIONS]```
+```
+Usage: gitlab-compliance generate-html [OPTIONS]
+```
 
 ## Options
 
-* `detailed`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--detailed`
+### `--detailed`
 
-  Will include workflow and rules from jobs.
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `--detailed`
 
-* `OUTPUT_FILE`:
-  * Type: STRING
-  * Default: `gitlab-compliance.html`
-  * Usage: `--output-file
--o`
+Will include workflow and rules from jobs.
 
-  Output location of the HTML documentation.
+### `-o, --output-file`
 
-* `GLDOCS_CONFIG_FILE`:
-  * Type: STRING
-  * Default: `.gitlab-ci.yml`
-  * Usage: `--input-config
--i`
+- **Type:** `STRING`
+- **Default:** `gitlab-compliance.html`
+- **Usage:** `-o, --output-file`
 
-  The Gitlab CI Input configuration file to generated documentation from.
+Output location of the HTML documentation.
 
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
+### `-i, --input-config`
 
-  Show this message and exit.
+- **Type:** `STRING`
+- **Default:** `.gitlab-ci.yml`
+- **Usage:** `-i, --input-config`
+
+The GitLab CI input configuration file to generate documentation from.
+
+### `--help`
+
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `--help`
+
+Show this message and exit.
 
 
 ## CLI Help
 
-```text
+```
 Usage: gitlab-compliance generate-html [OPTIONS]
 
   Deprecated: use `generate --format html` instead. (DEPRECATED)
@@ -50,7 +56,7 @@ Usage: gitlab-compliance generate-html [OPTIONS]
 Options:
   --detailed               Will include workflow and rules from jobs.
   -o, --output-file TEXT   Output location of the HTML documentation.
-  -i, --input-config TEXT  The Gitlab CI Input configuration file to generated
+  -i, --input-config TEXT  The GitLab CI input configuration file to generate
                            documentation from.
   --help                   Show this message and exit.
 ```

@@ -27,13 +27,13 @@ cp -r examples/example-policies/security/ policies/security/
 ## Include shared compliance jobs
 
 Reuse hidden job templates from
-[`example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/compliance-jobs.yml):
+[`examples/example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-ci/compliance-jobs.yml):
 
 **Local include** (vendored in your repo):
 
 ```yaml
 include:
-  - local: example-ci/compliance-jobs.yml
+  - local: examples/example-ci/compliance-jobs.yml
 
 compliance:
   extends: .compliance:offline
@@ -44,7 +44,7 @@ compliance:
 ```yaml
 include:
   - project: my-group/gitlab-compliance-policies
-    file: example-ci/compliance-jobs.yml
+    file: examples/example-ci/compliance-jobs.yml
     ref: "1.0.0"
 
 compliance:
@@ -52,7 +52,7 @@ compliance:
 ```
 
 Minimal consumer example:
-[`example-ci/.gitlab-ci.consumer.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/.gitlab-ci.consumer.yml).
+[`examples/example-ci/.gitlab-ci.consumer.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-ci/.gitlab-ci.consumer.yml).
 
 - **`.compliance:offline`:** YAML-only policies
 - **`.compliance:api`:** API-backed policies with `--project` and `--strict`

@@ -2,45 +2,53 @@
 
 Create one markdown file per subcommand under --docsPath.
 
+> Hidden maintenance command.
+
+
 ## Usage
 
-```text
-Usage: gitlab-compliance dumps [OPTIONS]```
+```
+Usage: gitlab-compliance dumps [OPTIONS]
+```
 
 ## Options
 
-* `base_module` (REQUIRED):
-  * Type: STRING
-  * Default: `src.gitlab_compliance`
-  * Usage: `--baseModule`
+### `--baseModule` (required)
 
-  The base command module path to import
+- **Type:** `STRING`
+- **Default:** `src.gitlab_compliance`
+- **Usage:** `--baseModule`
 
-* `base_command` (REQUIRED):
-  * Type: STRING
-  * Default: `gitlab_compliance`
-  * Usage: `--baseCommand`
+The base command module path to import
 
-  The base command function to import
+### `--baseCommand` (required)
 
-* `docs_path` (REQUIRED):
-  * Type: STRING
-  * Default: `docs/usage/reference/`
-  * Usage: `--docsPath`
+- **Type:** `STRING`
+- **Default:** `gitlab_compliance`
+- **Usage:** `--baseCommand`
 
-  The docs dir path to write the md files
+The base command function to import
 
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
+### `--docsPath` (required)
 
-  Show this message and exit.
+- **Type:** `STRING`
+- **Default:** `docs/usage/reference/`
+- **Usage:** `--docsPath`
+
+The docs dir path to write the md files
+
+### `--help`
+
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `--help`
+
+Show this message and exit.
 
 
 ## CLI Help
 
-```text
+```
 Usage: gitlab-compliance dumps [OPTIONS]
 
   Create one markdown file per subcommand under --docsPath.

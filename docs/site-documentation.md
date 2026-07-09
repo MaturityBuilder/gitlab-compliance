@@ -67,12 +67,6 @@ are independent of the documentation site.
 - **[`tests.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/tests.yml):**
   PR + push
   - behave, pytest, coverage
-- **[`pre-commit.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/pre-commit.yml):**
-  PR + push
-  - pre-commit hooks
-- **[`danger.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/danger.yml):**
-  PR
-  - Danger PR review
 - **[`docker.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/docker.yml):**
   PR + push
   - Build, Trivy scan, smoke test (no push)
@@ -109,7 +103,7 @@ Navigation mirrors
 | Section        | Purpose                                              |
 | -------------- | ---------------------------------------------------- |
 | Overview       | Product introduction and BDD example                 |
-| Installation   | pip                                                  |
+| Installation   | pip and Docker                                      |
 | Usage          | CLI reference, parameters, environment variables     |
 | BDD Reference  | Gherkin step grammar                                 |
 | Examples       | Security policy patterns                             |
@@ -122,3 +116,18 @@ Navigation mirrors
 `docs/examples/`).
 2. Register the page in the `nav` section of `mkdocs.yml`.
 3. Run `zensical build --strict` locally before opening a merge request.
+
+## Updating command reference pages
+
+The pages under `docs/usage/reference/` are generated from the Click command
+tree. After changing CLI options, help text, or subcommands, regenerate them:
+
+```bash
+poetry run gitlab-compliance dumps \
+  --baseModule src.gitlab_compliance \
+  --baseCommand gitlab_compliance \
+  --docsPath docs/usage/reference/
+```
+
+Review the diff and keep the generated files in the same commit as the CLI
+change.

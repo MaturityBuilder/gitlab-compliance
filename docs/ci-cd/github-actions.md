@@ -1,9 +1,8 @@
 # GitHub Actions
 
 Run **gitlab-compliance** in GitHub Actions to gate pull requests and
-default-branch builds. This repository also ships workflows for pre-commit,
-Danger PR review, tests, documentation, release-please, and tag-gated PyPI and
-Docker publish.
+default-branch builds. This repository ships workflows for tests,
+documentation, release-please, and Docker image build/scan.
 
 ## Quick start (consumer projects)
 
@@ -34,7 +33,7 @@ compliance:
     - run: |
         docker run --rm -v "$PWD:/work" -w /work \
           maturitybuilder/gitlab-compliance:latest \
-          compliance -f policies/security -p .gitlab-ci.yml
+          gitlab-compliance check -f policies/security -p .gitlab-ci.yml
 ```
 
 Full example:
@@ -51,12 +50,6 @@ cp -r examples/example-policies/security policies/security
 - **Tests:** [tests.yml](../../.github/workflows/tests.yml)
   - PR + push
   - behave + pytest, 95% coverage
-- **Pre-commit:** [pre-commit.yml](../../.github/workflows/pre-commit.yml)
-  - PR + push
-  - `pre-commit run --all-files`
-- **Danger:** [danger.yml](../../.github/workflows/danger.yml)
-  - PR
-  - PR review via [dangerfile.py](../../dangerfile.py)
 - **Docker:** [docker.yml](../../.github/workflows/docker.yml)
   - PR + push
   - Build, Trivy scan, smoke test
@@ -68,7 +61,7 @@ cp -r examples/example-policies/security policies/security
   - PR + push
   - Zensical build and GitHub Pages
 
-## Pre-commit (local and CI)
+## Pre-commit (local)
 
 Install hooks after cloning:
 
@@ -80,19 +73,6 @@ poetry run pre-commit run --all-files
 
 Configuration:
 [`.pre-commit-config.yaml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.pre-commit-config.yaml).
-
-## Danger PR review
-
-[`dangerfile.py`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/dangerfile.py)
-warns on:
-
-- Very large PRs
-- `src/` changes without `tests/` or `docs/` updates
-- CI file changes (links to this guide)
-- Non-conventional PR titles (informational)
-
-Enable **Settings → Actions → General → Workflow permissions → Read and write**
-so `GITHUB_TOKEN` can post PR comments.
 
 ## Release (release-please, PyPI, Docker Hub)
 

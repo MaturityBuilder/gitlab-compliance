@@ -19,7 +19,8 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
 ```
 
-See [GitLab Docs output example](gitlab-docs-output-example.md) for sample `generate` output.
+See [Generated pipeline docs example](gitlab-docs-output-example.md) for sample
+`generate` output.
 
 ## Policy index
 
@@ -49,7 +50,7 @@ See [GitLab Docs output example](gitlab-docs-output-example.md) for sample `gene
 - **Local copy:** Single project, quick start
   - `cp -r examples/example-policies/security/ policies/security/`
 - **Shared CI jobs:** Reuse job templates across projects
-  - [`example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-ci/compliance-jobs.yml)
+  - [`examples/example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-ci/compliance-jobs.yml)
 - **GitHub Actions:** pip or container compliance jobs
   - [`example-github-actions/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-github-actions)
 - **`include:` from central repo:** Versioned policy + job distribution

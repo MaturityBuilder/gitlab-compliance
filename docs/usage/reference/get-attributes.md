@@ -1,81 +1,75 @@
 # get-attributes
 
-Compared to the generate command, the get-attribute command allows you to pass the properties you wish to document and produces a markdown table.
-    Args:
-        OUTPUT_FILE (_type_): _description_
-        GLDOCS_CONFIG_FILE (_type_): _description_
-        attributes (_type_): _description_
-        json (_type_): _description_
+Export selected GitLab CI job attributes as a Markdown table or JSON.
+
+Use this when you need a focused report for a comma-separated list of job
+attributes instead of full pipeline documentation from `generate`.
 
 ## Usage
 
-```text
-
+```
 Usage: gitlab-compliance get-attributes [OPTIONS]
-
 ```
 
 ## Options
 
-* `attributes`:
-  * Type: STRING
-  * Default: `readme.md`
-  * Usage: `--attributes
--a`
+### `-a, --attributes`
 
-  Pass a comma seperated list of gitlab ci yml attributes
+- **Type:** `STRING`
+- **Default:** `README.md`
+- **Usage:** `-a, --attributes`
 
-* `OUTPUT_FILE`:
-  * Type: STRING
-  * Default: `readme.md`
-  * Usage: `--output-file
--o`
+Pass a comma-separated list of GitLab CI YAML job attributes.
 
-  Output location of the markdown documentation.
+### `-o, --output-file`
 
-* `GLDOCS_CONFIG_FILE`:
-  * Type: STRING
-  * Default: `.gitlab-ci.yml`
-  * Usage: `--input-config
--i`
+- **Type:** `STRING`
+- **Default:** `README.md`
+- **Usage:** `-o, --output-file`
 
-  The Gitlab CI Input configuration file to generated documentation from.
+Output location of the Markdown documentation.
 
-* `json_format`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--json
--j`
+### `-i, --input-config`
 
-  Return results in json format.
+- **Type:** `STRING`
+- **Default:** `.gitlab-ci.yml`
+- **Usage:** `-i, --input-config`
 
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
+The GitLab CI input configuration file to generate documentation from.
 
-  Show this message and exit.
+### `-j, --json`
+
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `-j, --json`
+
+Return results in JSON format.
+
+### `--help`
+
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `--help`
+
+Show this message and exit.
+
 
 ## CLI Help
 
-```text
-
+```
 Usage: gitlab-compliance get-attributes [OPTIONS]
 
-  Compared to the generate command, the get-attribute command allows you to
-  pass the properties you wish to document and produces a markdown table.
-  Args:     OUTPUT_FILE (_type_): _description_     GLDOCS_CONFIG_FILE
-  (_type_): _description_     attributes (_type_): _description_     json
-  (_type_): _description_
+  Export selected GitLab CI job attributes as a Markdown table or JSON.
+
+  Use this when you need a focused report for a comma-separated list of job
+  attributes instead of full pipeline documentation from `generate`.
 
 Options:
-  -a, --attributes TEXT    Pass a comma seperated list of gitlab ci yml
-                           attributes
-  -o, --output-file TEXT   Output location of the markdown documentation.
-  -i, --input-config TEXT  The Gitlab CI Input configuration file to generated
+  -a, --attributes TEXT    Pass a comma-separated list of GitLab CI YAML job
+                           attributes.
+  -o, --output-file TEXT   Output location of the Markdown documentation.
+  -i, --input-config TEXT  The GitLab CI input configuration file to generate
                            documentation from.
-  -j, --json BOOLEAN       Return results in json format.
-  --help
-              Show this message and exit.
-
+  -j, --json BOOLEAN       Return results in JSON format.
+  --help                   Show this message and exit.
 ```

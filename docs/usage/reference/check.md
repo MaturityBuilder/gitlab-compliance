@@ -4,129 +4,137 @@ Run Gherkin compliance policies against GitLab CI YAML and optional API settings
 
 ## Usage
 
-```text
-Usage: gitlab-compliance check [OPTIONS]```
+```
+Usage: gitlab-compliance check [OPTIONS]
+```
 
 ## Options
-* `features_dir` (REQUIRED):
-  * Type: STRING
-  * Default: `sentinel.unset`
-  * Usage: `--features
--f`
 
-  Directory containing compliance policy .feature files or an OCI reference (oci://registry.example.com/policies:1.0.0).
+### `-f, --features` (required)
 
-* `pipeline_file`:
-  * Type: STRING
-  * Default: `.gitlab-ci.yml`
-  * Usage: `--pipeline
--p`
+- **Type:** `STRING`
+- **Usage:** `-f, --features`
 
-  Path to the GitLab CI pipeline YAML file.
+Directory containing compliance policy .feature files or an OCI reference (oci://registry.example.com/policies:1.0.0).
 
-* `output_format`:
-  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality'])
-  * Default: `console`
-  * Usage: `--format`
+### `-p, --pipeline`
 
-  Output format for the compliance report.
+- **Type:** `STRING`
+- **Default:** `.gitlab-ci.yml`
+- **Usage:** `-p, --pipeline`
 
-* `output_file`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--output-file
--o`
+Path to the GitLab CI pipeline YAML file.
 
-  Write rendered report to this file (markdown, html, mr-comment).
+### `--format`
 
-* `include_nested`:
-  * Type: BOOL
-  * Default: `true`
-  * Usage: `--include-nested`
+- **Type:** `choice: console, markdown, html, mr-comment, codequality`
+- **Default:** `console`
+- **Usage:** `--format`
 
-  Resolve nested local include files into the compliance stash.
+Output format for the compliance report.
 
-* `gitlab_url`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--gitlab-url`
+### `-o, --output-file`
 
-  GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).
+- **Type:** `STRING`
+- **Usage:** `-o, --output-file`
 
-* `token`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--token`
+Write rendered report to this file (markdown, html, mr-comment).
 
-  GitLab API token (default: GITLAB_TOKEN or CI_JOB_TOKEN).
+### `--include-nested, --no-include-nested`
 
-* `project`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--project`
+- **Type:** `BOOL`
+- **Default:** `true`
+- **Usage:** `--include-nested, --no-include-nested`
 
-  GitLab project path or ID for API-backed policy checks.
+Resolve nested local include files into the compliance stash.
 
-* `group`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--group`
+### `--gitlab-url`
 
-  GitLab group path or ID for API-backed policy checks.
+- **Type:** `STRING`
+- **Usage:** `--gitlab-url`
 
-* `strict`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--strict`
+GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).
 
-  Fail API-backed scenarios when connection info is missing (default: skip).
+### `--token`
 
-* `update`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--update`
+- **Type:** `STRING`
+- **Usage:** `--token`
 
-  Pull the latest policies from an OCI registry before running checks.
+GitLab API token (default: GITLAB_TOKEN or CI_JOB_TOKEN).
 
-* `policy_cache_dir`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--policy-cache-dir`
+### `--project`
 
-  Directory used when pulling OCI policy bundles (default: system temp).
+- **Type:** `STRING`
+- **Usage:** `--project`
 
-* `dry_run`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--dry-run`
+GitLab project path or ID for API-backed policy checks.
 
-  Parse and list scenarios without asserting.
+### `--group`
 
-* `fix`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--fix`
+- **Type:** `STRING`
+- **Usage:** `--group`
 
-  Auto-fix outdated include refs and pin container images to sha256 digests.
+GitLab group path or ID for API-backed policy checks.
 
-* `with_builtin`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--with-builtin`
+### `--strict`
 
-  Also run bundled baseline policies shipped with gitlab-compliance.
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `--strict`
 
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
+Fail API-backed scenarios when connection info is missing (default: skip).
 
-  Show this message and exit.
+### `--update`
+
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `--update`
+
+Pull the latest policies from an OCI registry before running checks.
+
+### `--policy-cache-dir`
+
+- **Type:** `STRING`
+- **Usage:** `--policy-cache-dir`
+
+Directory used when pulling OCI policy bundles (default: system temp).
+
+### `--dry-run`
+
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `--dry-run`
+
+Parse and list scenarios without asserting.
+
+### `--fix`
+
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `--fix`
+
+Auto-fix outdated include refs and pin container images to sha256 digests.
+
+### `--with-builtin`
+
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `--with-builtin`
+
+Also run bundled baseline policies shipped with gitlab-compliance.
+
+### `--help`
+
+- **Type:** `BOOL`
+- **Default:** `false`
+- **Usage:** `--help`
+
+Show this message and exit.
 
 
 ## CLI Help
 
-```text
+```
 Usage: gitlab-compliance check [OPTIONS]
 
   Run Gherkin compliance policies against GitLab CI YAML and optional API

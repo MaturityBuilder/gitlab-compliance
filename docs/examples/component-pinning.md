@@ -34,7 +34,7 @@ Offline policy — no API token required:
 
 ```yaml
 include:
-  - local: example-ci/compliance-jobs.yml
+  - local: examples/example-ci/compliance-jobs.yml
 
 compliance:
   extends: .compliance:offline

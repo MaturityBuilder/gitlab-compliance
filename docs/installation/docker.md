@@ -1,31 +1,57 @@
 # Docker
 
-![gitlab-compliance](../assets/logo-light.png){ width="280" }
+A pre-built image is published as
+[`maturitybuilder/gitlab-compliance`](https://hub.docker.com/r/maturitybuilder/gitlab-compliance).
+Use an immutable digest in production when your supply-chain policy requires it.
 
-A pre-built Docker image on Python Alpine Linux, published by
-[MaturityBuilder](https://github.com/MaturityBuilder/gitlab-compliance).
+## Run locally
 
-`gitlab-compliance` is published on [Docker
-Hub](https://hub.docker.com/_/gitlab-compliance/) as the `gitlab-compliance`
-package.
+Mount your repository into the container and point the CLI at your policies and
+pipeline file:
 
 ```bash
-docker run -it -v $PWD:/src -w /src -e GITLAB_TOKEN=$GITLAB_TOKEN -e
-maturitybuilder/gitlab-compliance check -f example-policies --include-nested
---project <my gitlab project path>
+docker run --rm \
+  -v "$PWD:/work" \
+  -w /work \
+  maturitybuilder/gitlab-compliance:latest \
+  gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
-## Audit Pipeline Yaml
+For API-backed policies, pass a GitLab token and project or group:
 
-```yml
-gitlab-compliance:
-    image: maturitybuilder/gitlab-compliance
-    script:
-        - gitlab-compliance check -f example-policies --include-nested --project
-          <my gitlab project path>
-
+```bash
+docker run --rm \
+  -v "$PWD:/work" \
+  -w /work \
+  -e GITLAB_TOKEN \
+  maturitybuilder/gitlab-compliance:latest \
+  gitlab-compliance check \
+    -f policies/security/ \
+    -p .gitlab-ci.yml \
+    --project my-group/my-project \
+    --strict
 ```
 
-Depending on your workflow and security policy the pipeline can potentially auto
-resolve includes and image updates by passing arg `--fix`
+## GitLab CI job
+
+```yaml
+compliance:
+  image: maturitybuilder/gitlab-compliance:latest
+  stage: test
+  script:
+    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+```
+
+## Auto-fix supported findings
+
+Depending on your workflow and credentials, `--fix` can update supported include
+refs and pin container images before checks run:
+
+```bash
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
+```
+
 Next: [Usage](../usage/index.md).

@@ -1,14 +1,14 @@
 # Minimal consumer project: copy policies locally and extend shared compliance jobs.
 #
 #   cp -r examples/example-policies/security/ policies/security/
-#   cp example-ci/.gitlab-ci.consumer.yml .gitlab-ci.yml
+#   cp examples/example-ci/.gitlab-ci.consumer.yml .gitlab-ci.yml
 
 stages:
   - test
   - build
 
 include:
-  - local: example-ci/compliance-jobs.yml
+  - local: examples/example-ci/compliance-jobs.yml
 
 compliance:
   extends: .compliance:offline

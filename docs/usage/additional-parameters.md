@@ -57,8 +57,10 @@ With an OCI `-f` reference, pull the latest policy bundle before executing
 checks.
 
 ```bash
-gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p
-.gitlab-ci.yml --update
+gitlab-compliance check \
+  -f oci://registry.example.com/org/policies:1.0.0 \
+  -p .gitlab-ci.yml \
+  --update
 ```
 
 ## `--policy-cache-dir`
@@ -67,8 +69,10 @@ Directory used when extracting OCI policy bundles (default: system temp
 directory).
 
 ```bash
-gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 \
-  -p .gitlab-ci.yml --policy-cache-dir /tmp/policy-cache
+gitlab-compliance check \
+  -f oci://registry.example.com/org/policies:1.0.0 \
+  -p .gitlab-ci.yml \
+  --policy-cache-dir /tmp/policy-cache
 ```
 
 ## `--gitlab-url`
@@ -91,7 +95,7 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml \
 | `-o` / `--output-file`  | Output path                                    |
 | `--format`              | `markdown`, `swagger-markdown`, or `html`      |
 | `--detailed`            | Include workflow and per-job `rules`           |
-| `--dry-mode`            | Print to stdout without writing a file         |
+| `--dry-mode`            | Validate inputs without writing a file         |
 | `-x` / `--exclude`      | Comma-separated sections or job attributes to omit (sections: `inputs`, `variables`, `includes`, `workflow`, `jobs`, `container_images`) |
 | `-g` / `--group-by`     | Group jobs in the Jobs section by a job attribute (e.g. `stage`) |
 
@@ -119,8 +123,11 @@ gitlab-compliance generate -i .gitlab-ci.yml \
 ### `policies push` / `policies pull`
 
 ```bash
-gitlab-compliance policies push -f policies/
-registry.example.com/org/policies:1.0.0
-gitlab-compliance policies pull oci://registry.example.com/org/policies:1.0.0 -o
-policies/
+gitlab-compliance policies push \
+  -f policies/ \
+  registry.example.com/org/policies:1.0.0
+
+gitlab-compliance policies pull \
+  oci://registry.example.com/org/policies:1.0.0 \
+  -o policies/
 ```
