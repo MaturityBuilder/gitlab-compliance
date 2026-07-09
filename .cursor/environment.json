@@ -1,0 +1,4 @@
+{
+  "install": "poetry install --with docs",
+  "start": "bash .cursor/setup-github-issues-auth.sh"
+}

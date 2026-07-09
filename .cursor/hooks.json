@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/session-start-github-issue.sh",
+        "timeout": 120
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/enforce-issue-in-commit.sh",
+        "matcher": "git\\s+commit"
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": ".cursor/hooks/enforce-issue-in-pr-tool.sh",
+        "matcher": "ManagePullRequest"
+      }
+    ]
+  }
+}
