@@ -11,7 +11,6 @@ Sample `generate` output.
 | :-------- | :------ | :---------- | :------- | :----- |
 | job-stage | test    |   &#x274c;  | &#x274c; |  true  |
 
-
 ## Variables
 
 | Key         | Value          | Description | Options   | Expand |

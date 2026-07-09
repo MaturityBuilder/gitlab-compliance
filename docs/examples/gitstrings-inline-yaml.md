@@ -28,6 +28,7 @@ spec:
 ## Support
 
 Open an issue in the template repository.
+
 ```
 
 ## Run locally
