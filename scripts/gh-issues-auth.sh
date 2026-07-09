@@ -1,14 +1,24 @@
 #!/usr/bin/env bash
-# Source or run before gh issue/project commands in Cloud Agents:
+# Source before gh issue/project commands:
 #   source scripts/gh-issues-auth.sh
 set -euo pipefail
 
-if [[ -z "${GITHUB_ISSUES:-}" ]]; then
-  echo "GITHUB_ISSUES secret is not set in this VM." >&2
-  echo "Add it under Cloud Agents → Environment → Secrets, then Update Existing Env." >&2
+pick_pat() {
+  local v
+  for v in "${GITHUB_ISSUES:-}" "${GITHUB_TOKEN:-}" "${GH_TOKEN:-}"; do
+    [[ -z "$v" ]] && continue
+    [[ "$v" == ghs_* ]] && continue
+    printf '%s' "$v"
+    return 0
+  done
+  return 1
+}
+
+if ! pat="$(pick_pat)"; then
+  echo "No PAT in GITHUB_ISSUES, GITHUB_TOKEN, or GH_TOKEN (non-ghs_)." >&2
   return 1 2>/dev/null || exit 1
 fi
 
-printf '%s\n' "$GITHUB_ISSUES" | gh auth login --with-token
-export GH_TOKEN="$GITHUB_ISSUES"
-export GITHUB_TOKEN="$GITHUB_ISSUES"
+printf '%s\n' "$pat" | gh auth login --with-token
+export GH_TOKEN="$pat"
+export GITHUB_TOKEN="$pat"
