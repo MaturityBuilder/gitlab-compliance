@@ -14,8 +14,7 @@ env:
 permissions:
   contents: read
   pull-requests: write
-concurrency:
-  cancel-in-progress: true
+
 jobs:
   deps:
     runs-on: ubuntu-latest
