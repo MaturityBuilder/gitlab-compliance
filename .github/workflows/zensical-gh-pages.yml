@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: pages-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'production' }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   review:
