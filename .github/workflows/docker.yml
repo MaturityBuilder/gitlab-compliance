@@ -5,6 +5,15 @@ on:
     branches:
       - main
       - master
+    paths:
+      - poetry.lock
+      - dockerfile
+      - .github/workflows/docker.yml
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
 
 env:
   IMAGE_NAME: maturitybuilder/gitlab-compliance
