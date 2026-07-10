@@ -1,11 +1,11 @@
 name: Tests
 on:
-  # push:
-  #   branches:
-  #     - main
-  pull_request:
+  push:
     branches:
       - main
+  pull_request:
+    branches:
+      - "*"
 
 env:
   POETRY_NO_INTERACTION: "1"
@@ -44,6 +44,7 @@ jobs:
         run: poetry install --no-interaction
 
   osv-scanner:
+    if: changes(poetry.lock)
     permissions:
       contents: read
     uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@9a498708959aeaef5ef730655706c5a1df1edbc2 # v2.3.8
