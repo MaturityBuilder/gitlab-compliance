@@ -3,7 +3,6 @@
 ## Cursor Cloud specific instructions
 
 ### What this is
-
 `gitlab-compliance` (aka `gitlab-docs`) is a **Python 3.12 CLI** managed with **Poetry**. It
 generates documentation from `.gitlab-ci.yml` and runs BDD (`behave`/Gherkin) compliance
 policies against GitLab CI pipelines. There is no long-running server, database, or frontend —
@@ -11,10 +10,8 @@ everything is a CLI invocation over local files, with optional external calls to
 (`python-gitlab`) and OCI registries (`oras`).
 
 ### Running / testing / linting
-
 Standard commands are in `Makefile`, `pyproject.toml` (`[tool.poetry.scripts]`),
 `.pre-commit-config.yaml`, and `.github/workflows/tests.yml`. Common ones:
-
 - Run the CLI: `poetry run gitlab-compliance --help`
 - Generate docs: `poetry run gitlab-compliance generate -i <ci.yml> -o <out.md>`
 - Compliance check: `poetry run gitlab-compliance check -f <policy-dir> -p <ci.yml>`
@@ -26,7 +23,6 @@ Dependencies are refreshed automatically by the Cursor update script (`poetry in
 so you do not need to install them manually.
 
 ### Non-obvious caveats
-
 - **`pre-commit run --all-files` fails in this environment.** The `markdownlint-cli2` hook and the
   `default_language_version.node` setting require downloading Node from `nodejs.org`, which is
   **blocked by egress**. GitHub and PyPI are reachable, so all Python hooks work. Run the Python
@@ -40,3 +36,12 @@ so you do not need to install them manually.
 - OCI `policies push/pull` requires an OCI registry; not needed for local development.
 - `docker-compose.yml` in the repo root does not define real services (it contains pre-commit
   hook YAML) — ignore it for spinning up dependencies.
+
+
+## All Commits
+- All commits must run pre-commit and pass
+- They must attempt to improve or maintain code coverage
+- They must follow SOLID and DRY principles
+- They must not over-complicate code
+- Commit messages must follow conventional commit standards
+- Where useful try improve product documentation for use the product and use images and gifs to demonstrate command usage and outputs
