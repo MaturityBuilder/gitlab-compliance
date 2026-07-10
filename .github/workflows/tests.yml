@@ -117,3 +117,14 @@ jobs:
 
       - name: Check coverage threshold
         run: poetry run coverage report --fail-under 95
+
+  test:
+    needs: [pre-commit, unit-test, osv-scanner]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Require successful checks
+        run: |
+          test "${{ needs.pre-commit.result }}" = "success"
+          test "${{ needs.unit-test.result }}" = "success"
+          test "${{ needs.osv-scanner.result }}" = "success"
