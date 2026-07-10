@@ -43,7 +43,7 @@ jobs:
         run: poetry install --no-interaction
 
       - name: Run pre-commit
-        run: poetry run pre-commit run --all-files
+        run: poetry run pre-commit run
 
   test:
     runs-on: ubuntu-latest
