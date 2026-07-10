@@ -1,33 +1,79 @@
 # gitlab-compliance
 
-BDD compliance testing and pipeline documentation for GitLab CI/CD — by
+**BDD compliance testing and pipeline documentation for GitLab CI/CD** — by
 [MaturityBuilder](https://maturitybuilder.github.io/gitlab-compliance/).
 
-[`gitlab-compliance` on PyPI](https://pypi.org/project/gitlab-compliance/) runs
-Gherkin policies against `.gitlab-ci.yml` (and optional GitLab API settings), and
-can generate Markdown or HTML reference docs from your pipeline YAML. The model is
-inspired by [terraform-compliance](https://terraform-compliance.com/).
+[`gitlab-compliance`](https://pypi.org/project/gitlab-compliance/) is a Python CLI
+that helps teams catch misconfigurations in GitLab pipelines **before merge**. It
+runs readable **Gherkin** policies against `.gitlab-ci.yml` (and optional GitLab
+API settings), using the same behaviour-driven style as
+[terraform-compliance](https://terraform-compliance.com/) does for Terraform. It
+can also **generate** Markdown or HTML reference documentation from your pipeline
+YAML.
+
+**Documentation (install, usage, BDD grammar, examples):**
+**[https://maturitybuilder.github.io/gitlab-compliance/](https://maturitybuilder.github.io/gitlab-compliance/)**
+
+Source: [github.com/MaturityBuilder/gitlab-compliance](https://github.com/MaturityBuilder/gitlab-compliance)
+
+## Overview
+
+GitLab CI pipelines are YAML with jobs, includes, variables, and workflow rules.
+`gitlab-compliance` focuses on [negative
+testing](https://en.wikipedia.org/wiki/Negative_testing) — proving that
+configuration **does not** violate your standards — rather than end-to-end job
+success.
+
+| Workflow | CLI | Purpose |
+| -------- | --- | ------- |
+| **Compliance** | `gitlab-compliance check` | Fail CI when Gherkin policies are violated |
+| **Documentation** | `gitlab-compliance generate` | Build pipeline reference docs from `.gitlab-ci.yml` |
+
+Typical uses:
+
+- Enforce security rules (images, secrets, protected branches, include pins)
+- Share policies between developers and security in plain language
+- Run offline on YAML; optionally use the GitLab API for project settings and CI variables
+- Store policy packs in a separate repo or OCI registry
+- Integrate in GitLab CI, GitHub Actions, or local pre-commit hooks
+
+Example policy idea: no job may use a floating `:latest` image tag. See the
+[documentation](https://maturitybuilder.github.io/gitlab-compliance/examples/)
+for Gherkin examples and step reference.
 
 ## Quick start
 
 ```bash
 pip install gitlab-compliance
 
-# Compliance: fail CI when policies are violated
+# Compliance: fail when policies are violated
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 
 # Documentation: generate a pipeline reference
 gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
 ```
 
-## Documentation
+Next steps: [Installation](https://maturitybuilder.github.io/gitlab-compliance/installation/) ·
+[Usage](https://maturitybuilder.github.io/gitlab-compliance/usage/) ·
+[BDD reference](https://maturitybuilder.github.io/gitlab-compliance/bdd-reference/)
+
+## Requirements
+
+- **Python** 3.12+
+- **Pipeline file** — `.gitlab-ci.yml` (or path via `-p` / `--input-config`)
+- **API checks (optional)** — GitLab token and `--project` or `--group` for settings and variable policies
+
+## Repository
 
 | Resource | Link |
 | -------- | ---- |
-| Full docs (install, usage, BDD grammar) | [maturitybuilder.github.io/gitlab-compliance](https://maturitybuilder.github.io/gitlab-compliance/) |
+| **Published docs (GitHub Pages)** | [maturitybuilder.github.io/gitlab-compliance](https://maturitybuilder.github.io/gitlab-compliance/) |
 | Contributing | [docs/contributing.md](docs/contributing.md) |
 | Security | [SECURITY.md](SECURITY.md) |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |
+| This repo’s CI reference | [GITLAB-DOCS.md](GITLAB-DOCS.md) (generated from `.gitlab-ci.yml`) |
+
+Layout: `src/` (CLI and engine), `docs/` (site source), `examples/` (sample policies and fixtures).
 
 ## Development
 
@@ -38,13 +84,6 @@ poetry install --with dev,docs
 poetry run pytest
 poetry run pre-commit run --all-files
 ```
-
-## Repository layout
-
-- `src/` — CLI and compliance engine
-- `docs/` — Zensical/MkDocs site source
-- `examples/` — sample policies and `.gitlab-ci.yml` fixtures
-- [`GITLAB-DOCS.md`](GITLAB-DOCS.md) — auto-generated reference for **this** repo’s `.gitlab-ci.yml` (see `OUTPUT_FILE` in `.gitlab-ci.yml`)
 
 ## License
 
