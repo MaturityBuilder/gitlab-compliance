@@ -5,7 +5,7 @@ on:
       - main
   pull_request:
     branches:
-      - "*"
+      - main
 
 env:
   POETRY_NO_INTERACTION: "1"
