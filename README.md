@@ -1,255 +1,91 @@
-# GitLab pipeline reference — `.gitlab-ci.yml`
+# gitlab-compliance
 
-- **Config file:** `.gitlab-ci.yml`
-- **Jobs:** 12
+**BDD compliance testing and pipeline documentation for GitLab CI/CD** — by
+[MaturityBuilder](https://maturitybuilder.github.io/gitlab-compliance/).
 
-## Contents
+[`gitlab-compliance`](https://pypi.org/project/gitlab-compliance/) is a Python CLI
+that helps teams catch misconfigurations in GitLab pipelines **before merge**. It
+runs readable **Gherkin** policies against `.gitlab-ci.yml` (and optional GitLab
+API settings), using the same behaviour-driven style as
+[terraform-compliance](https://terraform-compliance.com/) does for Terraform. It
+can also **generate** Markdown or HTML reference documentation from your pipeline
+YAML.
 
-- [Inputs](#inputs)
-- [Variables](#variables)
-- [Includes](#includes)
-- [Jobs](#jobs) (12)
-  - .INSTALL_POETRY
-  - .TEST:RULES
-  - MEGALINTER
-  - BEHAVE-TESTS
-  - BUMP-VERSION
-  - .BUILD:PYTHON
-  - TEST-BUILD
-  - .DOCS:ZENSICAL
-  - DOCS:REVIEW
-  - PAGES
-  - PUBLISH
-  - DOCKER-BUILD
+**Documentation (install, usage, BDD grammar, examples):**
+**[https://maturitybuilder.github.io/gitlab-compliance/](https://maturitybuilder.github.io/gitlab-compliance/)**
 
-## Inputs
+Source: [github.com/MaturityBuilder/gitlab-compliance](https://github.com/MaturityBuilder/gitlab-compliance)
 
-| Key       | Value               | Description | Options | Expand |
-| --------- | ------------------- | ----------- | ------- | ------ |
-| job-stage | {'default': 'test'} |             |         | True   |
+## Overview
 
-## Variables
+GitLab CI pipelines are YAML with jobs, includes, variables, and workflow rules.
+`gitlab-compliance` focuses on [negative
+testing](https://en.wikipedia.org/wiki/Negative_testing) — proving that
+configuration **does not** violate your standards — rather than end-to-end job
+success.
 
-| Key         | Value          | Description | Options | Expand |
-| ----------- | -------------- | ----------- | ------- | ------ |
-| APPLICATION | gitlab-docs    |             |         | True   |
-| OUTPUT_FILE | GITLAB-DOCS.md |             |         | True   |
+| Workflow | CLI | Purpose |
+| -------- | --- | ------- |
+| **Compliance** | `gitlab-compliance check` | Fail CI when Gherkin policies are violated |
+| **Documentation** | `gitlab-compliance generate` | Build pipeline reference docs from `.gitlab-ci.yml` |
 
-## Includes
+Typical uses:
 
-- **local:** `gitlab-ci/hidden.jobs.yml`
-  - **version:** `n/a`
-  - **valid:** yes
+- Enforce security rules (images, secrets, protected branches, include pins)
+- Share policies between developers and security in plain language
+- Run offline on YAML; optionally use the GitLab API for project settings and CI variables
+- Store policy packs in a separate repo or OCI registry
+- Integrate in GitLab CI, GitHub Actions, or local pre-commit hooks
 
-- **project:** `charlieasmith/cas-cli`
-  - **version:** `0.0.1`
-  - **valid:** yes
-  - **file:** `gitlab-include-sample.yml`
+Example policy idea: no job may use a floating `:latest` image tag. See the
+[documentation](https://maturitybuilder.github.io/gitlab-compliance/examples/)
+for Gherkin examples and step reference.
 
-- **component:** `https://gitlab.com/charlieasmith/gitlab-docs`
-  - **version:** `main`
-  - **valid:** no
-  - **variables:** `MY_INPUTS: true`
-  - **rules:** `Rule 1: if=$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH`
+## Quick start
 
-- **component:** `https://gitlab.com/charlieasmith/gitlab-docs`
-  - **version:** `1.0.0`
-  - **valid:** yes
-  - **variables:** `MY_INPUTS: true`
-  - **rules:** `Rule 1: if=$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH`
+```bash
+pip install gitlab-compliance
 
-## Jobs
+# Compliance: fail when policies are violated
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 
-### TEMPLATE · .INSTALL_POETRY
+# Documentation: generate a pipeline reference
+gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
+```
 
-> No attributes documented.
+Next steps: [Installation](https://maturitybuilder.github.io/gitlab-compliance/installation/) ·
+[Usage](https://maturitybuilder.github.io/gitlab-compliance/usage/) ·
+[BDD reference](https://maturitybuilder.github.io/gitlab-compliance/bdd-reference/)
 
----
+## Requirements
 
-### TEMPLATE · .TEST:RULES
+- **Python** 3.12+
+- **Pipeline file** — `.gitlab-ci.yml` (or path via `-p` / `--input-config`)
+- **API checks (optional)** — GitLab token and `--project` or `--group` for settings and variable policies
 
-> stage: test
+## Repository
 
-#### .TEST:RULES · attributes
+| Resource | Link |
+| -------- | ---- |
+| **Published docs (GitHub Pages)** | [maturitybuilder.github.io/gitlab-compliance](https://maturitybuilder.github.io/gitlab-compliance/) |
+| Contributing | [docs/contributing.md](docs/contributing.md) |
+| Security | [SECURITY.md](SECURITY.md) |
+| Changelog | [CHANGELOG.md](CHANGELOG.md) |
+| This repo’s CI reference | [GITLAB-DOCS.md](GITLAB-DOCS.md) (generated from `.gitlab-ci.yml`) |
 
-| Attribute | Value |
-| --------- | ----- |
-| stage     | test  |
+Layout: `src/` (CLI and engine), `docs/` (site source), `examples/` (sample policies and fixtures).
 
-#### .TEST:RULES · rules
+## Development
 
-| Rule # | if                                           | when  |
-| ------ | -------------------------------------------- | ----- |
-| 1      | $CI_COMMIT_TAG                               | never |
-| 2      | $CI_PIPELINE_SOURCE == "merge_request_event" |       |
-| 3      | $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      |       |
+```bash
+git clone https://github.com/MaturityBuilder/gitlab-compliance.git
+cd gitlab-compliance
+poetry install --with dev,docs
+poetry run pytest
+poetry run pre-commit run --all-files
+```
 
----
+## License
 
-### JOB · MEGALINTER
-
-> allow_failure: True · extends: 1. .test:rules · image: oxsecurity/megalin...
-
-#### MEGALINTER · attributes
-
-- **allow_failure:** `True`
-- **extends:** `1. .test:rules`
-- **image:**
-  `oxsecurity/megalinter-ci_light@sha256:54e221da51b3fb959dfd4fc5e21920e0a0fa339ba68e0e9162b894a01a52ed34`
-
-#### MEGALINTER · rules
-
-- **Rule # 1**
-  - **if:** `$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BRANCH != $CI_COMMIT_TAG`
-
-#### MEGALINTER · nested attributes
-
-| Attribute | Key               | Value           |
-| --------- | ----------------- | --------------- |
-| variables | DEFAULT_WORKSPACE | $CI_PROJECT_DIR |
-
----
-
-### JOB · BEHAVE-TESTS
-
-> extends: 1. .test:rules
-
-#### BEHAVE-TESTS · attributes
-
-| Attribute | Value          |
-| --------- | -------------- |
-| extends   | 1. .test:rules |
-
-#### BEHAVE-TESTS · nested attributes
-
-| Attribute | Key                       | Value |
-| --------- | ------------------------- | ----- |
-| variables | POETRY_VIRTUALENVS_CREATE | false |
-
----
-
-### JOB · BUMP-VERSION
-
-> image: python@sha256:c1a5d356638cc86bd865d9019efbc34a6b0c3ad15a21e5ab4eb5...
-
-#### BUMP-VERSION · attributes
-
-- **image:**
-  `python@sha256:c1a5d356638cc86bd865d9019efbc34a6b0c3ad15a21e5ab4eb57bd2d1c3f7ce`
-- **stage:** `publish`
-
-#### BUMP-VERSION · rules
-
-| Rule # | if                          |
-| ------ | --------------------------- |
-| 1      | $CI_COMMIT_BRANCH == "main" |
-
----
-
-### TEMPLATE · .BUILD:PYTHON
-
-> environment: release · stage: build
-
-#### .BUILD:PYTHON · attributes
-
-| Attribute   | Value   |
-| ----------- | ------- |
-| environment | release |
-| stage       | build   |
-
----
-
-### JOB · TEST-BUILD
-
-> extends: 1. .build:python
-
-1. .test:rules
-
-#### TEST-BUILD · attributes
-
-- **extends:**
-  1. .build:python
-  2. .test:rules
-
----
-
-### TEMPLATE · .DOCS:ZENSICAL
-
-> No attributes documented.
-
----
-
-### JOB · DOCS:REVIEW
-
-> extends: 1. .docs:zensical
-
-1. .test:rules · stage: build
-
-#### DOCS:REVIEW · attributes
-
-- **extends:**
-  1. .docs:zensical
-  2. .test:rules
-- **stage:** `build`
-
----
-
-### JOB · PAGES
-
-> extends: .docs:zensical · stage: publish
-
-#### PAGES · attributes
-
-| Attribute | Value          |
-| --------- | -------------- |
-| extends   | .docs:zensical |
-| stage     | publish        |
-
-#### PAGES · rules
-
-| Rule # | if                                      |
-| ------ | --------------------------------------- |
-| 1      | $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH |
-
----
-
-### JOB · PUBLISH
-
-> cache: [] · environment: release · stage: publish
-
-#### PUBLISH · attributes
-
-| Attribute   | Value   |
-| ----------- | ------- |
-| cache       | []      |
-| environment | release |
-| stage       | publish |
-
-#### PUBLISH · rules
-
-| Rule # | if             |
-| ------ | -------------- |
-| 1      | $CI_COMMIT_TAG |
-
----
-
-### JOB · DOCKER-BUILD
-
-> image: docker@sha256:66d292e5c26bd33a6f6f61cacb880de2186339a524ecba1ce098...
-
-#### DOCKER-BUILD · attributes
-
-- **image:**
-  `docker@sha256:66d292e5c26bd33a6f6f61cacb880de2186339a524ecba1ce098dbbaceed6515`
-- **services:**
-  `1. docker@sha256:66d292e5c26bd33a6f6f61cacb880de2186339a524ecba1ce098dbbaceed6515`
-- **stage:** `build`
-- **tags:** `1. gitlab-org-docker`
-
-#### DOCKER-BUILD · rules
-
-| Rule # | if                                    |
-| ------ | ------------------------------------- |
-| 1      | $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG |
-
----
+MIT — see [LICENSE](LICENSE). Copyright DevOps Contracting Limited (trading as
+Maturity Builder).

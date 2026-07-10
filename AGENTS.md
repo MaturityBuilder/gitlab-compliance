@@ -36,3 +36,12 @@ so you do not need to install them manually.
 - OCI `policies push/pull` requires an OCI registry; not needed for local development.
 - `docker-compose.yml` in the repo root does not define real services (it contains pre-commit
   hook YAML) — ignore it for spinning up dependencies.
+
+
+## All Commits
+- All commits must run pre-commit and pass
+- They must attempt to improve or maintain code coverage
+- They must follow SOLID and DRY principles
+- They must not over-complicate code
+- Commit messages must follow conventional commit standards
+- Where useful try improve product documentation for use the product and use images and gifs to demonstrate command usage and outputs
