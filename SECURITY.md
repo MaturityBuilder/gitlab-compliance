@@ -16,7 +16,7 @@ Security fixes are provided for the latest release on
 
 **Please do not open a public GitHub issue for security vulnerabilities.**
 
-Report sensitive issues by email to **me@charlieasmith.co.uk** with:
+Report sensitive issues by email to **[me@charlieasmith.co.uk](mailto:me@charlieasmith.co.uk)** with:
 
 - A description of the issue and impact
 - Steps to reproduce (proof-of-concept if available)
