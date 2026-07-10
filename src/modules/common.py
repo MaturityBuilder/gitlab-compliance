@@ -1,3 +1,5 @@
+import html
+
 import yaml
 
 RULE_KEYS = [
@@ -92,26 +94,22 @@ def dict_list_rows(items, row_label="Rule #"):
     return headers, rows
 
 
+def _table_cell_text(cell) -> str:
+    """Normalize a markdown table cell (fold newlines for pipe tables)."""
+    if cell is None:
+        return ""
+    text = str(cell)
+    if "\n" in text:
+        return text.replace("\n", "<br>")
+    return text
+
+
 def render_rules_markdown(items, row_label="Rule #"):
-    """Render rules as a list when table rows would exceed 80 characters."""
+    """Render rules as a markdown table."""
     headers, rows = dict_list_rows(items, row_label=row_label)
     if not headers:
         return ""
-    if any("\n" in str(cell) for row in rows for cell in row):
-        pass
-    else:
-        table = render_markdown_table(headers, rows)
-        if all(len(line) <= 80 for line in table.splitlines()):
-            return table
-    lines = []
-    for row in rows:
-        rule_id = row[0]
-        lines.append(f"- **{row_label} {rule_id}**")
-        for index, key in enumerate(headers[1:], start=1):
-            value = row[index] if index < len(row) else ""
-            if value != "":
-                lines.append(f"  - **{key}:** `{value}`")
-    return "\n".join(lines)
+    return render_table_or_list(headers, rows)
 
 
 def build_dict_list_table(items, row_label="Rule #"):
@@ -142,7 +140,69 @@ def read_yml(GLDOCS_CONFIG_FILE):
     return documents
 
 
-def table_design(headers=[], field_names=[], style="MARKDOWN"):
+def format_description_cell(text) -> str:
+    """Format YAML description scalars for markdown table cells."""
+    if text is None:
+        return "&#x274c;"
+    if not isinstance(text, str):
+        return str(text)
+    stripped = text.strip()
+    if not stripped:
+        return "&#x274c;"
+    if "\n" not in stripped:
+        return stripped
+    lines = [line.rstrip() for line in stripped.splitlines()]
+    return "<br>".join(lines)
+
+
+def format_structured_cell(value) -> str:
+    """Format YAML scalars, lists, and objects for PrettyTable markdown cells."""
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return format_scalar(value)
+    if isinstance(value, (int, float)):
+        return format_scalar(value)
+    if isinstance(value, str):
+        return value
+    if isinstance(value, list):
+        if not value:
+            return "[]"
+        if all(isinstance(item, str) for item in value):
+            return "<br>".join(html.escape(item) for item in value)
+        return "<br>".join(html.escape(format_scalar(item)) for item in value)
+    if isinstance(value, dict):
+        metadata_keys = {"description", "options", "expand"}
+        display_items = [
+            (key, val) for key, val in value.items() if key not in metadata_keys
+        ]
+        if not display_items:
+            return ""
+        if len(display_items) == 1:
+            only_key, only_val = display_items[0]
+            if only_key in ("default", "value"):
+                return format_structured_cell(only_val)
+        lines = []
+        for key, val in display_items:
+            inner = format_structured_cell(val)
+            lines.append(f"<strong>{html.escape(str(key))}</strong>: {inner}")
+        return "<br>".join(lines)
+    return html.escape(str(value))
+
+
+def format_options_cell(options) -> str:
+    if options is None or options == "":
+        return "&#x274c;"
+    if isinstance(options, list):
+        if not options:
+            return "&#x274c;"
+        return "<br>".join(html.escape(str(item)) for item in options)
+    if isinstance(options, dict):
+        return format_structured_cell(options)
+    return html.escape(str(options))
+
+
+def table_design(headers=[], field_names=[], style="MARKDOWN", column_align=None):
 
     from prettytable import PrettyTable, TableStyle
     from prettytable.colortable import ColorTable, Themes
@@ -155,10 +215,14 @@ def table_design(headers=[], field_names=[], style="MARKDOWN"):
     table.border = True
 
     table.set_style(TableStyle.MARKDOWN)
-    # table.sortby = headers[0]
-    table.align = "c"
-    for header in headers:
-        table.align[header] = "c"
+    names = table.field_names
+    if column_align:
+        for name in names:
+            table.align[name] = column_align.get(name, "c")
+    else:
+        table.align = "c"
+        for header in names:
+            table.align[header] = "c"
     return table
 
 
@@ -188,41 +252,13 @@ def render_markdown_table(headers, rows):
 
 
 def render_table_or_list(headers, rows):
-    """Render aligned table, falling back to a list if rows exceed 80 chars."""
+    """Render documentation data as a markdown pipe table."""
     if not headers:
         return ""
-    if any("\n" in str(cell) for row in rows for cell in row):
-        pass
-    else:
-        table = render_markdown_table(headers, rows)
-        if all(len(line) <= 80 for line in table.splitlines()):
-            return table
-    lines = []
-    if len(headers) == 2:
-        for row in rows:
-            key = row[0] if row else ""
-            value = row[1] if len(row) > 1 else ""
-            if "\n" in str(value):
-                lines.append(f"- **{key}:**")
-                for part in str(value).splitlines():
-                    lines.append(f"  {part}")
-            else:
-                line = f"- **{key}:** `{value}`"
-                if len(line) <= 80:
-                    lines.append(line)
-                else:
-                    lines.append(f"- **{key}:**")
-                    lines.append(f"  `{value}`")
-        return "\n".join(lines)
-    for row in rows:
-        lines.append(
-            "- "
-            + " · ".join(
-                f"**{headers[i]}:** `{row[i]}`"
-                for i in range(min(len(headers), len(row)))
-            )
-        )
-    return "\n".join(lines)
+    if not rows:
+        return ""
+    str_rows = [[_table_cell_text(cell) for cell in row] for row in rows]
+    return render_markdown_table([str(h) for h in headers], str_rows)
 
 
 def markdown_table_from_prettytable(table):

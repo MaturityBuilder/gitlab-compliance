@@ -71,3 +71,14 @@ class TestTableDesign:
     def test_table_design_with_field_names(self):
         table = table_design(headers=["A", "B"], field_names=["ColA", "ColB"])
         assert table.field_names == ["ColA", "ColB"]
+
+
+class TestRenderTableOrList:
+    def test_renders_pipe_table_for_wide_rows(self):
+        from src.modules.common import render_table_or_list
+
+        rows = [["extends", "1. .build:python\n2. .test:rules"]]
+        text = render_table_or_list(["Attribute", "Value"], rows)
+        assert text.startswith("|")
+        assert "- **" not in text
+        assert "<br>" in text

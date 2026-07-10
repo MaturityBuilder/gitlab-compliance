@@ -42,9 +42,13 @@ nav:
           - Push: usage/reference/policies-push.md
       - Environment Variables: usage/environment-variables.md
     - Generate Documentation:
+      - Gitstrings (inline YAML): usage/gitstrings.md
       - Generate Pipeline Documentation: usage/reference/generate.md
       - Generate HTML Documentation: usage/reference/generate-html.md
       - Get Specific Documentation About Attributes: usage/reference/get-attributes.md
+      - Document Commands:
+          - Overview: usage/reference/document.md
+          - Gitstrings: usage/reference/document-gitstrings.md
     - Release Notes Commands:
       - Release Notes: usage/reference/release-notes.md
     - Update Command Reference: usage/reference/dumps.md
@@ -80,6 +84,7 @@ nav:
       - Compliance Security Examples: examples/compliance-security-examples.md
 
     - Gitlab Docs Output (generate command): examples/gitlab-docs-output-example.md
+    - Gitstrings inline YAML: examples/gitstrings-inline-yaml.md
   - Using in CI/CD:
     - ci-cd/index.md
     - GitLab CI/CD: ci-cd/gitlab-ci.md

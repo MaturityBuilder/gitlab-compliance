@@ -6,7 +6,7 @@ Enable these settings on **`main`** in GitHub:
 Recommended rule for `main`:
 
 1. **Require a pull request before merging** — at least 1 approval (optional for solo maintainers).
-2. **Require status checks to pass** — require the **Tests** workflow (`tests.yml`), including the `pre-commit` and test jobs.
+2. **Require status checks to pass** — require the **Tests** workflow (`tests.yml`) **`test`** job. That job is an aggregate gate over `pre-commit`, `unit-test`, and `osv-scanner` (do not require path-filtered Docker checks).
 3. **Require branches to be up to date before merging** — reduces drift.
 4. **Do not allow bypassing the above settings** — except for designated admins if needed.
 5. **Restrict who can push** — optional; use for org-owned repos.

@@ -62,7 +62,7 @@ See [Usage](usage/index.md) for compliance options and [Generate pipeline docume
 - **segregation of duty:** Keep policy packs in a separate repository or OCI
   registry
 - **documentation:** Generate Markdown or HTML reference docs from
-  `.gitlab-ci.yml`
+  `.gitlab-ci.yml`, or inline template YAML with `document gitstrings`
 
 ## Idea
 

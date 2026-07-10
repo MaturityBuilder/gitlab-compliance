@@ -7,9 +7,9 @@ Sample `generate` output.
 
 ## Inputs
 
-| Key       | Value               | Description | Options   | Expand |
-| --------- | ------------------- | ----------- | --------- | ------ |
-| job-stage | {'default': 'test'} | _not set_   | _not set_ | true   |
+|    Key    | Default | Description | Options  | Expand |
+| :-------- | :------ | :---------- | :------- | :----- |
+| job-stage | test    |   &#x274c;  | &#x274c; |  true  |
 
 ## Variables
 

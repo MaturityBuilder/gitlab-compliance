@@ -37,7 +37,6 @@ Usage: gitlab-compliance dumps [OPTIONS]```
 
   Show this message and exit.
 
-
 ## CLI Help
 
 ```text

@@ -42,6 +42,7 @@ from src.modules.doc_controller import (
     remove_duplicate_headings,
     update_marked_block,
 )
+from src.modules.gitstrings import process_gitstrings
 from src.modules.logging import logger
 from src.modules.output_filters import (
     parse_exclude,
@@ -58,6 +59,8 @@ __all__ = [
     "DEFAULT_POLICY_DIR",
     "build_policy_catalog",
     "check",
+    "document",
+    "document_gitstrings",
     "dumps",
     "generate",
     "generate_html",
@@ -723,12 +726,81 @@ def policies_pull(target, output_dir):
     logger.success(f"Pulled policies to {pulled_to}")
 
 
+@click.group()
+def document():
+    """Generate documentation from inline template YAML (gitstrings)."""
+    pass
+
+
+@document.command("gitstrings")
+@click.option(
+    "-i",
+    "--input-file",
+    "input_file",
+    default="README.md",
+    show_default=True,
+    help="Markdown or CI YAML (.yml) file with gitstrings decorators or fenced snippets.",
+)
+@click.option(
+    "-o",
+    "--output-file",
+    "--output",
+    "output_file",
+    default=None,
+    help="Markdown file for gitstrings marker updates. When set, all fragments write here and # @output in YAML is ignored.",
+)
+@click.option(
+    "--dry-mode",
+    "-d",
+    "dry_mode",
+    is_flag=True,
+    default=False,
+    help="Log updates without writing files.",
+)
+@click.option(
+    "--keep-source/--no-keep-source",
+    "keep_source",
+    default=True,
+    show_default=True,
+    help="Include collapsible source YAML in the generated marker block.",
+)
+@click.option(
+    "--include-nested",
+    "include_nested",
+    is_flag=True,
+    default=False,
+    help=(
+        "Walk nested local: includes on disk when documenting @render includes "
+        "(-i must be .yml). Does not fetch project, component, remote, or template trees."
+    ),
+)
+def document_gitstrings(input_file, output_file, dry_mode, keep_source, include_nested):
+    """
+    Render gitstrings documentation from CI YAML decorators or markdown fences.
+    """
+    if dry_mode:
+        logger.info("Dry mode enabled; gitstrings marker updates will be logged only.")
+    written = process_gitstrings(
+        input_file,
+        output_file,
+        dry=dry_mode,
+        keep_source=keep_source,
+        include_nested=include_nested,
+    )
+    if written:
+        for path in written:
+            logger.info(f"Gitstrings documentation updated: {path}")
+    else:
+        logger.info("No gitstrings output files were updated.")
+
+
 gitlab_compliance.add_command(get_attributes)
 gitlab_compliance.add_command(dumps)
 gitlab_compliance.add_command(generate)
 gitlab_compliance.add_command(generate_html)
 gitlab_compliance.add_command(check)
 gitlab_compliance.add_command(policies)
+gitlab_compliance.add_command(document)
 gitlab_compliance.add_command(release_notes)
 if __name__ == "__main__":  # pragma: no cover
     gitlab_compliance(obj={})

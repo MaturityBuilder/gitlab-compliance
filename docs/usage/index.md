@@ -99,15 +99,20 @@ COMPLIANCE-REPORT.md
 
 ### Other commands
 
-| Command          | Description                                             |
-| ---------------- | ------------------------------------------------------- |
-| `check`          | Run Gherkin compliance policies against pipeline YAML   |
-| `generate`       | Build Markdown or HTML documentation from pipeline YAML |
-| `get-attributes` | Export selected job attributes as a table               |
-| `policies doc`   | Generate a policy catalog from `# METADATA` annotations |
-| `policies push`  | Publish a policy bundle to an OCI registry              |
-| `policies pull`  | Pull a policy bundle from an OCI registry               |
-| `release-notes`  | Generate release notes from GitLab commits              |
+| Command               | Description                                                       |
+| --------------------- | ----------------------------------------------------------------- |
+| `check`               | Run Gherkin compliance policies against pipeline YAML             |
+| `generate`            | Build Markdown or HTML documentation from pipeline YAML           |
+| `get-attributes`      | Export selected job attributes as a table                         |
+| `policies doc`        | Generate a policy catalog from `# METADATA` annotations         |
+| `policies push`       | Publish a policy bundle to an OCI registry                        |
+| `policies pull`       | Pull a policy bundle from an OCI registry                         |
+| `release-notes`       | Generate release notes from GitLab commits                        |
+| `document gitstrings` | Render inline `yaml gitstrings` fences into README marker blocks  |
+
+### Template documentation
+
+For ci-template READMEs, use [`document gitstrings`](gitstrings.md) to turn decorated YAML snippets into tables inside gitstrings markers (alongside [`generate`](reference/generate.md) for full pipeline YAML).
 
 ## Quick start
 

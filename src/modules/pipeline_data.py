@@ -209,13 +209,16 @@ def _parse_variable_entry(
     description = ""
     options: Any = ""
     expand = True
+    stored_value: Any = value
     if isinstance(value, dict):
         description = value.get("description", "")
         options = value.get("options", "")
         expand = value.get("expand", True)
+        if "value" in value:
+            stored_value = value["value"]
     return {
         "key": key,
-        "value": value,
+        "value": stored_value,
         "description": description,
         "options": options,
         "expand": expand,

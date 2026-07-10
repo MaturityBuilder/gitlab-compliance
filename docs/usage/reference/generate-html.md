@@ -39,7 +39,6 @@ Usage: gitlab-compliance generate-html [OPTIONS]```
 
   Show this message and exit.
 
-
 ## CLI Help
 
 ```text
