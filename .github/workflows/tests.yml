@@ -13,7 +13,7 @@ env:
   PYTHON_VERSION: "3.12"
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 jobs:
@@ -82,7 +82,7 @@ jobs:
       - name: Run pre-commit
         run: poetry run pre-commit run
 
-  unit-test:
+  test:
     needs: deps
     runs-on: ubuntu-latest
     steps:
