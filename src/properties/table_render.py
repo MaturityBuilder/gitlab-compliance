@@ -411,11 +411,7 @@ def render_path_markdown(
         )
 
     if ".inputs." in path:
-        if (
-            last == "default"
-            and len(segments) >= 2
-            and segments[-2] != "inputs"
-        ):
+        if last == "default" and len(segments) >= 2 and segments[-2] != "inputs":
             input_key = segments[-2]
             parent = ".".join(segments[:-2])
             input_entry = yaml_paths.resolve_yaml_path(root, ".".join(segments[:-1]))
@@ -439,11 +435,7 @@ def render_path_markdown(
         )
 
     if ".variables." in path:
-        if (
-            last == "value"
-            and len(segments) >= 2
-            and segments[-2] != "variables"
-        ):
+        if last == "value" and len(segments) >= 2 and segments[-2] != "variables":
             var_key = segments[-2]
             parent = ".".join(segments[:-2])
             var_entry = yaml_paths.resolve_yaml_path(root, ".".join(segments[:-1]))

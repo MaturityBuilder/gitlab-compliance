@@ -13,13 +13,13 @@ import yaml
 
 import src.properties.table_render as table_render
 import src.properties.yaml_paths as yaml_paths
+from src.modules.common import EnvLoader
 from src.modules.constants import (
     GITSTRINGS_MARKER_CLOSE,
     GITSTRINGS_MARKER_CLOSE_LEGACY,
     GITSTRINGS_MARKER_OPEN,
     GITSTRINGS_MARKER_OPEN_LEGACY,
 )
-from src.modules.common import EnvLoader
 from src.modules.doc_controller import update_marked_block
 from src.modules.logging import logger
 

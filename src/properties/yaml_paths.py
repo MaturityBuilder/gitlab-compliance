@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-LEGACY_RENDER_MODES = frozenset(
-    {"variables", "inputs", "jobs", "includes", "auto"}
-)
+LEGACY_RENDER_MODES = frozenset({"variables", "inputs", "jobs", "includes", "auto"})
 
 SENSITIVE_MASK = "****"
 
@@ -91,10 +89,12 @@ def _mask_dict_entry_value(
     segment = f"{path_prefix}.{key}" if path_prefix else key
     value_path = value_path_for_variable(path_prefix, key, entry)
     default_path = f"{segment}.default"
-    if should_mask_value(segment, sensitive_paths) and not should_mask_value(
-        value_path, sensitive_paths
-    ) and not (
-        "default" in entry and should_mask_value(default_path, sensitive_paths)
+    if (
+        should_mask_value(segment, sensitive_paths)
+        and not should_mask_value(value_path, sensitive_paths)
+        and not (
+            "default" in entry and should_mask_value(default_path, sensitive_paths)
+        )
     ):
         return SENSITIVE_MASK
     if should_mask_value(value_path, sensitive_paths):

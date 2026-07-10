@@ -239,7 +239,10 @@ megalinter:
         assert _count_variables_for_path(root, "missing") == 0
 
     def test_include_render_uses_path_mode(self):
-        from src.properties.yaml_paths import is_legacy_render_mode, normalize_legacy_render
+        from src.properties.yaml_paths import (
+            is_legacy_render_mode,
+            normalize_legacy_render,
+        )
 
         assert not is_legacy_render_mode("include")
         assert normalize_legacy_render("include") == "auto"
