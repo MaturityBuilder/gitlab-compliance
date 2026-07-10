@@ -45,3 +45,4 @@ so you do not need to install them manually.
 - They must not over-complicate code
 - Commit messages must follow conventional commit standards
 - Where useful try improve product documentation for use the product and use images and gifs to demonstrate command usage and outputs
+- for all markdown generation it should strictly follow markdownlint rules [Markdownlint Rules](https://github.com/markdownlint/markdownlint/blob/main/docs/RULES.md)
