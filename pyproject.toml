@@ -2,6 +2,21 @@
 name = "gitlab-compliance"
 version = "2.0.1"
 dynamic = [ "readme" ]
+license = "MIT"
+requires-python = ">=3.12"
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: System Administrators",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Software Development :: Testing",
+]
 [project.urls]
 "Home Page" = "https://maturitybuilder.github.io/gitlab-compliance/"
 DOCUMENTATION = "https://maturitybuilder.github.io/gitlab-compliance/"
@@ -13,6 +28,7 @@ Repository = "https://github.com/MaturityBuilder/gitlab-compliance"
 name = "gitlab-compliance"
 description = "BDD compliance testing for GitLab CI/CD pipelines and project settings — by MaturityBuilder"
 authors = ["Charlie Smith <me@charlieasmith.co.uk>"]
+license = "MIT"
 readme = ["docs/index.md"]
 
 packages = [{ include = "src" }]

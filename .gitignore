@@ -1,3 +1,4 @@
+.DS_Store
 *.pem
 examples/sample-files/*.md
 gitlab-compliance/
