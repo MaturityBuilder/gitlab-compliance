@@ -43,14 +43,17 @@ jobs:
         if: steps.poetry-cache.outputs.cache-hit != 'true'
         run: poetry install --no-interaction
 
-  osv-scanner:
+  analysis:
+    runs-on: ubuntu-latest
     permissions:
+      # Required when publishing results (badge / API / code scanning)
+      security-events: write
+      id-token: write
+      # Recommended reads for private repos to avoid GraphQL/SAST gaps
       contents: read
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@9a498708959aeaef5ef730655706c5a1df1edbc2 # v2.3.8
-    with:
-      scan-args: |-
-        --lockfile=poetry.lock
-      upload-sarif: false
+      issues: read
+      pull-requests: read
+      checks: read
 
   pre-commit:
     needs: deps
