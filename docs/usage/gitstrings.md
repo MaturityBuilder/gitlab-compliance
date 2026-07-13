@@ -1,4 +1,4 @@
-# Gitstrings (inline YAML)
+# Gitstrings - Beta (inline YAML)
 
 Gitstrings turns **decorated YAML** into **marker-delimited** markdown tables (like [`generate`](reference/generate.md)), without overwriting the rest of your README.
 
