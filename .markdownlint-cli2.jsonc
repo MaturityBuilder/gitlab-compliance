@@ -1,6 +1,6 @@
 {
   "globs": ["**/*.md"],
-  "ignores": [".pytest_cache/**"],
+  "ignores": [".pytest_cache/**", "docs/**"],
   "gitignore": true,
   "noProgress": true,
   "config": {

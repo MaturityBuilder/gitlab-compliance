@@ -1,33 +1,37 @@
-![gitlab-compliance by MaturityBuilder](assets/logo-light.png)
+---
+layout: home
+title: Overview
+permalink: /
+---
+# Gitlab Compliance
 
-<div class="mb-hero" markdown="1">
-
-<p class="mb-byline">GitLab Compliance</p>
-<hr class="mb-hero-divider" />
-<p class="mb-hero-brand">MaturityBuilder</p>
-<p class="mb-tagline">BDD compliance testing for GitLab CI/CD pipelines and project settings</p>
-
-<div class="mb-hero-cta" markdown="1">
-[Get started](installation/index.md){ .md-button .md-button--primary }
-[Usage reference](usage/index.md){ .md-button }
-[BDD grammar](bdd-reference/index.md){ .md-button }
+<img src="https://maturitybuilder.github.io/gitlab-compliance/assets/logo-light.png" align="right" width="350" valign="top" style="max-width:100%; margin-top: 50px; text-align: justify;">
+<div align="left">
+  <!-- <a href="https://github.com/gitlab-compliance/cli/actions/workflows/cd.yml">
+    <img src="https://github.com/eerkunt/gitlab-compliance/workflows/CD/badge.svg" alt="Build" />
+  </a> -->
+  <a href="https://hub.docker.com/r/maturitybuilder/gitlab-compliance/">
+    <img src="https://img.shields.io/badge/docker-ready-blue.svg?longCache=true&style=flat" alt="docker version is ready" />
+    <img alt="Docker Image Version" src="https://img.shields.io/docker/v/maturitybuilder/gitlab-compliance?label=Docker Latest">
+  </a>
+  <a href="https://pypi.org/project/gitlab-compliance/">
+    <!-- <img src="https://maturitybuilder.github.io/gitlab-compliance/assets/logo-light.png" alt="License" /> -->
+  </a>
+  <a href="https://pypi.org/project/gitlab-compliance/">
+    <img src="https://img.shields.io/pypi/v/gitlab-compliance.svg" alt="Package Version" />
+  </a>
 </div>
 
-</div>
+<p class="mb-tagline">Gitlab Compliance is a BDD compliance testing and documentation generation toolkit for GitLab CI/CD pipelines and project settings. It runs Gherkin policies against `.gitlab-ci.yml` and optional GitLab API settings. You can also generate markdown documentation for your Gitlab pipelines.</p>
 
-`gitlab-compliance` (PyPI package
-[`gitlab-compliance`](https://pypi.org/project/gitlab-compliance/)) is a
-lightweight, security and compliance focused test framework for GitLab CI/CD. It
-runs Gherkin policies against `.gitlab-ci.yml` and optional GitLab API settings.
- You can also generate markdown documentation for your gitlab pipelines.
 
-— the same BDD model as
-[terraform-compliance](https://terraform-compliance.com/) uses for Terraform
-plans.
-Source code:
+Source code - coming soon:
 [MaturityBuilder/gitlab-compliance](https://github.com/MaturityBuilder/gitlab-compliance).
 
 ## Get started
+[Get started](installation/index.md){ .md-button .md-button-primary }
+[Usage reference](usage/index.md){ .md-button }
+[BDD grammar](bdd-reference/index.md){ .md-button }
 
 `gitlab-compliance` supports two core workflows from the same pipeline YAML:
 
@@ -62,7 +66,7 @@ See [Usage](usage/index.md) for compliance options and [Generate pipeline docume
 - **segregation of duty:** Keep policy packs in a separate repository or OCI
   registry
 - **documentation:** Generate Markdown or HTML reference docs from
-  `.gitlab-ci.yml`, or inline template YAML with `document gitstrings`
+  `.gitlab-ci.yml`
 
 ## Idea
 
