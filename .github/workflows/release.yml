@@ -10,6 +10,8 @@ on:
 permissions:
   contents: write
   issues: write
+
+  id-token: write
   pull-requests: write
 env:
   POETRY_VIRTUALENVS_CREATE: "false"
@@ -17,11 +19,25 @@ env:
   IMAGE_NAME: maturitybuilder/gitlab-compliance
 
 jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: advanced-security/sbom-generator-action@43865e4a639a619b676949703244044886263825
+        id: sbom
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          path: ${{steps.sbom.outputs.fileName }}
+          name: "SBOM"
   release-please:
+    needs: sbom
     runs-on: ubuntu-latest
     steps:
       - name: Release Please
-        uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7
         with:
           token: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
           release-type: python
@@ -32,8 +48,6 @@ jobs:
   test:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -75,9 +89,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     needs: test
-    permissions:
-      contents: read
-      id-token: write
+
     environment:
       name: pypi
       url: https://pypi.org/p/gitlab-compliance
@@ -105,8 +117,6 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     needs: test
-    permissions:
-      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
