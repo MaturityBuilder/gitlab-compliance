@@ -129,7 +129,7 @@ jobs:
         uses: ossf/scorecard-action@v2.4.1
         with:
           results_file: scorecard.sarif
-          results_format: sarif
+          # results_format: sarif
           publish_results: true
           github-token: ${{ secrets.SCORECARD_TOKEN }}
 
