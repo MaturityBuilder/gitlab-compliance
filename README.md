@@ -1,6 +1,9 @@
-# Gitlab Compliance
+# GitLab Compliance
 
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/MaturityBuilder/gitlab-compliance/badge)](https://scorecard.dev/viewer/?uri=github.com/MaturityBuilder/gitlab-compliance)
+[![OpenSSF Scorecard][scorecard-badge]][scorecard-report]
+
+[scorecard-badge]: https://api.scorecard.dev/projects/github.com/MaturityBuilder/gitlab-compliance/badge
+[scorecard-report]: https://scorecard.dev/viewer/?uri=github.com/MaturityBuilder/gitlab-compliance
 
 **BDD compliance testing and pipeline documentation for GitLab CI/CD** — by
 [MaturityBuilder](https://maturitybuilder.github.io/gitlab-compliance/).

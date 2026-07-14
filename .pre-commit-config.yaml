@@ -1,5 +1,5 @@
 default_language_version:
-  node: "24.13.0"
+  node: system
 
 repos:
   - repo: local
