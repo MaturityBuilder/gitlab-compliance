@@ -7,16 +7,16 @@ import click
 md_base_template = """
 ## Usage
 
-```
+```text
 {usage}
 ```
 
 ## Options
-{options}
 
+{options}
 ## CLI Help
 
-```
+```text
 {help}
 ```
 """
@@ -41,47 +41,98 @@ def recursive_help(cmd, parent=None):
 
 
 def _param_metadata(param):
+    param_type = _format_param_type(param)
     if isinstance(param, click.Argument):
         return {
             "usage": param.name,
             "required": param.required,
             "default": param.default,
             "help": getattr(param, "help", None),
-            "type": str(param.type),
+            "type": param_type,
             "kind": "argument",
         }
+    option_flags = list(param.opts) + list(getattr(param, "secondary_opts", []))
     return {
-        "usage": "\n".join(param.opts),
+        "usage": ", ".join(option_flags),
         "prompt": getattr(param, "prompt", None),
         "required": param.required,
         "default": param.default,
         "help": getattr(param, "help", None),
-        "type": str(param.type),
+        "type": param_type,
         "kind": "option",
     }
+
+
+def _format_param_type(param) -> str:
+    """Return stable, human-friendly Click parameter type text."""
+    param_type = param.type
+    if isinstance(param_type, click.Choice):
+        return "choice: " + ", ".join(f"`{choice}`" for choice in param_type.choices)
+    type_name = getattr(param_type, "name", None)
+    if type_name:
+        return str(type_name)
+    return str(param_type)
+
+
+def _format_default(value) -> str:
+    if value is None:
+        return "`none`"
+    if value is click.core.ParameterSource.DEFAULT:  # pragma: no cover - safety
+        return "`default`"
+    if value is Ellipsis:
+        return "`...`"
+    value_text = str(value)
+    if value_text == "Sentinel.UNSET":
+        return "_not set_"
+    if isinstance(value, bool):
+        return f"`{str(value).lower()}`"
+    return f"`{value_text}`"
+
+
+def _escape_table_cell(value) -> str:
+    return str(value).replace("|", "\\|").replace("\n", " ")
 
 
 def _format_options(options: dict) -> str:
     if not options:
         return "_No options._\n"
-    return "\n".join(
-        [
-            f"* `{opt_name}`{' (REQUIRED)' if opt.get('required') else ''}"
-            f"{' [argument]' if opt.get('kind') == 'argument' else ''}: \n"
-            f"  * Type: {opt.get('type')} \n"
-            f"  * Default: `{str(opt.get('default')).lower()}`\n"
-            f"  * Usage: `{opt.get('usage')}`\n"
-            "\n"
-            f"  {opt.get('help') or ''}\n"
-            for opt_name, opt in options.items()
-        ]
+    rows = [
+        "| Name | Type | Required | Default | Usage | Description |",
+        "| ---- | ---- | -------- | ------- | ----- | ----------- |",
+    ]
+    for opt_name, opt in options.items():
+        name = f"`{opt_name}`"
+        if opt.get("kind") == "argument":
+            name = f"{name} _(argument)_"
+        rows.append(
+            " | ".join(
+                [
+                    f"| {name}",
+                    _escape_table_cell(opt.get("type", "")),
+                    "yes" if opt.get("required") else "no",
+                    _format_default(opt.get("default")),
+                    f"`{_escape_table_cell(opt.get('usage', ''))}`",
+                    _escape_table_cell(opt.get("help") or ""),
+                ]
+            )
+            + " |"
+        )
+    return "\n".join(rows) + "\n"
+
+
+def _command_description(command: click.Command) -> str:
+    description = (command.help or "").strip()
+    return re.sub(
+        r"```([A-Za-z0-9_-]+)",
+        r"`\1",
+        description,
     )
 
 
 def _render_command_page(helpdct: dict, title: str | None = None) -> str:
     command = helpdct["command"]
     options = {opt.name: _param_metadata(opt) for opt in helpdct.get("params", [])}
-    description = (command.help or "").strip()
+    description = _command_description(command)
     heading = title or command.name
     body = md_base_template.format(
         usage=helpdct.get("usage"),
@@ -146,8 +197,8 @@ def dump_helper(base_command, docs_dir) -> list[str]:
         written.append(command_path)
 
     index_lines = [
-        "# Command Reference\n",
-        f"Auto-generated reference for `{root_name}` subcommands.\n",
+        "# Command Reference\n\n",
+        f"Auto-generated reference for `{root_name}` subcommands.\n\n",
     ]
     for command_path in sorted(written, key=_command_doc_slug):
         display_name = " ".join(command_path)

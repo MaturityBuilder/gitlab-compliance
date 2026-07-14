@@ -5,37 +5,17 @@ Create one markdown file per subcommand under --docsPath.
 ## Usage
 
 ```text
-Usage: gitlab-compliance dumps [OPTIONS]```
+Usage: gitlab-compliance dumps [OPTIONS]
+```
 
 ## Options
 
-* `base_module` (REQUIRED):
-  * Type: STRING
-  * Default: `src.gitlab_compliance`
-  * Usage: `--baseModule`
-
-  The base command module path to import
-
-* `base_command` (REQUIRED):
-  * Type: STRING
-  * Default: `gitlab_compliance`
-  * Usage: `--baseCommand`
-
-  The base command function to import
-
-* `docs_path` (REQUIRED):
-  * Type: STRING
-  * Default: `docs/usage/reference/`
-  * Usage: `--docsPath`
-
-  The docs dir path to write the md files
-
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
-
-  Show this message and exit.
+| Name | Type | Required | Default | Usage | Description |
+| ---- | ---- | -------- | ------- | ----- | ----------- |
+| `base_module` | text | yes | `src.gitlab_compliance` | `--baseModule` | The base command module path to import |
+| `base_command` | text | yes | `gitlab_compliance` | `--baseCommand` | The base command function to import |
+| `docs_path` | text | yes | `docs/usage/reference/` | `--docsPath` | The docs dir path to write the md files |
+| `help` | boolean | no | `false` | `--help` | Show this message and exit. |
 
 ## CLI Help
 

@@ -1,9 +1,10 @@
 # Usage
 
 Regardless of how you [install](../installation/index.md) `gitlab-compliance`,
-the tool supports two primary workflows:
+the tool supports compliance checks, generated pipeline documentation, template
+snippet documentation, and policy-pack management.
 
-### Compliance (`check`)
+## Compliance checks
 
 1. Author Gherkin policies (`.feature` files) in a directory or OCI registry
 2. Point the CLI at your pipeline YAML
@@ -14,7 +15,31 @@ the tool supports two primary workflows:
 gitlab-compliance check -h
 ```
 
-### Documentation (`generate`)
+### Local policy directory
+
+```bash
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --with-builtin
+```
+
+### OCI policy pack
+
+```bash
+gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p .gitlab-ci.yml
+gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p .gitlab-ci.yml --update
+```
+
+### GitLab API-backed policies
+
+API scenarios are **skipped** when connection info is missing unless you pass
+`--strict`.
+
+```bash
+export GITLAB_TOKEN="YOUR_GITLAB_TOKEN"
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --project my-group/my-project
+```
+
+## Pipeline documentation
 
 1. Point the CLI at your pipeline YAML
 2. Choose an output format (`markdown`, `swagger-markdown`, or `html`)
@@ -26,7 +51,22 @@ gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeli
 gitlab-compliance generate -i .gitlab-ci.yml --exclude variables,workflow --group-by stage
 ```
 
-See [Generate pipeline documentation](reference/generate.md) and [Additional Parameters](additional-parameters.md).
+See [Generate pipeline documentation](reference/generate.md) and [Additional
+Parameters](additional-parameters.md).
+
+## Template snippet documentation
+
+Use [`document gitstrings`](reference/document-gitstrings.md) when a README
+contains decorated `yaml gitstrings` snippets, or when a CI YAML file contains
+`# @title`, `# @render`, and `# @output` decorators.
+
+```bash
+gitlab-compliance document gitstrings -i README.md
+gitlab-compliance document gitstrings -i .gitlab-ci.yml -o README.md --include-nested
+```
+
+See the [Gitstrings guide](gitstrings.md) for marker blocks, supported
+directives, and nested include behavior.
 
 ## CLI reference
 
@@ -34,12 +74,11 @@ See [Generate pipeline documentation](reference/generate.md) and [Additional Par
 
 **Required** for `check`, `policies doc`, and `policies push`.
 
-Directory of `.feature` policy files, or an OCI reference:
+Directory of `.feature` policy files, or an OCI reference.
 
 ```bash
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml
-gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p
-.gitlab-ci.yml
+gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p .gitlab-ci.yml
 ```
 
 Use `--update` with OCI references to pull the latest bundle before running.
@@ -66,20 +105,6 @@ Path to the GitLab CI pipeline YAML (default: `.gitlab-ci.yml`).
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 ```
 
-### `--project` / `--group`
-
-Enable API-backed scenarios against project or group settings. Requires a GitLab
-token — see [Environment Variables](environment-variables.md).
-
-```bash
-export GITLAB_TOKEN="<token>"
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project
-my-group/my-project
-```
-
-API scenarios are **skipped** when connection info is missing unless you pass
-`--strict`.
-
 ### `--format` / `-o`
 
 Report format and output file:
@@ -93,8 +118,7 @@ Report format and output file:
 | `codequality` | GitLab Code Quality JSON (`gl-code-quality-report.json`) |
 
 ```bash
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format markdown -o
-COMPLIANCE-REPORT.md
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format markdown -o COMPLIANCE-REPORT.md
 ```
 
 ### Other commands
@@ -102,9 +126,9 @@ COMPLIANCE-REPORT.md
 | Command               | Description                                                       |
 | --------------------- | ----------------------------------------------------------------- |
 | `check`               | Run Gherkin compliance policies against pipeline YAML             |
-| `generate`            | Build Markdown or HTML documentation from pipeline YAML           |
+| `generate`            | Build Markdown, Swagger-style Markdown, or HTML docs              |
 | `get-attributes`      | Export selected job attributes as a table                         |
-| `policies doc`        | Generate a policy catalog from `# METADATA` annotations         |
+| `policies doc`        | Generate a policy catalog from `# METADATA` annotations           |
 | `policies push`       | Publish a policy bundle to an OCI registry                        |
 | `policies pull`       | Pull a policy bundle from an OCI registry                         |
 | `release-notes`       | Generate release notes from GitLab commits                        |
@@ -112,7 +136,9 @@ COMPLIANCE-REPORT.md
 
 ### Template documentation
 
-For ci-template READMEs, use [`document gitstrings`](gitstrings.md) to turn decorated YAML snippets into tables inside gitstrings markers (alongside [`generate`](reference/generate.md) for full pipeline YAML).
+For CI template READMEs, use [`document gitstrings`](gitstrings.md) to turn
+decorated YAML snippets into tables inside gitstrings markers (alongside
+[`generate`](reference/generate.md) for full pipeline YAML).
 
 ## Quick start
 

@@ -102,3 +102,22 @@ class TestCommandReferenceHelpers:
         rendered = _render_command_page(helpdct, title="bare command")
         assert rendered.startswith("# bare command\n")
         assert "Help text" in rendered
+
+    def test_render_command_page_formats_path_options_stably(self):
+        @click.command()
+        @click.option("--output-dir", type=click.Path(file_okay=False), default=".")
+        def path_command(output_dir):
+            pass
+
+        ctx = click.core.Context(path_command, info_name="path-command")
+        helpdct = {
+            "command": path_command,
+            "usage": path_command.get_usage(ctx),
+            "params": path_command.get_params(ctx),
+            "help": path_command.get_help(ctx),
+        }
+        rendered = _render_command_page(helpdct, title="path command")
+
+        assert "```text" in rendered
+        assert "| `output_dir` | directory |" in rendered
+        assert "<click.types.Path object" not in rendered

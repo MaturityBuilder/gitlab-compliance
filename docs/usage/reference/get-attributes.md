@@ -10,56 +10,22 @@ Compared to the generate command, the get-attribute command allows you to pass t
 ## Usage
 
 ```text
-
 Usage: gitlab-compliance get-attributes [OPTIONS]
-
 ```
 
 ## Options
 
-* `attributes`:
-  * Type: STRING
-  * Default: `readme.md`
-  * Usage: `--attributes
--a`
-
-  Pass a comma seperated list of gitlab ci yml attributes
-
-* `OUTPUT_FILE`:
-  * Type: STRING
-  * Default: `readme.md`
-  * Usage: `--output-file
--o`
-
-  Output location of the markdown documentation.
-
-* `GLDOCS_CONFIG_FILE`:
-  * Type: STRING
-  * Default: `.gitlab-ci.yml`
-  * Usage: `--input-config
--i`
-
-  The Gitlab CI Input configuration file to generated documentation from.
-
-* `json_format`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--json
--j`
-
-  Return results in json format.
-
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
-
-  Show this message and exit.
+| Name | Type | Required | Default | Usage | Description |
+| ---- | ---- | -------- | ------- | ----- | ----------- |
+| `attributes` | text | no | `README.md` | `--attributes, -a` | Pass a comma seperated list of gitlab ci yml attributes |
+| `OUTPUT_FILE` | text | no | `README.md` | `--output-file, -o` | Output location of the markdown documentation. |
+| `GLDOCS_CONFIG_FILE` | text | no | `.gitlab-ci.yml` | `--input-config, -i` | The Gitlab CI Input configuration file to generated documentation from. |
+| `json_format` | boolean | no | `false` | `--json, -j` | Return results in json format. |
+| `help` | boolean | no | `false` | `--help` | Show this message and exit. |
 
 ## CLI Help
 
 ```text
-
 Usage: gitlab-compliance get-attributes [OPTIONS]
 
   Compared to the generate command, the get-attribute command allows you to
@@ -75,7 +41,5 @@ Options:
   -i, --input-config TEXT  The Gitlab CI Input configuration file to generated
                            documentation from.
   -j, --json BOOLEAN       Return results in json format.
-  --help
-              Show this message and exit.
-
+  --help                   Show this message and exit.
 ```

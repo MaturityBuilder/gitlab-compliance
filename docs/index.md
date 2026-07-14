@@ -3,42 +3,41 @@ layout: home
 title: Overview
 permalink: /
 ---
-# Gitlab Compliance
 
-<img src="https://maturitybuilder.github.io/gitlab-compliance/assets/logo-light.png" align="right" width="350" valign="top" style="max-width:100%; margin-top: 50px; text-align: justify;">
-<div align="left">
-  <!-- <a href="https://github.com/gitlab-compliance/cli/actions/workflows/cd.yml">
-    <img src="https://github.com/eerkunt/gitlab-compliance/workflows/CD/badge.svg" alt="Build" />
-  </a> -->
-  <a href="https://hub.docker.com/r/maturitybuilder/gitlab-compliance/">
-    <img src="https://img.shields.io/badge/docker-ready-blue.svg?longCache=true&style=flat" alt="docker version is ready" />
-    <img alt="Docker Image Version" src="https://img.shields.io/docker/v/maturitybuilder/gitlab-compliance?label=Docker Latest">
-  </a>
-  <a href="https://pypi.org/project/gitlab-compliance/">
-    <!-- <img src="https://maturitybuilder.github.io/gitlab-compliance/assets/logo-light.png" alt="License" /> -->
-  </a>
-  <a href="https://pypi.org/project/gitlab-compliance/">
-    <img src="https://img.shields.io/pypi/v/gitlab-compliance.svg" alt="Package Version" />
-  </a>
-</div>
+# GitLab Compliance
 
-<p class="mb-tagline">Gitlab Compliance is a BDD compliance testing and documentation generation toolkit for GitLab CI/CD pipelines and project settings. It runs Gherkin policies against `.gitlab-ci.yml` and optional GitLab API settings. You can also generate markdown documentation for your Gitlab pipelines.</p>
+[![PyPI version](https://img.shields.io/pypi/v/gitlab-compliance.svg)](https://pypi.org/project/gitlab-compliance/)
+[![Docker image](https://img.shields.io/docker/v/maturitybuilder/gitlab-compliance?label=Docker)](https://hub.docker.com/r/maturitybuilder/gitlab-compliance/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/LICENSE)
 
+`gitlab-compliance` is a BDD compliance testing and documentation generation
+toolkit for GitLab CI/CD pipelines and project settings. It runs readable
+Gherkin policies against `.gitlab-ci.yml`, local includes, and optional GitLab
+API settings, then reports violations before changes reach protected branches.
+It can also generate Markdown, Swagger-style Markdown, or HTML reference
+documentation from the same pipeline YAML.
 
-Source code - coming soon:
-[MaturityBuilder/gitlab-compliance](https://github.com/MaturityBuilder/gitlab-compliance).
+Source code: [MaturityBuilder/gitlab-compliance](https://github.com/MaturityBuilder/gitlab-compliance).
+
+![Terminal demo of gitlab-compliance commands](assets/gitlab-compliance-cli-demo.gif)
 
 ## Get started
+
 [Get started](installation/index.md){ .md-button .md-button-primary }
 [Usage reference](usage/index.md){ .md-button }
 [BDD grammar](bdd-reference/index.md){ .md-button }
 
-`gitlab-compliance` supports two core workflows from the same pipeline YAML:
+## What you can do
+
+`gitlab-compliance` supports these workflows from the same pipeline YAML:
 
 | Workflow | Command | What it does |
 | -------- | ------- | ------------ |
 | **Compliance** | [`check`](usage/reference/check.md) | Run Gherkin policies against `.gitlab-ci.yml` (and optional GitLab API settings) |
-| **Documentation** | [`generate`](usage/reference/generate.md) | Build Markdown, swagger-markdown, or HTML reference docs from `.gitlab-ci.yml` |
+| **Pipeline docs** | [`generate`](usage/reference/generate.md) | Build Markdown, Swagger-style Markdown, or HTML reference docs from `.gitlab-ci.yml` |
+| **Template docs** | [`document gitstrings`](usage/reference/document-gitstrings.md) | Render decorated CI YAML snippets into README tables |
+| **Policy catalogs** | [`policies doc`](usage/reference/policies-doc.md) | Generate searchable Markdown or HTML catalogs from policy metadata |
+| **Policy packs** | [`policies push`](usage/reference/policies-push.md) / [`policies pull`](usage/reference/policies-pull.md) | Publish and consume compliance policy bundles through OCI registries |
 
 ```bash
 pip install gitlab-compliance
@@ -51,7 +50,9 @@ gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeli
 gitlab-compliance generate -i .gitlab-ci.yml --exclude variables,image --group-by stage
 ```
 
-See [Usage](usage/index.md) for compliance options and [Generate pipeline documentation](usage/reference/generate.md) for output formats, `--exclude`, and `--group-by`.
+See [Usage](usage/index.md) for compliance options and [Generate pipeline
+documentation](usage/reference/generate.md) for output formats, `--exclude`,
+and `--group-by`.
 
 - **compliance:** Ensure pipeline YAML and project settings follow your security
   standards and custom policies
@@ -65,8 +66,8 @@ See [Usage](usage/index.md) for compliance options and [Generate pipeline docume
 - **easy to integrate:** Run in GitLab CI or local git hooks
 - **segregation of duty:** Keep policy packs in a separate repository or OCI
   registry
-- **documentation:** Generate Markdown or HTML reference docs from
-  `.gitlab-ci.yml`
+- **documentation:** Generate Markdown, Swagger-style Markdown, or HTML
+  reference docs from `.gitlab-ci.yml`
 
 ## Idea
 
