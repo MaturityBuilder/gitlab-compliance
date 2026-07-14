@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: advanced-security/sbom-generator-action@43865e4a639a619b676949703244044886263825
+      - uses: advanced-security/sbom-generator-action@4de58072a11a6173c427904f075208ae4a88491e
         id: sbom
         env:
           GITHUB_TOKEN: ${{ github.token }}
