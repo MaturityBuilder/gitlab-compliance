@@ -43,17 +43,6 @@ jobs:
         if: steps.poetry-cache.outputs.cache-hit != 'true'
         run: poetry install --no-interaction
 
-  analysis:
-    runs-on: ubuntu-latest
-    permissions:
-      # Required when publishing results (badge / API / code scanning)
-      security-events: write
-      id-token: write
-      # Recommended reads for private repos to avoid GraphQL/SAST gaps
-      contents: read
-      issues: read
-      pull-requests: read
-      checks: read
 
   pre-commit:
     needs: deps
