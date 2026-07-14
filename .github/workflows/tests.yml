@@ -133,10 +133,10 @@ jobs:
           publish_results: true
           github-token: ${{ secrets.SCORECARD_TOKEN }}
 
-      - name: Upload SARIF Results
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: scorecard.sarif
+      # - name: Upload SARIF Results
+      #   uses: github/codeql-action/upload-sarif@v4
+      #   with:
+      #     sarif_file: scorecard.sarif
 
       - name: Upload Scorecard Results
         uses: actions/upload-artifact@v4
