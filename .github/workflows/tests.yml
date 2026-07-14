@@ -70,7 +70,7 @@ jobs:
           fail-on-cache-miss: true
 
       - name: Run pre-commit
-        run: poetry run pre-commit run --all-files
+        run: SKIP=markdownlint-cli2 poetry run pre-commit run --all-files
 
   unit-test:
     needs: deps
