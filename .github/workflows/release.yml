@@ -19,7 +19,21 @@ env:
   IMAGE_NAME: maturitybuilder/gitlab-compliance
 
 jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: advanced-security/sbom-generator-action@43865e4a639a619b676949703244044886263825
+        id: sbom
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          path: ${{steps.sbom.outputs.fileName }}
+          name: "SBOM"
   release-please:
+    needs: sbom
     runs-on: ubuntu-latest
     steps:
       - name: Release Please
