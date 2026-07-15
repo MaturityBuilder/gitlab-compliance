@@ -1,5 +1,37 @@
 # Changelog
 
+## [2.1.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.0.1...v2.1.0) (2026-07-15)
+
+
+### Features
+
+* docs quality, BDD outlines, builtin policies, and test coverage ([#29](https://github.com/MaturityBuilder/gitlab-compliance/issues/29)) ([1d326e7](https://github.com/MaturityBuilder/gitlab-compliance/commit/1d326e7800840fc0ac776d8674124e2a9dbae852))
+* gitstrings decorate your gitlab ci yml to produce documentation ([ae3a29c](https://github.com/MaturityBuilder/gitlab-compliance/commit/ae3a29cedefc832d789a676b9a3071d1e7430702))
+* setup ossf scorecard health check ([#53](https://github.com/MaturityBuilder/gitlab-compliance/issues/53)) ([ba10aea](https://github.com/MaturityBuilder/gitlab-compliance/commit/ba10aea9b32c90bcc7f8db54daf1025eccd8b029))
+
+
+### Bug Fixes
+
+* exclude changelog from markdownlint ([#62](https://github.com/MaturityBuilder/gitlab-compliance/issues/62)) ([5417ef7](https://github.com/MaturityBuilder/gitlab-compliance/commit/5417ef790ae0dcb0473338f258222ea8157e2572))
+* **get-attributes:** format list/dict attribute values for the table ([#35](https://github.com/MaturityBuilder/gitlab-compliance/issues/35)) ([98d99e3](https://github.com/MaturityBuilder/gitlab-compliance/commit/98d99e38e6d210c5bc4bde6c257c1691e87d7a72))
+* SBOM Job Setup ([#58](https://github.com/MaturityBuilder/gitlab-compliance/issues/58)) ([fdb0a86](https://github.com/MaturityBuilder/gitlab-compliance/commit/fdb0a86e128f86b04a9c130bf6444caf9c8ac435))
+* sbom sha pinning ([2da1684](https://github.com/MaturityBuilder/gitlab-compliance/commit/2da16843600c47599627e8ad702f95e12563c126))
+* sbom sha pinning ([#55](https://github.com/MaturityBuilder/gitlab-compliance/issues/55)) ([6a351f3](https://github.com/MaturityBuilder/gitlab-compliance/commit/6a351f370d6174c04ff8987260c381ef2f651dec))
+* scorecard job permissions ([#57](https://github.com/MaturityBuilder/gitlab-compliance/issues/57)) ([6ffdb1c](https://github.com/MaturityBuilder/gitlab-compliance/commit/6ffdb1cd47340eb6fb9f0a859db592969f710361))
+* stop zensical builds on pr ([a483a7b](https://github.com/MaturityBuilder/gitlab-compliance/commit/a483a7b4f4f65b433081b21120a7084f461c31a1))
+
+
+### Dependencies
+
+* **deps:** bump the major group across 1 directory with 2 updates ([#50](https://github.com/MaturityBuilder/gitlab-compliance/issues/50)) ([a58baed](https://github.com/MaturityBuilder/gitlab-compliance/commit/a58baed569c631fa52ea149261dde280bad64b23))
+
+
+### Documentation
+
+* add AGENTS.md with Cursor Cloud setup instructions ([#39](https://github.com/MaturityBuilder/gitlab-compliance/issues/39)) ([72329cf](https://github.com/MaturityBuilder/gitlab-compliance/commit/72329cf76838c5a9f765bdfc861635c9eaf84041))
+* improve documentation ([b3427e6](https://github.com/MaturityBuilder/gitlab-compliance/commit/b3427e6390e22252157b90372cdb4f69f4048fc8))
+* improve documentation ([bfa1a89](https://github.com/MaturityBuilder/gitlab-compliance/commit/bfa1a892b81a78611eca7da0bfa754e966282fb5))
+
 ## [2.0.1](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.0.0...v2.0.1) (2026-07-08)
 
 ### Bug Fixes (2.0.1)
