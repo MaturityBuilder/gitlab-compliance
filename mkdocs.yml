@@ -1,4 +1,4 @@
-site_name: gitlab-compliance
+site_name: Gitlab Compliance
 site_description: BDD compliance testing for GitLab CI/CD pipelines and project settings — by MaturityBuilder
 copyright: Copyright &copy; MaturityBuilder
 docs_dir: docs
