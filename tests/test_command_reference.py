@@ -36,6 +36,7 @@ class TestDumpHelper:
         text = generate_md.read_text(encoding="utf-8")
         assert text.startswith("# generate")
         assert "## Usage" in text
+        assert "```text\nUsage: gitlab-compliance generate [OPTIONS]\n```" in text
 
         index_md = tmp_path / "command-reference.md"
         assert index_md.is_file()
@@ -86,6 +87,21 @@ class TestDumpsCli:
 class TestCommandReferenceHelpers:
     def test_format_options_empty(self):
         assert _format_options({}) == "_No options._\n"
+
+    def test_format_options_preserves_string_defaults(self):
+        formatted = _format_options(
+            {
+                "input_file": {
+                    "usage": "--input-file, -i",
+                    "required": False,
+                    "default": "README.md",
+                    "help": "Input file.",
+                    "type": "STRING",
+                    "kind": "option",
+                }
+            }
+        )
+        assert "`README.md`" in formatted
 
     def test_render_command_page_without_description(self):
         @click.command()

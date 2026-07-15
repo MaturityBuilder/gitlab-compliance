@@ -1,0 +1,28 @@
+.md-typeset .mb-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e2a3a 55%, #e85d3a 160%);
+  border-radius: 1rem;
+  color: #f8fafc;
+  margin: 1rem 0 1.5rem;
+  padding: 1.5rem;
+}
+
+.md-typeset .mb-hero h2 {
+  color: #f8fafc;
+  margin-top: 0;
+}
+
+.md-typeset .mb-hero a {
+  color: #ffcfbc;
+}
+
+.md-typeset .mb-card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.md-typeset .mb-card {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}

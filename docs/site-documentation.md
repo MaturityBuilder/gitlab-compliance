@@ -106,15 +106,30 @@ artifact to inspect the built site.
 Navigation mirrors
 [terraform-compliance.com](https://terraform-compliance.com/):
 
-| Section        | Purpose                                              |
-| -------------- | ---------------------------------------------------- |
-| Overview       | Product introduction and BDD example                 |
-| Installation   | pip                                                  |
-| Usage          | CLI reference, parameters, environment variables     |
-| BDD Reference  | Gherkin step grammar                                 |
-| Examples       | Security policy patterns                             |
-| Using in CI/CD | GitLab CI, GitHub Actions, Pipeline Execution Policy |
-| Contributing   | Development and docs workflow                        |
+| Section           | Purpose                                              |
+| ----------------- | ---------------------------------------------------- |
+| Overview          | Product introduction, workflows, and CLI demo        |
+| Installation      | pip and Docker                                       |
+| Usage             | Guided workflows, parameters, environment variables  |
+| Command Reference | Generated CLI reference pages                        |
+| BDD Reference     | Gherkin step grammar                                 |
+| Examples          | Security policy patterns                             |
+| Using in CI/CD    | GitLab CI, GitHub Actions, Pipeline Execution Policy |
+| Contributing      | Development and docs workflow                        |
+
+## Markdown style
+
+Docs should stay compatible with markdownlint-cli2 conventions even though the
+Cloud development environment may not be able to download the Node runtime used
+by the hook.
+
+- Prefer Markdown tables, admonitions, images, and code fences over inline HTML.
+- Use fenced code blocks with a language, such as `bash`, `yaml`, `gherkin`, or
+  `text`.
+- Keep examples copy/paste-safe: avoid wrapping command arguments across lines
+  unless the command uses backslash continuations.
+- Add new image or GIF assets under `docs/assets/` and reference them with
+  relative Markdown image syntax.
 
 ## Adding pages
 

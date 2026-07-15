@@ -1,4 +1,4 @@
-site_name: Gitlab Compliance
+site_name: gitlab-compliance
 site_description: BDD compliance testing for GitLab CI/CD pipelines and project settings — by MaturityBuilder
 copyright: Copyright &copy; MaturityBuilder
 docs_dir: docs
@@ -9,8 +9,8 @@ edit_uri: edit/main/
 theme:
   variant: modern
   custom_dir: overrides
-  logo: assets/logo-square.png
-  favicon: assets/favicon.png
+  logo: assets/favicon.svg
+  favicon: assets/favicon.svg
   language: en
   font:
     text: DM Sans
@@ -32,7 +32,13 @@ nav:
     - installation/index.md
     - Installing via pip: installation/pip.md
     - Installing via Docker: installation/docker.md
+  - Usage:
+    - usage/index.md
+    - Additional Parameters: usage/additional-parameters.md
+    - Environment Variables: usage/environment-variables.md
+    - Gitstrings (inline YAML): usage/gitstrings.md
   - Command Reference:
+    - Overview: usage/reference/command-reference.md
     - Compliance:
       - Check: usage/reference/check.md
       - Policies:
@@ -40,9 +46,7 @@ nav:
           - Policy Catalog: usage/reference/policies-doc.md
           - Pull: usage/reference/policies-pull.md
           - Push: usage/reference/policies-push.md
-      - Environment Variables: usage/environment-variables.md
     - Generate Documentation:
-      - Gitstrings (inline YAML): usage/gitstrings.md
       - Generate Pipeline Documentation: usage/reference/generate.md
       - Generate HTML Documentation: usage/reference/generate-html.md
       - Get Specific Documentation About Attributes: usage/reference/get-attributes.md
@@ -52,11 +56,6 @@ nav:
     - Release Notes Commands:
       - Release Notes: usage/reference/release-notes.md
     - Update Command Reference: usage/reference/dumps.md
-  - Usage:
-    - usage/index.md
-    - Additional Parameters: usage/additional-parameters.md
-
-
   - BDD Reference:
     - bdd-reference/index.md
     - Overview of Scenario Flow: bdd-reference/overview.md

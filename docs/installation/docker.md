@@ -1,31 +1,76 @@
-# Docker
+# Installing via Docker
 
-![gitlab-compliance](../assets/logo-light.png){ width="280" }
+Use the published
+[`maturitybuilder/gitlab-compliance`](https://hub.docker.com/r/maturitybuilder/gitlab-compliance/)
+image when you want a container-only setup without installing Python packages in
+the job.
 
-A pre-built Docker image on Python Alpine Linux, published by
-[MaturityBuilder](https://github.com/MaturityBuilder/gitlab-compliance).
+## Run locally
 
-`gitlab-compliance` is published on [Docker
-Hub](https://hub.docker.com/_/gitlab-compliance/) as the `gitlab-compliance`
-package.
+Mount your repository into the container and run the same commands shown in the
+CLI reference:
 
 ```bash
-docker run -it -v $PWD:/src -w /src -e GITLAB_TOKEN=$GITLAB_TOKEN -e
-maturitybuilder/gitlab-compliance check -f example-policies --include-nested
---project <my gitlab project path>
+docker run --rm -t \
+  -v "$PWD:/workspace" \
+  -w /workspace \
+  maturitybuilder/gitlab-compliance \
+  gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
-## Audit Pipeline Yaml
+For API-backed checks, pass a token and project or group path:
 
-```yml
-gitlab-compliance:
-    image: maturitybuilder/gitlab-compliance
-    script:
-        - gitlab-compliance check -f example-policies --include-nested --project
-          <my gitlab project path>
-
+```bash
+docker run --rm -t \
+  -v "$PWD:/workspace" \
+  -w /workspace \
+  -e GITLAB_TOKEN \
+  maturitybuilder/gitlab-compliance \
+  gitlab-compliance check \
+    -f policies/security/ \
+    -p .gitlab-ci.yml \
+    --project my-group/my-project \
+    --strict
 ```
 
-Depending on your workflow and security policy the pipeline can potentially auto
-resolve includes and image updates by passing arg `--fix`
+## Generate documentation
+
+The container can also write generated documentation back to the mounted
+workspace:
+
+```bash
+docker run --rm -t \
+  -v "$PWD:/workspace" \
+  -w /workspace \
+  maturitybuilder/gitlab-compliance \
+  gitlab-compliance generate \
+    -i .gitlab-ci.yml \
+    --format swagger-markdown \
+    -o pipeline-reference.md
+```
+
+## GitLab CI example
+
+```yaml
+compliance:
+  image: maturitybuilder/gitlab-compliance
+  stage: test
+  script:
+    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+```
+
+## Optional auto-fix mode
+
+Depending on your workflow and security policy, `check --fix` can update
+outdated GitLab include refs and pin container images to `sha256` digests before
+running policies. It requires GitLab and registry access through the job
+environment.
+
+```bash
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
+```
+
 Next: [Usage](../usage/index.md).

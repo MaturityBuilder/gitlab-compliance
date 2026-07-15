@@ -89,5 +89,5 @@ poetry run pre-commit run --all-files
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Copyright DevOps Contracting Limited (trading as
-Maturity Builder).
+Apache-2.0 — see [LICENSE](LICENSE). Copyright DevOps Contracting Limited
+(trading as Maturity Builder).

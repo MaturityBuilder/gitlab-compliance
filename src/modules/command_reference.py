@@ -7,16 +7,17 @@ import click
 md_base_template = """
 ## Usage
 
-```
+```text
 {usage}
 ```
 
 ## Options
+
 {options}
 
 ## CLI Help
 
-```
+```text
 {help}
 ```
 """
@@ -51,7 +52,7 @@ def _param_metadata(param):
             "kind": "argument",
         }
     return {
-        "usage": "\n".join(param.opts),
+        "usage": ", ".join(param.opts + param.secondary_opts),
         "prompt": getattr(param, "prompt", None),
         "required": param.required,
         "default": param.default,
@@ -61,32 +62,64 @@ def _param_metadata(param):
     }
 
 
+def _markdown_cell(value) -> str:
+    return str(value).replace("|", "\\|").replace("\n", " ")
+
+
+def _format_default(value, required: bool) -> str:
+    if required:
+        return "required"
+    if value is None or "sentinel.unset" in str(value):
+        return "none"
+    if isinstance(value, bool):
+        return str(value).lower()
+    return str(value)
+
+
+def _format_type(value) -> str:
+    rendered = str(value)
+    choice_match = re.fullmatch(r"Choice\(\[(.*)\]\)", rendered)
+    if choice_match:
+        choices = [
+            choice.strip().strip("'\"") for choice in choice_match.group(1).split(",")
+        ]
+        return ", ".join(choices)
+    return rendered
+
+
 def _format_options(options: dict) -> str:
     if not options:
         return "_No options._\n"
-    return "\n".join(
-        [
-            f"* `{opt_name}`{' (REQUIRED)' if opt.get('required') else ''}"
-            f"{' [argument]' if opt.get('kind') == 'argument' else ''}: \n"
-            f"  * Type: {opt.get('type')} \n"
-            f"  * Default: `{str(opt.get('default')).lower()}`\n"
-            f"  * Usage: `{opt.get('usage')}`\n"
-            "\n"
-            f"  {opt.get('help') or ''}\n"
-            for opt_name, opt in options.items()
-        ]
-    )
+    rows = ["| Option | Type | Default | Description |"]
+    rows.append("| ------ | ---- | ------- | ----------- |")
+    for opt_name, opt in options.items():
+        option_usage = opt.get("usage") or opt_name
+        if opt.get("kind") == "argument":
+            option_usage = f"{option_usage} argument"
+        rows.append(
+            "| "
+            f"`{_markdown_cell(option_usage)}` | "
+            f"{_markdown_cell(_format_type(opt.get('type')))} | "
+            f"`{_format_default(opt.get('default'), opt.get('required'))}` | "
+            f"{_markdown_cell(opt.get('help') or 'Show this message and exit.')} |"
+        )
+    return "\n".join(rows) + "\n"
+
+
+def _clean_description(command) -> str:
+    description = command.help or command.short_help or ""
+    return " ".join(description.strip().split())
 
 
 def _render_command_page(helpdct: dict, title: str | None = None) -> str:
     command = helpdct["command"]
     options = {opt.name: _param_metadata(opt) for opt in helpdct.get("params", [])}
-    description = (command.help or "").strip()
+    description = _clean_description(command)
     heading = title or command.name
     body = md_base_template.format(
-        usage=helpdct.get("usage"),
+        usage=(helpdct.get("usage") or "").strip(),
         options=_format_options(options),
-        help=helpdct.get("help"),
+        help=(helpdct.get("help") or "").strip(),
     )
     if description:
         return f"# {heading}\n\n{description}\n{body}"
@@ -147,7 +180,9 @@ def dump_helper(base_command, docs_dir) -> list[str]:
 
     index_lines = [
         "# Command Reference\n",
+        "\n",
         f"Auto-generated reference for `{root_name}` subcommands.\n",
+        "\n",
     ]
     for command_path in sorted(written, key=_command_doc_slug):
         display_name = " ".join(command_path)

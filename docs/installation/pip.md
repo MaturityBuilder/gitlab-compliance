@@ -4,7 +4,7 @@
 [PyPI](https://pypi.org/project/gitlab-compliance/) as the `gitlab-compliance`
 package.
 
-It requires **Python 3.12**. Installation is standard:
+It requires **Python 3.12+**. Installation is standard:
 
 ```bash
 pip install --user gitlab-compliance
@@ -23,7 +23,7 @@ Two CLI entry points are available:
 From a clone of the repository:
 
 ```bash
-poetry install
+poetry install --with dev,docs
 poetry run gitlab-compliance --help
 ```
 

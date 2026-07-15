@@ -192,7 +192,7 @@ _LEGACY_CLI_NAME = "gitlab-docs"
 
 
 class _DualBrandCliGroup(click.Group):
-    """Shared CLI group; warns when invoked via the legacy ``gitlab-compliance`` script name."""
+    """Shared CLI group; warns when invoked via the legacy ``gitlab-docs`` name."""
 
     _LEGACY_NOTICE = (
         "Note: `gitlab-docs` is deprecated in favor of `gitlab-compliance`. "
@@ -236,7 +236,7 @@ gitlab_docs = gitlab_compliance
     "-a",
     "attributes",
     required=False,
-    help="Pass a comma seperated list of gitlab ci yml attributes",
+    help="Comma-separated GitLab CI YAML job attributes to document.",
     default="README.md",
 )
 @click.option(
@@ -244,7 +244,7 @@ gitlab_docs = gitlab_compliance
     "-o",
     "OUTPUT_FILE",
     required=False,
-    help="Output location of the markdown documentation.",
+    help="Output location for the generated Markdown table.",
     default="README.md",
 )
 @click.option(
@@ -252,7 +252,7 @@ gitlab_docs = gitlab_compliance
     "-i",
     "GLDOCS_CONFIG_FILE",
     required=False,
-    help="The Gitlab CI Input configuration file to generated documentation from.",
+    help="GitLab CI YAML file to inspect.",
     default=".gitlab-ci.yml",
 )
 @click.option(
@@ -262,16 +262,11 @@ gitlab_docs = gitlab_compliance
     required=False,
     default=False,
     type=bool,
-    help="Return results in json format.",
+    help="Return results in JSON format.",
 )
 def get_attributes(OUTPUT_FILE, GLDOCS_CONFIG_FILE, attributes, json_format):
     """
-    Compared to the generate command, the get-attribute command allows you to pass the properties you wish to document and produces a markdown table.
-    Args:
-        OUTPUT_FILE (_type_): _description_
-        GLDOCS_CONFIG_FILE (_type_): _description_
-        attributes (_type_): _description_
-        json (_type_): _description_
+    Export selected GitLab CI job attributes as a Markdown table or JSON payload.
     """
     logger.info(f"Discovering attributes {attributes} from your gitlab-ci yml.")
 
@@ -289,7 +284,7 @@ def get_attributes(OUTPUT_FILE, GLDOCS_CONFIG_FILE, attributes, json_format):
 @click.option(
     "--detailed",
     required=False,
-    help="Will include workflow and rules from jobs.",
+    help="Include workflow and per-job rules in generated documentation.",
     is_flag=True,
     default=False,
 )
@@ -307,7 +302,7 @@ def get_attributes(OUTPUT_FILE, GLDOCS_CONFIG_FILE, attributes, json_format):
     "-d",
     "DRY_MODE",
     required=False,
-    help="If set will disable documentation from being written",
+    help="Preview the command without writing documentation.",
     is_flag=True,
     default=False,
 )
@@ -324,7 +319,7 @@ def get_attributes(OUTPUT_FILE, GLDOCS_CONFIG_FILE, attributes, json_format):
     "-i",
     "GLDOCS_CONFIG_FILE",
     required=False,
-    help="The Gitlab CI Input configuration file to generated documentation from.",
+    help="GitLab CI YAML file to document.",
     default=".gitlab-ci.yml",
 )
 @click.option(
@@ -356,7 +351,7 @@ def generate(
     group_by,
 ):
     """
-    Will scan through your gitlab-ci yml and build documentation from the yml.
+    Generate pipeline documentation from GitLab CI YAML.
     """
     output_format = output_format.lower()
     OUTPUT_FILE = _resolve_output_file(output_format, OUTPUT_FILE)
@@ -405,7 +400,7 @@ def generate(
 @click.option(
     "--detailed",
     required=False,
-    help="Will include workflow and rules from jobs.",
+    help="Include workflow and per-job rules in generated documentation.",
     is_flag=True,
     default=False,
 )
@@ -422,12 +417,12 @@ def generate(
     "-i",
     "GLDOCS_CONFIG_FILE",
     required=False,
-    help="The Gitlab CI Input configuration file to generated documentation from.",
+    help="GitLab CI YAML file to document.",
     default=".gitlab-ci.yml",
 )
 def generate_html(detailed, OUTPUT_FILE, GLDOCS_CONFIG_FILE):
     """
-    Generate a Swagger-style HTML page from your gitlab-ci yml.
+    Generate a Swagger-style HTML page from GitLab CI YAML.
     """
     ctx = click.get_current_context(silent=True)
     if ctx is not None:
@@ -514,7 +509,7 @@ def _resolve_policies_dir(
 @click.option(
     "--gitlab-url",
     default=None,
-    help="GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).",
+    help="GitLab instance URL (default: CI_SERVER_URL or GitLab.com).",
 )
 @click.option(
     "--token",
