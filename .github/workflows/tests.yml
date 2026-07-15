@@ -73,7 +73,7 @@ jobs:
           fail-on-cache-miss: true
 
       - name: Run pre-commit
-        run: poetry run pre-commit run --all-files
+        run:  pre-commit run
 
   unit-test:
     needs: deps
@@ -115,6 +115,10 @@ jobs:
   scorecard:
     name: OpenSSF Scorecard
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      pull-requests: read
     steps:
       - name: Checkout Repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
