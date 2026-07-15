@@ -1,61 +1,53 @@
 version: 2
 
-updates:
-  # Python dependencies managed by Poetry
-  - package-ecosystem: "pip"
-    directory: "/"
+multi-ecosystem-groups:
+  all-dependencies:
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: "daily"
       time: "06:00"
       timezone: "Europe/London"
+    labels:
+      - "dependencies"
 
-    open-pull-requests-limit: 10
-
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    patterns: ["*"]
+    multi-ecosystem-group: "all-dependencies"
+    open-pull-requests-limit: 5
     commit-message:
       prefix: "deps"
       include: "scope"
-
     labels:
-      - "dependencies"
       - "python"
-
-    reviewers:
-      - "your-github-username"
-
-    assignees:
-      - "your-github-username"
-
     versioning-strategy: "increase"
 
-    groups:
-      patch-and-minor:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-
-      major:
-        patterns:
-          - "*"
-        update-types:
-          - "major"
-
-  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:15"
-      timezone: "Europe/London"
-
+    patterns: ["*"]
+    multi-ecosystem-group: "all-dependencies"
     open-pull-requests-limit: 5
-
     commit-message:
       prefix: "ci"
-
     labels:
-      - "dependencies"
       - "github-actions"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    patterns: ["*"]
+    multi-ecosystem-group: "all-dependencies"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "docker"
+
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    patterns: ["*"]
+    multi-ecosystem-group: "all-dependencies"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "pre-commit"
