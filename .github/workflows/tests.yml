@@ -73,7 +73,7 @@ jobs:
           fail-on-cache-miss: true
 
       - name: Run pre-commit
-        run:  pre-commit run
+        run: bash scripts/pre-commit-check.sh
 
   unit-test:
     needs: deps
