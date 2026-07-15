@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - main
+
   push:
     branches:
       - main
@@ -78,6 +79,7 @@ jobs:
   unit-test:
     needs: deps
     runs-on: ubuntu-22.04
+
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
