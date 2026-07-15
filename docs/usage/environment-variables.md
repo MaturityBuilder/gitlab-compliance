@@ -11,6 +11,7 @@ omitted.
 | `CI_JOB_TOKEN`      | Fallback token in GitLab CI jobs  | `--token`      |
 | `CI_PROJECT_PATH`   | Default project for API scenarios | `--project`    |
 | `CI_SERVER_URL`     | GitLab instance URL               | `--gitlab-url` |
+| `GITLAB_URL`        | Fallback GitLab instance URL      | `--gitlab-url` |
 | `GITLAB_GROUP_PATH` | Group-scoped API scenarios        | `--group`      |
 
 A token alone is enough for **include release checks** against projects
@@ -23,8 +24,7 @@ Example in CI (GitLab):
 compliance:
   script:
     - pip install gitlab-compliance
-    - gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project
-      $CI_PROJECT_PATH
+    - gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project "$CI_PROJECT_PATH"
 ```
 
 Locally:
@@ -34,6 +34,15 @@ export GITLAB_TOKEN="glpat-..."
 export CI_PROJECT_PATH="my-group/my-project"
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 ```
+
+## Release notes command
+
+`gitlab-compliance release-notes` also reads:
+
+| Variable       | Used for                  | CLI override |
+| -------------- | ------------------------- | ------------ |
+| `GITLAB_TOKEN` | GitLab API authentication | `--token`    |
+| `GITLAB_URL`   | GitLab instance URL       | `--url`      |
 
 !!! note "Token safety"
     Tokens are read from the environment only. Do not pass tokens through Behave

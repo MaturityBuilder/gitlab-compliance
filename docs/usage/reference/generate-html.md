@@ -5,39 +5,39 @@ Deprecated: use `generate --format html` instead.
 ## Usage
 
 ```text
-Usage: gitlab-compliance generate-html [OPTIONS]```
+Usage: gitlab-compliance generate-html [OPTIONS]
+```
 
 ## Options
 
 * `detailed`:
-  * Type: BOOL
+  * Type: `BOOL`
   * Default: `false`
   * Usage: `--detailed`
 
   Will include workflow and rules from jobs.
 
 * `OUTPUT_FILE`:
-  * Type: STRING
+  * Type: `STRING`
   * Default: `gitlab-compliance.html`
-  * Usage: `--output-file
--o`
+  * Usage: `--output-file, -o`
 
   Output location of the HTML documentation.
 
 * `GLDOCS_CONFIG_FILE`:
-  * Type: STRING
+  * Type: `STRING`
   * Default: `.gitlab-ci.yml`
-  * Usage: `--input-config
--i`
+  * Usage: `--input-config, -i`
 
   The Gitlab CI Input configuration file to generated documentation from.
 
 * `help`:
-  * Type: BOOL
+  * Type: `BOOL`
   * Default: `false`
   * Usage: `--help`
 
   Show this message and exit.
+
 
 ## CLI Help
 

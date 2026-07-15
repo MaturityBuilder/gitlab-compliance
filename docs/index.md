@@ -3,34 +3,24 @@ layout: home
 title: Overview
 permalink: /
 ---
-# Gitlab Compliance
+# GitLab Compliance
 
-<img src="https://maturitybuilder.github.io/gitlab-compliance/assets/logo-light.png" align="right" width="350" valign="top" style="max-width:100%; margin-top: 50px; text-align: justify;">
-<div align="left">
-  <!-- <a href="https://github.com/gitlab-compliance/cli/actions/workflows/cd.yml">
-    <img src="https://github.com/eerkunt/gitlab-compliance/workflows/CD/badge.svg" alt="Build" />
-  </a> -->
-  <a href="https://hub.docker.com/r/maturitybuilder/gitlab-compliance/">
-    <img src="https://img.shields.io/badge/docker-ready-blue.svg?longCache=true&style=flat" alt="docker version is ready" />
-    <img alt="Docker Image Version" src="https://img.shields.io/docker/v/maturitybuilder/gitlab-compliance?label=Docker Latest">
-  </a>
-  <a href="https://pypi.org/project/gitlab-compliance/">
-    <!-- <img src="https://maturitybuilder.github.io/gitlab-compliance/assets/logo-light.png" alt="License" /> -->
-  </a>
-  <a href="https://pypi.org/project/gitlab-compliance/">
-    <img src="https://img.shields.io/pypi/v/gitlab-compliance.svg" alt="Package Version" />
-  </a>
-</div>
+[![PyPI version](https://img.shields.io/pypi/v/gitlab-compliance.svg)](https://pypi.org/project/gitlab-compliance/)
+[![Docker image](https://img.shields.io/docker/v/maturitybuilder/gitlab-compliance?label=Docker)](https://hub.docker.com/r/maturitybuilder/gitlab-compliance/)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](installation/pip.md)
 
-<p class="mb-tagline">Gitlab Compliance is a BDD compliance testing and documentation generation toolkit for GitLab CI/CD pipelines and project settings. It runs Gherkin policies against `.gitlab-ci.yml` and optional GitLab API settings. You can also generate markdown documentation for your Gitlab pipelines.</p>
+`gitlab-compliance` is a Python CLI for BDD compliance testing and pipeline
+documentation. It validates GitLab CI/CD YAML with readable Gherkin policies,
+optionally checks GitLab project or group settings through the API, and generates
+Markdown, swagger-markdown, or HTML documentation from `.gitlab-ci.yml`.
 
-
-Source code - coming soon:
+Source code:
 [MaturityBuilder/gitlab-compliance](https://github.com/MaturityBuilder/gitlab-compliance).
 
 ## Get started
 [Get started](installation/index.md){ .md-button .md-button-primary }
 [Usage reference](usage/index.md){ .md-button }
+[Examples](examples/index.md){ .md-button }
 [BDD grammar](bdd-reference/index.md){ .md-button }
 
 `gitlab-compliance` supports two core workflows from the same pipeline YAML:
@@ -40,6 +30,10 @@ Source code - coming soon:
 | **Compliance** | [`check`](usage/reference/check.md) | Run Gherkin policies against `.gitlab-ci.yml` (and optional GitLab API settings) |
 | **Documentation** | [`generate`](usage/reference/generate.md) | Build Markdown, swagger-markdown, or HTML reference docs from `.gitlab-ci.yml` |
 
+## See it in action
+
+![Terminal demo showing gitlab-compliance check and generate commands](assets/gitlab-compliance-cli-demo.gif)
+
 ```bash
 pip install gitlab-compliance
 
@@ -48,7 +42,7 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 
 # Generate pipeline documentation (filter and group output as needed)
 gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
-gitlab-compliance generate -i .gitlab-ci.yml --exclude variables,image --group-by stage
+gitlab-compliance generate -i .gitlab-ci.yml --exclude variables,container_images --group-by stage
 ```
 
 See [Usage](usage/index.md) for compliance options and [Generate pipeline documentation](usage/reference/generate.md) for output formats, `--exclude`, and `--group-by`.

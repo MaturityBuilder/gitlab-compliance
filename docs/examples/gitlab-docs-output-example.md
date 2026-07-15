@@ -15,7 +15,7 @@ Sample `generate` output.
 
 | Key         | Value          | Description | Options   | Expand |
 | ----------- | -------------- | ----------- | --------- | ------ |
-| APPLICATION | gitlab-docs    | _not set_   | _not set_ | true   |
+| APPLICATION | gitlab-compliance | _not set_   | _not set_ | true   |
 | OUTPUT_FILE | GITLAB-DOCS.md | _not set_   | _not set_ | true   |
 
 - **Rules # 1**

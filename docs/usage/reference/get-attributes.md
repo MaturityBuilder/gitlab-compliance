@@ -1,65 +1,59 @@
 # get-attributes
 
 Compared to the generate command, the get-attribute command allows you to pass the properties you wish to document and produces a markdown table.
-    Args:
-        OUTPUT_FILE (_type_): _description_
-        GLDOCS_CONFIG_FILE (_type_): _description_
-        attributes (_type_): _description_
-        json (_type_): _description_
+Args:
+    OUTPUT_FILE (_type_): _description_
+    GLDOCS_CONFIG_FILE (_type_): _description_
+    attributes (_type_): _description_
+    json (_type_): _description_
 
 ## Usage
 
 ```text
-
 Usage: gitlab-compliance get-attributes [OPTIONS]
-
 ```
 
 ## Options
 
 * `attributes`:
-  * Type: STRING
+  * Type: `STRING`
   * Default: `readme.md`
-  * Usage: `--attributes
--a`
+  * Usage: `--attributes, -a`
 
   Pass a comma seperated list of gitlab ci yml attributes
 
 * `OUTPUT_FILE`:
-  * Type: STRING
+  * Type: `STRING`
   * Default: `readme.md`
-  * Usage: `--output-file
--o`
+  * Usage: `--output-file, -o`
 
   Output location of the markdown documentation.
 
 * `GLDOCS_CONFIG_FILE`:
-  * Type: STRING
+  * Type: `STRING`
   * Default: `.gitlab-ci.yml`
-  * Usage: `--input-config
--i`
+  * Usage: `--input-config, -i`
 
   The Gitlab CI Input configuration file to generated documentation from.
 
 * `json_format`:
-  * Type: BOOL
+  * Type: `BOOL`
   * Default: `false`
-  * Usage: `--json
--j`
+  * Usage: `--json, -j`
 
   Return results in json format.
 
 * `help`:
-  * Type: BOOL
+  * Type: `BOOL`
   * Default: `false`
   * Usage: `--help`
 
   Show this message and exit.
 
+
 ## CLI Help
 
 ```text
-
 Usage: gitlab-compliance get-attributes [OPTIONS]
 
   Compared to the generate command, the get-attribute command allows you to
@@ -75,7 +69,5 @@ Options:
   -i, --input-config TEXT  The Gitlab CI Input configuration file to generated
                            documentation from.
   -j, --json BOOLEAN       Return results in json format.
-  --help
-              Show this message and exit.
-
+  --help                   Show this message and exit.
 ```

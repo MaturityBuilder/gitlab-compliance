@@ -1,4 +1,5 @@
 import importlib
+import inspect
 import pathlib
 import re
 
@@ -7,16 +8,17 @@ import click
 md_base_template = """
 ## Usage
 
-```
+```text
 {usage}
 ```
 
 ## Options
+
 {options}
 
 ## CLI Help
 
-```
+```text
 {help}
 ```
 """
@@ -47,18 +49,41 @@ def _param_metadata(param):
             "required": param.required,
             "default": param.default,
             "help": getattr(param, "help", None),
-            "type": str(param.type),
+            "type": _format_type(param),
             "kind": "argument",
         }
     return {
-        "usage": "\n".join(param.opts),
+        "usage": ", ".join(param.opts),
         "prompt": getattr(param, "prompt", None),
         "required": param.required,
         "default": param.default,
         "help": getattr(param, "help", None),
-        "type": str(param.type),
+        "type": _format_type(param),
         "kind": "option",
     }
+
+
+def _format_type(param) -> str:
+    if isinstance(param.type, click.Path):
+        return param.type.name.upper()
+
+    try:
+        ctx = click.core.Context(param)
+        metavar = param.make_metavar(ctx)
+    except TypeError:
+        metavar = param.make_metavar()
+    except Exception:
+        metavar = None
+
+    if metavar:
+        return metavar
+    return str(param.type)
+
+
+def _format_default(param: dict) -> str:
+    if param.get("required") and str(param.get("default")) == "Sentinel.UNSET":
+        return "_required_"
+    return f"`{str(param.get('default')).lower()}`"
 
 
 def _format_options(options: dict) -> str:
@@ -67,9 +92,9 @@ def _format_options(options: dict) -> str:
     return "\n".join(
         [
             f"* `{opt_name}`{' (REQUIRED)' if opt.get('required') else ''}"
-            f"{' [argument]' if opt.get('kind') == 'argument' else ''}: \n"
-            f"  * Type: {opt.get('type')} \n"
-            f"  * Default: `{str(opt.get('default')).lower()}`\n"
+            f"{' [argument]' if opt.get('kind') == 'argument' else ''}:\n"
+            f"  * Type: `{opt.get('type')}`\n"
+            f"  * Default: {_format_default(opt)}\n"
             f"  * Usage: `{opt.get('usage')}`\n"
             "\n"
             f"  {opt.get('help') or ''}\n"
@@ -81,7 +106,7 @@ def _format_options(options: dict) -> str:
 def _render_command_page(helpdct: dict, title: str | None = None) -> str:
     command = helpdct["command"]
     options = {opt.name: _param_metadata(opt) for opt in helpdct.get("params", [])}
-    description = (command.help or "").strip()
+    description = inspect.cleandoc(command.help or "")
     heading = title or command.name
     body = md_base_template.format(
         usage=helpdct.get("usage"),
@@ -147,7 +172,9 @@ def dump_helper(base_command, docs_dir) -> list[str]:
 
     index_lines = [
         "# Command Reference\n",
+        "\n",
         f"Auto-generated reference for `{root_name}` subcommands.\n",
+        "\n",
     ]
     for command_path in sorted(written, key=_command_doc_slug):
         display_name = " ".join(command_path)

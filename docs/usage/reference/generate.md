@@ -5,71 +5,67 @@ Will scan through your gitlab-ci yml and build documentation from the yml.
 ## Usage
 
 ```text
-Usage: gitlab-compliance generate [OPTIONS]```
+Usage: gitlab-compliance generate [OPTIONS]
+```
 
 ## Options
 
 * `detailed`:
-  * Type: BOOL
+  * Type: `BOOL`
   * Default: `false`
   * Usage: `--detailed`
 
   Will include workflow and rules from jobs.
 
 * `output_format`:
-  * Type: Choice(['markdown', 'swagger-markdown', 'html'])
+  * Type: `Choice(['markdown', 'swagger-markdown', 'html'])`
   * Default: `markdown`
-  * Usage: `--format
--f`
+  * Usage: `--format, -f`
 
   Output format for generated documentation.
 
 * `DRY_MODE`:
-  * Type: BOOL
+  * Type: `BOOL`
   * Default: `false`
-  * Usage: `--dry-mode
--d`
+  * Usage: `--dry-mode, -d`
 
   If set will disable documentation from being written
 
 * `OUTPUT_FILE`:
-  * Type: STRING
+  * Type: `STRING`
   * Default: `none`
-  * Usage: `--output-file
--o`
+  * Usage: `--output-file, -o`
 
   Output location of the generated documentation.
 
 * `GLDOCS_CONFIG_FILE`:
-  * Type: STRING
+  * Type: `STRING`
   * Default: `.gitlab-ci.yml`
-  * Usage: `--input-config
--i`
+  * Usage: `--input-config, -i`
 
   The Gitlab CI Input configuration file to generated documentation from.
 
 * `exclude`:
-  * Type: STRING
+  * Type: `STRING`
   * Default: `none`
-  * Usage: `--exclude
--x`
+  * Usage: `--exclude, -x`
 
   Comma-separated sections or job attributes to omit from output. Sections: inputs, variables, includes, workflow, jobs, container_images.
 
 * `group_by`:
-  * Type: STRING
+  * Type: `STRING`
   * Default: `none`
-  * Usage: `--group-by
--g`
+  * Usage: `--group-by, -g`
 
   Group jobs in the Jobs section by this job attribute (e.g. stage).
 
 * `help`:
-  * Type: BOOL
+  * Type: `BOOL`
   * Default: `false`
   * Usage: `--help`
 
   Show this message and exit.
+
 
 ## CLI Help
 

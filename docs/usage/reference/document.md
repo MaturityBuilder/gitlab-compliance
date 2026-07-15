@@ -2,15 +2,25 @@
 
 Generate documentation from inline template YAML (gitstrings).
 
-### Usage
+## Usage
 
-```
+```text
 Usage: gitlab-compliance document [OPTIONS] COMMAND [ARGS]...
 ```
 
-### CLI Help
+## Options
 
-```
+* `help`:
+  * Type: `BOOL`
+  * Default: `false`
+  * Usage: `--help`
+
+  Show this message and exit.
+
+
+## CLI Help
+
+```text
 Usage: gitlab-compliance document [OPTIONS] COMMAND [ARGS]...
 
   Generate documentation from inline template YAML (gitstrings).
@@ -19,5 +29,5 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  gitstrings  Render decorated ```yaml gitstrings fences into marker-delimited...
+  gitstrings  Render gitstrings documentation from CI YAML decorators or...
 ```

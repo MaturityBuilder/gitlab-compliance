@@ -38,8 +38,7 @@ Directory of `.feature` policy files, or an OCI reference:
 
 ```bash
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml
-gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p
-.gitlab-ci.yml
+gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p .gitlab-ci.yml
 ```
 
 Use `--update` with OCI references to pull the latest bundle before running.
@@ -73,8 +72,7 @@ token — see [Environment Variables](environment-variables.md).
 
 ```bash
 export GITLAB_TOKEN="<token>"
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project
-my-group/my-project
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project my-group/my-project
 ```
 
 API scenarios are **skipped** when connection info is missing unless you pass
@@ -93,8 +91,7 @@ Report format and output file:
 | `codequality` | GitLab Code Quality JSON (`gl-code-quality-report.json`) |
 
 ```bash
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format markdown -o
-COMPLIANCE-REPORT.md
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format markdown -o COMPLIANCE-REPORT.md
 ```
 
 ### Other commands
@@ -131,7 +128,8 @@ pip install gitlab-compliance
 gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
 ```
 
-Sample generated output: [GitLab Docs output example](../examples/gitlab-docs-output-example.md).
+Sample generated output:
+[pipeline documentation output example](../examples/gitlab-docs-output-example.md).
 
 See also [Additional Parameters](additional-parameters.md) and [Environment
 Variables](environment-variables.md).

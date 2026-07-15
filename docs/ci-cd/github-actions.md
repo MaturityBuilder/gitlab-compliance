@@ -34,7 +34,7 @@ compliance:
     - run: |
         docker run --rm -v "$PWD:/work" -w /work \
           maturitybuilder/gitlab-compliance:latest \
-          compliance -f policies/security -p .gitlab-ci.yml
+          gitlab-compliance check -f policies/security -p .gitlab-ci.yml
 ```
 
 Full example:

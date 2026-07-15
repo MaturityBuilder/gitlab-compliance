@@ -8,20 +8,15 @@ sharing](https://www.conftest.dev/sharing/).
 
 ```bash
 docker login registry.example.com
-gitlab-compliance policies push -f policies/
-registry.example.com/org/gitlab-ci-policies:1.0.0
+gitlab-compliance policies push -f policies/ registry.example.com/org/gitlab-ci-policies:1.0.0
 ```
 
 ## Pull and run
 
 ```bash
-gitlab-compliance policies pull
-oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/
-gitlab-compliance check -f
-oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml
-gitlab-compliance check -f
-oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml
---update
+gitlab-compliance policies pull oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -o policies/
+gitlab-compliance check -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml
+gitlab-compliance check -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 -p .gitlab-ci.yml --update
 ```
 
 Bundles use media type
@@ -70,8 +65,8 @@ compliance:
 ## Run locally
 
 ```bash
-gitlab-compliance check -f
-oci://registry.example.com/org/gitlab-ci-policies:1.0.0 \
+gitlab-compliance check \
+  -f oci://registry.example.com/org/gitlab-ci-policies:1.0.0 \
   -p .gitlab-ci.yml --update
 ```
 
