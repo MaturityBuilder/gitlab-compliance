@@ -73,7 +73,7 @@ jobs:
           fail-on-cache-miss: true
 
       - name: Run pre-commit
-        run:  pre-commit run
+        run:  poetry run pre-commit run --all-files
 
   unit-test:
     needs: deps
