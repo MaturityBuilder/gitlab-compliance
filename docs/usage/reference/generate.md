@@ -4,11 +4,11 @@ Will scan through your gitlab-ci yml and build documentation from the yml.
 
 ## Usage
 
-```text
-Usage: gitlab-compliance generate [OPTIONS]```
+```
+Usage: gitlab-compliance generate [OPTIONS]
+```
 
 ## Options
-
 * `detailed`:
   * Type: BOOL
   * Default: `false`
@@ -64,6 +64,13 @@ Usage: gitlab-compliance generate [OPTIONS]```
 
   Group jobs in the Jobs section by this job attribute (e.g. stage).
 
+* `max_include_depth`:
+  * Type: INT
+  * Default: `none`
+  * Usage: `--max-include-depth`
+
+  Max local include nesting depth from the root file (omit for unlimited).
+
 * `help`:
   * Type: BOOL
   * Default: `false`
@@ -71,9 +78,10 @@ Usage: gitlab-compliance generate [OPTIONS]```
 
   Show this message and exit.
 
+
 ## CLI Help
 
-```text
+```
 Usage: gitlab-compliance generate [OPTIONS]
 
   Will scan through your gitlab-ci yml and build documentation from the yml.
@@ -94,5 +102,7 @@ Options:
                                   container_images.
   -g, --group-by TEXT             Group jobs in the Jobs section by this job
                                   attribute (e.g. stage).
+  --max-include-depth INTEGER     Max local include nesting depth from the
+                                  root file (omit for unlimited).
   --help                          Show this message and exit.
 ```

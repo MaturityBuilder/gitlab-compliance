@@ -514,6 +514,7 @@ class TestRunComplianceFix:
         apply_fixes.assert_called_once_with(
             pipeline_file=str(SAMPLE_PIPELINE),
             include_nested=True,
+            max_include_depth=None,
             gitlab_url=None,
             token="secret",
             project=None,

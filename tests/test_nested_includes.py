@@ -141,6 +141,77 @@ class TestCollectPipelineDataNested:
         assert "DEEP_SAST_VAR" not in variable_keys
         assert "PUBLISH_VAR" not in variable_keys
 
+    def test_max_include_depth_none_matches_unlimited(self):
+        unlimited = collect_pipeline_data(
+            str(NESTED_CI), detailed=True, include_nested=True
+        )
+        limited = collect_pipeline_data(
+            str(NESTED_CI),
+            detailed=True,
+            include_nested=True,
+            max_include_depth=None,
+        )
+        assert _job_names(limited) == _job_names(unlimited) == EXPECTED_NESTED_JOBS
+
+    def test_max_include_depth_zero_is_root_only(self):
+        data = collect_pipeline_data(
+            str(NESTED_CI),
+            detailed=True,
+            include_nested=True,
+            max_include_depth=0,
+        )
+        assert _job_names(data) == ROOT_ONLY_JOBS
+        assert "security_gate" not in _job_names(data)
+
+    def test_max_include_depth_one_stops_after_first_hop(self):
+        data = collect_pipeline_data(
+            str(NESTED_CI),
+            detailed=True,
+            include_nested=True,
+            max_include_depth=1,
+        )
+        jobs = _job_names(data)
+        assert {"root_lint", "security_gate", "compile"} <= jobs
+        assert "secret_scan" not in jobs
+        assert "docker_build" not in jobs
+        assert "deep_sast" not in jobs
+        assert "publish_image" not in jobs
+
+    def test_max_include_depth_two_includes_mid_level_not_leaves(self):
+        data = collect_pipeline_data(
+            str(NESTED_CI),
+            detailed=True,
+            include_nested=True,
+            max_include_depth=2,
+        )
+        jobs = _job_names(data)
+        assert {
+            "root_lint",
+            "security_gate",
+            "compile",
+            "secret_scan",
+            "docker_build",
+        } <= jobs
+        assert "deep_sast" not in jobs
+        assert "publish_image" not in jobs
+
+    def test_diamond_include_is_visited_once(self, tmp_path):
+        shared = tmp_path / "shared.yml"
+        shared.write_text("shared_job:\n  script: [echo shared]\n", encoding="utf-8")
+        left = tmp_path / "left.yml"
+        left.write_text("include:\n  - local: shared.yml\n", encoding="utf-8")
+        right = tmp_path / "right.yml"
+        right.write_text("include:\n  - local: shared.yml\n", encoding="utf-8")
+        root = tmp_path / ".gitlab-ci.yml"
+        root.write_text(
+            "include:\n  - local: left.yml\n  - local: right.yml\n"
+            "root_job:\n  script: [echo root]\n",
+            encoding="utf-8",
+        )
+        data = collect_pipeline_data(str(root), detailed=True, include_nested=True)
+        shared_jobs = [job for job in data["jobs"] if job["name"] == "shared_job"]
+        assert len(shared_jobs) == 1
+
 
 class TestComplianceNestedLoading:
     def test_load_yaml_entities_nested_true(self):

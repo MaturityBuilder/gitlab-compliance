@@ -126,17 +126,28 @@ comment-compliance:
   script:
     - pip install gitlab-compliance
     - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-        --format mr-comment -o comment.md || true
-    - |
-      curl --request POST \
-        --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-        --data-urlencode "body@$(cat comment.md)" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/notes"
+        --project "$CI_PROJECT_PATH"
+        --post-mr-comment || true
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```
 
-Store `GITLAB_TOKEN` as a masked CI variable with `api` scope.
+Store `GITLAB_TOKEN` as a masked CI variable with `api` scope. The command
+reads `CI_MERGE_REQUEST_IID` automatically; pass `--mr-iid` to override.
+
+### Supply-chain fix MR
+
+```yaml
+fix-supply-chain:
+  image: python:3.12
+  script:
+    - pip install gitlab-compliance
+    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
+        --project "$CI_PROJECT_PATH"
+        --fix --create-mr
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+```
 
 ## Rollout
 

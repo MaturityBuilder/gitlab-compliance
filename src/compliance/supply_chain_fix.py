@@ -18,6 +18,7 @@ def apply_supply_chain_fixes(
     *,
     pipeline_file: str,
     include_nested: bool,
+    max_include_depth: int | None = None,
     gitlab_url: str | None,
     token: str,
     project: str | None,
@@ -26,6 +27,7 @@ def apply_supply_chain_fixes(
     entities = load_pipeline_entities(
         pipeline_file=pipeline_file,
         include_nested=include_nested,
+        max_include_depth=max_include_depth,
         gitlab_url=gitlab_url,
         token=token,
         project=project,
@@ -48,6 +50,7 @@ def apply_supply_chain_fixes(
         entities = load_pipeline_entities(
             pipeline_file=pipeline_file,
             include_nested=include_nested,
+            max_include_depth=max_include_depth,
             gitlab_url=gitlab_url,
             token=token,
             project=project,

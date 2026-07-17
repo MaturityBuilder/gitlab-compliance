@@ -278,12 +278,36 @@ def collect_pipeline_data(
     config_file: str,
     detailed: bool = False,
     include_nested: bool = True,
+    max_include_depth: int | None = None,
     exclude_sections: set[str] | None = None,
     exclude_attributes: set[str] | None = None,
     group_by: str | None = None,
+    *,
+    _depth: int = 0,
+    _visited: set[str] | None = None,
 ) -> dict:
     if not os.path.exists(config_file):
         raise FileNotFoundError(f"Config file not found: {config_file}")
+
+    resolved_config = os.path.realpath(os.path.abspath(config_file))
+    visited = _visited if _visited is not None else set()
+    if resolved_config in visited:
+        return {
+            "config_file": config_file,
+            "inputs": [],
+            "variables": [],
+            "includes": [],
+            "workflow_rules": [],
+            "jobs": [],
+            "container_images": [],
+            "line_index": {
+                "jobs": {},
+                "includes": [],
+                "variables": {},
+                "workflow_rules": [],
+            },
+        }
+    visited.add(resolved_config)
 
     documents = common.read_yml(config_file)
     line_index = None
@@ -305,6 +329,10 @@ def collect_pipeline_data(
         "jobs": [],
         "container_images": [],
     }
+
+    can_recurse = include_nested and (
+        max_include_depth is None or _depth < max_include_depth
+    )
 
     for document in documents:
         if exclude_sections and "inputs" in exclude_sections:
@@ -340,7 +368,7 @@ def collect_pipeline_data(
                 )
                 if parsed:
                     data["includes"].append(parsed)
-                    if include_nested and parsed["include_type"] == "local":
+                    if can_recurse and parsed["include_type"] == "local":
                         sub_config = _resolve_local_include_path(
                             config_file, parsed["project"]
                         )
@@ -349,9 +377,12 @@ def collect_pipeline_data(
                                 sub_config,
                                 detailed=detailed,
                                 include_nested=include_nested,
+                                max_include_depth=max_include_depth,
                                 exclude_sections=exclude_sections,
                                 exclude_attributes=exclude_attributes,
                                 group_by=group_by,
+                                _depth=_depth + 1,
+                                _visited=visited,
                             )
                             data["includes"].extend(nested["includes"])
                             data["jobs"].extend(nested["jobs"])

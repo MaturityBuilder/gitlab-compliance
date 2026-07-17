@@ -315,6 +315,7 @@ def render_includes_from_config(
     config_file: str,
     *,
     include_nested: bool = True,
+    max_include_depth: int | None = None,
 ) -> str:
     """Collect includes from a CI file on disk.
 
@@ -328,6 +329,7 @@ def render_includes_from_config(
         config_file,
         detailed=False,
         include_nested=include_nested,
+        max_include_depth=max_include_depth,
     )
     return render_includes_table(parsed_entries=data["includes"])
 
@@ -384,6 +386,7 @@ def render_path_markdown(
     sensitive_paths: list[str] | None = None,
     config_file: str = "",
     include_nested: bool = False,
+    max_include_depth: int | None = None,
     scan_path: str | Path | None = None,
 ) -> str:
     """Render markdown tables for a dot-path into pipeline YAML."""
@@ -398,7 +401,11 @@ def render_path_markdown(
     if path == "include" or path.endswith(".include") or last == "include":
         ci_file = _resolve_ci_config_path(scan_path, config_file)
         if include_nested and ci_file:
-            return render_includes_from_config(ci_file, include_nested=True)
+            return render_includes_from_config(
+                ci_file,
+                include_nested=True,
+                max_include_depth=max_include_depth,
+            )
         entries = node
         if isinstance(node, dict) and "include" in node:
             entries = node["include"]

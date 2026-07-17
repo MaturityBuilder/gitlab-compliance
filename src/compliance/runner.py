@@ -210,6 +210,7 @@ def run_compliance(
     features_dir: str,
     pipeline_file: str,
     include_nested: bool = True,
+    max_include_depth: int | None = None,
     gitlab_url: str | None = None,
     token: str | None = None,
     project: str | None = None,
@@ -221,6 +222,12 @@ def run_compliance(
     policy_cache_dir: str | None = None,
     fix: bool = False,
     with_builtin: bool = False,
+    create_mr: bool = False,
+    post_mr_comment: bool = False,
+    mr_iid: int | None = None,
+    mr_branch: str | None = None,
+    mr_target_branch: str | None = None,
+    mr_comment_file: str | None = None,
 ) -> ComplianceResult:
     policies_source = policies_source or features_dir
     resolved_features_dir = (
@@ -232,6 +239,12 @@ def run_compliance(
     if not os.path.exists(pipeline_file):
         raise FileNotFoundError(f"Pipeline file not found: {pipeline_file}")
 
+    if create_mr and not fix:
+        raise ValueError("--create-mr requires --fix")
+    if create_mr and dry_run:
+        raise ValueError("--create-mr cannot be used with --dry-run")
+
+    fix_messages: list[str] = []
     if fix:
         if dry_run:
             raise ValueError("--fix cannot be used with --dry-run")
@@ -245,14 +258,31 @@ def run_compliance(
             )
         from src.compliance.supply_chain_fix import apply_supply_chain_fixes
 
-        apply_supply_chain_fixes(
+        fix_messages = apply_supply_chain_fixes(
             pipeline_file=pipeline_file,
             include_nested=include_nested,
+            max_include_depth=max_include_depth,
             gitlab_url=gitlab_url,
             token=token or os.getenv("GITLAB_TOKEN") or os.getenv("CI_JOB_TOKEN") or "",
             project=project,
             group=group,
         )
+
+        if create_mr:
+            from src.compliance.merge_requests import create_supply_chain_merge_request
+
+            create_supply_chain_merge_request(
+                pipeline_file=pipeline_file,
+                fix_messages=fix_messages,
+                gitlab_url=gitlab_url,
+                token=token
+                or os.getenv("GITLAB_TOKEN")
+                or os.getenv("CI_JOB_TOKEN")
+                or "",
+                project=project,
+                branch_name=mr_branch,
+                target_branch=mr_target_branch,
+            )
 
     policy_directories = _resolve_policy_directories(
         resolved_features_dir, with_builtin=with_builtin
@@ -294,6 +324,9 @@ def run_compliance(
             config.userdata = {
                 "pipeline": os.path.abspath(pipeline_file),
                 "include_nested": "true" if include_nested else "false",
+                "max_include_depth": (
+                    "" if max_include_depth is None else str(max_include_depth)
+                ),
                 "gitlab_url": gitlab_url or "",
                 "project": project or "",
                 "group": group or "",
@@ -331,18 +364,41 @@ def run_compliance(
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 
+    result = ComplianceResult(
+        success=exit_code == 0,
+        exit_code=exit_code if exit_code is not None else 1,
+        features=features,
+        scenarios=scenarios,
+        passed=passed,
+        failed=failed_count,
+        skipped=skipped,
+        scenario_results=scenario_results,
+    )
+
+    if post_mr_comment:
+        from src.compliance.merge_requests import post_compliance_mr_comment
+        from src.compliance.render import render_compliance_mr_comment
+
+        if mr_comment_file:
+            with open(mr_comment_file, encoding="utf-8") as handle:
+                comment_body = handle.read()
+        else:
+            comment_body = render_compliance_mr_comment(
+                result=result,
+                pipeline_file=pipeline_file,
+                features_dir=policies_source,
+            )
+        post_compliance_mr_comment(
+            body=comment_body,
+            gitlab_url=gitlab_url,
+            token=token or os.getenv("GITLAB_TOKEN") or os.getenv("CI_JOB_TOKEN") or "",
+            project=project,
+            mr_iid=mr_iid,
+        )
+
     if output_format == "console":
         render_compliance_console(
-            result=ComplianceResult(
-                success=exit_code == 0,
-                exit_code=exit_code,
-                features=features,
-                scenarios=scenarios,
-                passed=passed,
-                failed=failed_count,
-                skipped=skipped,
-                scenario_results=scenario_results,
-            ),
+            result=result,
             pipeline_file=pipeline_file,
             features_dir=policies_source,
         )
@@ -352,13 +408,4 @@ def run_compliance(
             f"({scenarios} scenarios in {features} features)"
         )
 
-    return ComplianceResult(
-        success=exit_code == 0,
-        exit_code=exit_code,
-        features=features,
-        scenarios=scenarios,
-        passed=passed,
-        failed=failed_count,
-        skipped=skipped,
-        scenario_results=scenario_results,
-    )
+    return result
