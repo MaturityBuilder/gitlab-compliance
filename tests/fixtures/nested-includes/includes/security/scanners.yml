@@ -1,0 +1,16 @@
+# Depth 2 — scanners layer.
+
+include:
+  - local: scanners/deep-sast.yml
+  - project: security/policies
+    file: scanners.yml
+    ref: 9.9.9
+
+variables:
+  SCANNERS_VAR: "from-scanners"
+
+secret_scan:
+  stage: test
+  image: registry.gitlab.com/security-products/secrets:5.0.0
+  script:
+    - echo "secret scan"
