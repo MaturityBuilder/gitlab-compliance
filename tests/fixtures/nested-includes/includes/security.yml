@@ -1,0 +1,13 @@
+# Depth 1 — security branch entry.
+
+include:
+  - local: security/scanners.yml
+
+variables:
+  SECURITY_VAR: "from-security"
+
+security_gate:
+  stage: test
+  image: alpine:3.19.0
+  script:
+    - echo "security gate"

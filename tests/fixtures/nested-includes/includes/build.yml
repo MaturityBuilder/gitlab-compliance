@@ -1,0 +1,13 @@
+# Depth 1 — build branch entry.
+
+include:
+  - local: build/docker.yml
+
+variables:
+  BUILD_VAR: "from-build"
+
+compile:
+  stage: build
+  image: python:3.12.0
+  script:
+    - echo "compile"
