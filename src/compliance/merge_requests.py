@@ -127,6 +127,15 @@ def create_supply_chain_merge_request(
         }
     )
 
+    existing_merge_requests = project_obj.mergerequests.list(
+        state="opened", source_branch=branch
+    )
+    if existing_merge_requests:
+        merge_request = existing_merge_requests[0]
+        web_url = getattr(merge_request, "web_url", None) or ""
+        logger.info(f"Updated existing merge request: {web_url or merge_request.iid}")
+        return web_url or str(merge_request.iid)
+
     description_lines = [
         "Automated supply-chain updates from `gitlab-compliance check --fix`.",
         "",

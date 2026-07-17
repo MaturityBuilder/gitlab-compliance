@@ -58,6 +58,7 @@ class TestCreateSupplyChainMergeRequest:
             "https://gitlab.example.com/group/proj/-/merge_requests/9"
         )
         merge_request.iid = 9
+        project_obj.mergerequests.list.return_value = []
         project_obj.mergerequests.create.return_value = merge_request
 
         gl = MagicMock()
@@ -78,6 +79,41 @@ class TestCreateSupplyChainMergeRequest:
         project_obj.branches.create.assert_called_once()
         project_obj.commits.create.assert_called_once()
         project_obj.mergerequests.create.assert_called_once()
+
+    def test_updates_existing_merge_request(self, tmp_path):
+        fixed = tmp_path / "pipeline.yml"
+        fixed.write_text("include:\n  - project: x\n    ref: 2.0.0\n", encoding="utf-8")
+        messages = [f"Fixed include x: 1.0.0 -> 2.0.0 ({fixed}:2)"]
+
+        project_obj = MagicMock()
+        project_obj.default_branch = "main"
+        merge_request = MagicMock()
+        merge_request.web_url = (
+            "https://gitlab.example.com/group/proj/-/merge_requests/9"
+        )
+        project_obj.mergerequests.list.return_value = [merge_request]
+
+        gl = MagicMock()
+        gl.projects.get.return_value = project_obj
+
+        with patch("src.compliance.merge_requests.gitlab.Gitlab", return_value=gl):
+            url = mr.create_supply_chain_merge_request(
+                pipeline_file=str(fixed),
+                fix_messages=messages,
+                gitlab_url="https://gitlab.example.com",
+                token="token",
+                project="group/proj",
+                branch_name="fix/supply-chain",
+                target_branch="main",
+            )
+
+        assert url.endswith("/merge_requests/9")
+        project_obj.branches.create.assert_not_called()
+        project_obj.commits.create.assert_called_once()
+        project_obj.mergerequests.list.assert_called_once_with(
+            state="opened", source_branch="fix/supply-chain"
+        )
+        project_obj.mergerequests.create.assert_not_called()
 
 
 class TestPostComplianceMrComment:
