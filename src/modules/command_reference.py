@@ -4,22 +4,46 @@ import re
 
 import click
 
-md_base_template = """
-## Usage
+md_base_template = """## Usage
 
-```
+```text
 {usage}
 ```
 
 ## Options
+
 {options}
 
 ## CLI Help
 
-```
+```text
 {help}
 ```
 """
+
+
+def _format_usage_flags(flags: list[str]) -> str:
+    return ", ".join(flags)
+
+
+def _format_type(param_type) -> str:
+    if isinstance(param_type, click.Choice):
+        choices = "|".join(param_type.choices)
+        return f"choice: {choices}"
+    return getattr(param_type, "name", str(param_type))
+
+
+def _format_default(default) -> str:
+    if default is None:
+        return "_not set_"
+    if str(default).lower() == "sentinel.unset":
+        return "_required_"
+    if default is click.core.ParameterSource.DEFAULT:
+        return "_default_"
+    default_value = str(default)
+    if default_value.startswith("<") and "Sentinel" in default_value:
+        return "_required_"
+    return f"`{default_value.lower()}`"
 
 
 def recursive_help(cmd, parent=None):
@@ -47,16 +71,16 @@ def _param_metadata(param):
             "required": param.required,
             "default": param.default,
             "help": getattr(param, "help", None),
-            "type": str(param.type),
+            "type": _format_type(param.type),
             "kind": "argument",
         }
     return {
-        "usage": "\n".join(param.opts),
+        "usage": _format_usage_flags([*param.opts, *param.secondary_opts]),
         "prompt": getattr(param, "prompt", None),
         "required": param.required,
         "default": param.default,
         "help": getattr(param, "help", None),
-        "type": str(param.type),
+        "type": _format_type(param.type),
         "kind": "option",
     }
 
@@ -64,18 +88,19 @@ def _param_metadata(param):
 def _format_options(options: dict) -> str:
     if not options:
         return "_No options._\n"
-    return "\n".join(
-        [
-            f"* `{opt_name}`{' (REQUIRED)' if opt.get('required') else ''}"
-            f"{' [argument]' if opt.get('kind') == 'argument' else ''}: \n"
-            f"  * Type: {opt.get('type')} \n"
-            f"  * Default: `{str(opt.get('default')).lower()}`\n"
-            f"  * Usage: `{opt.get('usage')}`\n"
-            "\n"
-            f"  {opt.get('help') or ''}\n"
-            for opt_name, opt in options.items()
+    rendered = []
+    for opt_name, opt in options.items():
+        lines = [
+            f"- `{opt_name}`{' (required)' if opt.get('required') else ''}"
+            f"{' (argument)' if opt.get('kind') == 'argument' else ''}",
+            f"  - Type: {opt.get('type')}",
+            f"  - Default: {_format_default(opt.get('default'))}",
+            f"  - Usage: `{opt.get('usage')}`",
         ]
-    )
+        if opt.get("help"):
+            lines.extend(["", f"  {opt['help']}"])
+        rendered.append("\n".join(lines))
+    return "\n\n".join(rendered) + "\n"
 
 
 def _render_command_page(helpdct: dict, title: str | None = None) -> str:
@@ -89,7 +114,7 @@ def _render_command_page(helpdct: dict, title: str | None = None) -> str:
         help=helpdct.get("help"),
     )
     if description:
-        return f"# {heading}\n\n{description}\n{body}"
+        return f"# {heading}\n\n{description}\n\n{body}"
     return f"# {heading}\n{body}"
 
 
@@ -147,7 +172,9 @@ def dump_helper(base_command, docs_dir) -> list[str]:
 
     index_lines = [
         "# Command Reference\n",
+        "\n",
         f"Auto-generated reference for `{root_name}` subcommands.\n",
+        "\n",
     ]
     for command_path in sorted(written, key=_command_doc_slug):
         display_name = " ".join(command_path)

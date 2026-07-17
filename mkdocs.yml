@@ -1,4 +1,4 @@
-site_name: Gitlab Compliance
+site_name: GitLab Compliance
 site_description: BDD compliance testing for GitLab CI/CD pipelines and project settings — by MaturityBuilder
 copyright: Copyright &copy; MaturityBuilder
 docs_dir: docs
@@ -33,6 +33,7 @@ nav:
     - Installing via pip: installation/pip.md
     - Installing via Docker: installation/docker.md
   - Command Reference:
+    - All Commands: usage/reference/command-reference.md
     - Compliance:
       - Check: usage/reference/check.md
       - Policies:
@@ -44,7 +45,7 @@ nav:
     - Generate Documentation:
       - Gitstrings (inline YAML): usage/gitstrings.md
       - Generate Pipeline Documentation: usage/reference/generate.md
-      - Generate HTML Documentation: usage/reference/generate-html.md
+      - Deprecated generate-html command: usage/reference/generate-html.md
       - Get Specific Documentation About Attributes: usage/reference/get-attributes.md
       - Document Commands:
           - Overview: usage/reference/document.md
@@ -83,7 +84,7 @@ nav:
       - OCI Policy Packs: examples/oci-policy-packs.md
       - Compliance Security Examples: examples/compliance-security-examples.md
 
-    - Gitlab Docs Output (generate command): examples/gitlab-docs-output-example.md
+    - Pipeline Documentation Output (generate command): examples/gitlab-docs-output-example.md
     - Gitstrings inline YAML: examples/gitstrings-inline-yaml.md
   - Using in CI/CD:
     - ci-cd/index.md

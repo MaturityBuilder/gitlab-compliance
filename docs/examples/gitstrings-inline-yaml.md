@@ -35,11 +35,46 @@ Open an issue in the template repository.
 
 ```bash
 gitlab-compliance document gitstrings -i README.md
-
 ```
 
 ## After
 
-The intro, gitstrings fence, and Support section stay unchanged. Only the marker region gains tables (and optional `<details>` source when `--keep-source` is on).
+The intro, gitstrings fence, and Support section stay unchanged. Only the marker
+region gains generated content:
+
+````markdown
+# My CI template
+
+Include this component from your pipeline.
+
+```yaml gitstrings
+# @title CI inputs
+# @description
+#   Override the stage when including from a deploy pipeline.
+# @render inputs
+spec:
+  inputs:
+    job-stage:
+      default: test
+      description: |
+        Stage for the compliance job.
+
+```
+
+<!-- gitlab-compliance-gitstrings-opening-auto-generated -->
+## CI inputs
+
+Override the stage when including from a deploy pipeline.
+
+| Key | Default | Description | Options | Expand |
+| --- | ------- | ----------- | ------- | ------ |
+| job-stage | test | Stage for the compliance job. | _not set_ | true |
+
+<!-- gitlab-compliance-gitstrings-closing-auto-generated -->
+
+## Support
+
+Open an issue in the template repository.
+````
 
 Back to [Examples](index.md).

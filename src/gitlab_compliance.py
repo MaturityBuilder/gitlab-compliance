@@ -192,7 +192,7 @@ _LEGACY_CLI_NAME = "gitlab-docs"
 
 
 class _DualBrandCliGroup(click.Group):
-    """Shared CLI group; warns when invoked via the legacy ``gitlab-compliance`` script name."""
+    """Shared CLI group; warns when invoked via the legacy ``gitlab-docs`` script name."""
 
     _LEGACY_NOTICE = (
         "Note: `gitlab-docs` is deprecated in favor of `gitlab-compliance`. "
@@ -236,7 +236,7 @@ gitlab_docs = gitlab_compliance
     "-a",
     "attributes",
     required=False,
-    help="Pass a comma seperated list of gitlab ci yml attributes",
+    help="Comma-separated list of GitLab CI YAML attributes to export.",
     default="README.md",
 )
 @click.option(
@@ -252,7 +252,7 @@ gitlab_docs = gitlab_compliance
     "-i",
     "GLDOCS_CONFIG_FILE",
     required=False,
-    help="The Gitlab CI Input configuration file to generated documentation from.",
+    help="GitLab CI input configuration file to read.",
     default=".gitlab-ci.yml",
 )
 @click.option(
@@ -266,12 +266,7 @@ gitlab_docs = gitlab_compliance
 )
 def get_attributes(OUTPUT_FILE, GLDOCS_CONFIG_FILE, attributes, json_format):
     """
-    Compared to the generate command, the get-attribute command allows you to pass the properties you wish to document and produces a markdown table.
-    Args:
-        OUTPUT_FILE (_type_): _description_
-        GLDOCS_CONFIG_FILE (_type_): _description_
-        attributes (_type_): _description_
-        json (_type_): _description_
+    Export selected GitLab CI job attributes as Markdown or JSON.
     """
     logger.info(f"Discovering attributes {attributes} from your gitlab-ci yml.")
 
@@ -324,7 +319,7 @@ def get_attributes(OUTPUT_FILE, GLDOCS_CONFIG_FILE, attributes, json_format):
     "-i",
     "GLDOCS_CONFIG_FILE",
     required=False,
-    help="The Gitlab CI Input configuration file to generated documentation from.",
+    help="GitLab CI input configuration file to document.",
     default=".gitlab-ci.yml",
 )
 @click.option(
@@ -356,7 +351,7 @@ def generate(
     group_by,
 ):
     """
-    Will scan through your gitlab-ci yml and build documentation from the yml.
+    Generate Markdown or HTML documentation from GitLab CI YAML.
     """
     output_format = output_format.lower()
     OUTPUT_FILE = _resolve_output_file(output_format, OUTPUT_FILE)
@@ -422,7 +417,7 @@ def generate(
     "-i",
     "GLDOCS_CONFIG_FILE",
     required=False,
-    help="The Gitlab CI Input configuration file to generated documentation from.",
+    help="GitLab CI input configuration file to document.",
     default=".gitlab-ci.yml",
 )
 def generate_html(detailed, OUTPUT_FILE, GLDOCS_CONFIG_FILE):

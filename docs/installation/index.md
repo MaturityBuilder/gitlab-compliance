@@ -1,12 +1,14 @@
 # Installation
 
-Install `gitlab-compliance` with Python (pip or Poetry).
+Install `gitlab-compliance` with Python or run it from the published container
+image.
 
 ## Methods
 
-| Method                       | Best for                      |
-| ---------------------------- | ----------------------------- |
-| [Installing via pip](pip.md) | Local development and CI jobs |
+| Method                           | Best for                                      |
+| -------------------------------- | --------------------------------------------- |
+| [Installing via pip](pip.md)     | Local development, CI jobs, and Python venvs |
+| [Running with Docker](docker.md) | Container-first CI jobs and pinned images    |
 
 ## Next steps
 

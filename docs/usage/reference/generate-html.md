@@ -5,39 +5,39 @@ Deprecated: use `generate --format html` instead.
 ## Usage
 
 ```text
-Usage: gitlab-compliance generate-html [OPTIONS]```
+Usage: gitlab-compliance generate-html [OPTIONS]
+```
 
 ## Options
 
-* `detailed`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--detailed`
+- `detailed`
+  - Type: boolean
+  - Default: `false`
+  - Usage: `--detailed`
 
   Will include workflow and rules from jobs.
 
-* `OUTPUT_FILE`:
-  * Type: STRING
-  * Default: `gitlab-compliance.html`
-  * Usage: `--output-file
--o`
+- `OUTPUT_FILE`
+  - Type: text
+  - Default: `gitlab-compliance.html`
+  - Usage: `--output-file, -o`
 
   Output location of the HTML documentation.
 
-* `GLDOCS_CONFIG_FILE`:
-  * Type: STRING
-  * Default: `.gitlab-ci.yml`
-  * Usage: `--input-config
--i`
+- `GLDOCS_CONFIG_FILE`
+  - Type: text
+  - Default: `.gitlab-ci.yml`
+  - Usage: `--input-config, -i`
 
-  The Gitlab CI Input configuration file to generated documentation from.
+  GitLab CI input configuration file to document.
 
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
+- `help`
+  - Type: boolean
+  - Default: `false`
+  - Usage: `--help`
 
   Show this message and exit.
+
 
 ## CLI Help
 
@@ -49,7 +49,6 @@ Usage: gitlab-compliance generate-html [OPTIONS]
 Options:
   --detailed               Will include workflow and rules from jobs.
   -o, --output-file TEXT   Output location of the HTML documentation.
-  -i, --input-config TEXT  The Gitlab CI Input configuration file to generated
-                           documentation from.
+  -i, --input-config TEXT  GitLab CI input configuration file to document.
   --help                   Show this message and exit.
 ```

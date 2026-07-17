@@ -19,7 +19,8 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
 ```
 
-See [GitLab Docs output example](gitlab-docs-output-example.md) for sample `generate` output.
+See [Pipeline documentation output example](gitlab-docs-output-example.md) for
+sample `generate` output.
 
 ## Policy index
 
@@ -47,7 +48,7 @@ See [GitLab Docs output example](gitlab-docs-output-example.md) for sample `gene
 ## Documentation examples
 
 | Topic | Example page |
-|-------|----------------|
+| ----- | ------------ |
 | Inline YAML (gitstrings) | [Gitstrings inline YAML](gitstrings-inline-yaml.md) |
 
 ## Consumption patterns

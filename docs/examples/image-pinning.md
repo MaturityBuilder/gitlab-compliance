@@ -66,7 +66,7 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
 ## Consume in GitLab CI
 
 Offline policy — use the shared compliance job templates from
-[`example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/compliance-jobs.yml):
+[`examples/example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-ci/compliance-jobs.yml):
 
 ```yaml
 include:

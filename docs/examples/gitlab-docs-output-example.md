@@ -1,130 +1,73 @@
-# Pipeline documentation example
+# Pipeline documentation output example
 
-Sample `generate` output.
+This page shows a concise excerpt from the `generate` command.
 
-<!-- gitlab-compliance-opening-auto-generated -->
-## GITLAB COMPLIANCE - .gitlab-ci.yml
+Run the command from the repository root:
 
-## Inputs
+```bash
+gitlab-compliance generate \
+  -i examples/sample-files/.gitlab-ci.yml \
+  --format swagger-markdown \
+  --exclude inputs,variables,workflow \
+  -o pipeline-reference.md
+```
 
-|    Key    | Default | Description | Options  | Expand |
-| :-------- | :------ | :---------- | :------- | :----- |
-| job-stage | test    |   &#x274c;  | &#x274c; |  true  |
+Generated output starts with a table of contents, then renders includes and jobs
+as Markdown tables:
 
-## Variables
+```markdown
+# GitLab pipeline reference — `examples/sample-files/.gitlab-ci.yml`
 
-| Key         | Value          | Description | Options   | Expand |
-| ----------- | -------------- | ----------- | --------- | ------ |
-| APPLICATION | gitlab-docs    | _not set_   | _not set_ | true   |
-| OUTPUT_FILE | GITLAB-DOCS.md | _not set_   | _not set_ | true   |
+- **Config file:** `examples/sample-files/.gitlab-ci.yml`
+- **Jobs:** 10
 
-- **Rules # 1**
-  - **if:** `$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH && $CI_COMMIT_MESSAGE =~ /^chore: bumping version to/`
-  - **when:** `never`
-- **Rules # 2**
-  - **if:** `$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_REF_NAME == $CI_COMMIT_TAG`
+## Contents
+
+- [Includes](#includes)
+- [Jobs](#jobs) (10)
+  - TODO-CHECK
+  - GITLEAKS
+  - SHELL-CHECK
+  - FRAGMENT-VERSION-CHECK
+  - .DOCKER.BUILD
+  - BUILD
+  - PUBLISH
+
+## Includes
+
+| Include Type | Project                             | Version | Valid | File                |
+| ------------ | ----------------------------------- | ------- | ----- | ------------------- |
+| local        | gitlab-ci/includes_without_keys.yml | n/a     | yes   |                     |
+| project      | charlieasmith/a-generic-fragment    | main    | no    | a-fragment-file.yml |
+| local        | gitlab-ci/includes_with_keys.yml    | n/a     | yes   |                     |
 
 ## Jobs
 
-### TEMPLATE · .TEST:RULES
+### JOB · TODO-CHECK
 
-| **Attribute** | **Value** |
-| ------------- | --------- |
-| **stage**     | test      |
+> extends: 1. .todo-check-template · stage: code-quality
 
-| Rule # | if                                           | when  |
-| ------ | -------------------------------------------- | ----- |
-| 1      | $CI_COMMIT_TAG                               | never |
-| 2      | $CI_PIPELINE_SOURCE == "merge_request_event" |       |
-| 3      | $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      |       |
+#### TODO-CHECK · attributes
 
-### JOB · MEGALINTER
+| Attribute | Value                   |
+| --------- | ----------------------- |
+| extends   | 1. .todo-check-template |
+| stage     | code-quality            |
 
-- ****allow_failure**:** `True`
-- ****extends**:** `1. .test:rules`
-- ****image**:**
-  `oxsecurity/megalinter-ci_light@sha256:54e221da51b3fb959dfd4fc5e21920e0a0fa339ba68e0e9162b894a01a52ed34`
+---
 
-- **Rule # 1**
-  - **if:** `$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CI_COMMIT_BRANCH != $CI_COMMIT_TAG`
+### TEMPLATE · .DOCKER.BUILD
 
-| **Attribute** | **Key**           | **Value**       |
-| ------------- | ----------------- | --------------- |
-| variables     | DEFAULT_WORKSPACE | $CI_PROJECT_DIR |
+> image: docker · services: ['docker:24.0.5-dind', None]
 
-### JOB · BEHAVE-TESTS
+#### .DOCKER.BUILD · nested attributes
 
-| **Attribute** | **Value**      |
-| ------------- | -------------- |
-| **extends**   | 1. .test:rules |
+| Attribute | Key             | Value                                                   |
+| --------- | --------------- | ------------------------------------------------------- |
+| variables | DOCKER_BUILDKIT | 1                                                       |
+| variables | DOCKER_DRIVER   | overlay2                                                |
+| variables | ECR_URL         | some_aws_account_number.dkr.ecr.eu-west-2.amazonaws.com |
+```
 
-| **Attribute** | **Key**                   | **Value** |
-| ------------- | ------------------------- | --------- |
-| variables     | POETRY_VIRTUALENVS_CREATE | false     |
-
-### JOB · BUMP-VERSION
-
-- ****image**:**
-  `python@sha256:c1a5d356638cc86bd865d9019efbc34a6b0c3ad15a21e5ab4eb57bd2d1c3f7ce`
-- ****stage**:** `publish`
-
-| Rule # | if                          |
-| ------ | --------------------------- |
-| 1      | $CI_COMMIT_BRANCH == "main" |
-
-### TEMPLATE · .BUILD:PYTHON
-
-| **Attribute**   | **Value** |
-| --------------- | --------- |
-| **environment** | release   |
-| **stage**       | build     |
-
-### JOB · TEST-BUILD
-
-- ****extends**:**
-  1. .build:python
-  2. .test:rules
-
-### JOB · DOCS:REVIEW
-
-- ****extends**:**
-  1. .docs:zensical
-  2. .test:rules
-- ****stage**:** `build`
-
-### JOB · PAGES
-
-| **Attribute** | **Value**      |
-| ------------- | -------------- |
-| **extends**   | .docs:zensical |
-| **stage**     | publish        |
-
-| Rule # | if                                      |
-| ------ | --------------------------------------- |
-| 1      | $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH |
-
-### JOB · PUBLISH
-
-| **Attribute**   | **Value** |
-| --------------- | --------- |
-| **cache**       | []        |
-| **environment** | release   |
-| **stage**       | publish   |
-
-| Rule # | if             |
-| ------ | -------------- |
-| 1      | $CI_COMMIT_TAG |
-
-### JOB · DOCKER-BUILD
-
-- ****image**:**
-  `docker@sha256:66d292e5c26bd33a6f6f61cacb880de2186339a524ecba1ce098dbbaceed6515`
-- ****services**:**
-  `1. docker@sha256:66d292e5c26bd33a6f6f61cacb880de2186339a524ecba1ce098dbbaceed6515`
-- ****stage**:** `build`
-- ****tags**:** `1. gitlab-org-docker`
-
-| Rule # | if                                    |
-| ------ | ------------------------------------- |
-| 1      | $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG |
-<!-- gitlab-compliance-closing-auto-generated -->
+Use `--format markdown` when you want marker-delimited output that can update an
+existing README, or `--format html` when publishing a standalone static page.

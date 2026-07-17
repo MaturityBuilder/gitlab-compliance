@@ -3,7 +3,21 @@
 Regardless of how you [install](../installation/index.md) `gitlab-compliance`,
 the tool supports two primary workflows:
 
-### Compliance (`check`)
+![Animated terminal demo of gitlab-compliance usage](../assets/gitlab-compliance-cli-demo.gif)
+
+## Command overview
+
+| Command | Purpose | Reference |
+| ------- | ------- | --------- |
+| `check` | Run Gherkin compliance policies against pipeline YAML and optional GitLab API settings | [check](reference/check.md) |
+| `generate` | Generate Markdown, swagger-style Markdown, or HTML pipeline documentation | [generate](reference/generate.md) |
+| `document gitstrings` | Render decorated YAML snippets into README marker blocks | [gitstrings](gitstrings.md) |
+| `get-attributes` | Export selected job attributes as Markdown or JSON | [get-attributes](reference/get-attributes.md) |
+| `policies doc` | Build a searchable catalog from policy metadata | [policies doc](reference/policies-doc.md) |
+| `policies pull` / `policies push` | Move policy packs to and from OCI registries | [policies](reference/policies.md) |
+| `release-notes` | Generate release notes from GitLab project commits | [release-notes](reference/release-notes.md) |
+
+## Compliance (`check`)
 
 1. Author Gherkin policies (`.feature` files) in a directory or OCI registry
 2. Point the CLI at your pipeline YAML
@@ -14,7 +28,7 @@ the tool supports two primary workflows:
 gitlab-compliance check -h
 ```
 
-### Documentation (`generate`)
+## Documentation (`generate`)
 
 1. Point the CLI at your pipeline YAML
 2. Choose an output format (`markdown`, `swagger-markdown`, or `html`)
@@ -30,6 +44,9 @@ See [Generate pipeline documentation](reference/generate.md) and [Additional Par
 
 ## CLI reference
 
+The generated [Command Reference](reference/command-reference.md) is built from
+the live Click command definitions. Use it for exact option names and defaults.
+
 ### `-f` / `--features`
 
 **Required** for `check`, `policies doc`, and `policies push`.
@@ -38,8 +55,9 @@ Directory of `.feature` policy files, or an OCI reference:
 
 ```bash
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml
-gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p
-.gitlab-ci.yml
+gitlab-compliance check \
+  -f oci://registry.example.com/org/policies:1.0.0 \
+  -p .gitlab-ci.yml
 ```
 
 Use `--update` with OCI references to pull the latest bundle before running.
@@ -73,8 +91,10 @@ token — see [Environment Variables](environment-variables.md).
 
 ```bash
 export GITLAB_TOKEN="<token>"
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --project
-my-group/my-project
+gitlab-compliance check \
+  -f policies/ \
+  -p .gitlab-ci.yml \
+  --project my-group/my-project
 ```
 
 API scenarios are **skipped** when connection info is missing unless you pass
@@ -93,26 +113,31 @@ Report format and output file:
 | `codequality` | GitLab Code Quality JSON (`gl-code-quality-report.json`) |
 
 ```bash
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format markdown -o
-COMPLIANCE-REPORT.md
+gitlab-compliance check \
+  -f policies/ \
+  -p .gitlab-ci.yml \
+  --format markdown \
+  -o COMPLIANCE-REPORT.md
 ```
 
 ### Other commands
 
-| Command               | Description                                                       |
-| --------------------- | ----------------------------------------------------------------- |
-| `check`               | Run Gherkin compliance policies against pipeline YAML             |
-| `generate`            | Build Markdown or HTML documentation from pipeline YAML           |
-| `get-attributes`      | Export selected job attributes as a table                         |
-| `policies doc`        | Generate a policy catalog from `# METADATA` annotations         |
-| `policies push`       | Publish a policy bundle to an OCI registry                        |
-| `policies pull`       | Pull a policy bundle from an OCI registry                         |
-| `release-notes`       | Generate release notes from GitLab commits                        |
-| `document gitstrings` | Render inline `yaml gitstrings` fences into README marker blocks  |
+| Command               | Description                                                      |
+| --------------------- | ---------------------------------------------------------------- |
+| `check`               | Run Gherkin compliance policies against pipeline YAML            |
+| `generate`            | Build Markdown or HTML documentation from pipeline YAML          |
+| `get-attributes`      | Export selected job attributes as Markdown or JSON               |
+| `policies doc`        | Generate a policy catalog from `# METADATA` annotations          |
+| `policies push`       | Publish a policy bundle to an OCI registry                       |
+| `policies pull`       | Pull a policy bundle from an OCI registry                        |
+| `release-notes`       | Generate release notes from GitLab commits                       |
+| `document gitstrings` | Render inline `yaml gitstrings` fences into README marker blocks |
 
 ### Template documentation
 
-For ci-template READMEs, use [`document gitstrings`](gitstrings.md) to turn decorated YAML snippets into tables inside gitstrings markers (alongside [`generate`](reference/generate.md) for full pipeline YAML).
+For CI template READMEs, use [`document gitstrings`](gitstrings.md) to turn
+decorated YAML snippets into tables inside gitstrings markers. Use
+[`generate`](reference/generate.md) for full pipeline YAML.
 
 ## Quick start
 
@@ -131,7 +156,8 @@ pip install gitlab-compliance
 gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
 ```
 
-Sample generated output: [GitLab Docs output example](../examples/gitlab-docs-output-example.md).
+Sample generated output:
+[Pipeline documentation output example](../examples/gitlab-docs-output-example.md).
 
 See also [Additional Parameters](additional-parameters.md) and [Environment
 Variables](environment-variables.md).

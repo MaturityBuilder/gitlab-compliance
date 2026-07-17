@@ -27,7 +27,7 @@ cp -r examples/example-policies/security/ policies/security/
 ## Include shared compliance jobs
 
 Reuse hidden job templates from
-[`example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/compliance-jobs.yml):
+[`examples/example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-ci/compliance-jobs.yml):
 
 **Local include** (vendored in your repo):
 
@@ -52,7 +52,7 @@ compliance:
 ```
 
 Minimal consumer example:
-[`example-ci/.gitlab-ci.consumer.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/example-ci/.gitlab-ci.consumer.yml).
+[`examples/example-ci/.gitlab-ci.consumer.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-ci/.gitlab-ci.consumer.yml).
 
 - **`.compliance:offline`:** YAML-only policies
 - **`.compliance:api`:** API-backed policies with `--project` and `--strict`
@@ -125,8 +125,12 @@ comment-compliance:
   image: python:3.12
   script:
     - pip install gitlab-compliance
-    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-        --format mr-comment -o comment.md || true
+    - |
+      gitlab-compliance check \
+        -f policies/security/ \
+        -p .gitlab-ci.yml \
+        --format mr-comment \
+        -o comment.md || true
     - |
       curl --request POST \
         --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \

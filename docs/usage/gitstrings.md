@@ -1,15 +1,18 @@
-# Gitstrings - Beta (inline YAML)
+# Gitstrings (inline YAML)
 
-Gitstrings turns **decorated YAML** into **marker-delimited** markdown tables (like [`generate`](reference/generate.md)), without overwriting the rest of your README.
+Gitstrings turns **decorated YAML** into **marker-delimited** Markdown tables
+(like [`generate`](reference/generate.md)), without overwriting the rest of your
+README.
 
 ## Two input modes
 
 | Source | How decorators are written |
-|--------|----------------------------|
+| ------ | -------------------------- |
 | **CI YAML** (`.gitlab-ci.yml`, `*.yml`) | `# @title`, `# @render`, `# @description`, `# @output` comment lines above the YAML fragment |
 | **Markdown** | Same directives inside ` ```yaml gitstrings ` fenced blocks |
 
-For CI files, only the annotated fragment is read (for example the `variables:` map stops before the next top-level key such as `image:`).
+For CI files, only the annotated fragment is read. For example, the
+`variables:` map stops before the next top-level key such as `image:`.
 
 ```bash
 # Scan decorators in pipeline YAML; default output README.md in the same directory
@@ -63,7 +66,8 @@ spec:
 
 ## Authoring fenced blocks (markdown)
 
-Only fences tagged `yaml gitstrings` are processed. Ordinary ` ```yaml ` blocks are ignored.
+Only fences tagged `yaml gitstrings` are processed. Ordinary `yaml` blocks are
+ignored.
 
 ````markdown
 ```yaml gitstrings
@@ -78,7 +82,7 @@ variables:
 ## Directives
 
 | Directive | Purpose |
-|-----------|---------|
+| --------- | ------- |
 | `# @title <heading>` | `##` heading above this fragment’s tables |
 | `# @render <mode>` | `variables`, `inputs`, `jobs`, `includes` (or `include`), `auto`; or a **dot path** (e.g. `megalinter.variables`, `spec.inputs`, `include`) |
 | `# @sensitive <path>` | Mask values at a YAML path (repeatable; comma-separated). Rows still appear; value cells show `****` (e.g. `megalinter.variables.mode.value`) |
@@ -99,7 +103,8 @@ spec:
       default: test
 ```
 
-**Per-field** (GitLab YAML block scalars become `<br>` in table cells):
+**Per-field** (GitLab YAML block scalars become HTML line-break tags in table
+cells):
 
 ```yaml
 variables:
@@ -126,12 +131,15 @@ include:
     file: ci/workflow.yml
 ```
 
-Use `@render includes` for legacy fragment mode (the fenced `include` list in the block). Use `@render include` for **path mode** on the top-level `include` key — with `-i` set to a CI YAML file, that resolves the full file’s `include` list (not only the annotated fragment).
+Use `@render includes` for legacy fragment mode (the fenced `include` list in
+the block). Use `@render include` for **path mode** on the top-level `include`
+key. With `-i` set to a CI YAML file, that resolves the full file’s `include`
+list, not only the annotated fragment.
 
 #### `--include-nested` scope (on disk only)
 
 | Include type | In the table | With `--include-nested` |
-|--------------|--------------|-------------------------|
+| ------------ | ------------ | ----------------------- |
 | **`local:`** | One row per entry | Also walks **files on disk** relative to `-i`, merges `include` entries from those YAML files (and their nested **`local:`** chains). Same behavior as `generate` / `collect_pipeline_data`. |
 | **`project:`**, **`component:`**, **`remote:`**, **`template:`** | One row per stanza (project/URL, ref/version, file, variables, rules) | **Not expanded** — no GitLab or registry fetch; upstream trees are out of scope for now. |
 
@@ -140,17 +148,25 @@ Requirements for nesting:
 - `-i` must be the **root CI YAML file** (`.yml` / `.yaml`) so `local:` paths resolve on disk.
 - Markdown-only scans (fences in README) document only the fenced `include` list; nesting does not apply.
 
-Without `--include-nested`, only `include` entries in the **annotated fragment** are shown (or the full top-level `include` list when using path `include` on a CI file).
+Without `--include-nested`, only `include` entries in the **annotated fragment**
+are shown. When using path `include` on a CI file, the full top-level `include`
+list is shown.
 
 ```bash
-gitlab-compliance document gitstrings -i .gitlab-ci.yml --include-nested -o GITLAB-DOCS.md
+gitlab-compliance document gitstrings \
+  -i .gitlab-ci.yml \
+  --include-nested \
+  -o PIPELINE-REFERENCE.md
 ```
 
 ### Path-based render and sensitive values
 
-Use dot paths on `@render` to control exactly which YAML subtree becomes a table. Parent segments work too (`variables`, `megalinter.variables`). Job names match case-insensitively when resolving paths against a full `.gitlab-ci.yml`.
+Use dot paths on `@render` to control exactly which YAML subtree becomes a
+table. Parent segments work too (`variables`, `megalinter.variables`). Job names
+match case-insensitively when resolving paths against a full `.gitlab-ci.yml`.
 
-Use `@sensitive` with a path to the **value leaf** (often ending in `.value` or `.default`) so the row is still documented but the cell is masked.
+Use `@sensitive` with a path to the **value leaf** (often ending in `.value` or
+`.default`) so the row is still documented but the cell is masked.
 
 ```yaml
 # @title Megalinter mode (masked)
@@ -164,13 +180,16 @@ When `-i` is a CI YAML file, paths resolve against the **entire** pipeline file,
 
 ## Output behavior
 
-Generated fragments are rendered as **markdown pipe tables** (variables, inputs, jobs, and path-based slices). Multi-line or list values use `<br>` inside table cells rather than bullet lists.
+Generated fragments are rendered as **Markdown pipe tables** for variables,
+inputs, jobs, and path-based slices. Multi-line or list values use HTML
+line-break tags inside table cells rather than bullet lists.
 
 - Only the **gitstrings marker block** on each target file is replaced.
 - Default output file: `-o` / `--output` / `--output-file`, or `-i` when omitted (for CI YAML, `README.md` beside the file).
 - When **`-o` is set**, every fragment writes to that file and **`# @output` is ignored**.
 - Without **`-o`**, per-fragment `# @output` overrides the default for that snippet only.
-- `--keep-source` (default): collapsible `<details>` with source YAML inside the marker block.
+- `--keep-source` (default): a collapsible source YAML section inside the
+  marker block.
 - Safe to run on the same README as `generate`; each command updates its own marker pair.
 
 ## CI example
@@ -189,7 +208,7 @@ See [GitLab CI/CD](../ci-cd/gitlab-ci.md) for broader pipeline integration.
 ## Troubleshooting
 
 | Issue | What to check |
-|-------|----------------|
+| ----- | ------------- |
 | No output updated | At least one ` ```yaml gitstrings ` fence in `-i` |
 | Invalid YAML | Remove or fix `# @` directives; they are stripped before parsing |
 | Tables empty | Set `# @render` explicitly or ensure YAML matches `variables` / `spec.inputs` / `include` / job shape |
