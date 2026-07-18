@@ -137,6 +137,11 @@ reads `CI_MERGE_REQUEST_IID` automatically; pass `--mr-iid` to override.
 
 ### Supply-chain fix MR
 
+Prefer a project access token or PAT (`GITLAB_TOKEN`) with permission to create
+branches, commits, and merge requests. `CI_JOB_TOKEN` is usually insufficient;
+when MR creation fails, the job still prints the compliance report and exits
+`2` if policies passed.
+
 ```yaml
 fix-supply-chain:
   image: python:3.12
@@ -144,6 +149,7 @@ fix-supply-chain:
     - pip install gitlab-compliance
     - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
         --project "$CI_PROJECT_PATH"
+        --token "$GITLAB_TOKEN"
         --fix-supply-chain --create-mr
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"

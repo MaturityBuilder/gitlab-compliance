@@ -68,8 +68,9 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix-supply-cha
 ## `--fix-policies`
 
 After an initial policy run, apply **allowlisted** BDD remediations (YAML only),
-then re-check. See [Auto-fix policies](fix-policies.md) for the supported
-policy IDs.
+then re-check. Only entities that fail the matching policy predicates are
+rewritten (not every include/image in the pipeline). See
+[Auto-fix policies](fix-policies.md) for the supported policy IDs.
 
 Requires a GitLab token. Cannot be combined with `--dry-run`.
 
@@ -81,12 +82,23 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix-policies
 
 After `--fix-supply-chain` and/or `--fix-policies` rewrites local YAML, commit
 the changed files and open a GitLab merge request. Requires at least one fix
-mode, a token, and `--project` (or `CI_PROJECT_PATH`).
+mode, `--project` (or `CI_PROJECT_PATH`), and a token that can create branches,
+commits, and merge requests.
+
+Use a **project access token** or **personal access token** (`--token` /
+`GITLAB_TOKEN`) with `api` (and write) scope. `CI_JOB_TOKEN` usually cannot
+create branches or merge requests; if MR creation fails, the compliance report
+is still printed and the process exits `2` when policies otherwise passed.
 
 If an open merge request already exists for the source branch, the run pushes a
 new commit and updates that MR. If the branch still exists but the MR was
-**closed** (not merged), the run reopens it. The default source branch is
+**closed** (not merged), the run reopens the most recently updated closed MR for
+that branch. The default source branch is
 `gitlab-compliance/supply-chain-fix` so re-runs reuse the same MR.
+
+New or missing files on the branch are committed with `create`; existing paths
+use `update`. If branch creation succeeds but the first commit fails, the error
+names the branch so you can delete or repair it.
 
 The MR description includes a short summary table and a numbered list of applied
 changes.
@@ -95,7 +107,8 @@ Optional: `--mr-branch`, `--mr-target-branch`.
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
-  --fix-supply-chain --create-mr --project "$CI_PROJECT_PATH"
+  --fix-supply-chain --create-mr --project "$CI_PROJECT_PATH" \
+  --token "$GITLAB_TOKEN"
 ```
 
 ## `--post-mr-comment`
@@ -103,6 +116,9 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
 Post the compliance report as a note on an existing merge request. Uses
 `--mr-iid` or `CI_MERGE_REQUEST_IID`. Optional `--mr-comment-file` posts a
 pre-rendered body instead of regenerating from the run.
+
+Failures print an error (and log it) after the compliance report; when policies
+passed, the process exits `2`.
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \

@@ -129,7 +129,7 @@ Usage: gitlab-compliance check [OPTIONS]
   * Default: `false`
   * Usage: `--create-mr`
 
-  After --fix-supply-chain and/or --fix-policies, commit changed files and open a GitLab merge request.
+  After --fix-supply-chain and/or --fix-policies, commit changed files and open a GitLab merge request (needs a project/personal access token; CI_JOB_TOKEN is usually insufficient; failures exit 2 after the report).
 
 * `post_mr_comment`:
   * Type: BOOL
@@ -150,7 +150,7 @@ Usage: gitlab-compliance check [OPTIONS]
   * Default: `none`
   * Usage: `--mr-branch`
 
-  Source branch for --create-mr (default: gitlab-compliance/supply-chain-fix). Reuses an open MR for this branch, or reopens a closed one.
+  Source branch for --create-mr (default: gitlab-compliance/supply-chain-fix). Reuses an open MR for this branch, or reopens the most recently updated closed one.
 
 * `mr_target_branch`:
   * Type: STRING

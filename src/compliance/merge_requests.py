@@ -123,6 +123,23 @@ def _friendly_gitlab_error(exc: Exception, *, action: str) -> ValueError:
     return ValueError(f"GitLab API error while {action}: {detail}")
 
 
+def _mr_recency_key(merge_request) -> tuple:
+    """Sort key preferring the most recently updated MR, then highest IID."""
+    updated = getattr(merge_request, "updated_at", None) or ""
+    iid = getattr(merge_request, "iid", 0) or 0
+    try:
+        iid_value = int(iid)
+    except (TypeError, ValueError):
+        iid_value = 0
+    return (str(updated), iid_value)
+
+
+def _pick_preferred_merge_request(merge_requests: list):
+    if not merge_requests:
+        return None
+    return sorted(merge_requests, key=_mr_recency_key, reverse=True)[0]
+
+
 def _find_reusable_merge_request(project_obj, *, source_branch: str):
     """Return ``(merge_request, action)`` where action is ``update`` or ``reopen``."""
     opened = project_obj.mergerequests.list(
@@ -130,17 +147,39 @@ def _find_reusable_merge_request(project_obj, *, source_branch: str):
         source_branch=source_branch,
         get_all=True,
     )
-    if opened:
-        return opened[0], "update"
+    preferred_open = _pick_preferred_merge_request(list(opened or []))
+    if preferred_open is not None:
+        return preferred_open, "update"
 
     closed = project_obj.mergerequests.list(
         state="closed",
         source_branch=source_branch,
         get_all=True,
     )
-    if closed:
-        return closed[0], "reopen"
+    preferred_closed = _pick_preferred_merge_request(list(closed or []))
+    if preferred_closed is not None:
+        return preferred_closed, "reopen"
     return None, None
+
+
+def _file_commit_action(
+    project_obj,
+    *,
+    branch: str,
+    file_path: str,
+    content: str,
+) -> dict:
+    """Build a commit action using create when the path is absent on the branch."""
+    try:
+        project_obj.files.get(file_path=file_path, ref=branch)
+        action = "update"
+    except gitlab.exceptions.GitlabGetError:
+        action = "create"
+    return {
+        "action": action,
+        "file_path": file_path,
+        "content": content,
+    }
 
 
 def _mr_label(merge_request) -> str:
@@ -166,7 +205,10 @@ def create_supply_chain_merge_request(
     """Commit fixed files and open, update, or reopen an MR."""
     if not token:
         raise ValueError(
-            "--create-mr requires a GitLab token (--token, GITLAB_TOKEN, or CI_JOB_TOKEN)"
+            "--create-mr requires a GitLab token with permission to create "
+            "branches, commits, and merge requests "
+            "(--token or GITLAB_TOKEN project access token / PAT; "
+            "CI_JOB_TOKEN is usually insufficient)"
         )
     changed = _changed_files_from_fix_messages(fix_messages)
     if not changed:
@@ -205,21 +247,25 @@ def create_supply_chain_merge_request(
             project_obj, source_branch=branch
         )
 
+        branch_created = False
         try:
             project_obj.branches.get(branch)
         except gitlab.exceptions.GitlabGetError:
             project_obj.branches.create({"branch": branch, "ref": target})
+            branch_created = True
 
         actions = []
         for path in existing_files:
             with open(path, encoding="utf-8") as handle:
                 content = handle.read()
+            file_path = _repo_relative_path(path, pipeline_file)
             actions.append(
-                {
-                    "action": "update",
-                    "file_path": _repo_relative_path(path, pipeline_file),
-                    "content": content,
-                }
+                _file_commit_action(
+                    project_obj,
+                    branch=branch,
+                    file_path=file_path,
+                    content=content,
+                )
             )
 
         description = _mr_description(
@@ -227,18 +273,34 @@ def create_supply_chain_merge_request(
             files_updated=len(existing_files),
         )
 
+        def _commit_fixes() -> None:
+            try:
+                project_obj.commits.create(
+                    {
+                        "branch": branch,
+                        "commit_message": (
+                            "fix: apply gitlab-compliance supply-chain updates"
+                        ),
+                        "actions": actions,
+                    }
+                )
+            except gitlab.exceptions.GitlabError as exc:
+                detail = str(exc).strip() or exc.__class__.__name__
+                if branch_created:
+                    raise ValueError(
+                        f"GitLab API error while committing to newly created branch "
+                        f"`{branch}`: {detail}. "
+                        f"The branch may exist without the intended commit; "
+                        f"delete `{branch}` or push the fixes manually, then open an MR."
+                    ) from exc
+                raise ValueError(
+                    f"GitLab API error while committing to `{branch}`: {detail}."
+                ) from exc
+
         # New MRs require a commit before create (source must differ from target).
         # If create fails afterward, surface the branch name so the push is recoverable.
         if reusable_mr is None:
-            project_obj.commits.create(
-                {
-                    "branch": branch,
-                    "commit_message": (
-                        "fix: apply gitlab-compliance supply-chain updates"
-                    ),
-                    "actions": actions,
-                }
-            )
+            _commit_fixes()
             try:
                 merge_request = project_obj.mergerequests.create(
                     {
@@ -263,13 +325,7 @@ def create_supply_chain_merge_request(
             )
             return _mr_return_value(merge_request)
 
-        project_obj.commits.create(
-            {
-                "branch": branch,
-                "commit_message": "fix: apply gitlab-compliance supply-chain updates",
-                "actions": actions,
-            }
-        )
+        _commit_fixes()
         try:
             if mr_action == "reopen":
                 reusable_mr.state_event = "reopen"

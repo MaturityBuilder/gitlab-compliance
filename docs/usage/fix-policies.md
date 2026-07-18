@@ -4,6 +4,12 @@
 explicit allowlist. Unsupported failures are left unchanged and reported as not
 auto-fixable.
 
+For each allowlisted failure, only **entities that fail that policy's
+predicates** are rewritten (for example, unpinned job images for
+`GLCI-IMAGE-PINNING-001`, or includes outside the adoption window for
+`GLCI-INCLUDE-VERSIONS-004`). Other includes/images in the same pipeline are
+left alone.
+
 This is separate from [`--fix-supply-chain`](additional-parameters.md), which
 rewrites includes/images before policies run.
 
@@ -14,18 +20,21 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
   --fix-policies --token "$GITLAB_TOKEN"
 ```
 
-With an MR:
+With an MR (prefer a project/personal access token; `CI_JOB_TOKEN` is usually
+not enough to create branches or merge requests):
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
-  --fix-policies --create-mr --project "$CI_PROJECT_PATH"
+  --fix-policies --create-mr --project "$CI_PROJECT_PATH" \
+  --token "$GITLAB_TOKEN"
 ```
 
 Both fix modes can be combined:
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
-  --fix-supply-chain --fix-policies --create-mr --project "$CI_PROJECT_PATH"
+  --fix-supply-chain --fix-policies --create-mr --project "$CI_PROJECT_PATH" \
+  --token "$GITLAB_TOKEN"
 ```
 
 Requires a GitLab token. Cannot be combined with `--dry-run`.
@@ -34,19 +43,20 @@ Requires a GitLab token. Cannot be combined with `--dry-run`.
 
 1. Optional `--fix-supply-chain` rewrites.
 2. Initial policy run.
-3. Allowlisted failed scenarios → YAML remediations.
-4. Optional `--create-mr` commits those edits.
-5. Policies re-run; the final report reflects post-fix status.
+3. Allowlisted failed scenarios → YAML remediations for failing entities only.
+4. Policies re-run; the final report reflects post-fix status.
+5. Optional `--create-mr` commits those edits (report is printed first; MR
+   failures exit `2` when compliance otherwise passed).
 
 ## Supported remediations
 
 | Policy ID | What it fixes |
 | --- | --- |
 | `GLCI-INCLUDE-VERSIONS-003` | Bump include `ref:` / `@version` to latest semver |
-| `GLCI-INCLUDE-VERSIONS-004` | Same (adoption-window / age policies) |
-| `GLCI-INCLUDE-VERSIONS-005` | Same |
-| `GLCI-INCLUDE-VERSIONS-006` | Same (latest-N tags window) |
-| `GLCI-IMAGE-PINNING-001` | Pin job/service images to `@sha256:<digest>` |
+| `GLCI-INCLUDE-VERSIONS-004` | Same (only includes past the 30-day adoption window) |
+| `GLCI-INCLUDE-VERSIONS-005` | Same (only includes with lag over 90 days) |
+| `GLCI-INCLUDE-VERSIONS-006` | Same (only includes outside the latest-N tags window) |
+| `GLCI-IMAGE-PINNING-001` | Pin **job** images to `@sha256:<digest>` |
 
 These IDs match the example policies under
 `examples/example-policies/security/`.
@@ -59,6 +69,7 @@ including:
 - Invalid branch/`latest` includes (`GLCI-INCLUDE-VERSIONS-001` / `002`)
 - “Must not use `:latest`” / regex-only image rules without digest remediation
 - “Image lag behind registry latest” (needs a tag bump, not only a digest pin)
+- Service images (unless covered by a future allowlisted policy)
 - Builtin baseline / variable / API policies
 - Custom org policies without a registered remediation
 

@@ -71,24 +71,53 @@ class TestApplyPolicyRemediations:
 
     def test_image_pinning_uses_container_fix(self, monkeypatch):
         applied = []
+        source = str(SAMPLE_PIPELINE)
 
         def fake_collect(_entities):
-            return [MagicMock()]
+            return [
+                MagicMock(
+                    source_file=source,
+                    line=4,
+                    current_image="alpine:3",
+                    fixed_image="alpine@sha256:abc",
+                    image_source="job",
+                    parent_job="build",
+                ),
+                MagicMock(
+                    source_file=source,
+                    line=20,
+                    current_image="redis:7",
+                    fixed_image="redis@sha256:def",
+                    image_source="service",
+                    parent_job="build",
+                ),
+            ]
 
         def fake_apply(fixes):
-            fix = MagicMock()
-            fix.current_image = "alpine:3"
-            fix.fixed_image = "alpine@sha256:abc"
-            fix.image_source = "job"
-            fix.parent_job = "build"
-            fix.source_file = "ci.yml"
-            fix.line = 4
             applied.extend(fixes)
-            return [fix]
+            return list(fixes)
 
-        monkeypatch.setattr(
-            pf, "load_pipeline_entities", lambda **_k: {"container_images": []}
-        )
+        entities = {
+            "container_images": [
+                {
+                    "source_file": source,
+                    "line": 4,
+                    "image": "alpine:3",
+                    "image_source": "job",
+                    "parent_job": "build",
+                    "latest_digest": "abc",
+                },
+                {
+                    "source_file": source,
+                    "line": 20,
+                    "image": "redis:7",
+                    "image_source": "service",
+                    "parent_job": "build",
+                    "latest_digest": "def",
+                },
+            ]
+        }
+        monkeypatch.setattr(pf, "load_pipeline_entities", lambda **_k: entities)
         monkeypatch.setattr(pf, "collect_container_image_fixes", fake_collect)
         monkeypatch.setattr(pf, "apply_container_image_fixes", fake_apply)
         monkeypatch.setattr(pf, "print_info", lambda *_a, **_k: None)
@@ -108,23 +137,118 @@ class TestApplyPolicyRemediations:
         )
         assert len(messages) == 1
         assert "alpine@sha256:abc" in messages[0]
-        assert "(job build, ci.yml:4)" in messages[0]
-        assert applied
+        assert "(job build," in messages[0]
+        assert len(applied) == 1
+        assert applied[0].line == 4
+
+    def test_include_latest_scopes_to_failing_entities(self, monkeypatch):
+        source = str(SAMPLE_PIPELINE)
+        applied = []
+
+        def fake_collect(_entities):
+            return [
+                MagicMock(
+                    source_file=source,
+                    line=2,
+                    project="group/old",
+                    current_version="1.0.0",
+                    latest_version="1.2.0",
+                ),
+                MagicMock(
+                    source_file=source,
+                    line=8,
+                    project="group/grace",
+                    current_version="1.0.0",
+                    latest_version="1.1.0",
+                ),
+            ]
+
+        def fake_apply(fixes):
+            applied.extend(fixes)
+            return list(fixes)
+
+        entities = {
+            "includes": [
+                {
+                    "source_file": source,
+                    "line": 2,
+                    "project": "group/old",
+                    "version": "1.0.0",
+                    "latest_version": "1.2.0",
+                    "update_available": True,
+                    "latest_release_age_days": 45,
+                    "release_lag_days": 40,
+                    "release_metadata_resolved": True,
+                    "version_tag_rank": 5,
+                },
+                {
+                    "source_file": source,
+                    "line": 8,
+                    "project": "group/grace",
+                    "version": "1.0.0",
+                    "latest_version": "1.1.0",
+                    "update_available": True,
+                    "latest_release_age_days": 5,
+                    "release_lag_days": 5,
+                    "release_metadata_resolved": True,
+                    "version_tag_rank": 2,
+                },
+            ]
+        }
+        monkeypatch.setattr(pf, "load_pipeline_entities", lambda **_k: entities)
+        monkeypatch.setattr(pf, "collect_include_version_fixes", fake_collect)
+        monkeypatch.setattr(pf, "apply_include_version_fixes", fake_apply)
+        monkeypatch.setattr(pf, "print_info", lambda *_a, **_k: None)
+        monkeypatch.setattr(pf, "print_warning", lambda *_a, **_k: None)
+
+        messages = pf.apply_policy_remediations(
+            [
+                ScenarioResult(
+                    feature="include-versions.feature",
+                    name="grace",
+                    status="failed",
+                    policy_id="GLCI-INCLUDE-VERSIONS-004",
+                )
+            ],
+            pipeline_file=str(SAMPLE_PIPELINE),
+            token="token",
+        )
+        assert len(messages) == 1
+        assert "group/old" in messages[0]
+        assert len(applied) == 1
+        assert applied[0].line == 2
 
     def test_include_latest_uses_include_fix(self, monkeypatch):
+        source = str(SAMPLE_PIPELINE)
+
         def fake_collect(_entities):
-            return [MagicMock()]
+            return [
+                MagicMock(
+                    source_file=source,
+                    line=2,
+                    project="group/ci",
+                    current_version="1.0.0",
+                    latest_version="1.2.0",
+                )
+            ]
 
-        def fake_apply(_fixes):
-            fix = MagicMock()
-            fix.project = "group/ci"
-            fix.current_version = "1.0.0"
-            fix.latest_version = "1.2.0"
-            fix.source_file = "root.yml"
-            fix.line = 2
-            return [fix]
+        def fake_apply(fixes):
+            return list(fixes)
 
-        monkeypatch.setattr(pf, "load_pipeline_entities", lambda **_k: {"includes": []})
+        entities = {
+            "includes": [
+                {
+                    "source_file": source,
+                    "line": 2,
+                    "project": "group/ci",
+                    "version": "1.0.0",
+                    "latest_version": "1.2.0",
+                    "update_available": True,
+                    "release_metadata_resolved": True,
+                }
+            ]
+        }
+        monkeypatch.setattr(pf, "load_pipeline_entities", lambda **_k: entities)
         monkeypatch.setattr(pf, "collect_include_version_fixes", fake_collect)
         monkeypatch.setattr(pf, "apply_include_version_fixes", fake_apply)
         monkeypatch.setattr(pf, "print_info", lambda *_a, **_k: None)
@@ -142,7 +266,7 @@ class TestApplyPolicyRemediations:
             pipeline_file=str(SAMPLE_PIPELINE),
             token="token",
         )
-        assert messages == ["Fixed include group/ci: 1.0.0 -> 1.2.0 (root.yml:2)"]
+        assert messages == [f"Fixed include group/ci: 1.0.0 -> 1.2.0 ({source}:2)"]
 
 
 class TestRunComplianceFixPolicies:

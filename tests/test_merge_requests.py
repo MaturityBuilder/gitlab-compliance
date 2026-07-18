@@ -19,7 +19,13 @@ SAMPLE_PIPELINE = (
 PASSING_POLICIES = Path(__file__).resolve().parent / "compliance_policies" / "passing"
 
 
-def _project_mock(*, branch_exists: bool = True, opened=None, closed=None):
+def _project_mock(
+    *,
+    branch_exists: bool = True,
+    opened=None,
+    closed=None,
+    file_exists: bool = True,
+):
     project_obj = MagicMock()
     project_obj.default_branch = "main"
     project_obj.web_url = "https://gitlab.example.com/group/proj"
@@ -27,6 +33,13 @@ def _project_mock(*, branch_exists: bool = True, opened=None, closed=None):
         project_obj.branches.get.return_value = MagicMock()
     else:
         project_obj.branches.get.side_effect = mr.gitlab.exceptions.GitlabGetError(
+            response_code=404, error_message="not found"
+        )
+
+    if file_exists:
+        project_obj.files.get.return_value = MagicMock()
+    else:
+        project_obj.files.get.side_effect = mr.gitlab.exceptions.GitlabGetError(
             response_code=404, error_message="not found"
         )
 
@@ -283,6 +296,89 @@ class TestCreateSupplyChainMergeRequest:
         assert closed_mr.title == mr._MR_TITLE
         closed_mr.save.assert_called_once()
         project_obj.mergerequests.create.assert_not_called()
+
+    def test_reopens_most_recently_updated_closed_mr(self, tmp_path):
+        fixed = tmp_path / "pipeline.yml"
+        fixed.write_text("x: 1\n", encoding="utf-8")
+        messages = [f"Fixed include x: 1 -> 2 ({fixed}:1)"]
+        older = MagicMock()
+        older.web_url = "https://gitlab.example.com/group/proj/-/merge_requests/10"
+        older.iid = 10
+        older.updated_at = "2024-01-01T00:00:00Z"
+        newer = MagicMock()
+        newer.web_url = "https://gitlab.example.com/group/proj/-/merge_requests/12"
+        newer.iid = 12
+        newer.updated_at = "2025-06-01T00:00:00Z"
+        project_obj = _project_mock(branch_exists=True, closed=[older, newer])
+        gl = MagicMock()
+        gl.projects.get.return_value = project_obj
+
+        with patch("src.compliance.merge_requests.gitlab.Gitlab", return_value=gl):
+            url = mr.create_supply_chain_merge_request(
+                pipeline_file=str(fixed),
+                fix_messages=messages,
+                gitlab_url="https://gitlab.example.com",
+                token="token",
+                project="group/proj",
+                branch_name="fix/supply-chain",
+            )
+
+        assert url.endswith("/merge_requests/12")
+        assert newer.state_event == "reopen"
+        older.save.assert_not_called()
+
+    def test_commit_uses_create_when_file_missing_on_branch(self, tmp_path):
+        fixed = tmp_path / "pipeline.yml"
+        fixed.write_text("x: 1\n", encoding="utf-8")
+        messages = [f"Fixed include x: 1 -> 2 ({fixed}:1)"]
+        project_obj = _project_mock(branch_exists=True, file_exists=False)
+        merge_request = MagicMock()
+        merge_request.web_url = (
+            "https://gitlab.example.com/group/proj/-/merge_requests/1"
+        )
+        merge_request.iid = 1
+        project_obj.mergerequests.create.return_value = merge_request
+        gl = MagicMock()
+        gl.projects.get.return_value = project_obj
+
+        with patch("src.compliance.merge_requests.gitlab.Gitlab", return_value=gl):
+            mr.create_supply_chain_merge_request(
+                pipeline_file=str(fixed),
+                fix_messages=messages,
+                gitlab_url="https://gitlab.example.com",
+                token="token",
+                project="group/proj",
+                branch_name="fix/new-file",
+            )
+
+        actions = project_obj.commits.create.call_args[0][0]["actions"]
+        assert actions[0]["action"] == "create"
+
+    def test_commit_failure_after_new_branch_mentions_orphan_risk(self, tmp_path):
+        fixed = tmp_path / "pipeline.yml"
+        fixed.write_text("x: 1\n", encoding="utf-8")
+        messages = [f"Fixed include x: 1 -> 2 ({fixed}:1)"]
+        project_obj = _project_mock(branch_exists=False)
+        project_obj.commits.create.side_effect = mr.gitlab.exceptions.GitlabError(
+            "commit denied"
+        )
+        gl = MagicMock()
+        gl.projects.get.return_value = project_obj
+
+        with patch("src.compliance.merge_requests.gitlab.Gitlab", return_value=gl):
+            with pytest.raises(
+                ValueError,
+                match=r"newly created branch `fix/orphan`.*delete `fix/orphan`",
+            ):
+                mr.create_supply_chain_merge_request(
+                    pipeline_file=str(fixed),
+                    fix_messages=messages,
+                    gitlab_url="https://gitlab.example.com",
+                    token="token",
+                    project="group/proj",
+                    branch_name="fix/orphan",
+                )
+        project_obj.branches.create.assert_called_once()
 
     def test_updates_existing_mr_without_web_url(self, tmp_path):
         fixed = tmp_path / "pipeline.yml"
@@ -580,7 +676,7 @@ class TestRunComplianceMrFlags:
         create_mr.assert_called_once()
         assert create_mr.call_args.kwargs["branch_name"] == "fix/b"
 
-    def test_create_mr_failure_still_returns_compliance_result(self, monkeypatch):
+    def test_create_mr_failure_fails_process_after_report(self, monkeypatch):
         monkeypatch.setenv("GITLAB_TOKEN", "secret")
         with (
             patch(
@@ -592,6 +688,7 @@ class TestRunComplianceMrFlags:
                 side_effect=ValueError("GitLab project is required"),
             ),
             patch("src.compliance.runner.print_error") as print_error,
+            patch("src.compliance.runner.logger") as mock_logger,
             patch("src.compliance.runner.Runner") as mock_runner_cls,
         ):
             mock_runner_cls.return_value.run.return_value = 0
@@ -604,12 +701,15 @@ class TestRunComplianceMrFlags:
                 token="secret",
                 output_format="markdown",
             )
-        assert result.success is True
+        assert result.success is False
+        assert result.exit_code == 2
         assert mock_runner_cls.return_value.run.call_count == 1
         print_error.assert_called_once()
         assert "GitLab project is required" in print_error.call_args.args[0]
+        mock_logger.error.assert_called()
+        mock_logger.info.assert_called()
 
-    def test_post_mr_comment_failure_still_returns_result(self, monkeypatch):
+    def test_post_mr_comment_failure_fails_process_after_report(self, monkeypatch):
         monkeypatch.setenv("GITLAB_TOKEN", "token")
         with (
             patch(
@@ -631,8 +731,10 @@ class TestRunComplianceMrFlags:
                 mr_iid=3,
                 output_format="markdown",
             )
-        assert result.success is True
+        assert result.success is False
+        assert result.exit_code == 2
         mock_logger.info.assert_called()
+        mock_logger.error.assert_called()
         print_error.assert_called_once()
         assert "boom comment" in print_error.call_args.args[0]
 

@@ -425,6 +425,8 @@ def run_compliance(
             f"({scenarios} scenarios in {features} features)"
         )
 
+    side_effect_failed = False
+
     if create_mr:
         from src.compliance.merge_requests import create_supply_chain_merge_request
 
@@ -439,7 +441,10 @@ def run_compliance(
                 target_branch=mr_target_branch,
             )
         except (ValueError, OSError) as exc:
-            print_error(str(exc), title="Merge request failed")
+            detail = str(exc)
+            print_error(detail, title="Merge request failed")
+            logger.error("Merge request failed: %s", detail)
+            side_effect_failed = True
 
     if post_mr_comment:
         from src.compliance.merge_requests import post_compliance_mr_comment
@@ -463,6 +468,22 @@ def run_compliance(
                 mr_iid=mr_iid,
             )
         except (ValueError, OSError) as exc:
-            print_error(str(exc), title="MR comment failed")
+            detail = str(exc)
+            print_error(detail, title="MR comment failed")
+            logger.error("MR comment failed: %s", detail)
+            side_effect_failed = True
+
+    # Report was already emitted; fail the process so CI notices GitLab side-effect errors.
+    if side_effect_failed and result.exit_code == 0:
+        return ComplianceResult(
+            success=False,
+            exit_code=2,
+            features=result.features,
+            scenarios=result.scenarios,
+            passed=result.passed,
+            failed=result.failed,
+            skipped=result.skipped,
+            scenario_results=result.scenario_results,
+        )
 
     return result

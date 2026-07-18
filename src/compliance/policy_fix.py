@@ -2,24 +2,37 @@
 
 Only explicitly documented policy IDs are remediable. Everything else is left
 untouched and reported as not auto-fixable.
+
+Remediations apply only to entities that fail the matching policy predicates —
+not every include/image in the pipeline.
 """
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from dataclasses import dataclass
 
 from src.compliance.console import print_info, print_warning
 from src.compliance.container_fix import (
+    ContainerImageFix,
     apply_container_image_fixes,
     collect_container_image_fixes,
 )
 from src.compliance.include_fix import (
+    IncludeVersionFix,
     apply_include_version_fixes,
     collect_include_version_fixes,
 )
 from src.compliance.model import load_pipeline_entities
 from src.compliance.models import ScenarioResult
+from src.compliance.stash import (
+    container_image_uses_sha256,
+    include_has_newer_release,
+    include_newer_release_older_than_days,
+    include_not_within_latest_tags,
+    include_release_lag_exceeds_days,
+)
 from src.modules.logging import logger
 
 
@@ -54,10 +67,11 @@ SUPPORTED_REMEDIATIONS: tuple[PolicyRemediation, ...] = (
     ),
     PolicyRemediation(
         policy_ids=frozenset({"GLCI-IMAGE-PINNING-001"}),
-        title="Pin container images to sha256 digests",
+        title="Pin job container images to sha256 digests",
         description=(
-            "When a job or service image is not digest-pinned, rewrite the image "
-            "reference to `@sha256:<digest>` for the currently resolved tag."
+            "When a job image is not digest-pinned (GLCI-IMAGE-PINNING-001), rewrite "
+            "that image reference to `@sha256:<digest>` for the currently resolved tag. "
+            "Service images are not rewritten unless they also fail an allowlisted policy."
         ),
         kind="image_digest",
     ),
@@ -69,6 +83,21 @@ _POLICY_ID_TO_KIND: dict[str, str] = {
     for policy_id in remediation.policy_ids
 }
 
+# Predicates mirror the example policy Then steps (days/tag windows included).
+_INCLUDE_FAIL_PREDICATES: dict[str, Callable[[dict], bool]] = {
+    "GLCI-INCLUDE-VERSIONS-003": include_has_newer_release,
+    "GLCI-INCLUDE-VERSIONS-004": lambda e: include_newer_release_older_than_days(e, 30),
+    "GLCI-INCLUDE-VERSIONS-005": lambda e: include_release_lag_exceeds_days(e, 90),
+    "GLCI-INCLUDE-VERSIONS-006": lambda e: include_not_within_latest_tags(e, 3),
+}
+
+# GLCI-IMAGE-PINNING-001 example policy scopes to job images only.
+_IMAGE_FAIL_PREDICATES: dict[str, Callable[[dict], bool]] = {
+    "GLCI-IMAGE-PINNING-001": lambda e: (
+        str(e.get("image_source", "")) == "job" and not container_image_uses_sha256(e)
+    ),
+}
+
 
 def supported_policy_ids() -> frozenset[str]:
     return frozenset(_POLICY_ID_TO_KIND)
@@ -76,6 +105,68 @@ def supported_policy_ids() -> frozenset[str]:
 
 def remediation_kind_for_policy(policy_id: str) -> str | None:
     return _POLICY_ID_TO_KIND.get(policy_id)
+
+
+def _normalized_path(path: str) -> str:
+    if not path:
+        return ""
+    try:
+        return os.path.realpath(os.path.abspath(path))
+    except OSError:
+        return os.path.normpath(path)
+
+
+def _entity_location(entity: dict) -> tuple[str, int]:
+    return (
+        _normalized_path(str(entity.get("source_file", ""))),
+        int(entity.get("line", 0) or 0),
+    )
+
+
+def _locations_for_failed_policies(
+    entities: list[dict],
+    failed_policy_ids: set[str],
+    predicates: dict[str, Callable[[dict], bool]],
+) -> set[tuple[str, int]]:
+    """Locations of entities that fail any of the given allowlisted policies."""
+    active = [
+        predicates[policy_id]
+        for policy_id in failed_policy_ids
+        if policy_id in predicates
+    ]
+    if not active:
+        return set()
+    locations: set[tuple[str, int]] = set()
+    for entity in entities:
+        if any(predicate(entity) for predicate in active):
+            locations.add(_entity_location(entity))
+    return locations
+
+
+def _filter_include_fixes(
+    fixes: list[IncludeVersionFix],
+    locations: set[tuple[str, int]],
+) -> list[IncludeVersionFix]:
+    if not locations:
+        return []
+    return [
+        fix
+        for fix in fixes
+        if (_normalized_path(fix.source_file), int(fix.line or 0)) in locations
+    ]
+
+
+def _filter_image_fixes(
+    fixes: list[ContainerImageFix],
+    locations: set[tuple[str, int]],
+) -> list[ContainerImageFix]:
+    if not locations:
+        return []
+    return [
+        fix
+        for fix in fixes
+        if (_normalized_path(fix.source_file), int(fix.line or 0)) in locations
+    ]
 
 
 def _apply_include_latest(
@@ -87,6 +178,7 @@ def _apply_include_latest(
     token: str,
     project: str | None,
     group: str | None,
+    failed_policy_ids: set[str],
 ) -> list[str]:
     entities = load_pipeline_entities(
         pipeline_file=pipeline_file,
@@ -100,8 +192,16 @@ def _apply_include_latest(
         enrich_images=False,
         load_api_entities=False,
     )
+    locations = _locations_for_failed_policies(
+        entities.get("includes", []),
+        failed_policy_ids,
+        _INCLUDE_FAIL_PREDICATES,
+    )
+    candidates = _filter_include_fixes(
+        collect_include_version_fixes(entities), locations
+    )
     messages: list[str] = []
-    for fix in apply_include_version_fixes(collect_include_version_fixes(entities)):
+    for fix in apply_include_version_fixes(candidates):
         messages.append(
             f"Fixed include {fix.project}: {fix.current_version} -> {fix.latest_version} "
             f"({fix.source_file}:{fix.line})"
@@ -118,6 +218,7 @@ def _apply_image_digest(
     token: str,
     project: str | None,
     group: str | None,
+    failed_policy_ids: set[str],
 ) -> list[str]:
     entities = load_pipeline_entities(
         pipeline_file=pipeline_file,
@@ -131,8 +232,14 @@ def _apply_image_digest(
         enrich_images=True,
         load_api_entities=False,
     )
+    locations = _locations_for_failed_policies(
+        entities.get("container_images", []),
+        failed_policy_ids,
+        _IMAGE_FAIL_PREDICATES,
+    )
+    candidates = _filter_image_fixes(collect_container_image_fixes(entities), locations)
     messages: list[str] = []
-    for fix in apply_container_image_fixes(collect_container_image_fixes(entities)):
+    for fix in apply_container_image_fixes(candidates):
         messages.append(
             f"Fixed image {fix.current_image} -> {fix.fixed_image} "
             f"({fix.image_source} {fix.parent_job}, {fix.source_file}:{fix.line})"
@@ -167,6 +274,7 @@ def apply_policy_remediations(
         return []
 
     kinds: set[str] = set()
+    failed_policy_ids: set[str] = set()
     unsupported: list[ScenarioResult] = []
     for scenario in failed:
         kind = remediation_kind_for_policy(scenario.policy_id)
@@ -174,6 +282,8 @@ def apply_policy_remediations(
             unsupported.append(scenario)
         else:
             kinds.add(kind)
+            if scenario.policy_id:
+                failed_policy_ids.add(scenario.policy_id)
 
     for scenario in unsupported:
         label = scenario.policy_id or scenario.name
@@ -198,6 +308,7 @@ def apply_policy_remediations(
         "token": token,
         "project": project,
         "group": group,
+        "failed_policy_ids": failed_policy_ids,
     }
     # Includes first so image enrichment sees updated files when both apply.
     for kind in ("include_latest", "image_digest"):
