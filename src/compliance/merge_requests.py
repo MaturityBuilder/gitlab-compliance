@@ -82,8 +82,8 @@ def _mr_description(
         "This merge request was created by ",
         "[`gitlab-compliance check --fix-supply-chain/--fix-policies --create-mr`]",
         "(https://maturitybuilder.github.io/gitlab-compliance/) "
-        "to apply automated supply-chain and/or allowlisted policy remediations "
-        "to GitLab CI YAML.",
+        + "to apply automated supply-chain and/or allowlisted policy remediations "
+        + "to GitLab CI YAML.",
         "",
         "### Summary",
         "",
