@@ -5,39 +5,38 @@ Deprecated: use `generate --format html` instead.
 ## Usage
 
 ```text
-Usage: gitlab-compliance generate-html [OPTIONS]```
+Usage: gitlab-compliance generate-html [OPTIONS]
+```
 
 ## Options
 
-* `detailed`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--detailed`
+### `--detailed`
 
-  Will include workflow and rules from jobs.
+- **Name:** `detailed`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `false`
+- **Type:** `BOOL`
+- **Description:** Will include workflow and rules from jobs.
 
-* `OUTPUT_FILE`:
-  * Type: STRING
-  * Default: `gitlab-compliance.html`
-  * Usage: `--output-file
--o`
+### `--output-file, -o`
 
-  Output location of the HTML documentation.
+- **Name:** `OUTPUT_FILE`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `gitlab-compliance.html`
+- **Type:** `STRING`
+- **Description:** Output location of the HTML documentation.
 
-* `GLDOCS_CONFIG_FILE`:
-  * Type: STRING
-  * Default: `.gitlab-ci.yml`
-  * Usage: `--input-config
--i`
+### `--input-config, -i`
 
-  The Gitlab CI Input configuration file to generated documentation from.
+- **Name:** `GLDOCS_CONFIG_FILE`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `.gitlab-ci.yml`
+- **Type:** `STRING`
+- **Description:** The Gitlab CI Input configuration file to generated documentation from.
 
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
-
-  Show this message and exit.
 
 ## CLI Help
 

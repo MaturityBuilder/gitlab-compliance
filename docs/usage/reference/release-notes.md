@@ -6,66 +6,69 @@ Generate release notes for multiple GitLab projects based on commits since the l
 ## Usage
 
 ```text
-
 Usage: gitlab-compliance release-notes [OPTIONS]
-
 ```
 
 ## Options
 
-* `token` (REQUIRED):
-  * Type: STRING
-  * Default: `sentinel.unset`
-  * Usage: `--token`
+### `--token`
 
-  GitLab personal access token
+- **Name:** `token`
+- **Kind:** Option
+- **Required:** yes
+- **Default:** `required`
+- **Type:** `STRING`
+- **Description:** GitLab personal access token
 
-* `url`:
-  * Type: STRING
-  * Default: `https://gitlab.com`
-  * Usage: `--url`
+### `--url`
 
-  GitLab instance URL
+- **Name:** `url`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `https://gitlab.com`
+- **Type:** `STRING`
+- **Description:** GitLab instance URL
 
-* `projects` (REQUIRED):
-  * Type: STRING
-  * Default: `sentinel.unset`
-  * Usage: `--projects`
+### `--projects`
 
-  List of GitLab project IDs or full paths
+- **Name:** `projects`
+- **Kind:** Option
+- **Required:** yes
+- **Default:** `required`
+- **Type:** `STRING`
+- **Description:** List of GitLab project IDs or full paths
 
-* `since_tag`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--since-tag`
+### `--since-tag`
 
-  Baseline tag name (default: latest semver tag, else most recent by date)
+- **Name:** `since_tag`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `not set`
+- **Type:** `STRING`
+- **Description:** Baseline tag name (default: latest semver tag, else most recent by date)
 
-* `markdown_dir`:
-  * Type: <click.types.Path object at 0x7349b62052b0>
-  * Default: `.`
-  * Usage: `--markdown`
+### `--markdown`
 
-  Directory to output Markdown release notes
+- **Name:** `markdown_dir`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `.`
+- **Type:** `<click.types.Path object at 0x7f8e088edc10>`
+- **Description:** Directory to output Markdown release notes
 
-* `no_write`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--no-write`
+### `--no-write`
 
-  Skip writing Markdown files
+- **Name:** `no_write`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `false`
+- **Type:** `BOOL`
+- **Description:** Skip writing Markdown files
 
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
-
-  Show this message and exit.
 
 ## CLI Help
 
 ```text
-
 Usage: gitlab-compliance release-notes [OPTIONS]
 
   Generate release notes for multiple GitLab projects based on commits since
@@ -80,5 +83,4 @@ Options:
   --markdown DIRECTORY  Directory to output Markdown release notes
   --no-write            Skip writing Markdown files
   --help                Show this message and exit.
-
 ```

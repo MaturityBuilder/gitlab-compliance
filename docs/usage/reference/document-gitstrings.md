@@ -1,74 +1,84 @@
-# gitstrings
+# document gitstrings
 
-Render decorated ```yaml gitstrings fences into marker-delimited markdown tables.
+Render gitstrings documentation from CI YAML decorators or markdown fences.
 
-### Usage
+## Usage
 
-```
+```text
 Usage: gitlab-compliance document gitstrings [OPTIONS]
 ```
 
-### Options
+## Options
 
-* `input_file`:
-  * Type: STRING
-  * Default: `README.md`
-  * Usage: `--input-file
--i`
+### `-i, --input-file`
 
-  Markdown file to scan for ```yaml gitstrings fences (source snippets).
+- **Name:** `input_file`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `README.md`
+- **Type:** `STRING`
+- **Description:** Markdown or CI YAML (.yml) file with gitstrings decorators or fenced snippets.
 
-* `output_file`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--output-file
--o
---output`
+### `-o, --output-file, --output`
 
-  Default markdown file for gitstrings marker updates when a fence has no `# @output`.
+- **Name:** `output_file`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `not set`
+- **Type:** `STRING`
+- **Description:** Markdown file for gitstrings marker updates. When set, all fragments write here and # @output in YAML is ignored.
 
-* `dry_mode`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--dry-mode
--d`
+### `--dry-mode, -d`
 
-  Log updates without writing files.
+- **Name:** `dry_mode`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `false`
+- **Type:** `BOOL`
+- **Description:** Log updates without writing files.
 
-* `keep_source`:
-  * Type: BOOL
-  * Default: `true`
-  * Usage: `--keep-source
---no-keep-source`
+### `--keep-source, --no-keep-source`
 
-  Include collapsible source YAML in the generated marker block.
+- **Name:** `keep_source`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `true`
+- **Type:** `BOOL`
+- **Description:** Include collapsible source YAML in the generated marker block.
 
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
+### `--include-nested`
 
-  Show this message and exit.
+- **Name:** `include_nested`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `false`
+- **Type:** `BOOL`
+- **Description:** Walk nested local: includes on disk when documenting @render includes (-i must be .yml). Does not fetch project, component, remote, or template trees.
 
-### CLI Help
 
-```
+## CLI Help
+
+```text
 Usage: gitlab-compliance document gitstrings [OPTIONS]
 
-  Render decorated ```yaml gitstrings fences into marker-delimited markdown
-  tables.
+  Render gitstrings documentation from CI YAML decorators or markdown fences.
 
 Options:
-  -i, --input-file TEXT       Markdown file to scan for ```yaml gitstrings
-                              fences (source snippets).  [default: README.md]
+  -i, --input-file TEXT           Markdown or CI YAML (.yml) file with
+                                  gitstrings decorators or fenced snippets.
+                                  [default: README.md]
   -o, --output-file, --output TEXT
-                              Default markdown file for gitstrings marker
-                              updates when a fence has no # @output.
-  -d, --dry-mode              Log updates without writing files.
+                                  Markdown file for gitstrings marker updates.
+                                  When set, all fragments write here and #
+                                  @output in YAML is ignored.
+  -d, --dry-mode                  Log updates without writing files.
   --keep-source / --no-keep-source
-                              Include collapsible source YAML in the generated
-                              marker block.  [default: keep-source]
-  --help                      Show this message and exit.
+                                  Include collapsible source YAML in the
+                                  generated marker block.  [default: keep-
+                                  source]
+  --include-nested                Walk nested local: includes on disk when
+                                  documenting @render includes (-i must be
+                                  .yml). Does not fetch project, component,
+                                  remote, or template trees.
+  --help                          Show this message and exit.
 ```
-
-See also [Gitstrings user guide](../../usage/gitstrings.md).

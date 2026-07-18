@@ -57,8 +57,10 @@ With an OCI `-f` reference, pull the latest policy bundle before executing
 checks.
 
 ```bash
-gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 -p
-.gitlab-ci.yml --update
+gitlab-compliance check \
+  -f oci://registry.example.com/org/policies:1.0.0 \
+  -p .gitlab-ci.yml \
+  --update
 ```
 
 ## `--policy-cache-dir`
@@ -119,8 +121,11 @@ gitlab-compliance generate -i .gitlab-ci.yml \
 ### `policies push` / `policies pull`
 
 ```bash
-gitlab-compliance policies push -f policies/
-registry.example.com/org/policies:1.0.0
-gitlab-compliance policies pull oci://registry.example.com/org/policies:1.0.0 -o
-policies/
+gitlab-compliance policies push \
+  -f policies/ \
+  registry.example.com/org/policies:1.0.0
+
+gitlab-compliance policies pull \
+  oci://registry.example.com/org/policies:1.0.0 \
+  -o policies/
 ```

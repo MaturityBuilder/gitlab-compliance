@@ -27,4 +27,4 @@ gitlab-compliance generate -i .gitlab-ci.yml --format html -o public/index.html
 ```
 
 Example policies: [Examples](../examples/index.md). Sample generated docs:
-[GitLab Docs output example](../examples/gitlab-docs-output-example.md).
+[Pipeline documentation output example](../examples/gitlab-docs-output-example.md).

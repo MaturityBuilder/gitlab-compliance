@@ -3,6 +3,8 @@
 Auto-generated reference for `gitlab-compliance` subcommands.
 
 - [check](check.md)
+- [document](document.md)
+- [document gitstrings](document-gitstrings.md)
 - [dumps](dumps.md)
 - [generate](generate.md)
 - [generate-html](generate-html.md)

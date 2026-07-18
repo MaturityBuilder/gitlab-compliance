@@ -4,9 +4,10 @@ Install `gitlab-compliance` with Python (pip or Poetry).
 
 ## Methods
 
-| Method                       | Best for                      |
-| ---------------------------- | ----------------------------- |
-| [Installing via pip](pip.md) | Local development and CI jobs |
+| Method                           | Best for                              |
+| -------------------------------- | ------------------------------------- |
+| [Installing via pip](pip.md)     | Local development and CI jobs         |
+| [Running with Docker](docker.md) | Containerized CI jobs and smoke tests |
 
 ## Next steps
 

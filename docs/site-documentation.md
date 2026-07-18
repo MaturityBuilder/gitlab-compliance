@@ -34,11 +34,15 @@ page `#` title is not listed in the TOC.
 Produce a static site for inspection:
 
 ```bash
-zensical build --strict
+poetry run gitlab-compliance dumps
+poetry run zensical build --strict
 ```
 
 The HTML output is written to `public/` (GitLab Pages and GitHub Pages both
 expect this directory in CI).
+
+Run `poetry run gitlab-compliance dumps` whenever a CLI command, option, or help
+text changes. The command rewrites `docs/usage/reference/` from the live CLI.
 
 ### Link rules (`--strict`)
 
@@ -121,4 +125,5 @@ Navigation mirrors
 1. Add or edit Markdown under `docs/` (use subfolders for sections, e.g.
 `docs/examples/`).
 2. Register the page in the `nav` section of `mkdocs.yml`.
-3. Run `zensical build --strict` locally before opening a merge request.
+3. Run `poetry run gitlab-compliance dumps` if CLI reference output changed.
+4. Run `zensical build --strict` locally before opening a merge request.

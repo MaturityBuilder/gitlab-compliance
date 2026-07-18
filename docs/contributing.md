@@ -57,16 +57,21 @@ Docs are built with [Zensical](https://zensical.org/). Structure mirrors
 
 ```bash
 poetry install --with docs
+poetry run gitlab-compliance dumps
 poetry run zensical serve
 poetry run zensical build --strict
 
 ```
 
+Run `poetry run gitlab-compliance dumps` after changing CLI commands or options.
+It regenerates the Markdown command reference under `docs/usage/reference/`.
+
 When adding pages:
 
 1. Create Markdown under `docs/`
 2. Register the page in `nav` inside `mkdocs.yml`
-3. Run `zensical build --strict` before opening a pull request
+3. Regenerate the command reference when CLI help changes
+4. Run `zensical build --strict` before opening a pull request
 
 ## Policy and BDD changes
 

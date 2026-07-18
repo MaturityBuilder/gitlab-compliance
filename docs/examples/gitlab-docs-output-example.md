@@ -15,8 +15,8 @@ Sample `generate` output.
 
 | Key         | Value          | Description | Options   | Expand |
 | ----------- | -------------- | ----------- | --------- | ------ |
-| APPLICATION | gitlab-docs    | _not set_   | _not set_ | true   |
-| OUTPUT_FILE | GITLAB-DOCS.md | _not set_   | _not set_ | true   |
+| APPLICATION | gitlab-compliance    | _not set_   | _not set_ | true   |
+| OUTPUT_FILE | GITLAB-COMPLIANCE.md | _not set_   | _not set_ | true   |
 
 - **Rules # 1**
   - **if:** `$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH && $CI_COMMIT_MESSAGE =~ /^chore: bumping version to/`

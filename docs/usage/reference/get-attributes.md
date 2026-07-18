@@ -10,56 +10,51 @@ Compared to the generate command, the get-attribute command allows you to pass t
 ## Usage
 
 ```text
-
 Usage: gitlab-compliance get-attributes [OPTIONS]
-
 ```
 
 ## Options
 
-* `attributes`:
-  * Type: STRING
-  * Default: `readme.md`
-  * Usage: `--attributes
--a`
+### `--attributes, -a`
 
-  Pass a comma seperated list of gitlab ci yml attributes
+- **Name:** `attributes`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `README.md`
+- **Type:** `STRING`
+- **Description:** Pass a comma seperated list of gitlab ci yml attributes
 
-* `OUTPUT_FILE`:
-  * Type: STRING
-  * Default: `readme.md`
-  * Usage: `--output-file
--o`
+### `--output-file, -o`
 
-  Output location of the markdown documentation.
+- **Name:** `OUTPUT_FILE`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `README.md`
+- **Type:** `STRING`
+- **Description:** Output location of the markdown documentation.
 
-* `GLDOCS_CONFIG_FILE`:
-  * Type: STRING
-  * Default: `.gitlab-ci.yml`
-  * Usage: `--input-config
--i`
+### `--input-config, -i`
 
-  The Gitlab CI Input configuration file to generated documentation from.
+- **Name:** `GLDOCS_CONFIG_FILE`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `.gitlab-ci.yml`
+- **Type:** `STRING`
+- **Description:** The Gitlab CI Input configuration file to generated documentation from.
 
-* `json_format`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--json
--j`
+### `--json, -j`
 
-  Return results in json format.
+- **Name:** `json_format`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `false`
+- **Type:** `BOOL`
+- **Description:** Return results in json format.
 
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
-
-  Show this message and exit.
 
 ## CLI Help
 
 ```text
-
 Usage: gitlab-compliance get-attributes [OPTIONS]
 
   Compared to the generate command, the get-attribute command allows you to
@@ -75,7 +70,5 @@ Options:
   -i, --input-config TEXT  The Gitlab CI Input configuration file to generated
                            documentation from.
   -j, --json BOOLEAN       Return results in json format.
-  --help
-              Show this message and exit.
-
+  --help                   Show this message and exit.
 ```

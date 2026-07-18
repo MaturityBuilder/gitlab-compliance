@@ -125,8 +125,9 @@ comment-compliance:
   image: python:3.12
   script:
     - pip install gitlab-compliance
-    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
-        --format mr-comment -o comment.md || true
+    - >
+      gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
+      --format mr-comment -o comment.md || true
     - |
       curl --request POST \
         --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \

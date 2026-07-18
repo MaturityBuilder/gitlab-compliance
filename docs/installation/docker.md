@@ -1,31 +1,46 @@
 # Docker
 
-![gitlab-compliance](../assets/logo-light.png){ width="280" }
+A pre-built Python Alpine image is published as
+[`maturitybuilder/gitlab-compliance`](https://hub.docker.com/r/maturitybuilder/gitlab-compliance).
 
-A pre-built Docker image on Python Alpine Linux, published by
-[MaturityBuilder](https://github.com/MaturityBuilder/gitlab-compliance).
+Use the container when you do not want to install Python dependencies in the
+calling project. Mount the repository that contains `.gitlab-ci.yml` and run the
+same CLI command you would use locally.
 
-`gitlab-compliance` is published on [Docker
-Hub](https://hub.docker.com/_/gitlab-compliance/) as the `gitlab-compliance`
-package.
+## Run a local check
 
 ```bash
-docker run -it -v $PWD:/src -w /src -e GITLAB_TOKEN=$GITLAB_TOKEN -e
-maturitybuilder/gitlab-compliance check -f example-policies --include-nested
---project <my gitlab project path>
+docker run --rm -it \
+  -v "$PWD:/work" \
+  -w /work \
+  maturitybuilder/gitlab-compliance:latest \
+  gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
-## Audit Pipeline Yaml
+For API-backed policies, pass the GitLab token through the environment and set a
+project or group path:
 
-```yml
+```bash
+docker run --rm -it \
+  -v "$PWD:/work" \
+  -w /work \
+  -e GITLAB_TOKEN \
+  maturitybuilder/gitlab-compliance:latest \
+  gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
+  --project my-group/my-project --strict
+```
+
+## GitLab CI example
+
+```yaml
 gitlab-compliance:
-    image: maturitybuilder/gitlab-compliance
-    script:
-        - gitlab-compliance check -f example-policies --include-nested --project
-          <my gitlab project path>
-
+  image: maturitybuilder/gitlab-compliance:latest
+  stage: test
+  script:
+    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
 ```
 
-Depending on your workflow and security policy the pipeline can potentially auto
-resolve includes and image updates by passing arg `--fix`
+Depending on your workflow and security policy, the pipeline can optionally
+resolve include updates and pin container images by passing `--fix`.
+
 Next: [Usage](../usage/index.md).

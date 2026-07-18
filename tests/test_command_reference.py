@@ -36,6 +36,10 @@ class TestDumpHelper:
         text = generate_md.read_text(encoding="utf-8")
         assert text.startswith("# generate")
         assert "## Usage" in text
+        assert "```text\nUsage: gitlab-compliance generate [OPTIONS]\n```" in text
+        assert "### `--format, -f`" in text
+        assert "`--format\n-f`" not in text
+        assert "### `--help`" not in text
 
         index_md = tmp_path / "command-reference.md"
         assert index_md.is_file()

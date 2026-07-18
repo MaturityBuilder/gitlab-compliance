@@ -5,71 +5,74 @@ Will scan through your gitlab-ci yml and build documentation from the yml.
 ## Usage
 
 ```text
-Usage: gitlab-compliance generate [OPTIONS]```
+Usage: gitlab-compliance generate [OPTIONS]
+```
 
 ## Options
 
-* `detailed`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--detailed`
+### `--detailed`
 
-  Will include workflow and rules from jobs.
+- **Name:** `detailed`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `false`
+- **Type:** `BOOL`
+- **Description:** Will include workflow and rules from jobs.
 
-* `output_format`:
-  * Type: Choice(['markdown', 'swagger-markdown', 'html'])
-  * Default: `markdown`
-  * Usage: `--format
--f`
+### `--format, -f`
 
-  Output format for generated documentation.
+- **Name:** `output_format`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `markdown`
+- **Type:** `Choice(['markdown', 'swagger-markdown', 'html'])`
+- **Description:** Output format for generated documentation.
 
-* `DRY_MODE`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--dry-mode
--d`
+### `--dry-mode, -d`
 
-  If set will disable documentation from being written
+- **Name:** `DRY_MODE`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `false`
+- **Type:** `BOOL`
+- **Description:** If set will disable documentation from being written
 
-* `OUTPUT_FILE`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--output-file
--o`
+### `--output-file, -o`
 
-  Output location of the generated documentation.
+- **Name:** `OUTPUT_FILE`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `not set`
+- **Type:** `STRING`
+- **Description:** Output location of the generated documentation.
 
-* `GLDOCS_CONFIG_FILE`:
-  * Type: STRING
-  * Default: `.gitlab-ci.yml`
-  * Usage: `--input-config
--i`
+### `--input-config, -i`
 
-  The Gitlab CI Input configuration file to generated documentation from.
+- **Name:** `GLDOCS_CONFIG_FILE`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `.gitlab-ci.yml`
+- **Type:** `STRING`
+- **Description:** The Gitlab CI Input configuration file to generated documentation from.
 
-* `exclude`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--exclude
--x`
+### `--exclude, -x`
 
-  Comma-separated sections or job attributes to omit from output. Sections: inputs, variables, includes, workflow, jobs, container_images.
+- **Name:** `exclude`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `not set`
+- **Type:** `STRING`
+- **Description:** Comma-separated sections or job attributes to omit from output. Sections: inputs, variables, includes, workflow, jobs, container_images.
 
-* `group_by`:
-  * Type: STRING
-  * Default: `none`
-  * Usage: `--group-by
--g`
+### `--group-by, -g`
 
-  Group jobs in the Jobs section by this job attribute (e.g. stage).
+- **Name:** `group_by`
+- **Kind:** Option
+- **Required:** no
+- **Default:** `not set`
+- **Type:** `STRING`
+- **Description:** Group jobs in the Jobs section by this job attribute (e.g. stage).
 
-* `help`:
-  * Type: BOOL
-  * Default: `false`
-  * Usage: `--help`
-
-  Show this message and exit.
 
 ## CLI Help
 
