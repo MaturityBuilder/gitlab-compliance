@@ -651,6 +651,8 @@ def check(
     """
     output_format = output_format.lower()
 
+    from src.compliance.console import print_error, print_success
+
     if (
         update
         and _gitlab_docs.is_oci_reference(features_dir)
@@ -658,29 +660,34 @@ def check(
         and os.path.isdir(policy_cache_dir)
     ):
         shutil.rmtree(policy_cache_dir)
-    result = _gitlab_docs.run_compliance(
-        features_dir=features_dir,
-        pipeline_file=pipeline_file,
-        include_nested=include_nested,
-        max_include_depth=max_include_depth,
-        gitlab_url=gitlab_url,
-        token=token,
-        project=project,
-        group=group,
-        strict=strict,
-        dry_run=dry_run,
-        output_format=output_format,
-        policies_source=features_dir,
-        policy_cache_dir=policy_cache_dir,
-        fix=fix,
-        with_builtin=with_builtin,
-        create_mr=create_mr,
-        post_mr_comment=post_mr_comment,
-        mr_iid=mr_iid,
-        mr_branch=mr_branch,
-        mr_target_branch=mr_target_branch,
-        mr_comment_file=mr_comment_file,
-    )
+
+    try:
+        result = _gitlab_docs.run_compliance(
+            features_dir=features_dir,
+            pipeline_file=pipeline_file,
+            include_nested=include_nested,
+            max_include_depth=max_include_depth,
+            gitlab_url=gitlab_url,
+            token=token,
+            project=project,
+            group=group,
+            strict=strict,
+            dry_run=dry_run,
+            output_format=output_format,
+            policies_source=features_dir,
+            policy_cache_dir=policy_cache_dir,
+            fix=fix,
+            with_builtin=with_builtin,
+            create_mr=create_mr,
+            post_mr_comment=post_mr_comment,
+            mr_iid=mr_iid,
+            mr_branch=mr_branch,
+            mr_target_branch=mr_target_branch,
+            mr_comment_file=mr_comment_file,
+        )
+    except (ValueError, FileNotFoundError, OSError) as exc:
+        print_error(str(exc))
+        raise SystemExit(2) from exc
 
     if output_format != "console":
         report = _gitlab_docs.render_compliance_report(
@@ -693,14 +700,24 @@ def check(
         if target:
             with open(target, "w", encoding="utf-8") as handle:
                 handle.write(report)
-            logger.info(f"Compliance report written to {target}")
+            print_success(
+                f"Compliance report written to `{target}`",
+                title="Report written",
+            )
         else:
             click.echo(report)
 
-    if result.success:
-        logger.info(f"Compliance passed for {pipeline_file}")
-    else:
-        logger.error(f"Compliance failed for {pipeline_file}")
+        if result.success:
+            print_success(
+                f"Compliance passed for `{pipeline_file}`",
+                title="Complete",
+            )
+        else:
+            print_error(
+                f"Compliance failed for `{pipeline_file}`",
+                title="Complete",
+                hint="Review the report, then re-run after fixes.",
+            )
     raise SystemExit(result.exit_code)
 
 

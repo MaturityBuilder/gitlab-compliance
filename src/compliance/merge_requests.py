@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 import gitlab
 
 from src.compliance.api_config import resolve_project
-from src.modules.logging import logger
+from src.compliance.console import print_info, print_success, print_warning
 
 _FIX_PATH_RE = re.compile(r"\((?:[^()]*?,\s*)?(?P<path>[^(),]+):(?P<line>\d+)\)\s*$")
 
@@ -68,6 +68,11 @@ def _default_branch_name() -> str:
     return f"gitlab-compliance/supply-chain-fix-{stamp}"
 
 
+def _friendly_gitlab_error(exc: Exception, *, action: str) -> ValueError:
+    detail = str(exc).strip() or exc.__class__.__name__
+    return ValueError(f"GitLab API error while {action}: {detail}")
+
+
 def create_supply_chain_merge_request(
     *,
     pipeline_file: str,
@@ -85,76 +90,100 @@ def create_supply_chain_merge_request(
         )
     changed = _changed_files_from_fix_messages(fix_messages)
     if not changed:
-        logger.info("No supply-chain file changes to commit; skipping --create-mr.")
+        print_info(
+            "No supply-chain file changes to commit; skipping --create-mr.",
+            title="Merge request skipped",
+        )
+        return None
+
+    existing_files: list[str] = []
+    for path in changed:
+        if os.path.exists(path):
+            existing_files.append(path)
+        else:
+            print_warning(
+                f"Skipping missing fixed file for MR: {path}",
+                title="Missing file",
+            )
+    if not existing_files:
+        print_info(
+            "No readable fixed files for MR commit; skipping --create-mr.",
+            title="Merge request skipped",
+        )
         return None
 
     project_path = _resolve_project_path(project)
     url = _resolve_gitlab_url(gitlab_url)
-    gl = gitlab.Gitlab(url, private_token=token)
-    project_obj = gl.projects.get(project_path)
-    target = target_branch or project_obj.default_branch
-    branch = branch_name or _default_branch_name()
 
     try:
-        project_obj.branches.get(branch)
-    except gitlab.exceptions.GitlabGetError:
-        project_obj.branches.create({"branch": branch, "ref": target})
+        gl = gitlab.Gitlab(url, private_token=token)
+        project_obj = gl.projects.get(project_path)
+        target = target_branch or project_obj.default_branch
+        branch = branch_name or _default_branch_name()
 
-    actions = []
-    for path in changed:
-        if not os.path.exists(path):
-            logger.warning(f"Skipping missing fixed file for MR: {path}")
-            continue
-        with open(path, encoding="utf-8") as handle:
-            content = handle.read()
-        actions.append(
+        try:
+            project_obj.branches.get(branch)
+        except gitlab.exceptions.GitlabGetError:
+            project_obj.branches.create({"branch": branch, "ref": target})
+
+        actions = []
+        for path in existing_files:
+            with open(path, encoding="utf-8") as handle:
+                content = handle.read()
+            actions.append(
+                {
+                    "action": "update",
+                    "file_path": _repo_relative_path(path, pipeline_file),
+                    "content": content,
+                }
+            )
+
+        project_obj.commits.create(
             {
-                "action": "update",
-                "file_path": _repo_relative_path(path, pipeline_file),
-                "content": content,
+                "branch": branch,
+                "commit_message": "fix: apply gitlab-compliance supply-chain updates",
+                "actions": actions,
             }
         )
-    if not actions:
-        logger.info("No readable fixed files for MR commit; skipping --create-mr.")
-        return None
 
-    commit_message = "fix: apply gitlab-compliance supply-chain updates"
-    project_obj.commits.create(
-        {
-            "branch": branch,
-            "commit_message": commit_message,
-            "actions": actions,
-        }
-    )
+        existing_merge_requests = project_obj.mergerequests.list(
+            state="opened", source_branch=branch
+        )
+        if existing_merge_requests:
+            merge_request = existing_merge_requests[0]
+            web_url = getattr(merge_request, "web_url", None) or ""
+            label = web_url or f"!{merge_request.iid}"
+            print_success(
+                f"Updated existing merge request {label}",
+                title="Merge request",
+            )
+            return web_url or str(merge_request.iid)
 
-    existing_merge_requests = project_obj.mergerequests.list(
-        state="opened", source_branch=branch
-    )
-    if existing_merge_requests:
-        merge_request = existing_merge_requests[0]
+        description_lines = [
+            "Automated supply-chain updates from `gitlab-compliance check --fix`.",
+            "",
+            "### Changes",
+            "",
+        ]
+        description_lines.extend(f"- {message}" for message in fix_messages)
+        merge_request = project_obj.mergerequests.create(
+            {
+                "source_branch": branch,
+                "target_branch": target,
+                "title": "fix: gitlab-compliance supply-chain updates",
+                "description": "\n".join(description_lines),
+                "remove_source_branch": True,
+            }
+        )
         web_url = getattr(merge_request, "web_url", None) or ""
-        logger.info(f"Updated existing merge request: {web_url or merge_request.iid}")
+        label = web_url or f"!{merge_request.iid}"
+        print_success(
+            f"Created merge request {label}\nBranch `{branch}` → `{target}`",
+            title="Merge request created",
+        )
         return web_url or str(merge_request.iid)
-
-    description_lines = [
-        "Automated supply-chain updates from `gitlab-compliance check --fix`.",
-        "",
-        "### Changes",
-        "",
-    ]
-    description_lines.extend(f"- {message}" for message in fix_messages)
-    merge_request = project_obj.mergerequests.create(
-        {
-            "source_branch": branch,
-            "target_branch": target,
-            "title": "fix: gitlab-compliance supply-chain updates",
-            "description": "\n".join(description_lines),
-            "remove_source_branch": True,
-        }
-    )
-    web_url = getattr(merge_request, "web_url", None) or ""
-    logger.info(f"Created merge request: {web_url or merge_request.iid}")
-    return web_url or str(merge_request.iid)
+    except gitlab.exceptions.GitlabError as exc:
+        raise _friendly_gitlab_error(exc, action="creating the merge request") from exc
 
 
 def post_compliance_mr_comment(
@@ -181,8 +210,17 @@ def post_compliance_mr_comment(
 
     project_path = _resolve_project_path(project)
     url = _resolve_gitlab_url(gitlab_url)
-    gl = gitlab.Gitlab(url, private_token=token)
-    project_obj = gl.projects.get(project_path)
-    merge_request = project_obj.mergerequests.get(resolved_iid)
-    merge_request.notes.create({"body": body})
-    logger.info(f"Posted compliance comment on merge request !{resolved_iid}")
+    try:
+        gl = gitlab.Gitlab(url, private_token=token)
+        project_obj = gl.projects.get(project_path)
+        merge_request = project_obj.mergerequests.get(resolved_iid)
+        merge_request.notes.create({"body": body})
+    except gitlab.exceptions.GitlabError as exc:
+        raise _friendly_gitlab_error(
+            exc, action=f"posting a comment on !{resolved_iid}"
+        ) from exc
+
+    print_success(
+        f"Posted compliance comment on merge request !{resolved_iid}",
+        title="MR comment",
+    )

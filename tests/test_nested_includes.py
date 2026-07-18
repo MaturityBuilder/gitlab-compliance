@@ -19,6 +19,8 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+import pytest
+
 from src.compliance.model import load_yaml_entities
 from src.compliance.runner import run_compliance
 from src.modules.constants import (
@@ -211,6 +213,79 @@ class TestCollectPipelineDataNested:
         data = collect_pipeline_data(str(root), detailed=True, include_nested=True)
         shared_jobs = [job for job in data["jobs"] if job["name"] == "shared_job"]
         assert len(shared_jobs) == 1
+
+    def test_circular_include_does_not_recurse_forever(self, tmp_path):
+        a = tmp_path / "a.yml"
+        b = tmp_path / "b.yml"
+        a.write_text(
+            "include:\n  - local: b.yml\na_job:\n  script: [echo a]\n",
+            encoding="utf-8",
+        )
+        b.write_text(
+            "include:\n  - local: a.yml\nb_job:\n  script: [echo b]\n",
+            encoding="utf-8",
+        )
+        data = collect_pipeline_data(str(a), detailed=True, include_nested=True)
+        assert _job_names(data) == {"a_job", "b_job"}
+
+    def test_missing_config_raises(self, tmp_path):
+        with pytest.raises(FileNotFoundError, match="Config file not found"):
+            collect_pipeline_data(str(tmp_path / "missing.yml"))
+
+    def test_local_include_outside_base_is_ignored(self, tmp_path):
+        outside = tmp_path / "outside.yml"
+        outside.write_text("evil:\n  script: [echo x]\n", encoding="utf-8")
+        nested = tmp_path / "ci"
+        nested.mkdir()
+        root = nested / ".gitlab-ci.yml"
+        root.write_text(
+            "include:\n  - local: ../outside.yml\nroot:\n  script: [echo]\n",
+            encoding="utf-8",
+        )
+        data = collect_pipeline_data(str(root), detailed=True, include_nested=True)
+        assert _job_names(data) == {"root"}
+        assert "evil" not in _job_names(data)
+
+    def test_local_include_commonpath_error_is_ignored(self, tmp_path, monkeypatch):
+        root = tmp_path / ".gitlab-ci.yml"
+        root.write_text(
+            "include:\n  - local: child.yml\nroot:\n  script: [echo]\n",
+            encoding="utf-8",
+        )
+        (tmp_path / "child.yml").write_text(
+            "child:\n  script: [echo]\n", encoding="utf-8"
+        )
+        monkeypatch.setattr(
+            "src.modules.pipeline_data.os.path.commonpath",
+            lambda _paths: (_ for _ in ()).throw(ValueError("cross-device")),
+        )
+        data = collect_pipeline_data(str(root), detailed=True, include_nested=True)
+        assert _job_names(data) == {"root"}
+        assert "child" not in _job_names(data)
+
+    def test_yaml_index_failure_falls_back(self, tmp_path, monkeypatch):
+        root = tmp_path / ".gitlab-ci.yml"
+        root.write_text("job:\n  script: [echo]\n", encoding="utf-8")
+
+        def boom(_path):
+            raise RuntimeError("index failed")
+
+        monkeypatch.setattr("src.modules.yaml_lines.index_yaml_file", boom)
+        data = collect_pipeline_data(str(root), detailed=True, include_nested=False)
+        assert _job_names(data) == {"job"}
+        assert data["line_index"]["jobs"] == {}
+
+    def test_run_compliance_respects_max_include_depth(self):
+        result = run_compliance(
+            features_dir=str(NESTED_POLICIES),
+            pipeline_file=str(NESTED_CI),
+            include_nested=True,
+            max_include_depth=0,
+            output_format="markdown",
+        )
+        assert result.success is True
+        assert result.passed == 0
+        assert result.skipped == 6
 
 
 class TestComplianceNestedLoading:
