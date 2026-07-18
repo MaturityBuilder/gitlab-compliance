@@ -110,19 +110,26 @@ Usage: gitlab-compliance check [OPTIONS]
 
   Parse and list scenarios without asserting.
 
-* `fix`:
+* `fix_supply_chain`:
   * Type: BOOL
   * Default: `false`
-  * Usage: `--fix`
+  * Usage: `--fix-supply-chain`
 
   Auto-fix outdated include refs and pin container images to sha256 digests.
+
+* `fix_policies`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--fix-policies`
+
+  After an initial policy run, apply allowlisted BDD remediations (see docs/usage/fix-policies.md), then re-check.
 
 * `create_mr`:
   * Type: BOOL
   * Default: `false`
   * Usage: `--create-mr`
 
-  After --fix, commit changed files and open a GitLab merge request.
+  After --fix-supply-chain and/or --fix-policies, commit changed files and open a GitLab merge request.
 
 * `post_mr_comment`:
   * Type: BOOL
@@ -143,7 +150,7 @@ Usage: gitlab-compliance check [OPTIONS]
   * Default: `none`
   * Usage: `--mr-branch`
 
-  Source branch name for --create-mr.
+  Source branch for --create-mr (default: gitlab-compliance/supply-chain-fix). Reuses an open MR for this branch, or reopens a closed one.
 
 * `mr_target_branch`:
   * Type: STRING
@@ -212,15 +219,22 @@ Options:
   --policy-cache-dir TEXT         Directory used when pulling OCI policy
                                   bundles (default: system temp).
   --dry-run                       Parse and list scenarios without asserting.
-  --fix                           Auto-fix outdated include refs and pin
+  --fix-supply-chain              Auto-fix outdated include refs and pin
                                   container images to sha256 digests.
-  --create-mr                     After --fix, commit changed files and open a
-                                  GitLab merge request.
+  --fix-policies                  After an initial policy run, apply
+                                  allowlisted BDD remediations (see
+                                  docs/usage/fix-policies.md), then re-check.
+  --create-mr                     After --fix-supply-chain and/or
+                                  --fix-policies, commit changed files and
+                                  open a GitLab merge request.
   --post-mr-comment               Post the compliance mr-comment body to a
                                   GitLab merge request.
   --mr-iid INTEGER                Merge request IID for --post-mr-comment
                                   (default: CI_MERGE_REQUEST_IID).
-  --mr-branch TEXT                Source branch name for --create-mr.
+  --mr-branch TEXT                Source branch for --create-mr (default:
+                                  gitlab-compliance/supply-chain-fix). Reuses
+                                  an open MR for this branch, or reopens a
+                                  closed one.
   --mr-target-branch TEXT         Target branch for --create-mr (default:
                                   project default branch).
   --mr-comment-file TEXT          Optional pre-rendered markdown file to post

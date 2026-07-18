@@ -55,12 +55,12 @@ Scenario: Container images must not lag behind registry latest
 Registry-backed checks resolve tags from Docker Hub (public images) and GitLab
 Container Registry (when the image host matches your GitLab instance).
 
-## Auto-fix (`--fix`)
+## Auto-fix (`--fix-supply-chain`)
 
 Pin job and service images to sha256 digests for the currently referenced tag:
 
 ```bash
-gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix-supply-chain
 ```
 
 ## Consume in GitLab CI
@@ -91,7 +91,7 @@ compliance:
   script:
     - pip install --quiet gitlab-compliance
     - gitlab-compliance check -f "$COMPLIANCE_POLICIES" -p .gitlab-ci.yml
-        --project "$CI_PROJECT_PATH" --strict --fix
+        --project "$CI_PROJECT_PATH" --strict --fix-supply-chain
 ```
 
 ## Run locally

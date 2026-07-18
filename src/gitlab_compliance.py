@@ -578,16 +578,28 @@ def _resolve_policies_dir(
     help="Parse and list scenarios without asserting.",
 )
 @click.option(
-    "--fix",
+    "--fix-supply-chain",
     is_flag=True,
     default=False,
     help="Auto-fix outdated include refs and pin container images to sha256 digests.",
 )
 @click.option(
+    "--fix-policies",
+    is_flag=True,
+    default=False,
+    help=(
+        "After an initial policy run, apply allowlisted BDD remediations "
+        "(see docs/usage/fix-policies.md), then re-check."
+    ),
+)
+@click.option(
     "--create-mr",
     is_flag=True,
     default=False,
-    help="After --fix, commit changed files and open a GitLab merge request.",
+    help=(
+        "After --fix-supply-chain and/or --fix-policies, commit changed files "
+        "and open a GitLab merge request."
+    ),
 )
 @click.option(
     "--post-mr-comment",
@@ -604,7 +616,11 @@ def _resolve_policies_dir(
 @click.option(
     "--mr-branch",
     default=None,
-    help="Source branch name for --create-mr.",
+    help=(
+        "Source branch for --create-mr "
+        "(default: gitlab-compliance/supply-chain-fix). "
+        "Reuses an open MR for this branch, or reopens a closed one."
+    ),
 )
 @click.option(
     "--mr-target-branch",
@@ -637,7 +653,8 @@ def check(
     update,
     policy_cache_dir,
     dry_run,
-    fix,
+    fix_supply_chain,
+    fix_policies,
     create_mr,
     post_mr_comment,
     mr_iid,
@@ -676,7 +693,8 @@ def check(
             output_format=output_format,
             policies_source=features_dir,
             policy_cache_dir=policy_cache_dir,
-            fix=fix,
+            fix_supply_chain=fix_supply_chain,
+            fix_policies=fix_policies,
             with_builtin=with_builtin,
             create_mr=create_mr,
             post_mr_comment=post_mr_comment,

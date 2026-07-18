@@ -49,7 +49,7 @@ Parse scenarios and list them without running assertions.
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml --dry-run
 ```
 
-## `--fix`
+## `--fix-supply-chain`
 
 Auto-remediate supply-chain issues before running policies:
 
@@ -62,20 +62,40 @@ Requires a GitLab token (`--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`). Cannot
 be combined with `--dry-run`.
 
 ```bash
-gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix-supply-chain
+```
+
+## `--fix-policies`
+
+After an initial policy run, apply **allowlisted** BDD remediations (YAML only),
+then re-check. See [Auto-fix policies](fix-policies.md) for the supported
+policy IDs.
+
+Requires a GitLab token. Cannot be combined with `--dry-run`.
+
+```bash
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix-policies
 ```
 
 ## `--create-mr`
 
-After `--fix` rewrites local YAML, commit the changed files and open a GitLab
-merge request. Requires `--fix`, a token, and `--project` (or
-`CI_PROJECT_PATH`).
+After `--fix-supply-chain` and/or `--fix-policies` rewrites local YAML, commit
+the changed files and open a GitLab merge request. Requires at least one fix
+mode, a token, and `--project` (or `CI_PROJECT_PATH`).
+
+If an open merge request already exists for the source branch, the run pushes a
+new commit and updates that MR. If the branch still exists but the MR was
+**closed** (not merged), the run reopens it. The default source branch is
+`gitlab-compliance/supply-chain-fix` so re-runs reuse the same MR.
+
+The MR description includes a short summary table and a numbered list of applied
+changes.
 
 Optional: `--mr-branch`, `--mr-target-branch`.
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
-  --fix --create-mr --project "$CI_PROJECT_PATH"
+  --fix-supply-chain --create-mr --project "$CI_PROJECT_PATH"
 ```
 
 ## `--post-mr-comment`

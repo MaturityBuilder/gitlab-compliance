@@ -220,7 +220,8 @@ def run_compliance(
     output_format: str = "console",
     policies_source: str | None = None,
     policy_cache_dir: str | None = None,
-    fix: bool = False,
+    fix_supply_chain: bool = False,
+    fix_policies: bool = False,
     with_builtin: bool = False,
     create_mr: bool = False,
     post_mr_comment: bool = False,
@@ -239,50 +240,46 @@ def run_compliance(
     if not os.path.exists(pipeline_file):
         raise FileNotFoundError(f"Pipeline file not found: {pipeline_file}")
 
-    if create_mr and not fix:
-        raise ValueError("--create-mr requires --fix")
+    if create_mr and not (fix_supply_chain or fix_policies):
+        raise ValueError(
+            "--create-mr requires --fix-supply-chain and/or --fix-policies"
+        )
     if create_mr and dry_run:
         raise ValueError("--create-mr cannot be used with --dry-run")
+    if fix_supply_chain and dry_run:
+        raise ValueError("--fix-supply-chain cannot be used with --dry-run")
+    if fix_policies and dry_run:
+        raise ValueError("--fix-policies cannot be used with --dry-run")
 
-    fix_messages: list[str] = []
-    if fix:
-        if dry_run:
-            raise ValueError("--fix cannot be used with --dry-run")
-        if (
-            not token
-            and not os.getenv("GITLAB_TOKEN")
-            and not os.getenv("CI_JOB_TOKEN")
-        ):
-            raise ValueError(
-                "--fix requires a GitLab token (--token, GITLAB_TOKEN, or CI_JOB_TOKEN)"
-            )
-        from src.compliance.supply_chain_fix import apply_supply_chain_fixes
-
-        fix_messages = apply_supply_chain_fixes(
-            pipeline_file=pipeline_file,
-            include_nested=include_nested,
-            max_include_depth=max_include_depth,
-            gitlab_url=gitlab_url,
-            token=token or os.getenv("GITLAB_TOKEN") or os.getenv("CI_JOB_TOKEN") or "",
-            project=project,
-            group=group,
+    resolved_token = (
+        token or os.getenv("GITLAB_TOKEN") or os.getenv("CI_JOB_TOKEN") or ""
+    )
+    if fix_supply_chain and not resolved_token:
+        raise ValueError(
+            "--fix-supply-chain requires a GitLab token "
+            "(--token, GITLAB_TOKEN, or CI_JOB_TOKEN)"
+        )
+    if fix_policies and not resolved_token:
+        raise ValueError(
+            "--fix-policies requires a GitLab token "
+            "(--token, GITLAB_TOKEN, or CI_JOB_TOKEN)"
         )
 
-        if create_mr:
-            from src.compliance.merge_requests import create_supply_chain_merge_request
+    fix_messages: list[str] = []
+    if fix_supply_chain:
+        from src.compliance.supply_chain_fix import apply_supply_chain_fixes
 
-            create_supply_chain_merge_request(
+        fix_messages.extend(
+            apply_supply_chain_fixes(
                 pipeline_file=pipeline_file,
-                fix_messages=fix_messages,
+                include_nested=include_nested,
+                max_include_depth=max_include_depth,
                 gitlab_url=gitlab_url,
-                token=token
-                or os.getenv("GITLAB_TOKEN")
-                or os.getenv("CI_JOB_TOKEN")
-                or "",
+                token=resolved_token,
                 project=project,
-                branch_name=mr_branch,
-                target_branch=mr_target_branch,
+                group=group,
             )
+        )
 
     policy_directories = _resolve_policy_directories(
         resolved_features_dir, with_builtin=with_builtin
@@ -290,6 +287,14 @@ def run_compliance(
     workspace = _build_behave_workspace(policy_directories)
     policy_catalog = build_policy_catalog_from_dirs(policy_directories)
     api_requirements = policies_require_api_enrichment(policy_directories)
+
+    need_enrich_includes = (
+        fix_supply_chain or fix_policies or api_requirements.enrich_includes
+    )
+    need_enrich_images = (
+        fix_supply_chain or fix_policies or api_requirements.enrich_images
+    )
+    need_api_entities = fix_supply_chain or api_requirements.load_api_entities
 
     exit_code: int | None = None
     scenario_results: list[ScenarioResult] = []
@@ -299,6 +304,66 @@ def run_compliance(
     failed_count = 0
     skipped = 0
 
+    def _run_behave() -> tuple[int, list[ScenarioResult], int, int, int, int, int]:
+        registry.clear()
+        argv = [
+            "behave",
+            workspace,
+            "--no-capture",
+            "--no-logcapture",
+            "--no-summary",
+            "--format",
+            "null",
+        ]
+        if dry_run:
+            argv.append("--dry-run")
+
+        config = Configuration(argv)
+        config.paths = [workspace]
+        config.userdata = {
+            "pipeline": os.path.abspath(pipeline_file),
+            "include_nested": "true" if include_nested else "false",
+            "max_include_depth": (
+                "" if max_include_depth is None else str(max_include_depth)
+            ),
+            "gitlab_url": gitlab_url or "",
+            "project": project or "",
+            "group": group or "",
+            "strict": "true" if strict else "false",
+            "enrich_includes": "true" if need_enrich_includes else "false",
+            "enrich_images": "true" if need_enrich_images else "false",
+            "load_api_entities": "true" if need_api_entities else "false",
+        }
+
+        runner = Runner(config)
+        code = runner.run()
+        results = _collect_scenario_results(runner, policy_catalog)
+        feature_count = len(runner.features)
+        all_scenarios = [
+            scenario
+            for feature in runner.features
+            for scenario in _iter_feature_scenarios(feature)
+        ]
+        total = len(all_scenarios)
+        passed_count = sum(
+            1 for scenario in all_scenarios if scenario.status.name == "passed"
+        )
+        failed = sum(
+            1 for scenario in all_scenarios if scenario.status.name == "failed"
+        )
+        skipped_count = sum(
+            1 for scenario in all_scenarios if scenario.status.name == "skipped"
+        )
+        return (
+            code,
+            results,
+            feature_count,
+            total,
+            passed_count,
+            failed,
+            skipped_count,
+        )
+
     try:
         with _temporary_gitlab_env(
             token=token,
@@ -306,61 +371,47 @@ def run_compliance(
             project=project,
             group=group,
         ):
-            registry.clear()
-            argv = [
-                "behave",
-                workspace,
-                "--no-capture",
-                "--no-logcapture",
-                "--no-summary",
-                "--format",
-                "null",
-            ]
-            if dry_run:
-                argv.append("--dry-run")
+            if fix_policies:
+                _probe_code, probe_results, *_rest = _run_behave()
+                from src.compliance.policy_fix import apply_policy_remediations
 
-            config = Configuration(argv)
-            config.paths = [workspace]
-            config.userdata = {
-                "pipeline": os.path.abspath(pipeline_file),
-                "include_nested": "true" if include_nested else "false",
-                "max_include_depth": (
-                    "" if max_include_depth is None else str(max_include_depth)
-                ),
-                "gitlab_url": gitlab_url or "",
-                "project": project or "",
-                "group": group or "",
-                "strict": "true" if strict else "false",
-                "enrich_includes": (
-                    "true" if (fix or api_requirements.enrich_includes) else "false"
-                ),
-                "enrich_images": (
-                    "true" if (fix or api_requirements.enrich_images) else "false"
-                ),
-                "load_api_entities": (
-                    "true" if (fix or api_requirements.load_api_entities) else "false"
-                ),
-            }
+                fix_messages.extend(
+                    apply_policy_remediations(
+                        probe_results,
+                        pipeline_file=pipeline_file,
+                        include_nested=include_nested,
+                        max_include_depth=max_include_depth,
+                        gitlab_url=gitlab_url,
+                        token=resolved_token,
+                        project=project,
+                        group=group,
+                    )
+                )
 
-            runner = Runner(config)
-            exit_code = runner.run()
-            scenario_results = _collect_scenario_results(runner, policy_catalog)
-            features = len(runner.features)
-            all_scenarios = [
-                scenario
-                for feature in runner.features
-                for scenario in _iter_feature_scenarios(feature)
-            ]
-            scenarios = len(all_scenarios)
-            passed = sum(
-                1 for scenario in all_scenarios if scenario.status.name == "passed"
-            )
-            failed_count = sum(
-                1 for scenario in all_scenarios if scenario.status.name == "failed"
-            )
-            skipped = sum(
-                1 for scenario in all_scenarios if scenario.status.name == "skipped"
-            )
+            if create_mr:
+                from src.compliance.merge_requests import (
+                    create_supply_chain_merge_request,
+                )
+
+                create_supply_chain_merge_request(
+                    pipeline_file=pipeline_file,
+                    fix_messages=fix_messages,
+                    gitlab_url=gitlab_url,
+                    token=resolved_token,
+                    project=project,
+                    branch_name=mr_branch,
+                    target_branch=mr_target_branch,
+                )
+
+            (
+                exit_code,
+                scenario_results,
+                features,
+                scenarios,
+                passed,
+                failed_count,
+                skipped,
+            ) = _run_behave()
     finally:
         shutil.rmtree(workspace, ignore_errors=True)
 
@@ -391,7 +442,7 @@ def run_compliance(
         post_compliance_mr_comment(
             body=comment_body,
             gitlab_url=gitlab_url,
-            token=token or os.getenv("GITLAB_TOKEN") or os.getenv("CI_JOB_TOKEN") or "",
+            token=resolved_token,
             project=project,
             mr_iid=mr_iid,
         )

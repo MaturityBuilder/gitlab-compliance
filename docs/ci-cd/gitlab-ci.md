@@ -144,7 +144,7 @@ fix-supply-chain:
     - pip install gitlab-compliance
     - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
         --project "$CI_PROJECT_PATH"
-        --fix --create-mr
+        --fix-supply-chain --create-mr
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
 ```

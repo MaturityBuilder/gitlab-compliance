@@ -17,13 +17,34 @@ _STATUS_STYLES = {
 }
 
 _HINTS = {
-    "--create-mr requires --fix": "Run with both flags, e.g. `--fix --create-mr`.",
-    "--create-mr cannot be used with --dry-run": "Drop `--dry-run` when creating a merge request.",
-    "--fix cannot be used with --dry-run": "Drop `--dry-run` when applying supply-chain fixes.",
-    "--fix requires a GitLab token": "Set `--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`.",
-    "--create-mr requires a GitLab token": "Set `--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`.",
-    "--post-mr-comment requires a GitLab token": "Set `--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`.",
-    "--post-mr-comment requires --mr-iid": "Pass `--mr-iid` or set `CI_MERGE_REQUEST_IID`.",
+    "--create-mr requires --fix-supply-chain and/or --fix-policies": (
+        "Run with a fix mode, e.g. `--fix-supply-chain --create-mr` "
+        "or `--fix-policies --create-mr`."
+    ),
+    "--create-mr cannot be used with --dry-run": (
+        "Drop `--dry-run` when creating a merge request."
+    ),
+    "--create-mr requires a GitLab token": (
+        "Set `--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`."
+    ),
+    "--fix-supply-chain cannot be used with --dry-run": (
+        "Drop `--dry-run` when applying supply-chain fixes."
+    ),
+    "--fix-supply-chain requires a GitLab token": (
+        "Set `--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`."
+    ),
+    "--fix-policies cannot be used with --dry-run": (
+        "Drop `--dry-run` when applying policy remediations."
+    ),
+    "--fix-policies requires a GitLab token": (
+        "Set `--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`."
+    ),
+    "--post-mr-comment requires a GitLab token": (
+        "Set `--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`."
+    ),
+    "--post-mr-comment requires --mr-iid": (
+        "Pass `--mr-iid` or set `CI_MERGE_REQUEST_IID`."
+    ),
     "GitLab project is required": "Pass `--project` or set `CI_PROJECT_PATH`.",
     "Pipeline file not found": "Check `-p` / `--pipeline` points at an existing YAML file.",
     "GitLab API error": "Verify token scopes, project path, and network access to GitLab.",

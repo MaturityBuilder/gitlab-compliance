@@ -19,16 +19,46 @@ SAMPLE_PIPELINE = (
 PASSING_POLICIES = Path(__file__).resolve().parent / "compliance_policies" / "passing"
 
 
-def _project_mock(*, branch_exists: bool = True):
+def _project_mock(*, branch_exists: bool = True, opened=None, closed=None):
     project_obj = MagicMock()
     project_obj.default_branch = "main"
+    project_obj.web_url = "https://gitlab.example.com/group/proj"
     if branch_exists:
         project_obj.branches.get.return_value = MagicMock()
     else:
         project_obj.branches.get.side_effect = mr.gitlab.exceptions.GitlabGetError(
             response_code=404, error_message="not found"
         )
+
+    opened_list = list(opened or [])
+    closed_list = list(closed or [])
+
+    def _list_mrs(**kwargs):
+        state = kwargs.get("state")
+        if state == "opened":
+            return opened_list
+        if state == "closed":
+            return closed_list
+        return []
+
+    project_obj.mergerequests.list.side_effect = _list_mrs
     return project_obj
+
+
+class TestMrDescription:
+    def test_description_with_changes(self):
+        body = mr._mr_description(
+            ["Fixed include x: 1 -> 2 (a.yml:1)"],
+            files_updated=1,
+        )
+        assert "Supply-chain compliance fix" in body
+        assert "1. Fixed include" in body
+        assert "Files updated | `1`" in body
+
+    def test_description_without_change_details(self):
+        body = mr._mr_description([], files_updated=0)
+        assert "_No change details were recorded._" in body
+        assert "Review notes" in body
 
 
 class TestChangedFilesFromFixMessages:
@@ -96,9 +126,9 @@ class TestResolveHelpers:
             with pytest.raises(ValueError, match="GitLab project is required"):
                 mr._resolve_project_path(None)
 
-    def test_default_branch_name_format(self):
-        name = mr._default_branch_name()
-        assert name.startswith("gitlab-compliance/supply-chain-fix-")
+    def test_default_branch_name_is_stable(self):
+        assert mr._default_branch_name() == "gitlab-compliance/supply-chain-fix"
+        assert mr._default_branch_name() == mr._DEFAULT_SOURCE_BRANCH
 
     def test_friendly_gitlab_error_empty_message(self):
         class Empty(Exception):
@@ -142,7 +172,6 @@ class TestCreateSupplyChainMergeRequest:
             "https://gitlab.example.com/group/proj/-/merge_requests/9"
         )
         merge_request.iid = 9
-        project_obj.mergerequests.list.return_value = []
         project_obj.mergerequests.create.return_value = merge_request
 
         gl = MagicMock()
@@ -172,18 +201,11 @@ class TestCreateSupplyChainMergeRequest:
         merge_request = MagicMock()
         merge_request.web_url = ""
         merge_request.iid = 3
-        project_obj.mergerequests.list.return_value = []
         project_obj.mergerequests.create.return_value = merge_request
         gl = MagicMock()
         gl.projects.get.return_value = project_obj
 
-        with (
-            patch("src.compliance.merge_requests.gitlab.Gitlab", return_value=gl),
-            patch(
-                "src.compliance.merge_requests._default_branch_name",
-                return_value="auto/branch",
-            ),
-        ):
+        with patch("src.compliance.merge_requests.gitlab.Gitlab", return_value=gl):
             url = mr.create_supply_chain_merge_request(
                 pipeline_file=str(fixed),
                 fix_messages=messages,
@@ -194,21 +216,24 @@ class TestCreateSupplyChainMergeRequest:
 
         assert url == "3"
         commit_kwargs = project_obj.commits.create.call_args[0][0]
-        assert commit_kwargs["branch"] == "auto/branch"
+        assert commit_kwargs["branch"] == "gitlab-compliance/supply-chain-fix"
+        assert project_obj.mergerequests.list.call_count == 2
         create_kwargs = project_obj.mergerequests.create.call_args[0][0]
         assert create_kwargs["target_branch"] == "main"
+        assert create_kwargs["title"] == mr._MR_TITLE
+        assert "Supply-chain compliance fix" in create_kwargs["description"]
+        assert "### Changes" in create_kwargs["description"]
 
     def test_updates_existing_merge_request(self, tmp_path):
         fixed = tmp_path / "pipeline.yml"
         fixed.write_text("include:\n  - project: x\n    ref: 2.0.0\n", encoding="utf-8")
         messages = [f"Fixed include x: 1.0.0 -> 2.0.0 ({fixed}:2)"]
 
-        project_obj = _project_mock()
         merge_request = MagicMock()
         merge_request.web_url = (
             "https://gitlab.example.com/group/proj/-/merge_requests/9"
         )
-        project_obj.mergerequests.list.return_value = [merge_request]
+        project_obj = _project_mock(opened=[merge_request])
 
         gl = MagicMock()
         gl.projects.get.return_value = project_obj
@@ -226,16 +251,47 @@ class TestCreateSupplyChainMergeRequest:
 
         assert url.endswith("/merge_requests/9")
         project_obj.mergerequests.create.assert_not_called()
+        project_obj.commits.create.assert_called_once()
+        assert "### Changes" in merge_request.description
+        assert "Supply-chain compliance fix" in merge_request.description
+        assert getattr(merge_request, "state_event", None) != "reopen"
+        merge_request.save.assert_called_once()
+
+    def test_reopens_closed_merge_request(self, tmp_path):
+        fixed = tmp_path / "pipeline.yml"
+        fixed.write_text("x: 1\n", encoding="utf-8")
+        messages = [f"Fixed include x: 1 -> 2 ({fixed}:1)"]
+        closed_mr = MagicMock()
+        closed_mr.web_url = "https://gitlab.example.com/group/proj/-/merge_requests/11"
+        closed_mr.iid = 11
+        project_obj = _project_mock(branch_exists=True, closed=[closed_mr])
+        gl = MagicMock()
+        gl.projects.get.return_value = project_obj
+
+        with patch("src.compliance.merge_requests.gitlab.Gitlab", return_value=gl):
+            url = mr.create_supply_chain_merge_request(
+                pipeline_file=str(fixed),
+                fix_messages=messages,
+                gitlab_url="https://gitlab.example.com",
+                token="token",
+                project="group/proj",
+                branch_name="fix/supply-chain",
+            )
+
+        assert url.endswith("/merge_requests/11")
+        assert closed_mr.state_event == "reopen"
+        assert closed_mr.title == mr._MR_TITLE
+        closed_mr.save.assert_called_once()
+        project_obj.mergerequests.create.assert_not_called()
 
     def test_updates_existing_mr_without_web_url(self, tmp_path):
         fixed = tmp_path / "pipeline.yml"
         fixed.write_text("x: 1\n", encoding="utf-8")
         messages = [f"Fixed include x: 1 -> 2 ({fixed}:1)"]
-        project_obj = _project_mock()
         merge_request = MagicMock()
         merge_request.web_url = ""
         merge_request.iid = 42
-        project_obj.mergerequests.list.return_value = [merge_request]
+        project_obj = _project_mock(opened=[merge_request])
         gl = MagicMock()
         gl.projects.get.return_value = project_obj
 
@@ -249,6 +305,44 @@ class TestCreateSupplyChainMergeRequest:
                 branch_name="fix/b",
             )
         assert url == "42"
+        merge_request.save.assert_called_once()
+        project_obj.mergerequests.create.assert_not_called()
+
+    def test_checks_for_existing_mr_before_creating(self, tmp_path):
+        """Re-runs on the stable default branch must not open a second MR."""
+        fixed = tmp_path / "pipeline.yml"
+        fixed.write_text("x: 1\n", encoding="utf-8")
+        messages = [f"Fixed include x: 1 -> 2 ({fixed}:1)"]
+        existing = MagicMock()
+        existing.web_url = "https://gitlab.example.com/group/proj/-/merge_requests/5"
+        existing.iid = 5
+        project_obj = _project_mock(branch_exists=True, opened=[existing])
+        gl = MagicMock()
+        gl.projects.get.return_value = project_obj
+
+        with patch("src.compliance.merge_requests.gitlab.Gitlab", return_value=gl):
+            first = mr.create_supply_chain_merge_request(
+                pipeline_file=str(fixed),
+                fix_messages=messages,
+                gitlab_url="https://gitlab.example.com",
+                token="token",
+                project="group/proj",
+            )
+            second = mr.create_supply_chain_merge_request(
+                pipeline_file=str(fixed),
+                fix_messages=messages + [f"Fixed include y: 1 -> 2 ({fixed}:1)"],
+                gitlab_url="https://gitlab.example.com",
+                token="token",
+                project="group/proj",
+            )
+
+        assert first == second == existing.web_url
+        assert project_obj.mergerequests.create.call_count == 0
+        assert project_obj.commits.create.call_count == 2
+        assert existing.save.call_count == 2
+        assert project_obj.mergerequests.list.call_count >= 2
+        for call in project_obj.mergerequests.list.call_args_list:
+            assert call.kwargs["source_branch"] == "gitlab-compliance/supply-chain-fix"
 
     def test_skips_missing_files_then_no_actions(self, tmp_path):
         missing = tmp_path / "gone.yml"
@@ -274,7 +368,6 @@ class TestCreateSupplyChainMergeRequest:
         merge_request = MagicMock()
         merge_request.web_url = "https://gitlab.example.com/mr/1"
         merge_request.iid = 1
-        project_obj.mergerequests.list.return_value = []
         project_obj.mergerequests.create.return_value = merge_request
         gl = MagicMock()
         gl.projects.get.return_value = project_obj
@@ -382,12 +475,15 @@ class TestPostComplianceMrComment:
 
 class TestRunComplianceMrFlags:
     def test_create_mr_requires_fix(self):
-        with pytest.raises(ValueError, match="--create-mr requires --fix"):
+        with pytest.raises(
+            ValueError,
+            match="--create-mr requires --fix-supply-chain and/or --fix-policies",
+        ):
             run_compliance(
                 features_dir=str(PASSING_POLICIES),
                 pipeline_file=str(SAMPLE_PIPELINE),
                 create_mr=True,
-                fix=False,
+                fix_supply_chain=False,
             )
 
     def test_create_mr_rejects_dry_run(self):
@@ -398,7 +494,7 @@ class TestRunComplianceMrFlags:
                 features_dir=str(PASSING_POLICIES),
                 pipeline_file=str(SAMPLE_PIPELINE),
                 create_mr=True,
-                fix=True,
+                fix_supply_chain=True,
                 dry_run=True,
             )
 
@@ -419,7 +515,7 @@ class TestRunComplianceMrFlags:
             result = run_compliance(
                 features_dir=str(PASSING_POLICIES),
                 pipeline_file=str(SAMPLE_PIPELINE),
-                fix=True,
+                fix_supply_chain=True,
                 create_mr=True,
                 token="secret",
                 project="group/proj",
