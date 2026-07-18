@@ -84,6 +84,8 @@ Tapes use `TypingSpeed 40ms` and `PlaybackSpeed 0.5`; rendered HTML GIFs hold
 
 ## CI
 
-GitHub Actions job `demos-offline` runs `bash scripts/record-demos.sh offline`
-and fails if GIF outputs change unexpectedly (contributors should commit regen
-output when tapes change).
+GitHub Actions job `demos-offline` installs VHS and ttyd with
+`scripts/install-ci-demo-tools.sh` (pinned VHS release tarball SHA256; ttyd built
+from a pinned source commit), validates offline tapes, and fails if committed GIF
+outputs are missing (regenerate with `bash scripts/record-demos.sh offline` when
+tapes change).
