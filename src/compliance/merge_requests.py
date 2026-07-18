@@ -222,6 +222,47 @@ def create_supply_chain_merge_request(
                 }
             )
 
+        description = _mr_description(
+            fix_messages,
+            files_updated=len(existing_files),
+        )
+
+        # New MRs require a commit before create (source must differ from target).
+        # If create fails afterward, surface the branch name so the push is recoverable.
+        if reusable_mr is None:
+            project_obj.commits.create(
+                {
+                    "branch": branch,
+                    "commit_message": (
+                        "fix: apply gitlab-compliance supply-chain updates"
+                    ),
+                    "actions": actions,
+                }
+            )
+            try:
+                merge_request = project_obj.mergerequests.create(
+                    {
+                        "source_branch": branch,
+                        "target_branch": target,
+                        "title": _MR_TITLE,
+                        "description": description,
+                        "remove_source_branch": True,
+                    }
+                )
+            except gitlab.exceptions.GitlabError as exc:
+                detail = str(exc).strip() or exc.__class__.__name__
+                raise ValueError(
+                    f"GitLab API error while creating the merge request after "
+                    f"committing to `{branch}`: {detail}. "
+                    f"The branch was updated; open or repair the MR manually if needed."
+                ) from exc
+            label = _mr_label(merge_request)
+            print_success(
+                f"Created merge request {label}\nBranch `{branch}` → `{target}`",
+                title="Merge request created",
+            )
+            return _mr_return_value(merge_request)
+
         project_obj.commits.create(
             {
                 "branch": branch,
@@ -229,41 +270,26 @@ def create_supply_chain_merge_request(
                 "actions": actions,
             }
         )
-
-        description = _mr_description(
-            fix_messages,
-            files_updated=len(existing_files),
-        )
-
-        if reusable_mr is not None:
+        try:
             if mr_action == "reopen":
                 reusable_mr.state_event = "reopen"
             reusable_mr.title = _MR_TITLE
             reusable_mr.description = description
             reusable_mr.save()
-            label = _mr_label(reusable_mr)
-            verb = "Reopened" if mr_action == "reopen" else "Updated"
-            print_success(
-                f"{verb} merge request {label}\nBranch `{branch}` → `{target}`",
-                title="Merge request",
-            )
-            return _mr_return_value(reusable_mr)
-
-        merge_request = project_obj.mergerequests.create(
-            {
-                "source_branch": branch,
-                "target_branch": target,
-                "title": _MR_TITLE,
-                "description": description,
-                "remove_source_branch": True,
-            }
-        )
-        label = _mr_label(merge_request)
+        except gitlab.exceptions.GitlabError as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            raise ValueError(
+                f"GitLab API error while updating merge request "
+                f"{_mr_label(reusable_mr)} after committing to `{branch}`: {detail}. "
+                f"The branch was updated; refresh the MR manually if needed."
+            ) from exc
+        label = _mr_label(reusable_mr)
+        verb = "Reopened" if mr_action == "reopen" else "Updated"
         print_success(
-            f"Created merge request {label}\nBranch `{branch}` → `{target}`",
-            title="Merge request created",
+            f"{verb} merge request {label}\nBranch `{branch}` → `{target}`",
+            title="Merge request",
         )
-        return _mr_return_value(merge_request)
+        return _mr_return_value(reusable_mr)
     except gitlab.exceptions.GitlabError as exc:
         raise _friendly_gitlab_error(exc, action="creating the merge request") from exc
 

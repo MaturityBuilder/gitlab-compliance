@@ -404,6 +404,59 @@ class TestCreateSupplyChainMergeRequest:
                     project="group/proj",
                 )
 
+    def test_mr_create_failure_after_commit_mentions_branch(self, tmp_path):
+        fixed = tmp_path / "pipeline.yml"
+        fixed.write_text("x: 1\n", encoding="utf-8")
+        messages = [f"Fixed include x: 1 -> 2 ({fixed}:1)"]
+        project_obj = _project_mock(branch_exists=True)
+        project_obj.mergerequests.create.side_effect = mr.gitlab.exceptions.GitlabError(
+            "cannot create"
+        )
+        gl = MagicMock()
+        gl.projects.get.return_value = project_obj
+
+        with patch("src.compliance.merge_requests.gitlab.Gitlab", return_value=gl):
+            with pytest.raises(
+                ValueError,
+                match=r"after committing to `fix/orphan`.*open or repair the MR",
+            ):
+                mr.create_supply_chain_merge_request(
+                    pipeline_file=str(fixed),
+                    fix_messages=messages,
+                    gitlab_url="https://gitlab.example.com",
+                    token="token",
+                    project="group/proj",
+                    branch_name="fix/orphan",
+                )
+        project_obj.commits.create.assert_called_once()
+
+    def test_mr_update_failure_after_commit_mentions_branch(self, tmp_path):
+        fixed = tmp_path / "pipeline.yml"
+        fixed.write_text("x: 1\n", encoding="utf-8")
+        messages = [f"Fixed include x: 1 -> 2 ({fixed}:1)"]
+        existing = MagicMock()
+        existing.web_url = "https://gitlab.example.com/mr/9"
+        existing.iid = 9
+        existing.save.side_effect = mr.gitlab.exceptions.GitlabError("cannot save")
+        project_obj = _project_mock(opened=[existing])
+        gl = MagicMock()
+        gl.projects.get.return_value = project_obj
+
+        with patch("src.compliance.merge_requests.gitlab.Gitlab", return_value=gl):
+            with pytest.raises(
+                ValueError,
+                match=r"after committing to `fix/b`.*refresh the MR",
+            ):
+                mr.create_supply_chain_merge_request(
+                    pipeline_file=str(fixed),
+                    fix_messages=messages,
+                    gitlab_url="https://gitlab.example.com",
+                    token="token",
+                    project="group/proj",
+                    branch_name="fix/b",
+                )
+        project_obj.commits.create.assert_called_once()
+
 
 class TestPostComplianceMrComment:
     def test_requires_token(self):
@@ -526,6 +579,62 @@ class TestRunComplianceMrFlags:
         assert result.success is True
         create_mr.assert_called_once()
         assert create_mr.call_args.kwargs["branch_name"] == "fix/b"
+
+    def test_create_mr_failure_still_returns_compliance_result(self, monkeypatch):
+        monkeypatch.setenv("GITLAB_TOKEN", "secret")
+        with (
+            patch(
+                "src.compliance.supply_chain_fix.apply_supply_chain_fixes",
+                return_value=["Fixed include x: 1 -> 2 (ci.yml:1)"],
+            ),
+            patch(
+                "src.compliance.merge_requests.create_supply_chain_merge_request",
+                side_effect=ValueError("GitLab project is required"),
+            ),
+            patch("src.compliance.runner.print_error") as print_error,
+            patch("src.compliance.runner.Runner") as mock_runner_cls,
+        ):
+            mock_runner_cls.return_value.run.return_value = 0
+            mock_runner_cls.return_value.features = []
+            result = run_compliance(
+                features_dir=str(PASSING_POLICIES),
+                pipeline_file=str(SAMPLE_PIPELINE),
+                fix_supply_chain=True,
+                create_mr=True,
+                token="secret",
+                output_format="markdown",
+            )
+        assert result.success is True
+        assert mock_runner_cls.return_value.run.call_count == 1
+        print_error.assert_called_once()
+        assert "GitLab project is required" in print_error.call_args.args[0]
+
+    def test_post_mr_comment_failure_still_returns_result(self, monkeypatch):
+        monkeypatch.setenv("GITLAB_TOKEN", "token")
+        with (
+            patch(
+                "src.compliance.merge_requests.post_compliance_mr_comment",
+                side_effect=ValueError("boom comment"),
+            ),
+            patch(
+                "src.compliance.render.render_compliance_mr_comment",
+                return_value="body",
+            ),
+            patch("src.compliance.runner.print_error") as print_error,
+            patch("src.compliance.runner.logger") as mock_logger,
+        ):
+            result = run_compliance(
+                features_dir=str(PASSING_POLICIES),
+                pipeline_file=str(SAMPLE_PIPELINE),
+                post_mr_comment=True,
+                project="group/proj",
+                mr_iid=3,
+                output_format="markdown",
+            )
+        assert result.success is True
+        mock_logger.info.assert_called()
+        print_error.assert_called_once()
+        assert "boom comment" in print_error.call_args.args[0]
 
     def test_post_mr_comment_uses_helper(self, monkeypatch):
         monkeypatch.setenv("GITLAB_TOKEN", "token")

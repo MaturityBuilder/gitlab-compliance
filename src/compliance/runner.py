@@ -14,7 +14,7 @@ from behave.step_registry import registry
 
 from src.compliance.api_enrichment import policies_require_api_enrichment
 from src.compliance.builtin_policies import BUILTIN_POLICIES_DIR
-from src.compliance.console import render_compliance_console
+from src.compliance.console import print_error, render_compliance_console
 from src.compliance.metadata import (
     build_policy_catalog_from_dirs,
     iter_feature_files,
@@ -388,21 +388,6 @@ def run_compliance(
                     )
                 )
 
-            if create_mr:
-                from src.compliance.merge_requests import (
-                    create_supply_chain_merge_request,
-                )
-
-                create_supply_chain_merge_request(
-                    pipeline_file=pipeline_file,
-                    fix_messages=fix_messages,
-                    gitlab_url=gitlab_url,
-                    token=resolved_token,
-                    project=project,
-                    branch_name=mr_branch,
-                    target_branch=mr_target_branch,
-                )
-
             (
                 exit_code,
                 scenario_results,
@@ -426,27 +411,8 @@ def run_compliance(
         scenario_results=scenario_results,
     )
 
-    if post_mr_comment:
-        from src.compliance.merge_requests import post_compliance_mr_comment
-        from src.compliance.render import render_compliance_mr_comment
-
-        if mr_comment_file:
-            with open(mr_comment_file, encoding="utf-8") as handle:
-                comment_body = handle.read()
-        else:
-            comment_body = render_compliance_mr_comment(
-                result=result,
-                pipeline_file=pipeline_file,
-                features_dir=policies_source,
-            )
-        post_compliance_mr_comment(
-            body=comment_body,
-            gitlab_url=gitlab_url,
-            token=resolved_token,
-            project=project,
-            mr_iid=mr_iid,
-        )
-
+    # Always emit the compliance report before optional GitLab side effects so a
+    # failed --create-mr / --post-mr-comment cannot hide check results.
     if output_format == "console":
         render_compliance_console(
             result=result,
@@ -458,5 +424,45 @@ def run_compliance(
             f"Compliance summary: {passed} passed, {failed_count} failed, {skipped} skipped "
             f"({scenarios} scenarios in {features} features)"
         )
+
+    if create_mr:
+        from src.compliance.merge_requests import create_supply_chain_merge_request
+
+        try:
+            create_supply_chain_merge_request(
+                pipeline_file=pipeline_file,
+                fix_messages=fix_messages,
+                gitlab_url=gitlab_url,
+                token=resolved_token,
+                project=project,
+                branch_name=mr_branch,
+                target_branch=mr_target_branch,
+            )
+        except (ValueError, OSError) as exc:
+            print_error(str(exc), title="Merge request failed")
+
+    if post_mr_comment:
+        from src.compliance.merge_requests import post_compliance_mr_comment
+        from src.compliance.render import render_compliance_mr_comment
+
+        try:
+            if mr_comment_file:
+                with open(mr_comment_file, encoding="utf-8") as handle:
+                    comment_body = handle.read()
+            else:
+                comment_body = render_compliance_mr_comment(
+                    result=result,
+                    pipeline_file=pipeline_file,
+                    features_dir=policies_source,
+                )
+            post_compliance_mr_comment(
+                body=comment_body,
+                gitlab_url=gitlab_url,
+                token=resolved_token,
+                project=project,
+                mr_iid=mr_iid,
+            )
+        except (ValueError, OSError) as exc:
+            print_error(str(exc), title="MR comment failed")
 
     return result
