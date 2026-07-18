@@ -22,10 +22,13 @@ def before_scenario(context, scenario):
         raise RuntimeError("Pipeline file not configured for compliance run.")
 
     if not context.compliance_entities:
+        depth_raw = context.config.userdata.get("max_include_depth", "")
+        max_include_depth = int(depth_raw) if str(depth_raw).strip() else None
         context.compliance_entities = load_pipeline_entities(
             pipeline_file=pipeline,
             include_nested=context.config.userdata.get("include_nested", "true")
             == "true",
+            max_include_depth=max_include_depth,
             gitlab_url=context.config.userdata.get("gitlab_url") or None,
             project=context.config.userdata.get("project") or None,
             group=context.config.userdata.get("group") or None,

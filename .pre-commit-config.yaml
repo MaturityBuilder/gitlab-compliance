@@ -27,7 +27,7 @@ repos:
         files: ^(src|tests)/
 
   - repo: https://github.com/pycqa/isort
-    rev: 9.0.0a3
+    rev: 9.0.0b1
     hooks:
       - id: isort
         files: ^(src|tests)/
@@ -49,6 +49,6 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.23.0
+    rev: v0.23.1
     hooks:
       - id: markdownlint-cli2

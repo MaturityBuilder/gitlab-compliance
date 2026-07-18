@@ -4,11 +4,11 @@ Deprecated: use `generate --format html` instead.
 
 ## Usage
 
-```text
-Usage: gitlab-compliance generate-html [OPTIONS]```
+```
+Usage: gitlab-compliance generate-html [OPTIONS]
+```
 
 ## Options
-
 * `detailed`:
   * Type: BOOL
   * Default: `false`
@@ -39,9 +39,10 @@ Usage: gitlab-compliance generate-html [OPTIONS]```
 
   Show this message and exit.
 
+
 ## CLI Help
 
-```text
+```
 Usage: gitlab-compliance generate-html [OPTIONS]
 
   Deprecated: use `generate --format html` instead. (DEPRECATED)

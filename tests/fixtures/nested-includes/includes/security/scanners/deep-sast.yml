@@ -1,0 +1,13 @@
+# Depth 3 leaf — deepest security job.
+
+variables:
+  DEEP_SAST_VAR: "from-deep-sast"
+
+deep_sast:
+  stage: test
+  image: registry.gitlab.com/security-products/sast:4.2.1
+  script:
+    - echo "deep sast"
+  artifacts:
+    reports:
+      sast: gl-sast-report.json

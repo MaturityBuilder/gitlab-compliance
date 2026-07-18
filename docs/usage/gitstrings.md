@@ -146,6 +146,14 @@ Without `--include-nested`, only `include` entries in the **annotated fragment**
 gitlab-compliance document gitstrings -i .gitlab-ci.yml --include-nested -o GITLAB-DOCS.md
 ```
 
+Limit nesting with `--max-include-depth` (omit for unlimited). Depth `0` is the
+root file passed as `-i`.
+
+```bash
+gitlab-compliance document gitstrings -i .gitlab-ci.yml \
+  --include-nested --max-include-depth 2 -o GITLAB-DOCS.md
+```
+
 ### Path-based render and sensitive values
 
 Use dot paths on `@render` to control exactly which YAML subtree becomes a table. Parent segments work too (`variables`, `megalinter.variables`). Job names match case-insensitively when resolving paths against a full `.gitlab-ci.yml`.

@@ -1,0 +1,35 @@
+# Deep local-include sample for nested traversal tests.
+# Tree (depth 4 on the security branch):
+#   .gitlab-ci.yml
+#   └── includes/security.yml
+#       └── security/scanners.yml
+#           └── scanners/deep-sast.yml
+#   └── includes/build.yml
+#       └── build/docker.yml
+#           └── docker/publish.yml
+#
+# Non-local includes are listed but never fetched by the collector.
+
+include:
+  - local: includes/security.yml
+  - local: includes/build.yml
+  - project: platform/ci-templates
+    file: security/base.yml
+    ref: 1.0.0
+  - component: gitlab.com/org/security-scanner@2.0.0
+  - template: Security/SAST.gitlab-ci.yml
+  - remote: https://gitlab.com/group/proj/-/raw/3.1.0/ci/shared.yml
+
+variables:
+  ROOT_VAR: "from-root"
+
+stages:
+  - build
+  - test
+  - deploy
+
+root_lint:
+  stage: test
+  image: alpine:3.20.0
+  script:
+    - echo "root lint"

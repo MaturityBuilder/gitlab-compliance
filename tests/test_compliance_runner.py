@@ -471,22 +471,26 @@ class TestComponentPinningPolicies:
 
 class TestRunComplianceFix:
     def test_fix_with_dry_run_raises(self):
-        with pytest.raises(ValueError, match="--fix cannot be used with --dry-run"):
+        with pytest.raises(
+            ValueError, match="--fix-supply-chain cannot be used with --dry-run"
+        ):
             run_compliance(
                 features_dir=str(PASSING_POLICIES),
                 pipeline_file=str(SAMPLE_PIPELINE),
-                fix=True,
+                fix_supply_chain=True,
                 dry_run=True,
             )
 
     def test_fix_without_token_raises(self, monkeypatch):
         monkeypatch.delenv("GITLAB_TOKEN", raising=False)
         monkeypatch.delenv("CI_JOB_TOKEN", raising=False)
-        with pytest.raises(ValueError, match="--fix requires a GitLab token"):
+        with pytest.raises(
+            ValueError, match="--fix-supply-chain requires a GitLab token"
+        ):
             run_compliance(
                 features_dir=str(PASSING_POLICIES),
                 pipeline_file=str(SAMPLE_PIPELINE),
-                fix=True,
+                fix_supply_chain=True,
             )
 
     def test_fix_invokes_supply_chain_fixes(self, monkeypatch):
@@ -505,7 +509,7 @@ class TestRunComplianceFix:
             result = run_compliance(
                 features_dir=str(PASSING_POLICIES),
                 pipeline_file=str(SAMPLE_PIPELINE),
-                fix=True,
+                fix_supply_chain=True,
                 token="secret",
                 output_format="markdown",
             )
@@ -514,6 +518,7 @@ class TestRunComplianceFix:
         apply_fixes.assert_called_once_with(
             pipeline_file=str(SAMPLE_PIPELINE),
             include_nested=True,
+            max_include_depth=None,
             gitlab_url=None,
             token="secret",
             project=None,

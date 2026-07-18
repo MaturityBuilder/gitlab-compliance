@@ -1,0 +1,15 @@
+# Depth 2 — docker layer.
+
+include:
+  - local: docker/publish.yml
+
+variables:
+  DOCKER_VAR: "from-docker"
+
+docker_build:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  script:
+    - echo "docker build"
