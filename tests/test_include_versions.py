@@ -1,5 +1,3 @@
-import threading
-import time
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -403,20 +401,24 @@ class TestEnrichIncludesWithReleases:
         from src.compliance.release_cache import ReleaseMetadataCache
 
         cache = ReleaseMetadataCache()
-        enriched = enrich_includes_with_releases(
-            includes,
-            gitlab_url="https://gitlab.example.com",
-            token="secret",
-            gl=gl,
-            cache=cache,
-        )
+        with patch(
+            "src.compliance.include_versions._create_gitlab_client",
+            return_value=gl,
+        ) as create_client:
+            enriched = enrich_includes_with_releases(
+                includes,
+                gitlab_url="https://gitlab.example.com",
+                token="secret",
+                cache=cache,
+            )
 
+        assert create_client.call_count == 1
         assert gl.projects.get.call_count == 1
         assert project.tags.list.call_count == 1
         assert enriched[0]["latest_version"] == "1.2.0"
         assert enriched[1]["latest_version"] == "1.2.0"
 
-    def test_parallel_enrich_serializes_shared_gitlab_client_calls(self):
+    def test_parallel_enrich_fetches_unique_projects_once(self):
         includes = [
             {
                 "include_type": "project",
@@ -435,19 +437,7 @@ class TestEnrichIncludesWithReleases:
             },
         ]
 
-        active_calls = 0
-        max_active_calls = 0
-        calls_lock = threading.Lock()
-
         def _project_for(path):
-            nonlocal active_calls, max_active_calls
-            with calls_lock:
-                active_calls += 1
-                max_active_calls = max(max_active_calls, active_calls)
-            time.sleep(0.05)
-            with calls_lock:
-                active_calls -= 1
-
             project = MagicMock()
             if path == "platform/ci-templates":
                 project.tags.list.return_value = [
@@ -459,28 +449,78 @@ class TestEnrichIncludesWithReleases:
                 project.tags.list.return_value = [_tag("2.0.0"), _tag("2.1.0")]
             return project
 
-        gl = MagicMock()
-        gl.projects.get.side_effect = _project_for
+        clients: list[MagicMock] = []
+
+        def _new_client(_url, _token):
+            gl = MagicMock()
+            gl.projects.get.side_effect = _project_for
+            clients.append(gl)
+            return gl
 
         from src.compliance.release_cache import ReleaseMetadataCache
 
         cache = ReleaseMetadataCache()
-        enriched = enrich_includes_with_releases(
-            includes,
-            gitlab_url="https://gitlab.example.com",
-            token="secret",
-            gl=gl,
-            cache=cache,
-        )
+        with patch(
+            "src.compliance.include_versions._create_gitlab_client",
+            side_effect=_new_client,
+        ):
+            enriched = enrich_includes_with_releases(
+                includes,
+                gitlab_url="https://gitlab.example.com",
+                token="secret",
+                cache=cache,
+            )
 
-        assert sorted(call.args[0] for call in gl.projects.get.call_args_list) == [
-            "platform/ci-templates",
-            "platform/other",
-        ]
-        assert max_active_calls == 1
+        # One dedicated client per unique project (not a shared session).
+        assert len(clients) == 2
+        fetched_paths = sorted(
+            call.args[0]
+            for client in clients
+            for call in client.projects.get.call_args_list
+        )
+        assert fetched_paths == ["platform/ci-templates", "platform/other"]
         assert enriched[0]["latest_version"] == "1.2.0"
         assert enriched[1]["latest_version"] == "2.1.0"
         assert enriched[2]["latest_version"] == "1.2.0"
+
+    def test_parallel_prefetch_uses_dedicated_clients(self):
+        includes = [
+            {
+                "include_type": "project",
+                "project": "platform/one",
+                "version": "1.0.0",
+            },
+            {
+                "include_type": "project",
+                "project": "platform/two",
+                "version": "1.0.0",
+            },
+        ]
+        client_ids: list[int] = []
+
+        def _new_client(_url, _token):
+            gl = MagicMock()
+            project = MagicMock()
+            project.tags.list.return_value = [_tag("1.0.0")]
+            gl.projects.get.return_value = project
+            client_ids.append(id(gl))
+            return gl
+
+        from src.compliance.release_cache import ReleaseMetadataCache
+
+        with patch(
+            "src.compliance.include_versions._create_gitlab_client",
+            side_effect=_new_client,
+        ):
+            enrich_includes_with_releases(
+                includes,
+                gitlab_url="https://gitlab.example.com",
+                token="secret",
+                cache=ReleaseMetadataCache(),
+            )
+
+        assert len(client_ids) == 2
+        assert len(set(client_ids)) == 2
 
     def test_fetch_semver_tag_dates_uses_cache(self):
         from src.compliance.release_cache import ReleaseMetadataCache

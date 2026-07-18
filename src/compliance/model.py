@@ -226,10 +226,11 @@ def load_pipeline_entities(
         or "https://gitlab.com"
     )
 
-    needs_gitlab_client = api_token and (
-        enrich_includes
-        or enrich_images
-        or (load_api_entities and (resolved_project or resolved_group))
+    # Shared Gitlab clients are not thread-safe. Only create one here for
+    # sequential API entity loading; include/image enrichment uses dedicated
+    # per-worker clients internally.
+    needs_gitlab_client = (
+        api_token and load_api_entities and (resolved_project or resolved_group)
     )
     if needs_gitlab_client:
         try:
@@ -247,7 +248,6 @@ def load_pipeline_entities(
             [include["values"] for include in entities["includes"]],
             gitlab_url=gitlab_url,
             token=api_token,
-            gl=gl,
             cache=resolved_cache,
         )
         entities["includes"] = [

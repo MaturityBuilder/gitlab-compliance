@@ -60,15 +60,13 @@ class TestLoadPipelineEntitiesEnrichmentFlags:
                     "version": "1.2.0",
                 }
             ]
-            with patch("gitlab.Gitlab") as gitlab_cls:
-                gitlab_cls.return_value.auth.return_value = None
-                load_pipeline_entities(
-                    str(pipeline),
-                    token="secret",
-                    enrich_includes=True,
-                    enrich_images=False,
-                    load_api_entities=False,
-                )
+            load_pipeline_entities(
+                str(pipeline),
+                token="secret",
+                enrich_includes=True,
+                enrich_images=False,
+                load_api_entities=False,
+            )
 
         enrich.assert_called_once()
 
@@ -96,15 +94,13 @@ class TestLoadPipelineEntitiesEnrichmentFlags:
                     "version": "1.2.0",
                 }
             ]
-            with patch("gitlab.Gitlab") as gitlab_cls:
-                gitlab_cls.return_value.auth.return_value = None
-                load_pipeline_entities(
-                    str(pipeline),
-                    token="secret",
-                    enrich_includes=True,
-                    enrich_images=False,
-                    load_api_entities=False,
-                    cache=cache,
-                )
+            load_pipeline_entities(
+                str(pipeline),
+                token="secret",
+                enrich_includes=True,
+                enrich_images=False,
+                load_api_entities=False,
+                cache=cache,
+            )
 
         assert enrich.call_args.kwargs["cache"] is cache
