@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Any
@@ -254,6 +255,7 @@ def _prefetch_include_tag_dates(
     token: str,
     gl: Any | None,
     cache: ReleaseMetadataCache,
+    client_lock: threading.Lock,
 ) -> Any | None:
     """Warm the cache for unique include projects concurrently."""
     project_paths = _include_project_paths(includes)
@@ -271,7 +273,10 @@ def _prefetch_include_tag_dates(
 
     def _prefetch(project_path: str) -> None:
         try:
-            fetch_semver_tag_dates(gl, project_path, gitlab_url=gitlab_url, cache=cache)
+            with client_lock:
+                fetch_semver_tag_dates(
+                    gl, project_path, gitlab_url=gitlab_url, cache=cache
+                )
         except Exception:
             return
 
@@ -301,22 +306,25 @@ def enrich_includes_with_releases(
         or os.getenv("GITLAB_URL")
         or "https://gitlab.com"
     )
+    client_lock = threading.Lock()
     gl = _prefetch_include_tag_dates(
         includes,
         gitlab_url=resolved_gitlab_url,
         token=token,
         gl=gl,
         cache=resolved_cache,
+        client_lock=client_lock,
     )
 
     def _enrich(include: dict) -> dict:
-        return enrich_include_release_metadata(
-            include,
-            gitlab_url=resolved_gitlab_url,
-            token=token,
-            gl=gl,
-            cache=resolved_cache,
-        )
+        with client_lock:
+            return enrich_include_release_metadata(
+                include,
+                gitlab_url=resolved_gitlab_url,
+                token=token,
+                gl=gl,
+                cache=resolved_cache,
+            )
 
     if len(includes) == 1:
         return [_enrich(includes[0])]

@@ -1,3 +1,5 @@
+import threading
+import time
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -414,7 +416,7 @@ class TestEnrichIncludesWithReleases:
         assert enriched[0]["latest_version"] == "1.2.0"
         assert enriched[1]["latest_version"] == "1.2.0"
 
-    def test_parallel_enrich_fetches_unique_projects_once(self):
+    def test_parallel_enrich_serializes_shared_gitlab_client_calls(self):
         includes = [
             {
                 "include_type": "project",
@@ -433,7 +435,19 @@ class TestEnrichIncludesWithReleases:
             },
         ]
 
+        active_calls = 0
+        max_active_calls = 0
+        calls_lock = threading.Lock()
+
         def _project_for(path):
+            nonlocal active_calls, max_active_calls
+            with calls_lock:
+                active_calls += 1
+                max_active_calls = max(max_active_calls, active_calls)
+            time.sleep(0.05)
+            with calls_lock:
+                active_calls -= 1
+
             project = MagicMock()
             if path == "platform/ci-templates":
                 project.tags.list.return_value = [
@@ -463,6 +477,7 @@ class TestEnrichIncludesWithReleases:
             "platform/ci-templates",
             "platform/other",
         ]
+        assert max_active_calls == 1
         assert enriched[0]["latest_version"] == "1.2.0"
         assert enriched[1]["latest_version"] == "2.1.0"
         assert enriched[2]["latest_version"] == "1.2.0"
