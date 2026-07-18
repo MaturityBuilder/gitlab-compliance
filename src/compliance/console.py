@@ -9,6 +9,7 @@ from rich.table import Table
 from rich.text import Text
 
 from src.compliance.models import ComplianceResult
+from src.compliance.secret_redact import redact_secrets
 
 _STATUS_STYLES = {
     "passed": "bold green",
@@ -25,7 +26,9 @@ _HINTS = {
         "Drop `--dry-run` when creating a merge request."
     ),
     "--create-mr requires a GitLab token": (
-        "Set `--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`."
+        "Set `--token` or `GITLAB_TOKEN` to a project/personal access token "
+        "with permission to create branches and merge requests "
+        "(`CI_JOB_TOKEN` is not accepted for `--create-mr`)."
     ),
     "--fix-supply-chain cannot be used with --dry-run": (
         "Drop `--dry-run` when applying supply-chain fixes."
@@ -80,8 +83,9 @@ def print_error(
 ) -> None:
     """Render a red error panel with an optional hint."""
     out = console or get_console()
-    resolved_hint = hint if hint is not None else _hint_for_message(message)
-    body = Text(message, style="bold")
+    safe_message = redact_secrets(message)
+    resolved_hint = hint if hint is not None else _hint_for_message(safe_message)
+    body = Text(safe_message, style="bold")
     if resolved_hint:
         body.append("\n\n")
         body.append("Hint: ", style="dim")
@@ -107,7 +111,7 @@ def print_warning(
     out = console or get_console()
     out.print(
         Panel(
-            Text(message),
+            Text(redact_secrets(message)),
             title=f"[bold yellow]{title}[/bold yellow]",
             border_style="yellow",
             padding=(0, 2),
@@ -126,7 +130,7 @@ def print_success(
     out = console or get_console()
     out.print(
         Panel(
-            Text(message, style="bold"),
+            Text(redact_secrets(message), style="bold"),
             title=f"[bold green]{title}[/bold green]",
             border_style="green",
             padding=(0, 2),
@@ -145,7 +149,7 @@ def print_info(
     out = console or get_console()
     out.print(
         Panel(
-            Text(message),
+            Text(redact_secrets(message)),
             title=f"[bold cyan]{title}[/bold cyan]",
             border_style="cyan",
             padding=(0, 2),
@@ -226,7 +230,7 @@ def _detail_panels(result: ComplianceResult) -> list[Panel]:
                 entry.append(scenario.description, style="italic")
             if scenario.message:
                 entry.append("\n")
-                entry.append(scenario.message, style="dim")
+                entry.append(redact_secrets(scenario.message), style="dim")
             lines.append(entry)
         blocks.append(
             Panel(
@@ -244,7 +248,9 @@ def _detail_panels(result: ComplianceResult) -> list[Panel]:
     if skipped:
         lines = []
         for scenario in skipped:
-            reason = scenario.message or "Filter did not match any entities."
+            reason = redact_secrets(
+                scenario.message or "Filter did not match any entities."
+            )
             label = scenario.policy_id or scenario.feature
             title = scenario.title or scenario.name
             entry = Text()

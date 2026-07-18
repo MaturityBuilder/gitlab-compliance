@@ -9,6 +9,7 @@ import gitlab
 
 from src.compliance.api_config import resolve_project
 from src.compliance.console import print_info, print_success, print_warning
+from src.compliance.secret_redact import redact_secrets, token_is_ci_job_token
 
 _FIX_PATH_RE = re.compile(r"\((?:[^()]*?,\s*)?(?P<path>[^(),]+):(?P<line>\d+)\)\s*$")
 _MR_TITLE = "fix: gitlab-compliance supply-chain updates"
@@ -96,7 +97,7 @@ def _mr_description(
     ]
     if fix_messages:
         for index, message in enumerate(fix_messages, start=1):
-            lines.append(f"{index}. {message}")
+            lines.append(f"{index}. {redact_secrets(message)}")
     else:
         lines.append("_No change details were recorded._")
 
@@ -119,7 +120,7 @@ def _mr_description(
 
 
 def _friendly_gitlab_error(exc: Exception, *, action: str) -> ValueError:
-    detail = str(exc).strip() or exc.__class__.__name__
+    detail = redact_secrets(str(exc).strip() or exc.__class__.__name__)
     return ValueError(f"GitLab API error while {action}: {detail}")
 
 
@@ -208,7 +209,13 @@ def create_supply_chain_merge_request(
             "--create-mr requires a GitLab token with permission to create "
             "branches, commits, and merge requests "
             "(--token or GITLAB_TOKEN project access token / PAT; "
-            "CI_JOB_TOKEN is usually insufficient)"
+            "CI_JOB_TOKEN is not accepted)"
+        )
+    if token_is_ci_job_token(token):
+        raise ValueError(
+            "--create-mr does not accept CI_JOB_TOKEN; set --token or GITLAB_TOKEN "
+            "to a project or personal access token that can create branches and "
+            "merge requests"
         )
     changed = _changed_files_from_fix_messages(fix_messages)
     if not changed:
@@ -285,7 +292,7 @@ def create_supply_chain_merge_request(
                     }
                 )
             except gitlab.exceptions.GitlabError as exc:
-                detail = str(exc).strip() or exc.__class__.__name__
+                detail = redact_secrets(str(exc).strip() or exc.__class__.__name__)
                 if branch_created:
                     raise ValueError(
                         f"GitLab API error while committing to newly created branch "
@@ -312,7 +319,7 @@ def create_supply_chain_merge_request(
                     }
                 )
             except gitlab.exceptions.GitlabError as exc:
-                detail = str(exc).strip() or exc.__class__.__name__
+                detail = redact_secrets(str(exc).strip() or exc.__class__.__name__)
                 raise ValueError(
                     f"GitLab API error while creating the merge request after "
                     f"committing to `{branch}`: {detail}. "
@@ -333,7 +340,7 @@ def create_supply_chain_merge_request(
             reusable_mr.description = description
             reusable_mr.save()
         except gitlab.exceptions.GitlabError as exc:
-            detail = str(exc).strip() or exc.__class__.__name__
+            detail = redact_secrets(str(exc).strip() or exc.__class__.__name__)
             raise ValueError(
                 f"GitLab API error while updating merge request "
                 f"{_mr_label(reusable_mr)} after committing to `{branch}`: {detail}. "
@@ -378,7 +385,7 @@ def post_compliance_mr_comment(
         gl = gitlab.Gitlab(url, private_token=token)
         project_obj = gl.projects.get(project_path)
         merge_request = project_obj.mergerequests.get(resolved_iid)
-        merge_request.notes.create({"body": body})
+        merge_request.notes.create({"body": redact_secrets(body)})
     except gitlab.exceptions.GitlabError as exc:
         raise _friendly_gitlab_error(
             exc, action=f"posting a comment on !{resolved_iid}"

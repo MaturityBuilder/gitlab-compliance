@@ -598,8 +598,8 @@ def _resolve_policies_dir(
     default=False,
     help=(
         "After --fix-supply-chain and/or --fix-policies, commit changed files "
-        "and open a GitLab merge request (needs a project/personal access token; "
-        "CI_JOB_TOKEN is usually insufficient; failures exit 2 after the report)."
+        "and open a GitLab merge request (requires --token/GITLAB_TOKEN PAT; "
+        "CI_JOB_TOKEN is rejected; failures exit 2 after the report)."
     ),
 )
 @click.option(

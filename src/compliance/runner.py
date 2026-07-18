@@ -22,6 +22,7 @@ from src.compliance.metadata import (
 )
 from src.compliance.models import ComplianceResult, ScenarioResult
 from src.compliance.oci_registry import resolve_features_dir
+from src.compliance.secret_redact import redact_secrets, token_is_ci_job_token
 from src.modules.logging import logger
 
 COMPLIANCE_SUPPORT_DIR = os.path.join(
@@ -264,6 +265,12 @@ def run_compliance(
             "--fix-policies requires a GitLab token "
             "(--token, GITLAB_TOKEN, or CI_JOB_TOKEN)"
         )
+    if create_mr and token_is_ci_job_token(resolved_token):
+        raise ValueError(
+            "--create-mr does not accept CI_JOB_TOKEN; set --token or GITLAB_TOKEN "
+            "to a project or personal access token that can create branches and "
+            "merge requests"
+        )
 
     fix_messages: list[str] = []
     if fix_supply_chain:
@@ -441,7 +448,7 @@ def run_compliance(
                 target_branch=mr_target_branch,
             )
         except (ValueError, OSError) as exc:
-            detail = str(exc)
+            detail = redact_secrets(str(exc))
             print_error(detail, title="Merge request failed")
             logger.error("Merge request failed: %s", detail)
             side_effect_failed = True
@@ -468,7 +475,7 @@ def run_compliance(
                 mr_iid=mr_iid,
             )
         except (ValueError, OSError) as exc:
-            detail = str(exc)
+            detail = redact_secrets(str(exc))
             print_error(detail, title="MR comment failed")
             logger.error("MR comment failed: %s", detail)
             side_effect_failed = True

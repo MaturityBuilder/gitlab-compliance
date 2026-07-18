@@ -26,6 +26,7 @@ from src.compliance.include_fix import (
 )
 from src.compliance.model import load_pipeline_entities
 from src.compliance.models import ScenarioResult
+from src.compliance.secret_redact import redact_secrets
 from src.compliance.stash import (
     container_image_uses_sha256,
     include_has_newer_release,
@@ -318,7 +319,7 @@ def apply_policy_remediations(
         messages.extend(applied)
 
     for message in messages:
-        logger.info(message)
+        logger.info(redact_secrets(message))
     if messages:
         print_info(
             f"Applied {len(messages)} policy remediation(s).",

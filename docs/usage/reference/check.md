@@ -129,7 +129,7 @@ Usage: gitlab-compliance check [OPTIONS]
   * Default: `false`
   * Usage: `--create-mr`
 
-  After --fix-supply-chain and/or --fix-policies, commit changed files and open a GitLab merge request (needs a project/personal access token; CI_JOB_TOKEN is usually insufficient; failures exit 2 after the report).
+  After --fix-supply-chain and/or --fix-policies, commit changed files and open a GitLab merge request (requires --token/GITLAB_TOKEN PAT; CI_JOB_TOKEN is rejected; failures exit 2 after the report).
 
 * `post_mr_comment`:
   * Type: BOOL

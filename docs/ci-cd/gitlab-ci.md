@@ -138,9 +138,9 @@ reads `CI_MERGE_REQUEST_IID` automatically; pass `--mr-iid` to override.
 ### Supply-chain fix MR
 
 Prefer a project access token or PAT (`GITLAB_TOKEN`) with permission to create
-branches, commits, and merge requests. `CI_JOB_TOKEN` is usually insufficient;
-when MR creation fails, the job still prints the compliance report and exits
-`2` if policies passed.
+branches, commits, and merge requests. `CI_JOB_TOKEN` is rejected for
+`--create-mr`. When MR creation fails for other reasons, the job still prints
+the compliance report and exits `2` if policies passed.
 
 ```yaml
 fix-supply-chain:

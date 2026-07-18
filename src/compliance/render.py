@@ -10,6 +10,7 @@ import re
 from datetime import datetime, timezone
 
 from src.compliance.models import ComplianceResult, ScenarioResult
+from src.compliance.secret_redact import redact_secrets
 from src.modules.common import render_markdown_table
 
 LOCATION_RE = re.compile(r"\(([^():]+):(\d+)\)")
@@ -87,7 +88,7 @@ def render_compliance_markdown(
             if scenario.description:
                 lines.append(f"- **Description:** {scenario.description}")
             if scenario.message:
-                lines.append(f"- **Details:** {scenario.message}")
+                lines.append(f"- **Details:** {redact_secrets(scenario.message)}")
             lines.append("")
 
     return "\n".join(lines).rstrip() + "\n"
@@ -139,7 +140,7 @@ def render_compliance_mr_comment(
             lines.extend(
                 [
                     "```",
-                    scenario.message or "Scenario failed.",
+                    redact_secrets(scenario.message or "Scenario failed."),
                     "```",
                     "",
                     "</details>",
@@ -151,7 +152,9 @@ def render_compliance_mr_comment(
         lines.append("#### Skipped policies")
         lines.append("")
         for scenario in grouped["skipped"]:
-            reason = scenario.message or "Filter did not match any entities."
+            reason = redact_secrets(
+                scenario.message or "Filter did not match any entities."
+            )
             label = scenario.policy_id or scenario.feature
             title = scenario.title or scenario.name
             lines.append(f"- `{label}` — {title}: {reason}")
@@ -190,7 +193,7 @@ def render_compliance_html(
                 f"<td class='{html.escape(scenario.status)}'>{_status_icon(scenario.status)}</td>"
                 "</tr>"
                 + (
-                    f"<tr><td colspan='4'><pre>{html.escape(scenario.message)}</pre></td></tr>"
+                    f"<tr><td colspan='4'><pre>{html.escape(redact_secrets(scenario.message))}</pre></td></tr>"
                     if scenario.message
                     else ""
                 )

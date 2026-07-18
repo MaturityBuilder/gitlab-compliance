@@ -58,6 +58,11 @@ Auto-remediate supply-chain issues before running policies:
 - **Container images** — rewrite `image:` / `services:` to `@sha256:<digest>`
   for the resolved tag
 
+**Trust model:** remediations trust GitLab release/tag metadata and registry
+digest resolution for “latest”. Compromised upstream tags or registries can
+cause the tool to pin or bump to attacker-controlled versions. Review every
+`--create-mr` diff before merge.
+
 Requires a GitLab token (`--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`). Cannot
 be combined with `--dry-run`.
 
@@ -86,9 +91,14 @@ mode, `--project` (or `CI_PROJECT_PATH`), and a token that can create branches,
 commits, and merge requests.
 
 Use a **project access token** or **personal access token** (`--token` /
-`GITLAB_TOKEN`) with `api` (and write) scope. `CI_JOB_TOKEN` usually cannot
-create branches or merge requests; if MR creation fails, the compliance report
-is still printed and the process exits `2` when policies otherwise passed.
+`GITLAB_TOKEN`) with `api` (and write) scope. `CI_JOB_TOKEN` is **rejected** for
+`--create-mr` (it usually cannot create branches or merge requests). If MR
+creation fails for other reasons, the compliance report is still printed and the
+process exits `2` when policies otherwise passed.
+
+Fix messages and MR comment bodies are scrubbed for known token patterns and
+values from common secret environment variables before they are logged or posted
+to GitLab.
 
 If an open merge request already exists for the source branch, the run pushes a
 new commit and updates that MR. If the branch still exists but the MR was
@@ -115,7 +125,8 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
 
 Post the compliance report as a note on an existing merge request. Uses
 `--mr-iid` or `CI_MERGE_REQUEST_IID`. Optional `--mr-comment-file` posts a
-pre-rendered body instead of regenerating from the run.
+pre-rendered body instead of regenerating from the run. Comment content
+(including file bodies) is secret-redacted before posting.
 
 Failures print an error (and log it) after the compliance report; when policies
 passed, the process exits `2`.

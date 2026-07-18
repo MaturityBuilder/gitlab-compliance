@@ -20,8 +20,8 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
   --fix-policies --token "$GITLAB_TOKEN"
 ```
 
-With an MR (prefer a project/personal access token; `CI_JOB_TOKEN` is usually
-not enough to create branches or merge requests):
+With an MR (`CI_JOB_TOKEN` is rejected for `--create-mr`; use a project or
+personal access token):
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
@@ -38,6 +38,16 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
 ```
 
 Requires a GitLab token. Cannot be combined with `--dry-run`.
+
+## Trust model
+
+Allowlisted remediations use the same GitLab/registry “latest” metadata as
+`--fix-supply-chain`. Always review generated YAML (and any `--create-mr`
+diff) before merging — a compromised upstream tag or registry can steer pins
+and version bumps.
+
+Scenario details, fix messages, and MR comment bodies are scrubbed for common
+token patterns and secret environment values before logging or posting.
 
 ## Flow
 
