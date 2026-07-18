@@ -3,8 +3,12 @@ from click.testing import CliRunner
 
 from src.gitlab_compliance import gitlab_compliance
 from src.modules.command_reference import (
+    MANUAL_DOCS_END,
+    MANUAL_DOCS_START,
+    _extract_manual_docs,
     _format_options,
     _render_command_page,
+    _with_manual_docs,
     dump_helper,
     dumps,
     recursive_help,
@@ -41,6 +45,44 @@ class TestDumpHelper:
         assert index_md.is_file()
         assert "[generate](generate.md)" in index_md.read_text(encoding="utf-8")
 
+    def test_preserves_manual_docs_block(self, tmp_path):
+        check_path = tmp_path / "check.md"
+        check_path.write_text(
+            "# check\n\nold generated body\n\n"
+            f"{MANUAL_DOCS_START}\n\n## Keep me\n\n{MANUAL_DOCS_END}\n",
+            encoding="utf-8",
+        )
+        dump_helper(gitlab_compliance, tmp_path)
+        text = check_path.read_text(encoding="utf-8")
+        assert MANUAL_DOCS_START in text
+        assert "## Keep me" in text
+        assert MANUAL_DOCS_END in text
+        assert text.startswith("# check")
+        assert "## Usage" in text
+        assert text.index(MANUAL_DOCS_START) < text.index("## Usage")
+        assert text.index(MANUAL_DOCS_END) < text.index("## Usage")
+
+
+class TestManualDocsHelpers:
+    def test_extract_and_merge(self):
+        existing = f"generated\n\n{MANUAL_DOCS_START}\nnote\n{MANUAL_DOCS_END}\n"
+        block = _extract_manual_docs(existing)
+        assert block is not None
+        assert "note" in block
+        merged = _with_manual_docs("# title\n\nDesc\n\n## Usage\n\nbody\n", existing)
+        assert merged.startswith("# title")
+        assert MANUAL_DOCS_START in merged
+        assert merged.index(MANUAL_DOCS_START) < merged.index("## Usage")
+        assert _with_manual_docs("# new\n", None) == "# new\n"
+        assert _with_manual_docs("# new\n", "no markers") == "# new\n"
+
+    def test_ignores_markers_mentioned_inline(self):
+        help_text = (
+            "mentions ``<!-- MANUAL DOCS:START -->`` and "
+            "``<!-- MANUAL DOCS:END -->`` inline\n"
+        )
+        assert _extract_manual_docs(help_text) is None
+
 
 class TestDumpsCli:
     def test_writes_command_reference_markdown(self, tmp_path):
@@ -63,7 +105,7 @@ class TestDumpsCli:
         assert (docs_dir / "policies-doc.md").is_file()
         assert (docs_dir / "document-gitstrings.md").is_file()
         index_text = (docs_dir / "command-reference.md").read_text(encoding="utf-8")
-        assert "# Command Reference" in index_text
+        assert "# CLI subcommands" in index_text
         assert "Created 12 command docs" in result.output
 
     def test_missing_module_reports_error(self, tmp_path):

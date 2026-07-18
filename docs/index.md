@@ -30,7 +30,7 @@ Source code - coming soon:
 
 ## Get started
 [Get started](installation/index.md){ .md-button .md-button-primary }
-[Usage reference](usage/index.md){ .md-button }
+[Usage](usage/index.md){ .md-button }
 [BDD grammar](bdd-reference/index.md){ .md-button }
 
 `gitlab-compliance` supports two core workflows from the same pipeline YAML:
@@ -39,6 +39,8 @@ Source code - coming soon:
 | -------- | ------- | ------------ |
 | **Compliance** | [`check`](usage/reference/check.md) | Run Gherkin policies against `.gitlab-ci.yml` (and optional GitLab API settings) |
 | **Documentation** | [`generate`](usage/reference/generate.md) | Build Markdown, swagger-markdown, or HTML reference docs from `.gitlab-ci.yml` |
+
+![gitlab-compliance check console demo](demos/gifs/check-console.gif)
 
 ```bash
 pip install gitlab-compliance
@@ -51,7 +53,9 @@ gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeli
 gitlab-compliance generate -i .gitlab-ci.yml --exclude variables,image --group-by stage
 ```
 
-See [Usage](usage/index.md) for compliance options and [Generate pipeline documentation](usage/reference/generate.md) for output formats, `--exclude`, and `--group-by`.
+See [Usage](usage/index.md) for the full CLI (including demos) and
+[Generate pipeline documentation](usage/reference/generate.md) for output
+formats, `--exclude`, and `--group-by`.
 
 - **compliance:** Ensure pipeline YAML and project settings follow your security
   standards and custom policies

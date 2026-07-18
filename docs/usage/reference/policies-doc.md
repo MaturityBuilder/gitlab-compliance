@@ -2,6 +2,17 @@
 
 Generate a searchable policy catalog from Conftest-style # METADATA annotations.
 
+<!-- MANUAL DOCS:START -->
+
+## See it in action
+
+![gitlab-compliance policies doc](../../demos/gifs/policies-doc.gif)
+
+<!-- MANUAL DOCS:END -->
+
+
+
+
 ## Usage
 
 ```

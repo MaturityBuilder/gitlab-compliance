@@ -2,6 +2,17 @@
 
 Render gitstrings documentation from CI YAML decorators or markdown fences.
 
+<!-- MANUAL DOCS:START -->
+
+## See it in action
+
+![gitlab-compliance document gitstrings](../../demos/gifs/document-gitstrings.gif)
+
+<!-- MANUAL DOCS:END -->
+
+
+
+
 ## Usage
 
 ```

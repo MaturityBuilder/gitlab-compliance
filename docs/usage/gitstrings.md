@@ -2,6 +2,8 @@
 
 Gitstrings turns **decorated YAML** into **marker-delimited** markdown tables (like [`generate`](reference/generate.md)), without overwriting the rest of your README.
 
+![gitlab-compliance document gitstrings](../demos/gifs/document-gitstrings.gif)
+
 ## Two input modes
 
 | Source | How decorators are written |

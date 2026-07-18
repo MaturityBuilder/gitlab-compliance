@@ -2,6 +2,18 @@
 
 Pull a compliance policy bundle from an OCI registry.
 
+<!-- MANUAL DOCS:START -->
+
+## See it in action
+
+See [policies push](policies-push.md#see-it-in-action) for the combined
+push/pull live demo (`docs/demos/tapes/policies-push-pull.tape`).
+
+<!-- MANUAL DOCS:END -->
+
+
+
+
 ## Usage
 
 ```

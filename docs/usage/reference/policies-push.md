@@ -2,6 +2,25 @@
 
 Push a compliance policy bundle to an OCI registry (Conftest-style).
 
+<!-- MANUAL DOCS:START -->
+
+## See it in action
+
+Push/pull against an OCI registry
+(`DEMO_OCI_REF` required):
+
+```bash
+export DEMO_OCI_REF=registry.example.com/org/demo-policies:demo
+bash scripts/record-demos.sh live
+```
+
+See [demos README](../../demos/README.md).
+
+<!-- MANUAL DOCS:END -->
+
+
+
+
 ## Usage
 
 ```

@@ -32,9 +32,11 @@ nav:
     - installation/index.md
     - Installing via pip: installation/pip.md
     - Installing via Docker: installation/docker.md
-  - Command Reference:
+  - Usage:
+    - Overview: usage/index.md
     - Compliance:
       - Check: usage/reference/check.md
+      - Auto-fix policies: usage/fix-policies.md
       - Policies:
           - Overview: usage/reference/policies.md
           - Policy Catalog: usage/reference/policies-doc.md
@@ -49,15 +51,8 @@ nav:
       - Document Commands:
           - Overview: usage/reference/document.md
           - Gitstrings: usage/reference/document-gitstrings.md
-    - Release Notes Commands:
-      - Release Notes: usage/reference/release-notes.md
-    - Update Command Reference: usage/reference/dumps.md
-  - Usage:
-    - usage/index.md
-    - Additional Parameters: usage/additional-parameters.md
-    - Auto-fix policies: usage/fix-policies.md
-
-
+    - Release Notes: usage/reference/release-notes.md
+    - Update docs from CLI: usage/reference/dumps.md
   - BDD Reference:
     - bdd-reference/index.md
     - Overview of Scenario Flow: bdd-reference/overview.md

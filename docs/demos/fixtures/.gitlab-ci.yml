@@ -1,0 +1,21 @@
+# Demo fixture: intentional unpinned image for compliance demos.
+stages:
+  - test
+  - build
+
+variables:
+  APP_ENV:
+    value: demo
+    description: Environment label for demo jobs.
+
+unit-tests:
+  stage: test
+  image: python:3.12
+  script:
+    - pytest -q
+
+build-image:
+  stage: build
+  image: docker:24.0.5
+  script:
+    - docker build -t demo-app .

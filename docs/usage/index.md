@@ -1,7 +1,11 @@
 # Usage
 
+CLI getting started, common flags, demos, and links into each command page.
+
 Regardless of how you [install](../installation/index.md) `gitlab-compliance`,
 the tool supports two primary workflows:
+
+![gitlab-compliance check console demo](../demos/gifs/check-console.gif)
 
 ### Compliance (`check`)
 
@@ -26,7 +30,8 @@ gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeli
 gitlab-compliance generate -i .gitlab-ci.yml --exclude variables,workflow --group-by stage
 ```
 
-See [Generate pipeline documentation](reference/generate.md) and [Additional Parameters](additional-parameters.md).
+See [Generate pipeline documentation](reference/generate.md) and
+[Check](reference/check.md) for full option details.
 
 ## CLI reference
 
@@ -133,5 +138,44 @@ gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeli
 
 Sample generated output: [GitLab Docs output example](../examples/gitlab-docs-output-example.md).
 
-See also [Additional Parameters](additional-parameters.md) and [Environment
-Variables](environment-variables.md).
+See also [Check](reference/check.md) and
+[Environment Variables](environment-variables.md).
+
+## Demos
+
+All generated offline demos. Details and option-level embeds live on each
+command page below. Recording: [demos README](../demos/README.md).
+
+### [`check`](reference/check.md)
+
+![check console](../demos/gifs/check-console.gif)
+
+![check markdown](../demos/gifs/check-markdown.gif)
+
+![check HTML CLI](../demos/gifs/check-html-cli.gif)
+
+![check HTML rendered](../demos/gifs/check-html.gif)
+
+![check mr-comment](../demos/gifs/check-mr-comment.gif)
+
+![check create-mr](../demos/gifs/check-create-mr.gif)
+
+### [`generate`](reference/generate.md)
+
+![generate markdown](../demos/gifs/generate-markdown.gif)
+
+![generate HTML CLI](../demos/gifs/generate-html-cli.gif)
+
+![generate HTML rendered](../demos/gifs/generate-html.gif)
+
+### [`get-attributes`](reference/get-attributes.md)
+
+![get-attributes](../demos/gifs/get-attributes.gif)
+
+### [`policies doc`](reference/policies-doc.md)
+
+![policies doc](../demos/gifs/policies-doc.gif)
+
+### [`document gitstrings`](gitstrings.md)
+
+![document gitstrings](../demos/gifs/document-gitstrings.gif)

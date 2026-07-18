@@ -4,6 +4,9 @@ import re
 
 import click
 
+MANUAL_DOCS_START = "<!-- MANUAL DOCS:START -->"
+MANUAL_DOCS_END = "<!-- MANUAL DOCS:END -->"
+
 md_base_template = """
 ## Usage
 
@@ -20,6 +23,37 @@ md_base_template = """
 {help}
 ```
 """
+
+
+def _extract_manual_docs(text: str) -> str | None:
+    """Return the MANUAL DOCS block (markers included), or None if absent.
+
+    Markers must appear alone on a line so CLI help that *mentions* the
+    comments is not treated as a manual block.
+    """
+    pattern = re.compile(
+        rf"^{re.escape(MANUAL_DOCS_START)}\s*\n.*?^{re.escape(MANUAL_DOCS_END)}\s*$",
+        re.MULTILINE | re.DOTALL,
+    )
+    match = pattern.search(text)
+    return match.group(0) if match else None
+
+
+def _with_manual_docs(rendered: str, existing: str | None) -> str:
+    """Preserve a MANUAL DOCS block, inserting it before ``## Usage`` when present.
+
+    That keeps demos/narrative above the generated options dump.
+    """
+    if not existing:
+        return rendered
+    manual = _extract_manual_docs(existing)
+    if not manual:
+        return rendered
+    usage_marker = "\n## Usage\n"
+    if usage_marker in rendered:
+        before, after = rendered.split(usage_marker, 1)
+        return before.rstrip() + "\n\n" + manual + "\n" + usage_marker + after
+    return rendered.rstrip() + "\n\n" + manual + "\n"
 
 
 def recursive_help(cmd, parent=None):
@@ -139,15 +173,20 @@ def dump_helper(base_command, docs_dir) -> list[str]:
     for helpdct, command_path in _iter_command_docs(base_command):
         display_name = " ".join(command_path)
         filename = _command_doc_filename(command_path)
-        (docs_path / filename).write_text(
-            _render_command_page(helpdct, title=display_name),
+        target = docs_path / filename
+        existing = target.read_text(encoding="utf-8") if target.is_file() else None
+        target.write_text(
+            _with_manual_docs(
+                _render_command_page(helpdct, title=display_name),
+                existing,
+            ),
             encoding="utf-8",
         )
         written.append(command_path)
 
     index_lines = [
-        "# Command Reference\n",
-        f"Auto-generated reference for `{root_name}` subcommands.\n",
+        "# CLI subcommands\n",
+        f"Auto-generated index of `{root_name}` subcommands (see Usage in docs).\n",
     ]
     for command_path in sorted(written, key=_command_doc_slug):
         display_name = " ".join(command_path)
@@ -191,6 +230,10 @@ def cli():
 def dumps(base_module, base_command, docs_path):
     """
     Create one markdown file per subcommand under --docsPath.
+
+    Existing pages may keep a narrative block between MANUAL DOCS START/END
+    HTML comments on their own lines; that block is preserved across
+    regenerations.
     """
     click.secho(
         f"Creating command docs from {base_module}.{base_command} into {docs_path}",

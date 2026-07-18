@@ -1,5 +1,5 @@
-# Command Reference
-Auto-generated reference for `gitlab-compliance` subcommands.
+# CLI subcommands
+Auto-generated index of `gitlab-compliance` subcommands (see Usage in docs).
 - [check](check.md)
 - [document](document.md)
 - [document gitstrings](document-gitstrings.md)

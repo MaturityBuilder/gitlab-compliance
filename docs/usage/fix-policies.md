@@ -10,8 +10,9 @@ predicates** are rewritten (for example, unpinned job images for
 `GLCI-INCLUDE-VERSIONS-004`). Other includes/images in the same pipeline are
 left alone.
 
-This is separate from [`--fix-supply-chain`](additional-parameters.md), which
-rewrites includes/images before policies run.
+This is separate from
+[`--fix-supply-chain`](reference/check.md#fix-supply-chain), which rewrites
+includes/images before policies run.
 
 ## Usage
 
@@ -28,6 +29,8 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
   --fix-policies --create-mr --project "$CI_PROJECT_PATH" \
   --token "$GITLAB_TOKEN"
 ```
+
+![gitlab-compliance check create-mr](../demos/gifs/check-create-mr.gif)
 
 Both fix modes can be combined:
 
