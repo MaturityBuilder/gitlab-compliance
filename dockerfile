@@ -1,4 +1,4 @@
-FROM python:3.12.13-alpine3.24@sha256:6d43704baacd1bfbe7c295d7f13079d5d8104ed33568873133f8fc69980419df  AS builder
+FROM python:3.14.6-alpine3.24@sha256:26730869004e2b9c4b9ad09cab8625e81d256d1ce97e72df5520e806b1709f92  AS builder
 RUN pip3 install -q poetry==2.1.3
 RUN mkdir -p /build && mkdir -p /build/src
 WORKDIR /build
@@ -8,7 +8,7 @@ COPY ./docs ./docs/
 RUN poetry install --without docs
 RUN poetry build
 
-FROM python:3.12.13-alpine3.24@sha256:6d43704baacd1bfbe7c295d7f13079d5d8104ed33568873133f8fc69980419df AS gitlab-compliance
+FROM python:3.14.6-alpine3.24@sha256:26730869004e2b9c4b9ad09cab8625e81d256d1ce97e72df5520e806b1709f92 AS gitlab-compliance
 LABEL org.opencontainers.image.title="gitlab-compliance" \
       org.opencontainers.image.description="BDD compliance testing for GitLab CI/CD — by MaturityBuilder" \
       org.opencontainers.image.source="https://github.com/MaturityBuilder/gitlab-compliance" \
