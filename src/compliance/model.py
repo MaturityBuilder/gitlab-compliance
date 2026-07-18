@@ -106,6 +106,7 @@ def _workflow_rule_entity(
 def load_yaml_entities(
     pipeline_file: str,
     include_nested: bool = True,
+    max_include_depth: int | None = None,
 ) -> dict[str, list[dict]]:
     if not os.path.exists(pipeline_file):
         raise FileNotFoundError(f"Pipeline file not found: {pipeline_file}")
@@ -114,6 +115,7 @@ def load_yaml_entities(
         config_file=pipeline_file,
         detailed=True,
         include_nested=include_nested,
+        max_include_depth=max_include_depth,
     )
 
     line_index = pipeline_data.get("line_index") or {}
@@ -185,6 +187,7 @@ def _job_values(job: dict) -> dict:
 def load_pipeline_entities(
     pipeline_file: str,
     include_nested: bool = True,
+    max_include_depth: int | None = None,
     gitlab_url: str | None = None,
     token: str | None = None,
     project: str | None = None,
@@ -196,7 +199,11 @@ def load_pipeline_entities(
     from src.compliance.api_config import resolve_group, resolve_project, resolve_token
     from src.compliance.release_cache import ReleaseMetadataCache
 
-    entities = load_yaml_entities(pipeline_file, include_nested=include_nested)
+    entities = load_yaml_entities(
+        pipeline_file,
+        include_nested=include_nested,
+        max_include_depth=max_include_depth,
+    )
 
     userdata = {
         "project": project or "",

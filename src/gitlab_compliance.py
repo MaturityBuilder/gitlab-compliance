@@ -96,6 +96,7 @@ def _generate_markdown(
     exclude_sections=None,
     exclude_attributes=None,
     group_by=None,
+    max_include_depth=None,
 ):
     ENABLE_WORKFLOW_DOCUMENTATION = detailed
     exclude_sections = exclude_sections or set()
@@ -120,6 +121,7 @@ def _generate_markdown(
             DISABLE_TITLE=True,
             DISABLE_TYPE_HEADING=False,
             OUTPUT_FILE=OUTPUT_FILE,
+            max_include_depth=max_include_depth,
         )
     if ENABLE_WORKFLOW_DOCUMENTATION is True and "workflow" not in exclude_sections:
         workflows.document_workflows(
@@ -131,6 +133,7 @@ def _generate_markdown(
         pipeline_data = collect_pipeline_data(
             config_file=GLDOCS_CONFIG_FILE,
             detailed=detailed,
+            max_include_depth=max_include_depth,
             exclude_sections=exclude_sections,
             exclude_attributes=exclude_attributes,
             group_by=group_by,
@@ -149,10 +152,12 @@ def _generate_html(
     exclude_sections=None,
     exclude_attributes=None,
     group_by=None,
+    max_include_depth=None,
 ):
     pipeline_data = collect_pipeline_data(
         config_file=GLDOCS_CONFIG_FILE,
         detailed=detailed,
+        max_include_depth=max_include_depth,
         exclude_sections=exclude_sections,
         exclude_attributes=exclude_attributes,
         group_by=group_by,
@@ -169,10 +174,12 @@ def _generate_swagger_markdown(
     exclude_sections=None,
     exclude_attributes=None,
     group_by=None,
+    max_include_depth=None,
 ):
     pipeline_data = collect_pipeline_data(
         config_file=GLDOCS_CONFIG_FILE,
         detailed=detailed,
+        max_include_depth=max_include_depth,
         exclude_sections=exclude_sections,
         exclude_attributes=exclude_attributes,
         group_by=group_by,
@@ -346,6 +353,13 @@ def get_attributes(OUTPUT_FILE, GLDOCS_CONFIG_FILE, attributes, json_format):
     default=None,
     help="Group jobs in the Jobs section by this job attribute (e.g. stage).",
 )
+@click.option(
+    "--max-include-depth",
+    "max_include_depth",
+    type=int,
+    default=None,
+    help="Max local include nesting depth from the root file (omit for unlimited).",
+)
 def generate(
     detailed,
     output_format,
@@ -354,6 +368,7 @@ def generate(
     GLDOCS_CONFIG_FILE,
     exclude,
     group_by,
+    max_include_depth,
 ):
     """
     Will scan through your gitlab-ci yml and build documentation from the yml.
@@ -382,6 +397,7 @@ def generate(
         exclude_sections=exclude_sections,
         exclude_attributes=exclude_attributes,
         group_by=group_by,
+        max_include_depth=max_include_depth,
     )
 
     if output_format == "html":
@@ -512,6 +528,13 @@ def _resolve_policies_dir(
     help="Resolve nested local include files into the compliance stash.",
 )
 @click.option(
+    "--max-include-depth",
+    "max_include_depth",
+    type=int,
+    default=None,
+    help="Max local include nesting depth from the root file (omit for unlimited).",
+)
+@click.option(
     "--gitlab-url",
     default=None,
     help="GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).",
@@ -555,10 +578,60 @@ def _resolve_policies_dir(
     help="Parse and list scenarios without asserting.",
 )
 @click.option(
-    "--fix",
+    "--fix-supply-chain",
     is_flag=True,
     default=False,
     help="Auto-fix outdated include refs and pin container images to sha256 digests.",
+)
+@click.option(
+    "--fix-policies",
+    is_flag=True,
+    default=False,
+    help=(
+        "After an initial policy run, apply allowlisted BDD remediations "
+        "(see docs/usage/fix-policies.md), then re-check."
+    ),
+)
+@click.option(
+    "--create-mr",
+    is_flag=True,
+    default=False,
+    help=(
+        "After --fix-supply-chain and/or --fix-policies, commit changed files "
+        "and open a GitLab merge request (requires --token/GITLAB_TOKEN PAT; "
+        "CI_JOB_TOKEN is rejected; failures exit 2 after the report)."
+    ),
+)
+@click.option(
+    "--post-mr-comment",
+    is_flag=True,
+    default=False,
+    help="Post the compliance mr-comment body to a GitLab merge request.",
+)
+@click.option(
+    "--mr-iid",
+    type=int,
+    default=None,
+    help="Merge request IID for --post-mr-comment (default: CI_MERGE_REQUEST_IID).",
+)
+@click.option(
+    "--mr-branch",
+    default=None,
+    help=(
+        "Source branch for --create-mr "
+        "(default: gitlab-compliance/supply-chain-fix). "
+        "Reuses an open MR for this branch, or reopens a closed one."
+    ),
+)
+@click.option(
+    "--mr-target-branch",
+    default=None,
+    help="Target branch for --create-mr (default: project default branch).",
+)
+@click.option(
+    "--mr-comment-file",
+    default=None,
+    help="Optional pre-rendered markdown file to post with --post-mr-comment.",
 )
 @click.option(
     "--with-builtin",
@@ -572,6 +645,7 @@ def check(
     output_format,
     output_file,
     include_nested,
+    max_include_depth,
     gitlab_url,
     token,
     project,
@@ -580,13 +654,22 @@ def check(
     update,
     policy_cache_dir,
     dry_run,
-    fix,
+    fix_supply_chain,
+    fix_policies,
+    create_mr,
+    post_mr_comment,
+    mr_iid,
+    mr_branch,
+    mr_target_branch,
+    mr_comment_file,
     with_builtin,
 ):
     """
     Run Gherkin compliance policies against GitLab CI YAML and optional API settings.
     """
     output_format = output_format.lower()
+
+    from src.compliance.console import print_error, print_success
 
     if (
         update
@@ -595,22 +678,35 @@ def check(
         and os.path.isdir(policy_cache_dir)
     ):
         shutil.rmtree(policy_cache_dir)
-    result = _gitlab_docs.run_compliance(
-        features_dir=features_dir,
-        pipeline_file=pipeline_file,
-        include_nested=include_nested,
-        gitlab_url=gitlab_url,
-        token=token,
-        project=project,
-        group=group,
-        strict=strict,
-        dry_run=dry_run,
-        output_format=output_format,
-        policies_source=features_dir,
-        policy_cache_dir=policy_cache_dir,
-        fix=fix,
-        with_builtin=with_builtin,
-    )
+
+    try:
+        result = _gitlab_docs.run_compliance(
+            features_dir=features_dir,
+            pipeline_file=pipeline_file,
+            include_nested=include_nested,
+            max_include_depth=max_include_depth,
+            gitlab_url=gitlab_url,
+            token=token,
+            project=project,
+            group=group,
+            strict=strict,
+            dry_run=dry_run,
+            output_format=output_format,
+            policies_source=features_dir,
+            policy_cache_dir=policy_cache_dir,
+            fix_supply_chain=fix_supply_chain,
+            fix_policies=fix_policies,
+            with_builtin=with_builtin,
+            create_mr=create_mr,
+            post_mr_comment=post_mr_comment,
+            mr_iid=mr_iid,
+            mr_branch=mr_branch,
+            mr_target_branch=mr_target_branch,
+            mr_comment_file=mr_comment_file,
+        )
+    except (ValueError, FileNotFoundError, OSError) as exc:
+        print_error(str(exc))
+        raise SystemExit(2) from exc
 
     if output_format != "console":
         report = _gitlab_docs.render_compliance_report(
@@ -623,14 +719,24 @@ def check(
         if target:
             with open(target, "w", encoding="utf-8") as handle:
                 handle.write(report)
-            logger.info(f"Compliance report written to {target}")
+            print_success(
+                f"Compliance report written to `{target}`",
+                title="Report written",
+            )
         else:
             click.echo(report)
 
-    if result.success:
-        logger.info(f"Compliance passed for {pipeline_file}")
-    else:
-        logger.error(f"Compliance failed for {pipeline_file}")
+        if result.success:
+            print_success(
+                f"Compliance passed for `{pipeline_file}`",
+                title="Complete",
+            )
+        else:
+            print_error(
+                f"Compliance failed for `{pipeline_file}`",
+                title="Complete",
+                hint="Review the report, then re-run after fixes.",
+            )
     raise SystemExit(result.exit_code)
 
 
@@ -774,7 +880,16 @@ def document():
         "(-i must be .yml). Does not fetch project, component, remote, or template trees."
     ),
 )
-def document_gitstrings(input_file, output_file, dry_mode, keep_source, include_nested):
+@click.option(
+    "--max-include-depth",
+    "max_include_depth",
+    type=int,
+    default=None,
+    help="Max local include nesting depth from the root file (omit for unlimited).",
+)
+def document_gitstrings(
+    input_file, output_file, dry_mode, keep_source, include_nested, max_include_depth
+):
     """
     Render gitstrings documentation from CI YAML decorators or markdown fences.
     """
@@ -786,6 +901,7 @@ def document_gitstrings(input_file, output_file, dry_mode, keep_source, include_
         dry=dry_mode,
         keep_source=keep_source,
         include_nested=include_nested,
+        max_include_depth=max_include_depth,
     )
     if written:
         for path in written:

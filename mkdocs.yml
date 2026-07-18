@@ -55,6 +55,7 @@ nav:
   - Usage:
     - usage/index.md
     - Additional Parameters: usage/additional-parameters.md
+    - Auto-fix policies: usage/fix-policies.md
 
 
   - BDD Reference:

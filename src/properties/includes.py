@@ -14,12 +14,23 @@ def document_includes(
     GLDOCS_CONFIG_FILE,
     DISABLE_TITLE=False,
     DISABLE_TYPE_HEADING=True,
+    max_include_depth=None,
+    _depth=0,
+    _visited=None,
 ):
     logger.trace("Generating Documentation for Includes")
 
     if not os.path.exists(GLDOCS_CONFIG_FILE):
         logger.error(f"Config file not found: {GLDOCS_CONFIG_FILE}")
         return
+
+    resolved = os.path.realpath(os.path.abspath(GLDOCS_CONFIG_FILE))
+    visited = _visited if _visited is not None else set()
+    if resolved in visited:
+        return
+    visited.add(resolved)
+
+    can_recurse = max_include_depth is None or _depth < max_include_depth
 
     file = common.read_yml(GLDOCS_CONFIG_FILE)
     try:
@@ -127,6 +138,8 @@ def document_includes(
                             )
 
                             # Recursively document nested includes
+                            if not can_recurse:
+                                continue
                             sub_config = value.lstrip("/")
                             try:
                                 document_includes(
@@ -134,6 +147,9 @@ def document_includes(
                                     GLDOCS_CONFIG_FILE=sub_config,
                                     DISABLE_TITLE=True,
                                     DISABLE_TYPE_HEADING=DISABLE_TYPE_HEADING,
+                                    max_include_depth=max_include_depth,
+                                    _depth=_depth + 1,
+                                    _visited=visited,
                                 )
                                 jobs.get_jobs(
                                     OUTPUT_FILE=OUTPUT_FILE,

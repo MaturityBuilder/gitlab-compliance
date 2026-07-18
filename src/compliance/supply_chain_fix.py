@@ -11,6 +11,7 @@ from src.compliance.include_fix import (
     collect_include_version_fixes,
 )
 from src.compliance.model import load_pipeline_entities
+from src.compliance.secret_redact import redact_secrets
 from src.modules.logging import logger
 
 
@@ -18,6 +19,7 @@ def apply_supply_chain_fixes(
     *,
     pipeline_file: str,
     include_nested: bool,
+    max_include_depth: int | None = None,
     gitlab_url: str | None,
     token: str,
     project: str | None,
@@ -26,6 +28,7 @@ def apply_supply_chain_fixes(
     entities = load_pipeline_entities(
         pipeline_file=pipeline_file,
         include_nested=include_nested,
+        max_include_depth=max_include_depth,
         gitlab_url=gitlab_url,
         token=token,
         project=project,
@@ -48,6 +51,7 @@ def apply_supply_chain_fixes(
         entities = load_pipeline_entities(
             pipeline_file=pipeline_file,
             include_nested=include_nested,
+            max_include_depth=max_include_depth,
             gitlab_url=gitlab_url,
             token=token,
             project=project,
@@ -65,5 +69,5 @@ def apply_supply_chain_fixes(
         )
 
     for message in messages:
-        logger.info(message)
+        logger.info(redact_secrets(message))
     return messages

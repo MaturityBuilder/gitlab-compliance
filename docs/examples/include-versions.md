@@ -147,14 +147,14 @@ Scenario: Flag includes outside the latest five tags
 - **`remote`:** Yes — semver/SHA from URL path — URL pin check only
 - **`local`:** Yes — `n/a` — Skipped
 
-## Auto-fix (`--fix`)
+## Auto-fix (`--fix-supply-chain`)
 
 Bump outdated project/component includes to the latest semver tag detected via
 GitLab API:
 
 ```bash
 export GITLAB_TOKEN="<token>"
-gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix-supply-chain
 ```
 
 ## Consume in GitLab CI
