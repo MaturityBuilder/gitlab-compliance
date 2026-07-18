@@ -353,10 +353,10 @@ class TestPipelineAndSwagger:
         cfg = tmp_path / "ci.yml"
         cfg.write_text("job:\n  script: echo\n", encoding="utf-8")
 
-        def boom(_path):
+        def boom(_text):
             raise RuntimeError("index failed")
 
-        monkeypatch.setattr("src.modules.yaml_lines.index_yaml_file", boom)
+        monkeypatch.setattr("src.modules.yaml_lines.index_yaml_text", boom)
         data = collect_pipeline_data(str(cfg))
         assert data["jobs"]
 

@@ -12,6 +12,7 @@ from src.modules.common import (
     format_scalar,
     format_string_list,
     format_value,
+    load_yml_documents,
     read_yml,
     table_design,
 )
@@ -59,6 +60,10 @@ class TestReadYml:
         docs = read_yml(str(path))
         assert len(docs) == 2
         assert docs[0]["name"] == "one"
+
+    def test_load_yml_documents_from_text(self):
+        docs = load_yml_documents("---\nname: one\n---\nname: two\n")
+        assert [doc["name"] for doc in docs] == ["one", "two"]
 
 
 class TestEnvLoader:

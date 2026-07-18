@@ -22,12 +22,12 @@ include:
   - project: charlieasmith/cas-cli
     ref: 0.0.1
     file: gitlab-include-sample.yml
-  - component: https://gitlab.com/charlieasmith/gitlab-docs@main
+  - component: https://gitlab.com/charlieasmith/gitlab-docs@1.0.6
     inputs:
       MY_INPUTS: "true"
     rules:
       - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-  - component: https://gitlab.com/charlieasmith/gitlab-docs@1.0.0
+  - component: https://gitlab.com/charlieasmith/gitlab-docs@1.0.6
     inputs:
       MY_INPUTS: "true"
     rules:

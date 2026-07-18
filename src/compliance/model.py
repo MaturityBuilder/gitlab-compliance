@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from src.modules.pipeline_data import collect_pipeline_data
+
+if TYPE_CHECKING:
+    from src.compliance.release_cache import ReleaseMetadataCache
 
 
 def _job_entity(name: str, config: dict, source_file: str = "", line: int = 0) -> dict:
@@ -195,6 +198,7 @@ def load_pipeline_entities(
     enrich_includes: bool = True,
     enrich_images: bool = True,
     load_api_entities: bool = True,
+    cache: "ReleaseMetadataCache | None" = None,
 ) -> dict[str, list[dict]]:
     from src.compliance.api_config import resolve_group, resolve_project, resolve_token
     from src.compliance.release_cache import ReleaseMetadataCache
@@ -213,7 +217,7 @@ def load_pipeline_entities(
     resolved_project = resolve_project(userdata)
     resolved_group = resolve_group(userdata)
 
-    cache = ReleaseMetadataCache()
+    resolved_cache = cache if cache is not None else ReleaseMetadataCache()
     gl = None
     resolved_gitlab_url = (
         gitlab_url
@@ -222,10 +226,11 @@ def load_pipeline_entities(
         or "https://gitlab.com"
     )
 
-    needs_gitlab_client = api_token and (
-        enrich_includes
-        or enrich_images
-        or (load_api_entities and (resolved_project or resolved_group))
+    # Shared Gitlab clients are not thread-safe. Only create one here for
+    # sequential API entity loading; include/image enrichment uses dedicated
+    # per-worker clients internally.
+    needs_gitlab_client = (
+        api_token and load_api_entities and (resolved_project or resolved_group)
     )
     if needs_gitlab_client:
         try:
@@ -243,8 +248,7 @@ def load_pipeline_entities(
             [include["values"] for include in entities["includes"]],
             gitlab_url=gitlab_url,
             token=api_token,
-            gl=gl,
-            cache=cache,
+            cache=resolved_cache,
         )
         entities["includes"] = [
             _include_entity(index, include)
@@ -258,7 +262,7 @@ def load_pipeline_entities(
             [image["values"] for image in entities["container_images"]],
             gitlab_url=gitlab_url,
             token=api_token,
-            cache=cache,
+            cache=resolved_cache,
         )
         entities["container_images"] = [
             _container_image_entity(index, image)

@@ -33,6 +33,20 @@ API_ENTITY_MARKERS = (
 )
 
 
+def update_requirements_from_text(
+    text: str, reqs: ApiEnrichmentRequirements
+) -> ApiEnrichmentRequirements:
+    """Update enrichment requirements from one feature file's text."""
+    lowered = text.lower()
+    if not reqs.enrich_includes:
+        reqs.enrich_includes = any(marker in lowered for marker in INCLUDE_MARKERS)
+    if not reqs.enrich_images:
+        reqs.enrich_images = any(marker in lowered for marker in IMAGE_MARKERS)
+    if not reqs.load_api_entities:
+        reqs.load_api_entities = any(marker in lowered for marker in API_ENTITY_MARKERS)
+    return reqs
+
+
 def policies_require_api_enrichment(
     features_dirs: str | list[str],
 ) -> ApiEnrichmentRequirements:
@@ -44,15 +58,7 @@ def policies_require_api_enrichment(
             continue
         for feature_path in iter_feature_files(features_dir):
             with open(feature_path, encoding="utf-8") as handle:
-                text = handle.read().lower()
-            if not reqs.enrich_includes:
-                reqs.enrich_includes = any(marker in text for marker in INCLUDE_MARKERS)
-            if not reqs.enrich_images:
-                reqs.enrich_images = any(marker in text for marker in IMAGE_MARKERS)
-            if not reqs.load_api_entities:
-                reqs.load_api_entities = any(
-                    marker in text for marker in API_ENTITY_MARKERS
-                )
+                update_requirements_from_text(handle.read(), reqs)
             if reqs.enrich_includes and reqs.enrich_images and reqs.load_api_entities:
                 return reqs
 

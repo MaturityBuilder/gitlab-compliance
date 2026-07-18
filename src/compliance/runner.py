@@ -12,16 +12,16 @@ from behave.model import ScenarioOutline
 from behave.runner import Runner
 from behave.step_registry import registry
 
-from src.compliance.api_enrichment import policies_require_api_enrichment
 from src.compliance.builtin_policies import BUILTIN_POLICIES_DIR
 from src.compliance.console import print_error, render_compliance_console
 from src.compliance.metadata import (
-    build_policy_catalog_from_dirs,
+    discover_policies,
     iter_feature_files,
     normalize_scenario_name,
 )
 from src.compliance.models import ComplianceResult, ScenarioResult
 from src.compliance.oci_registry import resolve_features_dir
+from src.compliance.release_cache import ReleaseMetadataCache
 from src.compliance.secret_redact import redact_secrets, token_is_ci_job_token
 from src.modules.logging import logger
 
@@ -101,9 +101,13 @@ def _collect_feature_files_from_dirs(features_dirs: list[str]) -> list[tuple[str
     return collected
 
 
-def _build_behave_workspace(features_dirs: list[str]) -> str:
+def _build_behave_workspace(
+    features_dirs: list[str],
+    collected: list[tuple[str, str]] | None = None,
+) -> str:
     workspace = tempfile.mkdtemp(prefix="gitlab-compliance-compliance-")
-    collected = _collect_feature_files_from_dirs(features_dirs)
+    if collected is None:
+        collected = _collect_feature_files_from_dirs(features_dirs)
 
     if not collected:
         raise FileNotFoundError(
@@ -272,6 +276,7 @@ def run_compliance(
             "merge requests"
         )
 
+    release_cache = ReleaseMetadataCache()
     fix_messages: list[str] = []
     if fix_supply_chain:
         from src.compliance.supply_chain_fix import apply_supply_chain_fixes
@@ -285,15 +290,19 @@ def run_compliance(
                 token=resolved_token,
                 project=project,
                 group=group,
+                cache=release_cache,
             )
         )
 
     policy_directories = _resolve_policy_directories(
         resolved_features_dir, with_builtin=with_builtin
     )
-    workspace = _build_behave_workspace(policy_directories)
-    policy_catalog = build_policy_catalog_from_dirs(policy_directories)
-    api_requirements = policies_require_api_enrichment(policy_directories)
+    discovery = discover_policies(policy_directories)
+    policy_catalog = discovery.catalog
+    api_requirements = discovery.api_requirements
+    workspace = _build_behave_workspace(
+        policy_directories, collected=discovery.feature_files
+    )
 
     need_enrich_includes = (
         fix_supply_chain or fix_policies or api_requirements.enrich_includes
@@ -340,6 +349,7 @@ def run_compliance(
             "enrich_includes": "true" if need_enrich_includes else "false",
             "enrich_images": "true" if need_enrich_images else "false",
             "load_api_entities": "true" if need_api_entities else "false",
+            "release_cache": release_cache,
         }
 
         runner = Runner(config)
@@ -392,6 +402,7 @@ def run_compliance(
                         token=resolved_token,
                         project=project,
                         group=group,
+                        cache=release_cache,
                     )
                 )
 

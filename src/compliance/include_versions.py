@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse
@@ -11,6 +12,21 @@ import semver
 
 from src.compliance.release_cache import ReleaseMetadataCache
 from src.modules.release import parse_gitlab_date
+
+ENRICH_MAX_WORKERS = 8
+
+
+def _create_gitlab_client(gitlab_url: str, token: str) -> Any:
+    """Create a dedicated Gitlab client.
+
+    ``gitlab.Gitlab`` shares an HTTP session that is not safe for concurrent
+    use across threads, so callers must not reuse one client in a pool.
+    """
+    import gitlab
+
+    client = gitlab.Gitlab(gitlab_url, private_token=token)
+    client.auth()
+    return client
 
 
 def is_valid_semver_version(version: str) -> bool:
@@ -184,14 +200,14 @@ def enrich_include_release_metadata(
     )
 
     try:
-        if gl is None:
-            import gitlab
-
-            gl = gitlab.Gitlab(gitlab_url, private_token=token)
-            gl.auth()
-        tag_dates = fetch_semver_tag_dates(
-            gl, project_path, gitlab_url=gitlab_url, cache=cache
-        )
+        tag_dates = None
+        if cache is not None:
+            tag_dates = cache.get_gitlab_tag_dates(gitlab_url, project_path)
+        if tag_dates is None:
+            client = gl if gl is not None else _create_gitlab_client(gitlab_url, token)
+            tag_dates = fetch_semver_tag_dates(
+                client, project_path, gitlab_url=gitlab_url, cache=cache
+            )
     except Exception:
         return enriched
 
@@ -230,6 +246,56 @@ def enrich_include_release_metadata(
     return enriched
 
 
+def _include_project_paths(includes: list[dict]) -> list[str]:
+    paths: list[str] = []
+    seen: set[str] = set()
+    for include in includes:
+        project_path = resolve_include_project_path(
+            include.get("include_type", ""), include.get("project", "")
+        )
+        if not project_path or project_path in seen:
+            continue
+        seen.add(project_path)
+        paths.append(project_path)
+    return paths
+
+
+def _prefetch_include_tag_dates(
+    includes: list[dict],
+    *,
+    gitlab_url: str,
+    token: str,
+    cache: ReleaseMetadataCache,
+) -> None:
+    """Warm the cache for unique include projects concurrently.
+
+    Each worker uses a dedicated Gitlab client because the shared HTTP session
+    on ``gitlab.Gitlab`` is not thread-safe.
+    """
+    project_paths = _include_project_paths(includes)
+    if not project_paths:
+        return
+
+    def _prefetch(project_path: str) -> None:
+        try:
+            client = _create_gitlab_client(gitlab_url, token)
+            fetch_semver_tag_dates(
+                client, project_path, gitlab_url=gitlab_url, cache=cache
+            )
+        except Exception:
+            return
+
+    if len(project_paths) == 1:
+        _prefetch(project_paths[0])
+        return
+
+    workers = min(ENRICH_MAX_WORKERS, len(project_paths))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = [executor.submit(_prefetch, path) for path in project_paths]
+        for future in as_completed(futures):
+            future.result()
+
+
 def enrich_includes_with_releases(
     includes: list[dict],
     *,
@@ -238,13 +304,41 @@ def enrich_includes_with_releases(
     gl: Any | None = None,
     cache: ReleaseMetadataCache | None = None,
 ) -> list[dict]:
-    return [
-        enrich_include_release_metadata(
+    if not includes:
+        return []
+
+    resolved_cache = cache or ReleaseMetadataCache()
+    resolved_gitlab_url = (
+        gitlab_url
+        or os.getenv("CI_SERVER_URL")
+        or os.getenv("GITLAB_URL")
+        or "https://gitlab.com"
+    )
+    _prefetch_include_tag_dates(
+        includes,
+        gitlab_url=resolved_gitlab_url,
+        token=token,
+        cache=resolved_cache,
+    )
+
+    def _enrich(include: dict, *, client: Any | None) -> dict:
+        return enrich_include_release_metadata(
             include,
-            gitlab_url=gitlab_url,
+            gitlab_url=resolved_gitlab_url,
             token=token,
-            gl=gl,
-            cache=cache,
+            gl=client,
+            cache=resolved_cache,
         )
-        for include in includes
-    ]
+
+    # Single-include path may reuse an injected client. Parallel workers must
+    # not share one — after prefetch they resolve from the warm cache, and any
+    # cache miss creates a dedicated client inside enrich_include_release_metadata.
+    if len(includes) == 1:
+        return [_enrich(includes[0], client=gl)]
+
+    def _enrich_from_cache(include: dict) -> dict:
+        return _enrich(include, client=None)
+
+    workers = min(ENRICH_MAX_WORKERS, len(includes))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        return list(executor.map(_enrich_from_cache, includes))
