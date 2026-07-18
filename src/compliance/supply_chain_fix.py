@@ -11,6 +11,7 @@ from src.compliance.include_fix import (
     collect_include_version_fixes,
 )
 from src.compliance.model import load_pipeline_entities
+from src.compliance.release_cache import ReleaseMetadataCache
 from src.compliance.secret_redact import redact_secrets
 from src.modules.logging import logger
 
@@ -24,7 +25,9 @@ def apply_supply_chain_fixes(
     token: str,
     project: str | None,
     group: str | None,
+    cache: ReleaseMetadataCache | None = None,
 ) -> list[str]:
+    resolved_cache = cache if cache is not None else ReleaseMetadataCache()
     entities = load_pipeline_entities(
         pipeline_file=pipeline_file,
         include_nested=include_nested,
@@ -36,6 +39,7 @@ def apply_supply_chain_fixes(
         enrich_includes=True,
         enrich_images=True,
         load_api_entities=False,
+        cache=resolved_cache,
     )
 
     messages: list[str] = []
@@ -59,6 +63,7 @@ def apply_supply_chain_fixes(
             enrich_includes=True,
             enrich_images=True,
             load_api_entities=False,
+            cache=resolved_cache,
         )
 
     image_fixes = collect_container_image_fixes(entities)

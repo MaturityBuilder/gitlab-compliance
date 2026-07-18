@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from src.compliance.model import load_pipeline_entities
+from src.compliance.release_cache import ReleaseMetadataCache
 
 
 def before_all(context):
@@ -10,6 +11,9 @@ def before_all(context):
     context.stash = []
     context.step_mode = None
     context.scenario_skipped = False
+    context.release_cache = context.config.userdata.get("release_cache")
+    if context.release_cache is None:
+        context.release_cache = ReleaseMetadataCache()
 
 
 def before_scenario(context, scenario):
@@ -38,6 +42,7 @@ def before_scenario(context, scenario):
             == "true",
             load_api_entities=context.config.userdata.get("load_api_entities", "true")
             == "true",
+            cache=getattr(context, "release_cache", None),
         )
 
 

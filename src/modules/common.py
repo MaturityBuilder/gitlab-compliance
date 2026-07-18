@@ -134,10 +134,14 @@ class EnvLoader(yaml.SafeLoader):
 EnvLoader.add_constructor("!reference", env_var_replacement)
 
 
+def load_yml_documents(text: str):
+    """Parse YAML documents from an in-memory string."""
+    return list(yaml.load_all(text, Loader=EnvLoader))
+
+
 def read_yml(GLDOCS_CONFIG_FILE):
-    with open(GLDOCS_CONFIG_FILE, "r") as f:
-        documents = list(yaml.load_all(f, Loader=EnvLoader))
-    return documents
+    with open(GLDOCS_CONFIG_FILE, "r", encoding="utf-8") as f:
+        return load_yml_documents(f.read())
 
 
 def format_description_cell(text) -> str:

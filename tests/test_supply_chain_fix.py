@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from src.compliance.container_fix import ContainerImageFix
 from src.compliance.include_fix import IncludeVersionFix
+from src.compliance.release_cache import ReleaseMetadataCache
 from src.compliance.supply_chain_fix import apply_supply_chain_fixes
 
 
@@ -143,3 +144,42 @@ class TestApplySupplyChainFixes:
 
         assert messages == []
         assert load_entities.call_count == 1
+
+    def test_passes_shared_cache_to_entity_loads(self):
+        entities = {"includes": [], "container_images": []}
+        cache = ReleaseMetadataCache()
+
+        with (
+            patch(
+                "src.compliance.supply_chain_fix.load_pipeline_entities",
+                return_value=entities,
+            ) as load_entities,
+            patch(
+                "src.compliance.supply_chain_fix.collect_include_version_fixes",
+                return_value=[],
+            ),
+            patch(
+                "src.compliance.supply_chain_fix.apply_include_version_fixes",
+                return_value=[],
+            ),
+            patch(
+                "src.compliance.supply_chain_fix.collect_container_image_fixes",
+                return_value=[],
+            ),
+            patch(
+                "src.compliance.supply_chain_fix.apply_container_image_fixes",
+                return_value=[],
+            ),
+        ):
+            apply_supply_chain_fixes(
+                pipeline_file="ci.yml",
+                include_nested=True,
+                gitlab_url=None,
+                token="secret",
+                project=None,
+                group=None,
+                cache=cache,
+            )
+
+        assert load_entities.call_count == 1
+        assert load_entities.call_args.kwargs["cache"] is cache

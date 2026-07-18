@@ -309,12 +309,14 @@ def collect_pipeline_data(
         }
     visited.add(resolved_config)
 
-    documents = common.read_yml(config_file)
+    with open(config_file, encoding="utf-8") as handle:
+        yaml_text = handle.read()
+    documents = common.load_yml_documents(yaml_text)
     line_index = None
     try:
-        from src.modules.yaml_lines import index_yaml_file
+        from src.modules.yaml_lines import index_yaml_text
 
-        line_index = index_yaml_file(config_file)
+        line_index = index_yaml_text(yaml_text)
     except Exception:
         line_index = {"jobs": {}, "includes": [], "variables": {}, "workflow_rules": []}
 

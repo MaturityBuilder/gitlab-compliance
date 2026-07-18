@@ -22,7 +22,7 @@ from src.modules.logging import configure_logger
 from src.modules.pipeline_data import collect_pipeline_data
 from src.modules.release import filter_commits_since_tag, sort_tags
 from src.modules.swagger_html import render_swagger_html
-from src.modules.yaml_lines import index_yaml_file
+from src.modules.yaml_lines import index_yaml_file, index_yaml_text
 from src.modules.yaml_md_table import generate_markdown_table
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -108,6 +108,10 @@ class TestPipelineAndYaml:
     def test_index_yaml_file(self):
         index = index_yaml_file(str(SAMPLE))
         assert isinstance(index, dict)
+
+    def test_index_yaml_text_matches_file(self):
+        text = SAMPLE.read_text(encoding="utf-8")
+        assert index_yaml_text(text) == index_yaml_file(str(SAMPLE))
 
     def test_generate_markdown_table(self):
         assert "a" in generate_markdown_table([{"a": "1", "b": "2"}])

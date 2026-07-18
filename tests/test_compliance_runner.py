@@ -5,6 +5,7 @@ from unittest.mock import patch
 import pytest
 
 from src.compliance.builtin_policies import BUILTIN_POLICIES_DIR
+from src.compliance.release_cache import ReleaseMetadataCache
 from src.compliance.runner import (
     _assert_within_directory,
     _collect_feature_files,
@@ -515,15 +516,16 @@ class TestRunComplianceFix:
             )
 
         assert result.success is True
-        apply_fixes.assert_called_once_with(
-            pipeline_file=str(SAMPLE_PIPELINE),
-            include_nested=True,
-            max_include_depth=None,
-            gitlab_url=None,
-            token="secret",
-            project=None,
-            group=None,
-        )
+        apply_fixes.assert_called_once()
+        kwargs = apply_fixes.call_args.kwargs
+        assert kwargs["pipeline_file"] == str(SAMPLE_PIPELINE)
+        assert kwargs["include_nested"] is True
+        assert kwargs["max_include_depth"] is None
+        assert kwargs["gitlab_url"] is None
+        assert kwargs["token"] == "secret"
+        assert kwargs["project"] is None
+        assert kwargs["group"] is None
+        assert isinstance(kwargs["cache"], ReleaseMetadataCache)
 
 
 class TestResolvePolicyDirectories:

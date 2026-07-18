@@ -7,8 +7,12 @@ import re
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import yaml
+
+if TYPE_CHECKING:
+    from src.compliance.api_enrichment import ApiEnrichmentRequirements
 
 METADATA_MARKER = "# METADATA"
 
@@ -155,10 +159,14 @@ def _annotation_from_raw(
     )
 
 
-def parse_feature_policies(feature_file: str) -> FeaturePolicies:
+def parse_feature_policies(
+    feature_file: str, *, text: str | None = None
+) -> FeaturePolicies:
     feature_path = os.path.realpath(feature_file)
-    with open(feature_path, encoding="utf-8") as handle:
-        lines = handle.read().splitlines()
+    if text is None:
+        with open(feature_path, encoding="utf-8") as handle:
+            text = handle.read()
+    lines = text.splitlines()
 
     pending_metadata: dict = {}
     feature_name = Path(feature_path).stem
@@ -246,15 +254,50 @@ def build_policy_catalog(features_dir: str) -> PolicyCatalog:
 
 
 def build_policy_catalog_from_dirs(features_dirs: list[str]) -> PolicyCatalog:
+    return discover_policies(features_dirs).catalog
+
+
+@dataclass
+class PolicyDiscovery:
+    """Result of a single pass over policy feature files."""
+
+    catalog: PolicyCatalog
+    feature_files: list[tuple[str, str]]
+    api_requirements: ApiEnrichmentRequirements
+
+
+def discover_policies(features_dirs: list[str]) -> PolicyDiscovery:
+    """Walk policy dirs once: catalog metadata, file list, and API markers."""
+    from src.compliance.api_enrichment import (
+        ApiEnrichmentRequirements,
+        update_requirements_from_text,
+    )
+
     catalog = PolicyCatalog()
+    feature_files: list[tuple[str, str]] = []
+    api_requirements = ApiEnrichmentRequirements()
+
     for features_dir in features_dirs:
         if not os.path.isdir(features_dir):
             raise FileNotFoundError(f"Features directory not found: {features_dir}")
 
         for feature_file in iter_feature_files(features_dir, sort_names=True):
-            catalog.features.append(parse_feature_policies(feature_file))
+            with open(feature_file, encoding="utf-8") as handle:
+                text = handle.read()
+            catalog.features.append(parse_feature_policies(feature_file, text=text))
+            feature_files.append((features_dir, feature_file))
+            if not (
+                api_requirements.enrich_includes
+                and api_requirements.enrich_images
+                and api_requirements.load_api_entities
+            ):
+                update_requirements_from_text(text, api_requirements)
 
-    return catalog
+    return PolicyDiscovery(
+        catalog=catalog,
+        feature_files=feature_files,
+        api_requirements=api_requirements,
+    )
 
 
 def collect_policy_index(catalog: PolicyCatalog) -> list[PolicyAnnotation]:

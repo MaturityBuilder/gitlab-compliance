@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse
@@ -11,6 +12,8 @@ import semver
 
 from src.compliance.release_cache import ReleaseMetadataCache
 from src.modules.release import parse_gitlab_date
+
+ENRICH_MAX_WORKERS = 8
 
 
 def is_valid_semver_version(version: str) -> bool:
@@ -230,6 +233,56 @@ def enrich_include_release_metadata(
     return enriched
 
 
+def _include_project_paths(includes: list[dict]) -> list[str]:
+    paths: list[str] = []
+    seen: set[str] = set()
+    for include in includes:
+        project_path = resolve_include_project_path(
+            include.get("include_type", ""), include.get("project", "")
+        )
+        if not project_path or project_path in seen:
+            continue
+        seen.add(project_path)
+        paths.append(project_path)
+    return paths
+
+
+def _prefetch_include_tag_dates(
+    includes: list[dict],
+    *,
+    gitlab_url: str,
+    token: str,
+    gl: Any | None,
+    cache: ReleaseMetadataCache,
+) -> Any | None:
+    """Warm the cache for unique include projects concurrently."""
+    project_paths = _include_project_paths(includes)
+    if not project_paths:
+        return gl
+
+    if gl is None:
+        try:
+            import gitlab
+
+            gl = gitlab.Gitlab(gitlab_url, private_token=token)
+            gl.auth()
+        except Exception:
+            return None
+
+    def _prefetch(project_path: str) -> None:
+        try:
+            fetch_semver_tag_dates(gl, project_path, gitlab_url=gitlab_url, cache=cache)
+        except Exception:
+            return
+
+    workers = min(ENRICH_MAX_WORKERS, len(project_paths))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = [executor.submit(_prefetch, path) for path in project_paths]
+        for future in as_completed(futures):
+            future.result()
+    return gl
+
+
 def enrich_includes_with_releases(
     includes: list[dict],
     *,
@@ -238,13 +291,36 @@ def enrich_includes_with_releases(
     gl: Any | None = None,
     cache: ReleaseMetadataCache | None = None,
 ) -> list[dict]:
-    return [
-        enrich_include_release_metadata(
+    if not includes:
+        return []
+
+    resolved_cache = cache or ReleaseMetadataCache()
+    resolved_gitlab_url = (
+        gitlab_url
+        or os.getenv("CI_SERVER_URL")
+        or os.getenv("GITLAB_URL")
+        or "https://gitlab.com"
+    )
+    gl = _prefetch_include_tag_dates(
+        includes,
+        gitlab_url=resolved_gitlab_url,
+        token=token,
+        gl=gl,
+        cache=resolved_cache,
+    )
+
+    def _enrich(include: dict) -> dict:
+        return enrich_include_release_metadata(
             include,
-            gitlab_url=gitlab_url,
+            gitlab_url=resolved_gitlab_url,
             token=token,
             gl=gl,
-            cache=cache,
+            cache=resolved_cache,
         )
-        for include in includes
-    ]
+
+    if len(includes) == 1:
+        return [_enrich(includes[0])]
+
+    workers = min(ENRICH_MAX_WORKERS, len(includes))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        return list(executor.map(_enrich, includes))

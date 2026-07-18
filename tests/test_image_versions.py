@@ -250,6 +250,54 @@ class TestEnrichContainerImagesWithReleases:
         assert enriched[0]["release_metadata_resolved"] is True
         assert enriched[1]["release_metadata_resolved"] is True
 
+    def test_parallel_enrich_prefetches_unique_repositories(self):
+        cache = ReleaseMetadataCache()
+        list_calls: list[str] = []
+
+        def fake_list(repository, cache=None):
+            list_calls.append(repository)
+            tags = {
+                "library/python": ["3.12.0", "3.13.0"],
+                "library/alpine": ["3.19.0", "3.20.0"],
+            }[repository]
+            if cache is not None:
+                cache.set_registry_tags("registry-1.docker.io", repository, tags)
+            return tags
+
+        def fake_digest(repository, tag, cache=None):
+            digest = f"{repository}-{tag}"
+            if cache is not None:
+                cache.set_registry_digest(
+                    "registry-1.docker.io", repository, tag, digest
+                )
+            return digest
+
+        with (
+            patch(
+                "src.compliance.image_versions._list_docker_hub_tags",
+                side_effect=fake_list,
+            ),
+            patch(
+                "src.compliance.image_versions._fetch_docker_hub_digest",
+                side_effect=fake_digest,
+            ),
+        ):
+            enriched = enrich_container_images_with_releases(
+                [
+                    {"image": "python:3.12.0"},
+                    {"image": "alpine:3.19.0"},
+                    {"image": "python:3.12.0"},
+                ],
+                gitlab_url=None,
+                token=None,
+                cache=cache,
+            )
+
+        assert sorted(set(list_calls)) == ["library/alpine", "library/python"]
+        assert enriched[0]["latest_version"] == "3.13.0"
+        assert enriched[1]["latest_version"] == "3.20.0"
+        assert enriched[2]["latest_version"] == "3.13.0"
+
     def test_enrich_returns_early_for_digest_pinned_image(self):
         digest = "a" * 64
         enriched = enrich_container_image_metadata(

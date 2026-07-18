@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlparse
 
 import requests
 import semver
 
 from src.compliance.include_versions import (
+    ENRICH_MAX_WORKERS,
     _semver_tags_descending,
     compute_version_tag_rank,
     is_valid_semver_version,
@@ -298,6 +300,60 @@ def enrich_container_image_metadata(
     return enriched
 
 
+def _prefetch_image_registry_tags(
+    images: list[dict],
+    *,
+    gitlab_url: str | None,
+    token: str | None,
+    cache: ReleaseMetadataCache,
+) -> None:
+    """Warm the cache for unique image repositories concurrently."""
+    gitlab_registry = _gitlab_registry_host(gitlab_url)
+    targets: list[tuple[str, str, str]] = []
+    seen: set[tuple[str, str]] = set()
+
+    for image in images:
+        image_ref = str(image.get("image", image.get("project", ""))).strip()
+        if not image_ref or image_uses_sha256_digest(image_ref):
+            continue
+        parsed = parse_container_image_ref(image_ref)
+        registry = parsed.get("registry", "")
+        repository = parsed.get("repository", "")
+        if not repository or (registry, repository) in seen:
+            continue
+        seen.add((registry, repository))
+        if registry in {"registry-1.docker.io", "docker.io", "index.docker.io"}:
+            targets.append(("docker", registry, repository))
+        elif registry == gitlab_registry and token:
+            targets.append(("gitlab", registry, repository))
+
+    if not targets:
+        return
+
+    def _prefetch(kind: str, _registry: str, repository: str) -> None:
+        try:
+            if kind == "docker":
+                _list_docker_hub_tags(repository, cache=cache)
+            else:
+                _list_gitlab_registry_tags(
+                    repository,
+                    gitlab_url=gitlab_url,
+                    token=token or "",
+                    cache=cache,
+                )
+        except Exception:
+            return
+
+    workers = min(ENRICH_MAX_WORKERS, len(targets))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = [
+            executor.submit(_prefetch, kind, registry, repository)
+            for kind, registry, repository in targets
+        ]
+        for future in as_completed(futures):
+            future.result()
+
+
 def enrich_container_images_with_releases(
     images: list[dict],
     *,
@@ -305,12 +361,29 @@ def enrich_container_images_with_releases(
     token: str | None,
     cache: ReleaseMetadataCache | None = None,
 ) -> list[dict]:
-    return [
-        enrich_container_image_metadata(
+    if not images:
+        return []
+
+    resolved_cache = cache or ReleaseMetadataCache()
+    resolved_token = token or ""
+    _prefetch_image_registry_tags(
+        images,
+        gitlab_url=gitlab_url,
+        token=resolved_token,
+        cache=resolved_cache,
+    )
+
+    def _enrich(image: dict) -> dict:
+        return enrich_container_image_metadata(
             image,
             gitlab_url=gitlab_url,
-            token=token or "",
-            cache=cache,
+            token=resolved_token,
+            cache=resolved_cache,
         )
-        for image in images
-    ]
+
+    if len(images) == 1:
+        return [_enrich(images[0])]
+
+    workers = min(ENRICH_MAX_WORKERS, len(images))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        return list(executor.map(_enrich, images))

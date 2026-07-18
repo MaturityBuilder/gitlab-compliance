@@ -414,6 +414,59 @@ class TestEnrichIncludesWithReleases:
         assert enriched[0]["latest_version"] == "1.2.0"
         assert enriched[1]["latest_version"] == "1.2.0"
 
+    def test_parallel_enrich_fetches_unique_projects_once(self):
+        includes = [
+            {
+                "include_type": "project",
+                "project": "platform/ci-templates",
+                "version": "1.0.0",
+            },
+            {
+                "include_type": "project",
+                "project": "platform/other",
+                "version": "2.0.0",
+            },
+            {
+                "include_type": "project",
+                "project": "platform/ci-templates",
+                "version": "1.1.0",
+            },
+        ]
+
+        def _project_for(path):
+            project = MagicMock()
+            if path == "platform/ci-templates":
+                project.tags.list.return_value = [
+                    _tag("1.0.0"),
+                    _tag("1.1.0"),
+                    _tag("1.2.0"),
+                ]
+            else:
+                project.tags.list.return_value = [_tag("2.0.0"), _tag("2.1.0")]
+            return project
+
+        gl = MagicMock()
+        gl.projects.get.side_effect = _project_for
+
+        from src.compliance.release_cache import ReleaseMetadataCache
+
+        cache = ReleaseMetadataCache()
+        enriched = enrich_includes_with_releases(
+            includes,
+            gitlab_url="https://gitlab.example.com",
+            token="secret",
+            gl=gl,
+            cache=cache,
+        )
+
+        assert sorted(call.args[0] for call in gl.projects.get.call_args_list) == [
+            "platform/ci-templates",
+            "platform/other",
+        ]
+        assert enriched[0]["latest_version"] == "1.2.0"
+        assert enriched[1]["latest_version"] == "2.1.0"
+        assert enriched[2]["latest_version"] == "1.2.0"
+
     def test_fetch_semver_tag_dates_uses_cache(self):
         from src.compliance.release_cache import ReleaseMetadataCache
 

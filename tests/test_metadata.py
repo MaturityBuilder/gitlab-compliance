@@ -5,6 +5,7 @@ from pathlib import Path
 from src.compliance.metadata import (
     _parse_metadata_yaml,
     build_policy_catalog,
+    discover_policies,
     normalize_scenario_name,
     parse_feature_policies,
 )
@@ -65,6 +66,34 @@ class TestBuildPolicyCatalog:
     def test_example_policies_load_without_yaml_error(self):
         catalog = build_policy_catalog(str(EXAMPLE_POLICIES))
         assert len(catalog.features) > 0
+
+
+class TestDiscoverPolicies:
+    def test_single_pass_builds_catalog_and_api_requirements(self, tmp_path):
+        policies = tmp_path / "policies"
+        policies.mkdir()
+        policies.joinpath("jobs.feature").write_text(
+            "Feature: Jobs\n"
+            "  Scenario: Jobs must define rules\n"
+            "    Given I have any job defined\n"
+            "    Then it must contain rules\n",
+            encoding="utf-8",
+        )
+        policies.joinpath("includes.feature").write_text(
+            "Feature: Includes\n"
+            "  Scenario: Includes must be current\n"
+            "    Given I have any include with release metadata defined\n"
+            "    Then a newer release must not be available\n",
+            encoding="utf-8",
+        )
+
+        discovery = discover_policies([str(policies)])
+
+        assert len(discovery.catalog.features) == 2
+        assert len(discovery.feature_files) == 2
+        assert discovery.api_requirements.enrich_includes is True
+        assert discovery.api_requirements.enrich_images is False
+        assert discovery.api_requirements.load_api_entities is False
 
 
 class TestScenarioOutlineMetadata:

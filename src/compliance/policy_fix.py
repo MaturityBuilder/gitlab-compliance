@@ -26,6 +26,7 @@ from src.compliance.include_fix import (
 )
 from src.compliance.model import load_pipeline_entities
 from src.compliance.models import ScenarioResult
+from src.compliance.release_cache import ReleaseMetadataCache
 from src.compliance.secret_redact import redact_secrets
 from src.compliance.stash import (
     container_image_uses_sha256,
@@ -180,6 +181,7 @@ def _apply_include_latest(
     project: str | None,
     group: str | None,
     failed_policy_ids: set[str],
+    cache: ReleaseMetadataCache | None = None,
 ) -> list[str]:
     entities = load_pipeline_entities(
         pipeline_file=pipeline_file,
@@ -192,6 +194,7 @@ def _apply_include_latest(
         enrich_includes=True,
         enrich_images=False,
         load_api_entities=False,
+        cache=cache,
     )
     locations = _locations_for_failed_policies(
         entities.get("includes", []),
@@ -220,6 +223,7 @@ def _apply_image_digest(
     project: str | None,
     group: str | None,
     failed_policy_ids: set[str],
+    cache: ReleaseMetadataCache | None = None,
 ) -> list[str]:
     entities = load_pipeline_entities(
         pipeline_file=pipeline_file,
@@ -232,6 +236,7 @@ def _apply_image_digest(
         enrich_includes=False,
         enrich_images=True,
         load_api_entities=False,
+        cache=cache,
     )
     locations = _locations_for_failed_policies(
         entities.get("container_images", []),
@@ -264,6 +269,7 @@ def apply_policy_remediations(
     token: str = "",
     project: str | None = None,
     group: str | None = None,
+    cache: ReleaseMetadataCache | None = None,
 ) -> list[str]:
     """Apply allowlisted remediations for failed scenarios. Returns fix messages."""
     failed = [item for item in scenario_results if item.status == "failed"]
@@ -310,6 +316,7 @@ def apply_policy_remediations(
         "project": project,
         "group": group,
         "failed_policy_ids": failed_policy_ids,
+        "cache": cache,
     }
     # Includes first so image enrichment sees updated files when both apply.
     for kind in ("include_latest", "image_digest"):
