@@ -110,11 +110,25 @@ Navigation mirrors
 | -------------- | ---------------------------------------------------- |
 | Overview       | Product introduction and BDD example                 |
 | Installation   | pip                                                  |
-| Usage          | CLI reference, parameters, environment variables     |
+| Usage          | CLI overview, command pages, demos, env vars         |
 | BDD Reference  | Gherkin step grammar                                 |
 | Examples       | Security policy patterns                             |
 | Using in CI/CD | GitLab CI, GitHub Actions, Pipeline Execution Policy |
 | Contributing   | Development and docs workflow                        |
+
+## CLI demo GIFs
+
+Terminal demos live under [`docs/demos/`](demos/README.md) (VHS `.tape` sources,
+committed GIFs, and HTML/MR screenshots). They are embedded on Usage command
+pages. Record offline demos from the repo root:
+
+```bash
+bash scripts/record-demos.sh offline
+```
+
+Live GitLab/OCI demos need sandbox credentials — see the
+[demos README](demos/README.md). The GitHub Actions `demos-offline` job
+validates offline tapes and checks that expected GIF/screenshot files exist.
 
 ## Adding pages
 

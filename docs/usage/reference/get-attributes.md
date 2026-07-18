@@ -7,6 +7,17 @@ Compared to the generate command, the get-attribute command allows you to pass t
         attributes (_type_): _description_
         json (_type_): _description_
 
+<!-- MANUAL DOCS:START -->
+
+## See it in action
+
+![gitlab-compliance get-attributes](../../demos/gifs/get-attributes.gif)
+
+<!-- MANUAL DOCS:END -->
+
+
+
+
 ## Usage
 
 ```

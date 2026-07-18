@@ -2,6 +2,10 @@
 
 Create one markdown file per subcommand under --docsPath.
 
+    Existing pages may keep a narrative block between MANUAL DOCS START/END
+    HTML comments on their own lines; that block is preserved across
+    regenerations.
+
 ## Usage
 
 ```
@@ -44,6 +48,9 @@ Usage: gitlab-compliance dumps [OPTIONS]
 Usage: gitlab-compliance dumps [OPTIONS]
 
   Create one markdown file per subcommand under --docsPath.
+
+  Existing pages may keep a narrative block between MANUAL DOCS START/END HTML
+  comments on their own lines; that block is preserved across regenerations.
 
 Options:
   --baseModule TEXT   The base command module path to import  [required]

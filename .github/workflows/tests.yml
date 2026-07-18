@@ -114,6 +114,74 @@ jobs:
       - name: Check coverage threshold
         run: poetry run coverage report --fail-under 95
 
+  demos-offline:
+    name: Validate offline demo tapes
+    needs: deps
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install VHS and ttyd
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            cmake ffmpeg git libjson-c-dev libssl-dev libuv1-dev \
+            libwebsockets-dev zlib1g-dev
+          bash scripts/install-ci-demo-tools.sh
+          ffmpeg -version | head -n 1
+
+      - name: Validate offline tapes
+        run: |
+          set -euo pipefail
+          for tape in \
+            check-console.tape \
+            check-markdown.tape \
+            check-html.tape \
+            check-mr-comment-body.tape \
+            check-create-mr-offline.tape \
+            generate-markdown.tape \
+            generate-html.tape \
+            get-attributes.tape \
+            policies-doc.tape \
+            document-gitstrings.tape
+          do
+            vhs validate "docs/demos/tapes/${tape}"
+          done
+
+      - name: Ensure committed demo artifacts exist
+        run: |
+          set -euo pipefail
+          missing=0
+          for path in \
+            docs/demos/gifs/check-console.gif \
+            docs/demos/gifs/check-markdown.gif \
+            docs/demos/gifs/check-html.gif \
+            docs/demos/gifs/check-html-cli.gif \
+            docs/demos/gifs/check-mr-comment.gif \
+            docs/demos/gifs/check-create-mr.gif \
+            docs/demos/gifs/generate-markdown.gif \
+            docs/demos/gifs/generate-html.gif \
+            docs/demos/gifs/generate-html-cli.gif \
+            docs/demos/gifs/get-attributes.gif \
+            docs/demos/gifs/policies-doc.gif \
+            docs/demos/gifs/document-gitstrings.gif \
+            docs/demos/screenshots/check-html-report.png \
+            docs/demos/screenshots/generate-html-docs.png \
+            docs/demos/screenshots/check-post-mr-comment-ui.png \
+            docs/demos/screenshots/check-create-mr-ui.png
+          do
+            if [[ ! -f "${path}" ]]; then
+              echo "missing: ${path}"
+              missing=1
+            fi
+          done
+          if [[ "${missing}" -ne 0 ]]; then
+            echo "Run: bash scripts/record-demos.sh offline" >&2
+            exit 1
+          fi
+
   scorecard:
     name: OpenSSF Scorecard
     runs-on: ubuntu-latest

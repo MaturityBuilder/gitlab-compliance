@@ -2,6 +2,41 @@
 
 Will scan through your gitlab-ci yml and build documentation from the yml.
 
+<!-- MANUAL DOCS:START -->
+
+## See it in action
+
+![gitlab-compliance generate markdown](../../demos/gifs/generate-markdown.gif)
+
+CLI writes the HTML file, then the rendered documentation:
+
+![gitlab-compliance generate HTML CLI](../../demos/gifs/generate-html-cli.gif)
+
+![Rendered HTML pipeline documentation](../../demos/gifs/generate-html.gif)
+
+![HTML documentation still](../../demos/screenshots/generate-html-docs.png)
+
+## Option details
+
+Use [`get-attributes`](get-attributes.md) when you need an **include whitelist**
+of specific job attributes as a table; use `generate --exclude` for a
+**blacklist** when building full pipeline documentation.
+
+```bash
+gitlab-compliance generate -i .gitlab-ci.yml \
+  --exclude variables,workflow,image \
+  --group-by stage \
+  --format swagger-markdown
+```
+
+`--max-include-depth` matches `check` and `document gitstrings`: omit for
+unlimited nesting; depth `0` is the root file.
+
+<!-- MANUAL DOCS:END -->
+
+
+
+
 ## Usage
 
 ```

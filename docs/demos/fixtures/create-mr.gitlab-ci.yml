@@ -1,0 +1,9 @@
+# Demo fixture for --fix-supply-chain / --create-mr (mutable refs).
+stages:
+  - build
+
+build:
+  stage: build
+  image: alpine:3.19
+  script:
+    - echo "build"
