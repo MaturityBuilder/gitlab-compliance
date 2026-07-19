@@ -19,11 +19,12 @@ Typical compliance workflow:
 GitLab reports
 5. Fail the job on non-zero exit code
 
-You can also publish pipeline documentation in CI with
-[`generate`](../usage/reference/generate.md):
+You can also generate pipeline documentation in CI with
+[`generate`](../usage/reference/generate.md) and attach the output as a workflow
+artifact (recommended on GitHub so pipeline details stay private):
 
 ```bash
-gitlab-compliance generate -i .gitlab-ci.yml --format html -o public/index.html
+gitlab-compliance generate -i .gitlab-ci.yml --format html -o pipeline-reference/index.html
 ```
 
 Example policies: [Examples](../examples/index.md). Sample generated docs:

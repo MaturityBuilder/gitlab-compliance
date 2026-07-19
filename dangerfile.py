@@ -53,6 +53,12 @@ if src_changed and not docs_changed:
         "Update `docs/` for user-facing CLI or compliance changes."
     )
 
+if ci_changed:
+    message(
+        "CI configuration changed. See "
+        "[`.github/workflows/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/.github/workflows) "
+        "and run `poetry run pre-commit run --all-files` locally."
+    )
 
 if PR_TITLE and not CONVENTIONAL_COMMIT.match(PR_TITLE):
     message(

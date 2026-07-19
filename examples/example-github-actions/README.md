@@ -32,5 +32,10 @@ Copy or adapt these workflows into `.github/workflows/` in your repository.
 
 ## Related documentation
 
+- [Using in CI/CD](../../docs/ci-cd/index.md) — GitLab CI, Functions, and
+  pipeline execution policy (published site)
 - [GitLab CI/CD guide](../../docs/ci-cd/gitlab-ci.md) — shared job templates for
   GitLab
+
+Maintainer workflow notes for this repository live under [`.github/`](../../.github/)
+and are not published on GitHub Pages.

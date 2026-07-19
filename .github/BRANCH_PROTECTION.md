@@ -12,6 +12,10 @@ Recommended rule for `main`:
 5. **Do not allow bypassing the above settings** — except for designated admins if needed.
 6. **Restrict who can push** — optional; use for org-owned repos.
 
+For tag-gated publish credentials, configure GitHub **Environments** `pypi` and
+`docker` with deployment tags `v*` only (see
+[`.github/workflows/release.yml`](workflows/release.yml) and workflow comments).
+
 Also enable **Settings → Code security**:
 
 - **Secret scanning** and **push protection** (GitHub Advanced Security on private repos; public repos get secret scanning where available).
