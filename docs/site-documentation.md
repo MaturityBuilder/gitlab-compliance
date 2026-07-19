@@ -70,7 +70,6 @@ in the repository. They are **not** published as a dedicated page on GitHub Page
 Consumer projects can copy compliance examples from
 [`examples/example-github-actions/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-github-actions).
 
-### Documentation site (Zensical → GitHub Pages)
 
 - **[`zensical-gh-pages.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/zensical-gh-pages.yml):**
   PR + push
