@@ -62,31 +62,19 @@ PyPI and Docker Hub publish (on semver tags via
 [`release.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/release.yml))
 are independent of the documentation site.
 
-## GitHub Actions
+## GitHub Actions (maintainers)
 
-- **[`tests.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/tests.yml):**
-  PR + push
-  - behave, pytest, coverage
-- **[`pre-commit.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/pre-commit.yml):**
-  PR + push
-  - pre-commit hooks
-- **[`danger.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/danger.yml):**
-  PR
-  - Danger PR review
-- **[`docker.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/docker.yml):**
-  PR + push
-  - Build, Trivy scan, smoke test (no push)
-- **[`release.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/release.yml):**
-  push `main` / tags `v*`
-  - release-please; PyPI + Docker Hub on tags
+Workflow definitions live under [`.github/workflows/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/.github/workflows)
+in the repository. They are **not** published as a dedicated page on GitHub Pages.
+
+Consumer projects can copy compliance examples from
+[`examples/example-github-actions/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-github-actions).
+
+### Documentation site (Zensical → GitHub Pages)
+
 - **[`zensical-gh-pages.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/.github/workflows/zensical-gh-pages.yml):**
   PR + push
-  - Zensical build and GitHub Pages
-
-See [GitHub Actions CI/CD](ci-cd/github-actions.md) for consumer examples (pip
-vs container) and Docker Hub publish setup.
-
-### Documentation site
+  - Zensical build; deploy on semver tags only
 
 - **`review`:** Pull requests to `main` / `master`
   - `zensical build --strict`; upload `docs-preview` artifact
@@ -113,7 +101,7 @@ Navigation mirrors
 | Usage          | CLI overview, command pages, demos, env vars         |
 | BDD Reference  | Gherkin step grammar                                 |
 | Examples       | Security policy patterns                             |
-| Using in CI/CD | GitLab CI, GitHub Actions, Pipeline Execution Policy |
+| Using in CI/CD | GitLab CI, GitLab Functions, Pipeline Execution Policy |
 | Contributing   | Development and docs workflow                        |
 
 ## CLI demo GIFs
