@@ -58,6 +58,9 @@ See [GitLab Docs output example](gitlab-docs-output-example.md) for sample `gene
   - [`example-ci/compliance-jobs.yml`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/examples/example-ci/compliance-jobs.yml)
 - **GitHub Actions:** pip or container compliance jobs
   - [`example-github-actions/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-github-actions)
+- **GitLab Functions:** experimental `run:` / `func:` check + generate
+  - [`example-gitlab-functions/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-gitlab-functions)
+  - [GitLab Functions guide](../ci-cd/gitlab-functions.md)
 - **`include:` from central repo:** Versioned policy + job distribution
   - [GitLab CI/CD](../ci-cd/gitlab-ci.md#include-shared-compliance-jobs)
 - **OCI registry:** Immutable policy bundles
