@@ -21,6 +21,9 @@ env:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    environment:
+      name: release-please
+      url: https://github.com/MaturityBuilder/gitlab-compliance/releases/tag/${{ github.ref }}
     steps:
       - name: Release Please
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7
