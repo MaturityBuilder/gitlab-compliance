@@ -100,7 +100,6 @@ want to publish function images later via
 ## Related guides
 
 - **[GitLab CI/CD](gitlab-ci.md):** Shared templates, reports, rollout
-- **[GitHub Actions](github-actions.md):** Workflows for this repository
 - **[Pipeline Execution Policy](pipeline-execution-policy.md):** Org-wide
   injection
 

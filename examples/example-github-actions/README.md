@@ -32,7 +32,5 @@ Copy or adapt these workflows into `.github/workflows/` in your repository.
 
 ## Related documentation
 
-- [GitHub Actions CI/CD guide](../../docs/ci-cd/github-actions.md) — this
-  repository's own workflows (tests, pre-commit, Danger, Docker publish)
 - [GitLab CI/CD guide](../../docs/ci-cd/gitlab-ci.md) — shared job templates for
   GitLab

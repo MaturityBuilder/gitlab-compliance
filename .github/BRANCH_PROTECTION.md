@@ -12,8 +12,6 @@ Recommended rule for `main`:
 5. **Do not allow bypassing the above settings** — except for designated admins if needed.
 6. **Restrict who can push** — optional; use for org-owned repos.
 
-For tag-gated publish credentials, see [Environments and secrets](../docs/ci-cd/github-actions.md#environments-and-secrets) (`pypi` / `docker` → tags `v*` only).
-
 Also enable **Settings → Code security**:
 
 - **Secret scanning** and **push protection** (GitHub Advanced Security on private repos; public repos get secret scanning where available).
