@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.1.0...v2.1.1) (2026-07-19)
+
+
+### Bug Fixes
+
+* restore github actions ci docs ([#86](https://github.com/MaturityBuilder/gitlab-compliance/issues/86)) ([8399298](https://github.com/MaturityBuilder/gitlab-compliance/commit/8399298fb2bc3bfc7ee61831f5e08a35d9133fcd))
+
 ## [2.1.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.0.1...v2.1.0) (2026-07-18)
 
 
