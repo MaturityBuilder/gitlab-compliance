@@ -83,8 +83,6 @@ are independent of the documentation site.
   PR + push
   - Zensical build and GitHub Pages
 
-See [GitHub Actions CI/CD](ci-cd/github-actions.md) for consumer examples (pip
-vs container) and Docker Hub publish setup.
 
 ### Documentation site
 

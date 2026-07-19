@@ -1,0 +1,14 @@
+spec:
+  inputs:
+    policies:
+      type: string
+      default: policies/security
+    pipeline:
+      type: string
+      default: .gitlab-ci.yml
+---
+exec:
+  command:
+    - "${{ func_dir }}/check.sh"
+    - "${{ inputs.policies }}"
+    - "${{ inputs.pipeline }}"

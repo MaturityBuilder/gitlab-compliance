@@ -1,0 +1,22 @@
+spec:
+  inputs:
+    input:
+      type: string
+      default: .gitlab-ci.yml
+    format:
+      type: string
+      default: html
+    output:
+      type: string
+      default: public/index.html
+  outputs:
+    output_path:
+      type: string
+---
+exec:
+  command:
+    - "${{ func_dir }}/generate.sh"
+    - "${{ inputs.input }}"
+    - "${{ inputs.format }}"
+    - "${{ inputs.output }}"
+    - "${{ output_file }}"

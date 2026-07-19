@@ -4,8 +4,8 @@ Run `gitlab-compliance` in your pipeline so policy violations fail before merge.
 
 - **[GitLab CI/CD](gitlab-ci.md):**
   - Project-level jobs, shared templates, reports, rollout
-- **[GitHub Actions](github-actions.md):**
-  - Workflows, Docker publish, pip vs container examples
+- **[GitLab Functions](gitlab-functions.md):**
+  - Experimental `run:` / `func:` example for check + generate docs
 - **[Pipeline Execution Policy](pipeline-execution-policy.md):**
   - Org-wide injection via GitLab security policies
 

@@ -84,7 +84,7 @@ nav:
   - Using in CI/CD:
     - ci-cd/index.md
     - GitLab CI/CD: ci-cd/gitlab-ci.md
-    - GitHub Actions: ci-cd/github-actions.md
+    - GitLab Functions: ci-cd/gitlab-functions.md
     - Pipeline Execution Policy: ci-cd/pipeline-execution-policy.md
   - Contributing:
     - contributing.md

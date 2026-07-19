@@ -178,4 +178,10 @@ See [Pipeline Execution Policy](pipeline-execution-policy.md) for the full
 walkthrough using
 [`examples/example-gitlab-execution-policy/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-gitlab-execution-policy).
 
+## GitLab Functions (experimental)
+
+To run check and documentation generation as reusable `run:` / `func:` steps,
+see [GitLab Functions](gitlab-functions.md) and
+[`examples/example-gitlab-functions/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-gitlab-functions).
+
 Back to [Using in CI/CD](index.md).
