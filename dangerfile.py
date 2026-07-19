@@ -56,7 +56,7 @@ if src_changed and not docs_changed:
 if ci_changed:
     message(
         "CI configuration changed. See "
-        "[GitHub Actions CI/CD](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/docs/ci-cd/github-actions.md) "
+        "[`.github/workflows/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/.github/workflows) "
         "and run `poetry run pre-commit run --all-files` locally."
     )
 

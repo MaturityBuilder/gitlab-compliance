@@ -6,8 +6,9 @@ Run `gitlab-compliance` in your pipeline so policy violations fail before merge.
   - Project-level jobs, shared templates, reports, rollout
 - **[GitLab Functions](gitlab-functions.md):**
   - Experimental `run:` / `func:` example for check + generate docs
-- **[GitHub Actions](github-actions.md):**
-  - Workflows, Docker publish, pip vs container examples
+- **GitHub Actions (repo examples only):**
+  [`examples/example-github-actions/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-github-actions)
+  — pip and container compliance workflows (not published on the documentation site)
 - **[Pipeline Execution Policy](pipeline-execution-policy.md):**
   - Org-wide injection via GitLab security policies
 
@@ -21,11 +22,12 @@ Typical compliance workflow:
 GitLab reports
 5. Fail the job on non-zero exit code
 
-You can also publish pipeline documentation in CI with
-[`generate`](../usage/reference/generate.md):
+You can also generate pipeline documentation in CI with
+[`generate`](../usage/reference/generate.md) and attach the output as a workflow
+artifact (recommended on GitHub so pipeline details stay private):
 
 ```bash
-gitlab-compliance generate -i .gitlab-ci.yml --format html -o public/index.html
+gitlab-compliance generate -i .gitlab-ci.yml --format html -o pipeline-reference/index.html
 ```
 
 Example policies: [Examples](../examples/index.md). Sample generated docs:
