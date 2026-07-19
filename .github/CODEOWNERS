@@ -1,0 +1,7 @@
+# Release Please and publish workflow — require review from Code Owners on main
+/pyproject.toml                @casdev2020
+/src/__init__.py               @casdev2020
+/CHANGELOG.md                  @casdev2020
+/.release-please-manifest.json @casdev2020
+/release-please-config.json    @casdev2020
+/.github/workflows/release.yml @casdev2020

@@ -1,0 +1,33 @@
+# Consumer example: GitLab Functions (experimental) for check + generate.
+# Copy this directory into your project root (or adjust func: paths), then:
+#   cp -r examples/example-policies/security/ policies/security/
+#
+# Docs: https://docs.gitlab.com/ci/functions/
+# Create functions: https://docs.gitlab.com/ci/functions/create/
+
+stages:
+  - test
+
+compliance_and_docs:
+  image: python:3.12
+  stage: test
+  run:
+    - name: install
+      script: pip install --quiet gitlab-compliance
+    - name: check
+      func: ./check
+      inputs:
+        policies: policies/security
+        pipeline: .gitlab-ci.yml
+    - name: generate_docs
+      func: ./generate-docs
+      inputs:
+        input: .gitlab-ci.yml
+        format: html
+        output: public/index.html
+  artifacts:
+    paths:
+      - public/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
