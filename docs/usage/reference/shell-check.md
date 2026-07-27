@@ -28,10 +28,29 @@ ShellCheck-inspired standards as BDD scenarios with `GLCI-SHELL-*` IDs:
 
 - Quoting, error handling, file operations, command substitution
 - Conditionals, pipelines, security, portability
-- GitLab CI pinning (`apk`/`pip`/checksums), CI hygiene, `!reference` resolution
+- GitLab CI pinning (package managers below, checksums, docker image tags),
+  CI hygiene, `!reference` resolution
 
 Scripts are composed from `extends`, YAML anchors, and `!reference` before
 scenarios run. Hidden jobs (names starting with `.`) are included.
+
+## Supported package managers
+
+Shell pinning policies (`GLCI-SHELL-PIN-*`) and unit tests cover these install
+commands. Each package on a line must be version-pinned.
+
+| Manager | Commands matched | Pinned example | Policy |
+| --- | --- | --- | --- |
+| apk | `apk add` | `apk add curl=8.5.0-r0` | `GLCI-SHELL-PIN-004` |
+| apt / apt-get | `apt install`, `apt-get install` | `apt-get install curl=7.88.1-10` | `GLCI-SHELL-PIN-005` |
+| pip / pip3 | `pip install`, `pip3 install` | `pip3 install "requests==2.32.0"` | `GLCI-SHELL-PIN-003` |
+| npm / yarn | `npm install -g`, `yarn global add` | `npm install -g cowsay@1.0.0` | `GLCI-SHELL-PIN-006` |
+| go | `go install` | `go install example.com/cmd@v1.2.3` | `GLCI-SHELL-PIN-007` |
+
+Related (not OS package managers): `docker run` / `docker pull` / `docker create`
+must use an explicit tag or `sha256` digest (`GLCI-SHELL-PIN-009`).
+
+Not covered yet: `yum`, `dnf`, `microdnf`, `zypper`, and similar RPM/SUSE tools.
 
 ## Quick start
 
