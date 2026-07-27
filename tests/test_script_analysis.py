@@ -15,6 +15,7 @@ from src.compliance.script_analysis import (
     script_has_pipeline,
     script_has_remote_pipe_to_shell,
     script_has_unpinned_apk,
+    script_has_unpinned_apt,
     script_has_unpinned_docker_image,
     script_has_unpinned_pip,
     script_has_unquoted_test_variables,
@@ -74,10 +75,23 @@ def test_npm_and_go_pinning_predicates():
 
     assert script_has_unpinned_npm(_entity(["npm install -g pkg@latest"]))
     assert not script_has_unpinned_npm(_entity(["npm install -g cowsay@1.0.0"]))
+    assert not script_has_unpinned_npm(_entity(["npm install -g @scope/pkg@1.0.0"]))
+    assert script_has_unpinned_npm(_entity(["npm install -g @scope/pkg"]))
+    assert not script_has_unpinned_npm(_entity(["yarn global add @scope/pkg@1.0.0"]))
     assert script_has_unpinned_go_install(_entity(["go install pkg@latest"]))
     assert not script_has_unpinned_go_install(
         _entity(["go install example.com/cmd@v1.2.3"])
     )
+
+
+def test_multi_package_pinning_predicates():
+    assert script_has_unpinned_pip(_entity(["pip install requests==2.0 flask"]))
+    assert script_has_unpinned_pip(
+        _entity(["pip install -r requirements.txt requests"])
+    )
+    assert not script_has_unpinned_pip(_entity(["pip install -r requirements.txt"]))
+    assert script_has_unpinned_apk(_entity(["apk add --no-cache curl=8.5.0-r0 wget"]))
+    assert script_has_unpinned_apt(_entity(["apt-get install curl=1.0 wget"]))
 
 
 def test_docker_image_pinning_predicates():

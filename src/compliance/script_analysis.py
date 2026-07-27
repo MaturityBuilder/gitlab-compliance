@@ -350,18 +350,109 @@ def _container_image_ref_is_pinned(ref: str) -> bool:
     return False
 
 
+def _split_command_tokens(segment: str) -> list[str]:
+    """Tokenize the argument segment of an install command."""
+    try:
+        return shlex.split(segment, posix=True)
+    except ValueError:
+        return segment.split()
+
+
+def _tokens_after_subcommand(line: str, subcommand: re.Pattern[str]) -> list[str]:
+    """Return tokens following a matched subcommand (e.g. ``pip install``)."""
+    match = subcommand.search(line)
+    if not match:
+        return []
+    return _split_command_tokens(line[match.end() :])
+
+
+def _pip_package_is_pinned(token: str) -> bool:
+    """Return whether one pip package specifier is version-pinned."""
+    if "==" in token:
+        return True
+    if "@" not in token:
+        return False
+    ref = token.split("@", 1)[1]
+    if re.match(r"(?:git\+|https?://|file:|ssh://)", ref, re.IGNORECASE):
+        return True
+    version = ref.rsplit("@", 1)[-1]
+    return _at_version_is_pinned("@" + version)
+
+
 def _pip_install_line_is_pinned(line: str) -> bool:
-    """Return whether a pip/pip3 install line pins package versions."""
-    if "==" in line or "--require-hashes" in line:
+    """Return whether a pip/pip3 install line pins every package version."""
+    if "--require-hashes" in line:
         return True
-    if re.search(r"\s-(?:r|--requirement)\b", line):
+    tokens = _tokens_after_subcommand(line, _PIP)
+    if not tokens:
         return True
-    if "@" not in line:
-        return False
-    at_refs = [match.group(1) for match in re.finditer(r"@(\S+)", line)]
-    if not at_refs:
-        return False
-    return all(_at_version_is_pinned("@" + ref) for ref in at_refs)
+    packages: list[str] = []
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token in ("-r", "--requirement"):
+            index += 2
+            continue
+        if token.startswith("-"):
+            index += 1
+            continue
+        packages.append(token)
+        index += 1
+    if not packages:
+        return True
+    return all(_pip_package_is_pinned(package) for package in packages)
+
+
+def _apk_package_is_pinned(token: str) -> bool:
+    return "=" in token
+
+
+def _apk_line_is_pinned(line: str) -> bool:
+    """Return whether every apk package on the line has a pinned version."""
+    tokens = _tokens_after_subcommand(line, _APK)
+    packages = [token for token in tokens if not token.startswith("-")]
+    if not packages:
+        return True
+    return all(_apk_package_is_pinned(package) for package in packages)
+
+
+def _apt_package_is_pinned(token: str) -> bool:
+    return "=" in token
+
+
+def _apt_line_is_pinned(line: str) -> bool:
+    """Return whether every apt package on the line has a pinned version."""
+    tokens = _tokens_after_subcommand(line, _APT)
+    packages = [token for token in tokens if not token.startswith("-")]
+    if not packages:
+        return True
+    return all(_apt_package_is_pinned(package) for package in packages)
+
+
+def _npm_package_is_pinned(token: str) -> bool:
+    """Return whether one npm/yarn global package specifier is version-pinned."""
+    if token.startswith("@"):
+        if token.count("@") < 2:
+            return False
+        version = token.rsplit("@", 1)[-1]
+        return _at_version_is_pinned("@" + version)
+    if "@" in token:
+        version = token.rsplit("@", 1)[-1]
+        return _at_version_is_pinned("@" + version)
+    return False
+
+
+def _npm_line_is_pinned(line: str) -> bool:
+    """Return whether every npm/yarn global package on the line is version-pinned."""
+    tokens = _tokens_after_subcommand(line, _NPM_GLOBAL)
+    packages = [
+        token
+        for token in tokens
+        if not token.startswith("-") and token not in {"-g", "global", "add"}
+    ]
+    if not packages:
+        return True
+    return all(_npm_package_is_pinned(package) for package in packages)
 
 
 def _is_volume_mount(token: str) -> bool:
@@ -440,9 +531,7 @@ def script_has_unpinned_apk(entity: dict) -> bool:
     for line in _active_lines(entity):
         if not _APK.search(line):
             continue
-        packages = re.findall(r"\b[A-Za-z0-9][A-Za-z0-9+_.-]*(?:=[^\s]+)?", line)
-        # Heuristic: require at least one pkg=version after apk add flags.
-        if not any("=" in pkg for pkg in packages if not pkg.startswith("-")):
+        if not _apk_line_is_pinned(line):
             return True
     return False
 
@@ -451,7 +540,7 @@ def script_has_unpinned_apt(entity: dict) -> bool:
     for line in _active_lines(entity):
         if not _APT.search(line):
             continue
-        if not re.search(r"[A-Za-z0-9][A-Za-z0-9+_.-]*=[^\s]+", line):
+        if not _apt_line_is_pinned(line):
             return True
     return False
 
@@ -460,16 +549,7 @@ def script_has_unpinned_npm(entity: dict) -> bool:
     for line in _active_lines(entity):
         if not _NPM_GLOBAL.search(line):
             continue
-        if "==" in line:
-            continue
-        if "install" in line:
-            segment = line.split("install", 1)[-1]
-        else:
-            segment = line.split("add", 1)[-1]
-        at_refs = [match.group(1) for match in re.finditer(r"@(\S+)", segment)]
-        if not at_refs:
-            return True
-        if any(not _at_version_is_pinned("@" + ref) for ref in at_refs):
+        if not _npm_line_is_pinned(line):
             return True
     return False
 

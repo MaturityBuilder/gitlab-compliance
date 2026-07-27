@@ -594,6 +594,19 @@ class TestResolvePolicyDirectories:
         paths = [root.path for root in roots]
         assert paths.count(os.path.abspath(BUILTIN_SHELL_POLICIES_DIR)) == 1
 
+    def test_resolve_policy_directories_dedupes_by_realpath(self, tmp_path):
+        shell_link = tmp_path / "shell-link"
+        shell_link.symlink_to(BUILTIN_SHELL_POLICIES_DIR)
+        roots = _resolve_policy_directories(
+            str(shell_link),
+            with_shell_check=True,
+        )
+        paths = [root.path for root in roots]
+        assert len(paths) == 1
+        assert os.path.realpath(paths[0]) == os.path.realpath(
+            BUILTIN_SHELL_POLICIES_DIR
+        )
+
     def test_with_builtin_and_shell_check_does_not_duplicate_shell_scenarios(self):
         good_pipeline = (
             REPO_ROOT / "tests" / "fixtures" / "shell_check" / "good-pipeline.yml"

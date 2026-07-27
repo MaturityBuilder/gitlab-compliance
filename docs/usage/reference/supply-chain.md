@@ -26,8 +26,8 @@ Also available via `check --with-supply-chain` (read-only policy checks). Pass
 `--fix` on either command to auto-remediate YAML before checking. Omit `-f` to
 run only the bundled pack, or pass `-f` to merge your policies alongside it.
 
-For merge requests after fixes, use `supply-chain --fix --create-mr` or
-[`check --fix --create-mr`](check.md#create-mr).
+For merge requests after fixes, use
+[`check --fix --create-mr`](check.md#create-mr) (or `supply-chain --fix --create-mr`).
 
 See [Image pinning](../../examples/image-pinning.md) and
 [Include versions](../../examples/include-versions.md).
