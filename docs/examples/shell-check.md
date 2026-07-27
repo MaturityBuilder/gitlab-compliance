@@ -62,4 +62,11 @@ Bundled `GLCI-SHELL-PIN-*` scenarios cover `apk`, `apt`/`apt-get`,
 [Shell pinning](shell-pinning.md) for the Gherkin, bad/good CI snippets, and
 policy IDs for each manager.
 
+## Built-in Gherkin catalog
+
+All packaged `GLCI-SHELL-*` scenarios (quoting, error handling, file ops,
+pipelines, security, portability, CI conventions, references, and pinning) are
+listed with their Gherkin steps in the
+[`shell-check` reference](../usage/reference/shell-check.md#built-in-gherkin-policies).
+
 Back to [Examples](index.md).
