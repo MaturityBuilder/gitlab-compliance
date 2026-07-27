@@ -25,6 +25,30 @@ def test_check_help_includes_with_shell_check():
     assert "--with-shell-check" in result.output
 
 
+def test_check_without_features_requires_policy_source():
+    runner = CliRunner()
+    result = runner.invoke(
+        gitlab_compliance,
+        ["check", "-p", "tests/fixtures/shell_check/good-pipeline.yml"],
+    )
+    assert result.exit_code != 0
+    assert "Provide --features/-f" in result.output
+
+
+def test_check_with_shell_check_only():
+    runner = CliRunner()
+    result = runner.invoke(
+        gitlab_compliance,
+        [
+            "check",
+            "--with-shell-check",
+            "-p",
+            "tests/fixtures/shell_check/good-pipeline.yml",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+
+
 def test_shell_check_fails_on_bad_pipeline():
     runner = CliRunner()
     result = runner.invoke(

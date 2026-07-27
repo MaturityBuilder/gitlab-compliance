@@ -10,50 +10,50 @@ Usage: gitlab-compliance release-notes [OPTIONS]
 ```
 
 ## Options
-* `token` (REQUIRED):
-  * Type: STRING
+* `token` (REQUIRED): 
+  * Type: STRING 
   * Default: `sentinel.unset`
   * Usage: `--token`
 
   GitLab personal access token
 
-* `url`:
-  * Type: STRING
+* `url`: 
+  * Type: STRING 
   * Default: `https://gitlab.com`
   * Usage: `--url`
 
   GitLab instance URL
 
-* `projects` (REQUIRED):
-  * Type: STRING
+* `projects` (REQUIRED): 
+  * Type: STRING 
   * Default: `sentinel.unset`
   * Usage: `--projects`
 
   List of GitLab project IDs or full paths
 
-* `since_tag`:
-  * Type: STRING
+* `since_tag`: 
+  * Type: STRING 
   * Default: `none`
   * Usage: `--since-tag`
 
   Baseline tag name (default: latest semver tag, else most recent by date)
 
-* `markdown_dir`:
-  * Type: <click.types.Path object at 0x7fc03652ea80>
+* `markdown_dir`: 
+  * Type: <click.types.Path object at 0x7ff3c6a6f0b0> 
   * Default: `.`
   * Usage: `--markdown`
 
   Directory to output Markdown release notes
 
-* `no_write`:
-  * Type: BOOL
+* `no_write`: 
+  * Type: BOOL 
   * Default: `false`
   * Usage: `--no-write`
 
   Skip writing Markdown files
 
-* `help`:
-  * Type: BOOL
+* `help`: 
+  * Type: BOOL 
   * Default: `false`
   * Usage: `--help`
 

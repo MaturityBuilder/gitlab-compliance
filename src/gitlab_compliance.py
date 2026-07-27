@@ -496,8 +496,13 @@ def _resolve_policies_dir(
     "--features",
     "-f",
     "features_dir",
-    required=True,
-    help="Directory containing compliance policy .feature files or an OCI reference (oci://registry.example.com/policies:1.0.0).",
+    required=False,
+    default=None,
+    help=(
+        "Directory containing compliance policy .feature files or an OCI reference "
+        "(oci://registry.example.com/policies:1.0.0). Optional when "
+        "--with-builtin and/or --with-shell-check is set."
+    ),
 )
 @click.option(
     "--pipeline",
@@ -682,8 +687,14 @@ def check(
 
     from src.compliance.console import print_error, print_success
 
+    if not (features_dir or with_builtin or with_shell_check):
+        raise click.UsageError(
+            "Provide --features/-f or enable --with-builtin and/or --with-shell-check."
+        )
+
     if (
         update
+        and features_dir
         and _gitlab_docs.is_oci_reference(features_dir)
         and policy_cache_dir
         and os.path.isdir(policy_cache_dir)
@@ -721,10 +732,17 @@ def check(
         raise SystemExit(2) from exc
 
     if output_format != "console":
+        from src.compliance.runner import _resolve_policies_source_label
+
+        report_features_dir = features_dir or _resolve_policies_source_label(
+            features_dir,
+            with_builtin=with_builtin,
+            with_shell_check=with_shell_check,
+        )
         report = _gitlab_docs.render_compliance_report(
             result=result,
             pipeline_file=pipeline_file,
-            features_dir=features_dir,
+            features_dir=report_features_dir,
             output_format=output_format,
         )
         target = _resolve_compliance_output(output_format, output_file)

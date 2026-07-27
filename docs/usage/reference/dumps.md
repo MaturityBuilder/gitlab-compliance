@@ -13,29 +13,29 @@ Usage: gitlab-compliance dumps [OPTIONS]
 ```
 
 ## Options
-* `base_module` (REQUIRED):
-  * Type: STRING
+* `base_module` (REQUIRED): 
+  * Type: STRING 
   * Default: `src.gitlab_compliance`
   * Usage: `--baseModule`
 
   The base command module path to import
 
-* `base_command` (REQUIRED):
-  * Type: STRING
+* `base_command` (REQUIRED): 
+  * Type: STRING 
   * Default: `gitlab_compliance`
   * Usage: `--baseCommand`
 
   The base command function to import
 
-* `docs_path` (REQUIRED):
-  * Type: STRING
+* `docs_path` (REQUIRED): 
+  * Type: STRING 
   * Default: `docs/usage/reference/`
   * Usage: `--docsPath`
 
   The docs dir path to write the md files
 
-* `help`:
-  * Type: BOOL
+* `help`: 
+  * Type: BOOL 
   * Default: `false`
   * Usage: `--help`
 

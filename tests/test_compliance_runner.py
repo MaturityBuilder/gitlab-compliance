@@ -542,6 +542,18 @@ class TestResolvePolicyDirectories:
         assert len(dirs) == 1
         assert dirs[0] == os.path.abspath(str(PASSING_POLICIES))
 
+    def test_without_features_dir_requires_builtin_or_shell_flag(self):
+        with pytest.raises(ValueError, match="No policy source provided"):
+            _resolve_policy_directories(None)
+
+    def test_shell_check_only_without_features_dir(self):
+        dirs = _resolve_policy_directories(None, with_shell_check=True)
+        assert dirs == [os.path.abspath(BUILTIN_SHELL_POLICIES_DIR)]
+
+    def test_builtin_only_without_features_dir(self):
+        dirs = _resolve_policy_directories(None, with_builtin=True)
+        assert dirs == [os.path.abspath(BUILTIN_POLICIES_DIR)]
+
     def test_with_shell_check_includes_shell_policies_dir(self):
         dirs = _resolve_policy_directories(str(PASSING_POLICIES), with_shell_check=True)
         assert os.path.abspath(BUILTIN_SHELL_POLICIES_DIR) in dirs
@@ -715,3 +727,23 @@ class TestWithShellCheckPolicies:
         assert any(pid.startswith("GLCI-SHELL") for pid in policy_ids)
         assert any(pid == "GLCI-SHELL-PIN-003" for pid in policy_ids)
         assert not any(pid.startswith("GLCI-BUILTIN") for pid in policy_ids)
+
+    def test_with_shell_check_only_without_features_dir(self):
+        good_pipeline = (
+            REPO_ROOT / "tests" / "fixtures" / "shell_check" / "good-pipeline.yml"
+        )
+        result = run_compliance(
+            features_dir=None,
+            pipeline_file=str(good_pipeline),
+            with_shell_check=True,
+        )
+        policy_ids = {s.policy_id for s in result.scenario_results if s.policy_id}
+        assert any(pid.startswith("GLCI-SHELL") for pid in policy_ids)
+        assert result.success is True
+
+    def test_without_policy_sources_raises(self):
+        with pytest.raises(ValueError, match="No policy source provided"):
+            run_compliance(
+                features_dir=None,
+                pipeline_file=str(SAMPLE_PIPELINE),
+            )

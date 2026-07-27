@@ -86,7 +86,7 @@ def _collect_feature_files(features_dir: str) -> list[str]:
 
 
 def _resolve_policy_directories(
-    features_dir: str,
+    features_dir: str | None,
     with_builtin: bool = False,
     with_shell_check: bool = False,
 ) -> list[str]:
@@ -97,8 +97,27 @@ def _resolve_policy_directories(
         shell_dir = os.path.abspath(BUILTIN_SHELL_POLICIES_DIR)
         if shell_dir not in directories:
             directories.append(shell_dir)
-    directories.append(os.path.abspath(features_dir))
+    if features_dir:
+        directories.append(os.path.abspath(features_dir))
+    if not directories:
+        raise ValueError(
+            "No policy source provided. Pass --features/-f and/or enable "
+            "--with-builtin or --with-shell-check."
+        )
     return directories
+
+
+def _resolve_policies_source_label(
+    features_dir: str | None,
+    *,
+    with_builtin: bool = False,
+    with_shell_check: bool = False,
+) -> str:
+    if features_dir:
+        return features_dir
+    if with_shell_check and not with_builtin:
+        return BUILTIN_SHELL_POLICIES_DIR
+    return BUILTIN_POLICIES_DIR
 
 
 def _collect_feature_files_from_dirs(features_dirs: list[str]) -> list[tuple[str, str]]:
@@ -226,7 +245,7 @@ def _collect_scenario_results(runner: Runner, policy_catalog) -> list[ScenarioRe
 
 
 def run_compliance(
-    features_dir: str,
+    features_dir: str | None,
     pipeline_file: str,
     include_nested: bool = True,
     max_include_depth: int | None = None,
@@ -250,12 +269,25 @@ def run_compliance(
     mr_target_branch: str | None = None,
     mr_comment_file: str | None = None,
 ) -> ComplianceResult:
-    policies_source = policies_source or features_dir
-    resolved_features_dir = (
-        resolve_features_dir(features_dir, cache_dir=policy_cache_dir)
-        if not os.path.isdir(features_dir)
-        else os.path.abspath(features_dir)
+    if not (features_dir or with_builtin or with_shell_check):
+        raise ValueError(
+            "No policy source provided. Pass --features/-f and/or enable "
+            "--with-builtin or --with-shell-check."
+        )
+
+    policies_source = policies_source or _resolve_policies_source_label(
+        features_dir,
+        with_builtin=with_builtin,
+        with_shell_check=with_shell_check,
     )
+    if features_dir:
+        resolved_features_dir = (
+            resolve_features_dir(features_dir, cache_dir=policy_cache_dir)
+            if not os.path.isdir(features_dir)
+            else os.path.abspath(features_dir)
+        )
+    else:
+        resolved_features_dir = None
 
     if not os.path.exists(pipeline_file):
         raise FileNotFoundError(f"Pipeline file not found: {pipeline_file}")

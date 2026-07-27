@@ -15,6 +15,7 @@ Render gitstrings documentation from CI YAML decorators or markdown fences.
 
 
 
+
 ## Usage
 
 ```
@@ -22,16 +23,16 @@ Usage: gitlab-compliance document gitstrings [OPTIONS]
 ```
 
 ## Options
-* `input_file`:
-  * Type: STRING
+* `input_file`: 
+  * Type: STRING 
   * Default: `readme.md`
   * Usage: `-i
 --input-file`
 
   Markdown or CI YAML (.yml) file with gitstrings decorators or fenced snippets.
 
-* `output_file`:
-  * Type: STRING
+* `output_file`: 
+  * Type: STRING 
   * Default: `none`
   * Usage: `-o
 --output-file
@@ -39,37 +40,37 @@ Usage: gitlab-compliance document gitstrings [OPTIONS]
 
   Markdown file for gitstrings marker updates. When set, all fragments write here and # @output in YAML is ignored.
 
-* `dry_mode`:
-  * Type: BOOL
+* `dry_mode`: 
+  * Type: BOOL 
   * Default: `false`
   * Usage: `--dry-mode
 -d`
 
   Log updates without writing files.
 
-* `keep_source`:
-  * Type: BOOL
+* `keep_source`: 
+  * Type: BOOL 
   * Default: `true`
   * Usage: `--keep-source`
 
   Include collapsible source YAML in the generated marker block.
 
-* `include_nested`:
-  * Type: BOOL
+* `include_nested`: 
+  * Type: BOOL 
   * Default: `false`
   * Usage: `--include-nested`
 
   Walk nested local: includes on disk when documenting @render includes (-i must be .yml). Does not fetch project, component, remote, or template trees.
 
-* `max_include_depth`:
-  * Type: INT
+* `max_include_depth`: 
+  * Type: INT 
   * Default: `none`
   * Usage: `--max-include-depth`
 
   Max local include nesting depth from the root file (omit for unlimited).
 
-* `help`:
-  * Type: BOOL
+* `help`: 
+  * Type: BOOL 
   * Default: `false`
   * Usage: `--help`
 

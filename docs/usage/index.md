@@ -52,11 +52,11 @@ Use `--update` with OCI references to pull the latest bundle before running.
 ### `--with-builtin` {#with-builtin}
 
 Also run bundled baseline policies shipped inside the `gitlab-compliance`
-package. Your `-f` directory remains **required**; `--with-builtin` **adds** the
-bundled pack alongside your policies.
+package. Your `-f` directory is **optional** when this flag is set; omit `-f`
+to run only the bundled pack, or pass `-f` to merge your policies alongside it.
 
 ```bash
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --with-builtin
+gitlab-compliance check -p .gitlab-ci.yml --with-builtin
 ```
 
 Bundled policies include plain scenarios (job images, include pinning) and
@@ -66,12 +66,12 @@ constraints). See [Advanced scenarios](../bdd-reference/advanced-scenarios.md).
 ### `--with-shell-check` {#with-shell-check}
 
 Also run packaged **shell script standards** (`GLCI-SHELL-*`) for
-`before_script`, `script`, and `after_script`. Your `-f` directory remains
-**required**; `--with-shell-check` **adds** the shell pack alongside your
-policies without enabling the other bundled YAML baseline rules.
+`before_script`, `script`, and `after_script`. Your `-f` directory is
+**optional** when this flag is set; omit `-f` to run only the packaged shell
+policies.
 
 ```bash
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --with-shell-check
+gitlab-compliance check -p .gitlab-ci.yml --with-shell-check
 ```
 
 Equivalent to running `shell-check` in the same invocation. See
