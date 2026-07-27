@@ -3,9 +3,6 @@
 Generate release notes for multiple GitLab projects based on commits since the last tag.
     Optionally outputs Markdown files.
 
-
-
-
 ## Usage
 
 ```
@@ -42,7 +39,7 @@ Usage: gitlab-compliance release-notes [OPTIONS]
   Baseline tag name (default: latest semver tag, else most recent by date)
 
 * `markdown_dir`:
-  * Type: <click.types.Path object at 0x7994dadc68a0>
+  * Type: <click.types.Path object at 0x7fdd426f6720>
   * Default: `.`
   * Usage: `--markdown`
 

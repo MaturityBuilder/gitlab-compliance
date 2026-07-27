@@ -21,6 +21,7 @@ JOB_EXCLUDE_KEYWORDS = [
 ]
 
 JOB_SKIP_ATTRIBUTES = {"before_script", "script", "after_script", "artifacts"}
+SCRIPT_ATTRIBUTE_KEYS = frozenset({"before_script", "script", "after_script"})
 
 _REMOTE_VERSION_RE = re.compile(
     r"(?:^|/)(v?\d+\.\d+\.\d+(?:[-+][\w.-]+)?|[0-9a-f]{40})(?:/|$)",
@@ -227,13 +228,23 @@ def _parse_variable_entry(
     }
 
 
-def _parse_job(name: str, config: dict, source_file: str = "", line: int = 0) -> dict:
+def _parse_job(
+    name: str,
+    config: dict,
+    source_file: str = "",
+    line: int = 0,
+    *,
+    include_scripts: bool = False,
+) -> dict:
     attributes = []
     nested = []
     rules = []
+    scripts: dict[str, Any] = {}
 
     for key in sorted(config):
         if key in JOB_SKIP_ATTRIBUTES:
+            if include_scripts and key in SCRIPT_ATTRIBUTE_KEYS:
+                scripts[key] = config[key]
             continue
         value = config[key]
         if key == "rules" and isinstance(value, list):
@@ -249,7 +260,7 @@ def _parse_job(name: str, config: dict, source_file: str = "", line: int = 0) ->
             continue
         attributes.append({"key": key, "value": value})
 
-    return {
+    job = {
         "name": name,
         "display_name": name.upper(),
         "is_template": name.startswith("."),
@@ -259,6 +270,11 @@ def _parse_job(name: str, config: dict, source_file: str = "", line: int = 0) ->
         "source_file": source_file,
         "line": line,
     }
+    if include_scripts:
+        job.update(scripts)
+        if "extends" in config:
+            job["extends"] = config["extends"]
+    return job
 
 
 def _resolve_local_include_path(config_file: str, local_path: str) -> str | None:
@@ -283,14 +299,21 @@ def collect_pipeline_data(
     exclude_attributes: set[str] | None = None,
     group_by: str | None = None,
     *,
+    include_scripts: bool = False,
+    resolve_job_composition: bool = False,
     _depth: int = 0,
     _visited: set[str] | None = None,
+    _job_registry: dict[str, dict] | None = None,
 ) -> dict:
+    if resolve_job_composition:
+        include_scripts = True
+
     if not os.path.exists(config_file):
         raise FileNotFoundError(f"Config file not found: {config_file}")
 
     resolved_config = os.path.realpath(os.path.abspath(config_file))
     visited = _visited if _visited is not None else set()
+    job_registry = _job_registry if _job_registry is not None else {}
     if resolved_config in visited:
         return {
             "config_file": config_file,
@@ -300,6 +323,7 @@ def collect_pipeline_data(
             "workflow_rules": [],
             "jobs": [],
             "container_images": [],
+            "job_registry": job_registry,
             "line_index": {
                 "jobs": {},
                 "includes": [],
@@ -337,6 +361,8 @@ def collect_pipeline_data(
     )
 
     for document in documents:
+        if not isinstance(document, dict):
+            continue
         if exclude_sections and "inputs" in exclude_sections:
             pass
         elif "spec" in document and "inputs" in document["spec"]:
@@ -383,8 +409,11 @@ def collect_pipeline_data(
                                 exclude_sections=exclude_sections,
                                 exclude_attributes=exclude_attributes,
                                 group_by=group_by,
+                                include_scripts=include_scripts,
+                                resolve_job_composition=resolve_job_composition,
                                 _depth=_depth + 1,
                                 _visited=visited,
+                                _job_registry=job_registry,
                             )
                             data["includes"].extend(nested["includes"])
                             data["jobs"].extend(nested["jobs"])
@@ -404,12 +433,20 @@ def collect_pipeline_data(
                     continue
                 if not isinstance(value, dict):
                     continue
+                job_line = line_index["jobs"].get(key, 0)
+                if include_scripts or resolve_job_composition:
+                    job_registry[key] = {
+                        "config": value,
+                        "source_file": config_file,
+                        "line": job_line,
+                    }
                 data["jobs"].append(
                     _parse_job(
                         key,
                         value,
                         source_file=config_file,
-                        line=line_index["jobs"].get(key, 0),
+                        line=job_line,
+                        include_scripts=include_scripts,
                     )
                 )
 
@@ -418,6 +455,36 @@ def collect_pipeline_data(
     ):
         data["container_images"] = _collect_container_images(data["jobs"])
     data["line_index"] = line_index
+    data["job_registry"] = job_registry
+
+    if resolve_job_composition and _depth == 0 and job_registry:
+        from src.modules.job_composition import (
+            compose_job_scripts,
+            effective_scripts_as_values,
+        )
+
+        composed_jobs = []
+        for job in data["jobs"]:
+            effective = compose_job_scripts(job["name"], job_registry)
+            values = effective_scripts_as_values(effective)
+            enriched = dict(job)
+            enriched.update(
+                {
+                    "before_script": values["before_script"],
+                    "script": values["script"],
+                    "after_script": values["after_script"],
+                    "effective_script": values["effective_script"],
+                    "extends_chain": values["extends_chain"],
+                    "unresolved_script_references": values[
+                        "unresolved_script_references"
+                    ],
+                    "script_provenance": values["script_provenance"],
+                }
+            )
+            composed_jobs.append(enriched)
+        data["jobs"] = composed_jobs
+        data["merged_jobs"] = composed_jobs
+
     return apply_output_filters(
         data,
         exclude_sections=exclude_sections,

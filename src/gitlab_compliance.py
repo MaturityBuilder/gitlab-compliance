@@ -78,6 +78,7 @@ __all__ = [
     "render_compliance_report",
     "resolve_features_dir",
     "run_compliance",
+    "shell_check",
 ]
 
 
@@ -740,6 +741,119 @@ def check(
     raise SystemExit(result.exit_code)
 
 
+@click.command("shell-check")
+@click.option(
+    "--pipeline",
+    "-p",
+    "pipeline_file",
+    required=False,
+    default=".gitlab-ci.yml",
+    help="Path to the GitLab CI pipeline YAML file.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    required=False,
+    type=click.Choice(COMPLIANCE_OUTPUT_FORMATS, case_sensitive=False),
+    default="console",
+    help="Output format for the script validation report.",
+)
+@click.option(
+    "--output-file",
+    "-o",
+    "output_file",
+    required=False,
+    default=None,
+    help="Write rendered report to this file (markdown, html, mr-comment).",
+)
+@click.option(
+    "--include-nested/--no-include-nested",
+    default=True,
+    help="Resolve nested local include files into the compliance stash.",
+)
+@click.option(
+    "--max-include-depth",
+    "max_include_depth",
+    type=int,
+    default=None,
+    help="Max local include nesting depth from the root file (omit for unlimited).",
+)
+@click.option(
+    "--features",
+    "-f",
+    "features_dir",
+    required=False,
+    default=None,
+    help=(
+        "Policy directory to run instead of packaged shell standards. "
+        "Defaults to packaged GLCI-SHELL policies."
+    ),
+)
+def shell_check(
+    pipeline_file,
+    output_format,
+    output_file,
+    include_nested,
+    max_include_depth,
+    features_dir,
+):
+    """
+    Run packaged Gherkin shell standards for CI scripts (not the ShellCheck tool).
+
+    Validates before_script/script/after_script using builtin GLCI-SHELL-* policies.
+    Does not install, detect, or invoke the external ShellCheck binary.
+    """
+    from src.compliance.builtin_policies import BUILTIN_SHELL_POLICIES_DIR
+    from src.compliance.console import print_error, print_success
+
+    output_format = output_format.lower()
+    shell_features = features_dir or BUILTIN_SHELL_POLICIES_DIR
+
+    try:
+        result = _gitlab_docs.run_compliance(
+            features_dir=shell_features,
+            pipeline_file=pipeline_file,
+            include_nested=include_nested,
+            max_include_depth=max_include_depth,
+            output_format=output_format,
+            with_builtin=False,
+        )
+    except (ValueError, FileNotFoundError, OSError) as exc:
+        print_error(str(exc))
+        raise SystemExit(2) from exc
+
+    if output_format != "console":
+        report = _gitlab_docs.render_compliance_report(
+            result=result,
+            pipeline_file=pipeline_file,
+            features_dir=shell_features,
+            output_format=output_format,
+        )
+        target = _resolve_compliance_output(output_format, output_file)
+        if target:
+            with open(target, "w", encoding="utf-8") as handle:
+                handle.write(report)
+            print_success(
+                f"Shell-check report written to `{target}`",
+                title="Report written",
+            )
+        else:
+            click.echo(report)
+
+        if result.success:
+            print_success(
+                f"Shell-check passed for `{pipeline_file}`",
+                title="Complete",
+            )
+        else:
+            print_error(
+                f"Shell-check failed for `{pipeline_file}`",
+                title="Complete",
+                hint="Review GLCI-SHELL findings, then re-run after fixes.",
+            )
+    raise SystemExit(result.exit_code)
+
+
 def _resolve_policy_doc_output(output_format, output_file):
     if output_file:
         return output_file
@@ -915,6 +1029,7 @@ gitlab_compliance.add_command(dumps)
 gitlab_compliance.add_command(generate)
 gitlab_compliance.add_command(generate_html)
 gitlab_compliance.add_command(check)
+gitlab_compliance.add_command(shell_check)
 gitlab_compliance.add_command(policies)
 gitlab_compliance.add_command(document)
 gitlab_compliance.add_command(release_notes)

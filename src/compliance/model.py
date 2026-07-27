@@ -119,6 +119,8 @@ def load_yaml_entities(
         detailed=True,
         include_nested=include_nested,
         max_include_depth=max_include_depth,
+        include_scripts=True,
+        resolve_job_composition=True,
     )
 
     line_index = pipeline_data.get("line_index") or {}
@@ -184,7 +186,36 @@ def _job_values(job: dict) -> dict:
         elif nested["attribute"] == "needs":
             values.setdefault("needs", [])
             values["needs"].append(nested["value"])
+    for key in (
+        "before_script",
+        "script",
+        "after_script",
+        "effective_script",
+        "extends",
+        "extends_chain",
+        "unresolved_script_references",
+        "script_provenance",
+    ):
+        if key in job:
+            values[key] = job[key]
     return values
+
+
+def load_merged_job_scripts(
+    pipeline_file: str,
+    include_nested: bool = True,
+    max_include_depth: int | None = None,
+) -> list[dict]:
+    """Return jobs with composed effective scripts for shell validation."""
+    pipeline_data = collect_pipeline_data(
+        config_file=pipeline_file,
+        detailed=True,
+        include_nested=include_nested,
+        max_include_depth=max_include_depth,
+        include_scripts=True,
+        resolve_job_composition=True,
+    )
+    return list(pipeline_data.get("merged_jobs") or pipeline_data.get("jobs") or [])
 
 
 def load_pipeline_entities(

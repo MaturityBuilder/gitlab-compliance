@@ -23,6 +23,9 @@ See [GitLab Docs output example](gitlab-docs-output-example.md) for sample `gene
 
 ## Policy index
 
+- **Shell check:** Embedded CI script standards (quoting, pinning, security)
+  - [Shell check](shell-check.md)
+  - [Shell pinning](shell-pinning.md)
 - **Image pinning:** Floating `latest` tags
   - [Image Pinning](image-pinning.md)
 - **Component pinning:** Unpinned `@main` components

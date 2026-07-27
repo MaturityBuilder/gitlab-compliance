@@ -1,0 +1,19 @@
+stages:
+  - test
+
+.helper:
+  script:
+    - echo "from helper"
+
+.base:
+  before_script:
+    - !reference [.helper, script]
+  script:
+    - echo "base"
+
+consumer:
+  stage: test
+  extends:
+    - .base
+  script:
+    - echo "child"
