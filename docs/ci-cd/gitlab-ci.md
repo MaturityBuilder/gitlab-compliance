@@ -150,7 +150,7 @@ fix-supply-chain:
     - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
         --project "$CI_PROJECT_PATH"
         --token "$GITLAB_TOKEN"
-        --fix-supply-chain --create-mr
+        --fix --create-mr
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
 ```
