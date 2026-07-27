@@ -35,23 +35,23 @@ Usage: gitlab-compliance policies push [OPTIONS] TARGET
 ```
 
 ## Options
-* `features_dir` (REQUIRED): 
-  * Type: STRING 
+* `features_dir` (REQUIRED):
+  * Type: STRING
   * Default: `sentinel.unset`
   * Usage: `--features
 -f`
 
   Directory containing compliance policy .feature files to publish.
 
-* `target` (REQUIRED) [argument]: 
-  * Type: STRING 
+* `target` (REQUIRED) [argument]:
+  * Type: STRING
   * Default: `sentinel.unset`
   * Usage: `target`
 
-  
 
-* `help`: 
-  * Type: BOOL 
+
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 

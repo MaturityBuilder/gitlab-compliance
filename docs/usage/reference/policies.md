@@ -9,8 +9,8 @@ Usage: gitlab-compliance policies [OPTIONS] COMMAND [ARGS]...
 ```
 
 ## Options
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 
