@@ -43,6 +43,7 @@ commands. Each package on a line must be version-pinned.
 | --- | --- | --- | --- |
 | apk | `apk add` | `apk add curl=8.5.0-r0` | `GLCI-SHELL-PIN-004` |
 | apt / apt-get | `apt install`, `apt-get install` | `apt-get install curl=7.88.1-10` | `GLCI-SHELL-PIN-005` |
+| yum / dnf / microdnf | `yum install`, `dnf install`, `microdnf install` | `dnf install curl-7.76.1-23.el9` | `GLCI-SHELL-PIN-010` |
 | pip / pip3 | `pip install`, `pip3 install` | `pip3 install "requests==2.32.0"` | `GLCI-SHELL-PIN-003` |
 | npm / yarn | `npm install -g`, `yarn global add` | `npm install -g cowsay@1.0.0` | `GLCI-SHELL-PIN-006` |
 | go | `go install` | `go install example.com/cmd@v1.2.3` | `GLCI-SHELL-PIN-007` |
@@ -50,7 +51,7 @@ commands. Each package on a line must be version-pinned.
 Related (not OS package managers): `docker run` / `docker pull` / `docker create`
 must use an explicit tag or `sha256` digest (`GLCI-SHELL-PIN-009`).
 
-Not covered yet: `yum`, `dnf`, `microdnf`, `zypper`, and similar RPM/SUSE tools.
+Not covered yet: `zypper`, `pacman`, and similar tools outside the table above.
 
 ## Quick start
 

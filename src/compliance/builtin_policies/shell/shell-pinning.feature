@@ -88,3 +88,13 @@ Feature: CI script dependency pinning
   Scenario: docker run and pull must pin container images
     Given I have any job with effective script defined
     Then docker commands must pin container images to a tag or sha256 digest
+
+# METADATA
+# title: yum/dnf packages must be version-pinned
+# description: Applies to yum, dnf, and microdnf install commands in job scripts.
+# custom:
+#   id: GLCI-SHELL-PIN-010
+#   severity: MEDIUM
+  Scenario: yum and dnf install must pin package versions
+    Given I have any job with effective script defined
+    Then package installs of type "yum" must use pinned versions

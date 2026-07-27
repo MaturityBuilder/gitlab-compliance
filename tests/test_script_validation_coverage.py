@@ -392,6 +392,7 @@ def test_all_script_then_steps_smoke():
             "docker pull python:3.12.0",
             "docker run --rm python:3.12.0 python --version",
             "apt-get install curl=1",
+            "dnf install curl-7.76.1-23.el9",
             "npm install -g cowsay@1",
             "go install example.com/cmd@v1",
             "git clone https://x.git",
@@ -428,7 +429,7 @@ def test_all_script_then_steps_smoke():
     steps.then_user_input_safe(ctx)
     steps.then_no_secrets(ctx)
     steps.then_downloads_checksum(ctx)
-    for manager in ("apk", "pip", "apt", "npm", "go"):
+    for manager in ("apk", "pip", "apt", "yum", "npm", "go"):
         steps.then_packages_pinned(ctx, manager)
     steps.then_docker_images_pinned(ctx)
     steps.then_git_clone_verified(ctx)

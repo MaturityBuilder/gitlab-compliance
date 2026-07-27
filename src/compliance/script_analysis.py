@@ -23,6 +23,7 @@ _REMOTE_PIPE = re.compile(
 _PIP = re.compile(r"\bpip(?:3)?\s+install\b", re.IGNORECASE)
 _APK = re.compile(r"\bapk\s+add\b", re.IGNORECASE)
 _APT = re.compile(r"\bapt(?:-get)?\s+install\b", re.IGNORECASE)
+_YUM = re.compile(r"\b(?:yum|dnf|microdnf)\s+install\b", re.IGNORECASE)
 _NPM_GLOBAL = re.compile(
     r"\b(?:npm\s+install\s+-g|yarn\s+global\s+add)\b", re.IGNORECASE
 )
@@ -415,6 +416,25 @@ _APT_FLAGS_WITH_ARG = frozenset(
         "--target-release",
     }
 )
+_YUM_FLAGS_WITH_ARG = frozenset(
+    {
+        "-c",
+        "--config",
+        "--enablerepo",
+        "--disablerepo",
+        "--repoid",
+        "--setopt",
+        "--installroot",
+        "--releasever",
+        "--downloaddir",
+        "--exclude",
+        "-x",
+    }
+)
+_RPM_ARCH_SUFFIX = re.compile(
+    r"\.(?:x86_64|i[3-6]86|aarch64|armv7hl|ppc64(?:le)?|s390x|noarch|src)$",
+    re.IGNORECASE,
+)
 
 
 def _split_command_tokens(segment: str) -> list[str]:
@@ -513,6 +533,30 @@ def _apt_line_is_pinned(line: str) -> bool:
     if not packages:
         return True
     return all(_apt_package_is_pinned(package) for package in packages)
+
+
+def _yum_package_is_pinned(token: str) -> bool:
+    """Return whether an RPM package token includes a version segment.
+
+    Accepts NEVRA-style pins such as ``curl-7.76.1-23.el9`` or ``1:curl-7.76.1``.
+    Bare names (including hyphenated names without a version digit) are unpinned.
+    """
+    cleaned = token.strip("'\"")
+    if not cleaned or cleaned.startswith("/"):
+        # Local RPM paths are treated as pinned artifacts.
+        return bool(cleaned)
+    cleaned = _RPM_ARCH_SUFFIX.sub("", cleaned)
+    cleaned = re.sub(r"^\d+:", "", cleaned)
+    return bool(re.search(r"-\d", cleaned))
+
+
+def _yum_line_is_pinned(line: str) -> bool:
+    """Return whether every yum/dnf/microdnf package on the line is version-pinned."""
+    tokens = _tokens_after_subcommand(line, _YUM)
+    packages = _package_tokens(tokens, flags_with_arg=_YUM_FLAGS_WITH_ARG)
+    if not packages:
+        return True
+    return all(_yum_package_is_pinned(package) for package in packages)
 
 
 def _npm_package_is_pinned(token: str) -> bool:
@@ -627,6 +671,16 @@ def script_has_unpinned_apt(entity: dict) -> bool:
         if not _APT.search(line):
             continue
         if not _apt_line_is_pinned(line):
+            return True
+    return False
+
+
+def script_has_unpinned_yum(entity: dict) -> bool:
+    """Return True when yum/dnf/microdnf install lines have unpinned packages."""
+    for line in _active_lines(entity):
+        if not _YUM.search(line):
+            continue
+        if not _yum_line_is_pinned(line):
             return True
     return False
 

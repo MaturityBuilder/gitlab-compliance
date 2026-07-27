@@ -30,6 +30,7 @@ from src.compliance.script_analysis import (
     script_has_unpinned_go_install,
     script_has_unpinned_npm,
     script_has_unpinned_pip,
+    script_has_unpinned_yum,
     script_has_unquoted_command_substitution,
     script_has_unquoted_path_variables,
     script_has_unquoted_test_variables,
@@ -408,6 +409,7 @@ def then_packages_pinned(context, manager):
         "apk": script_has_unpinned_apk,
         "pip": script_has_unpinned_pip,
         "apt": script_has_unpinned_apt,
+        "yum": script_has_unpinned_yum,
         "npm": script_has_unpinned_npm,
         "go": script_has_unpinned_go_install,
     }

@@ -94,6 +94,22 @@ def test_multi_package_pinning_predicates():
     assert script_has_unpinned_apt(_entity(["apt-get install curl=1.0 wget"]))
 
 
+def test_yum_dnf_pinning_predicates():
+    from src.compliance.script_analysis import script_has_unpinned_yum
+
+    assert script_has_unpinned_yum(_entity(["yum install curl"]))
+    assert not script_has_unpinned_yum(_entity(["yum install curl-7.76.1-23.el9"]))
+    assert not script_has_unpinned_yum(_entity(["dnf install -y curl-7.76.1"]))
+    assert not script_has_unpinned_yum(
+        _entity(["dnf install --enablerepo=epel pkg-1.0.0"])
+    )
+    assert script_has_unpinned_yum(_entity(["yum install curl-7.76.1-23.el9 wget"]))
+    assert not script_has_unpinned_yum(
+        _entity(["microdnf install curl-7.76.1-23.el9.x86_64"])
+    )
+    assert script_has_unpinned_yum(_entity(["dnf install python3-requests"]))
+
+
 def test_pip_and_apk_flags_with_arguments():
     assert not script_has_unpinned_pip(
         _entity(["pip install --index-url https://pypi.org/simple requests==2.0"])
