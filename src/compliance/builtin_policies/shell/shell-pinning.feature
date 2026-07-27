@@ -26,6 +26,7 @@ Feature: CI script dependency pinning
 
 # METADATA
 # title: pip packages must be version-pinned
+# description: Applies to both pip and pip3 install commands in job scripts.
 # custom:
 #   id: GLCI-SHELL-PIN-003
 #   severity: MEDIUM
@@ -77,3 +78,13 @@ Feature: CI script dependency pinning
   Scenario: git clone must verify commit or tag
     Given I have any job with effective script defined
     Then git clone must verify commit or tag
+
+# METADATA
+# title: docker run and pull must pin images
+# description: Script docker commands must reference an explicit tag or sha256 digest.
+# custom:
+#   id: GLCI-SHELL-PIN-009
+#   severity: MEDIUM
+  Scenario: docker run and pull must pin container images
+    Given I have any job with effective script defined
+    Then docker commands must pin container images to a tag or sha256 digest

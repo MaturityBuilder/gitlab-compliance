@@ -20,12 +20,13 @@ from src.compliance.script_analysis import (
     script_has_dangerous_rm,
     script_has_hardcoded_secrets,
     script_has_nested_backticks,
-    script_has_pipeline,
     script_has_pipefail,
+    script_has_pipeline,
     script_has_remote_pipe_to_shell,
     script_has_shebang,
     script_has_unpinned_apk,
     script_has_unpinned_apt,
+    script_has_unpinned_docker_image,
     script_has_unpinned_go_install,
     script_has_unpinned_npm,
     script_has_unpinned_pip,
@@ -155,16 +156,19 @@ def when_variables_in_path(context):
 @when("command substitution is used")
 def when_command_substitution(context):
     filtered = filter_entities(
-        context.stash, lambda e: script_has_unquoted_command_substitution(e)
-        or "$(" in str(e.get("values", {}).get("effective_script", ""))
+        context.stash,
+        lambda e: script_has_unquoted_command_substitution(e)
+        or "$(" in str(e.get("values", {}).get("effective_script", "")),
     )
     if not filtered:
         filtered = filter_entities(
             context.stash,
-            lambda e: "$(" in "\n".join(
+            lambda e: "$("
+            in "\n".join(
                 map(str, e.get("values", {}).get("effective_script", []) or [])
             )
-            or "`" in "\n".join(
+            or "`"
+            in "\n".join(
                 map(str, e.get("values", {}).get("effective_script", []) or [])
             ),
         )
@@ -411,6 +415,15 @@ def then_packages_pinned(context, manager):
     if predicate is None:
         raise AssertionError(f"Unknown package manager '{manager}'")
     _assert_none(context, predicate, f"Unpinned {manager} package install")
+
+
+@then("docker commands must pin container images to a tag or sha256 digest")
+def then_docker_images_pinned(context):
+    _assert_none(
+        context,
+        script_has_unpinned_docker_image,
+        "Docker command references an unpinned container image",
+    )
 
 
 @then("git clone must verify commit or tag")

@@ -11,6 +11,8 @@ Examples of failures:
 
 - `curl … | bash` (`GLCI-SHELL-PIN-002`)
 - `apk add curl` without `curl=version` (`GLCI-SHELL-PIN-004`)
+- `pip3 install requests` without `==` pinning (`GLCI-SHELL-PIN-003`)
+- `docker pull nginx` or `docker run nginx` without a tag or digest (`GLCI-SHELL-PIN-009`)
 - Download without nearby `sha256sum` (`GLCI-SHELL-PIN-001`)
 
 ## Run

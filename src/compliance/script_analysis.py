@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import re
+import shlex
+
 from src.compliance.stash import get_property
 
 _UNQUOTED_VAR = re.compile(
@@ -26,6 +28,51 @@ _NPM_GLOBAL = re.compile(
 )
 _GO_INSTALL = re.compile(r"\bgo\s+install\b", re.IGNORECASE)
 _GIT_CLONE = re.compile(r"\bgit\s+clone\b", re.IGNORECASE)
+_DOCKER_CMD = re.compile(r"\bdocker\s+(run|pull|create)\b", re.IGNORECASE)
+_DOCKER_FLAGS_WITH_ARG = frozenset(
+    {
+        "-v",
+        "--volume",
+        "-p",
+        "--publish",
+        "-e",
+        "--env",
+        "--env-file",
+        "-w",
+        "--workdir",
+        "-u",
+        "--user",
+        "--name",
+        "--network",
+        "--hostname",
+        "--label",
+        "-l",
+        "--mount",
+        "--device",
+        "--gpus",
+        "--ulimit",
+        "--log-driver",
+        "--log-opt",
+        "--add-host",
+        "--dns",
+        "--entrypoint",
+        "-m",
+        "--memory",
+        "--cpus",
+        "-c",
+        "--cpu-shares",
+        "--cap-add",
+        "--cap-drop",
+        "--security-opt",
+        "--tmpfs",
+        "--sysctl",
+        "--platform",
+        "--pull",
+        "--runtime",
+        "--shm-size",
+        "--kernel-memory",
+    }
+)
 _EVAL = re.compile(r"(^|\s)eval\s")
 _RM_RF_ROOT = re.compile(r"\brm\s+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\s+/")
 _RM_RF = re.compile(r"\brm\s+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\b")
@@ -87,7 +134,9 @@ def _strip_comment(line: str) -> str:
 
 
 def _active_lines(entity: dict, field: str = "effective_script") -> list[str]:
-    return [_strip_comment(line) for line in _script_lines(entity, field) if line.strip()]
+    return [
+        _strip_comment(line) for line in _script_lines(entity, field) if line.strip()
+    ]
 
 
 def job_has_effective_script(entity: dict) -> bool:
@@ -261,6 +310,73 @@ def script_downloads_without_checksum(entity: dict) -> bool:
     return False
 
 
+def _container_image_ref_is_pinned(ref: str) -> bool:
+    """Return whether a container image reference includes a tag or digest."""
+    cleaned = ref.strip("'\"")
+    if not cleaned or cleaned.startswith("$"):
+        return True
+    lower = cleaned.lower()
+    if "@sha256:" in lower:
+        return True
+    if ":" in cleaned:
+        tag = cleaned.rsplit(":", 1)[-1]
+        return tag.lower() != "latest"
+    return False
+
+
+def _is_volume_mount(token: str) -> bool:
+    if ":" not in token:
+        return False
+    if re.match(
+        r"^[\w][\w./-]*(?:@sha256:[a-f0-9]{64}|:[\w][\w.-]+)$",
+        token,
+        re.IGNORECASE,
+    ):
+        return False
+    host, _container = token.split(":", 1)
+    return host.startswith(("./", "/", "$", ".")) or host.isdigit()
+
+
+def _extract_docker_image_from_run(rest: str) -> list[str]:
+    try:
+        tokens = shlex.split(rest, posix=True)
+    except ValueError:
+        return []
+    skip_next = False
+    for token in tokens:
+        if skip_next:
+            skip_next = False
+            continue
+        if token in _DOCKER_FLAGS_WITH_ARG:
+            skip_next = True
+            continue
+        if token.startswith("--") and "=" in token:
+            continue
+        if token.startswith("-"):
+            continue
+        if _is_volume_mount(token):
+            continue
+        return [token]
+    return []
+
+
+def _docker_image_refs_on_line(line: str) -> list[str]:
+    refs: list[str] = []
+    for match in re.finditer(
+        r"\bdocker\s+pull\s+(?:--[\w-]+\s+)*([\"']?)([^\s\"']+)\1",
+        line,
+        re.IGNORECASE,
+    ):
+        refs.append(match.group(2))
+    run_match = re.search(r"\bdocker\s+run\b\s+(.+)$", line, re.IGNORECASE)
+    if run_match:
+        refs.extend(_extract_docker_image_from_run(run_match.group(1)))
+    create_match = re.search(r"\bdocker\s+create\b\s+(.+)$", line, re.IGNORECASE)
+    if create_match:
+        refs.extend(_extract_docker_image_from_run(create_match.group(1)))
+    return refs
+
+
 def script_has_unpinned_pip(entity: dict) -> bool:
     for line in _active_lines(entity):
         if not _PIP.search(line):
@@ -270,6 +386,16 @@ def script_has_unpinned_pip(entity: dict) -> bool:
         if "-r" in line or "--requirement" in line:
             continue
         return True
+    return False
+
+
+def script_has_unpinned_docker_image(entity: dict) -> bool:
+    for line in _active_lines(entity):
+        if not _DOCKER_CMD.search(line):
+            continue
+        for ref in _docker_image_refs_on_line(line):
+            if not _container_image_ref_is_pinned(ref):
+                return True
     return False
 
 
@@ -297,9 +423,10 @@ def script_has_unpinned_npm(entity: dict) -> bool:
     for line in _active_lines(entity):
         if not _NPM_GLOBAL.search(line):
             continue
-        if "@" not in line.split("install", 1)[-1] and "@" not in line.split("add", 1)[
-            -1
-        ]:
+        if (
+            "@" not in line.split("install", 1)[-1]
+            and "@" not in line.split("add", 1)[-1]
+        ):
             return True
     return False
 
