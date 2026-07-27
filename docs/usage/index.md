@@ -81,7 +81,7 @@ Equivalent to running `shell-check` in the same invocation. See
 
 Also run packaged supply-chain pinning policies for includes, container images,
 and services. Your `-f` directory is **optional** when this flag is set. This is
-a **read-only policy check**; use `--fix-supply-chain` to auto-remediate YAML.
+a **read-only policy check**; pass `--fix` to auto-remediate YAML.
 
 ```bash
 gitlab-compliance check -p .gitlab-ci.yml --with-supply-chain

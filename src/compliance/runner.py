@@ -314,13 +314,11 @@ def run_compliance(
         raise FileNotFoundError(f"Pipeline file not found: {pipeline_file}")
 
     if create_mr and not (fix_supply_chain or fix_policies):
-        raise ValueError(
-            "--create-mr requires --fix-supply-chain and/or --fix-policies"
-        )
+        raise ValueError("--create-mr requires --fix and/or --fix-policies")
     if create_mr and dry_run:
         raise ValueError("--create-mr cannot be used with --dry-run")
     if fix_supply_chain and dry_run:
-        raise ValueError("--fix-supply-chain cannot be used with --dry-run")
+        raise ValueError("--fix cannot be used with --dry-run")
     if fix_policies and dry_run:
         raise ValueError("--fix-policies cannot be used with --dry-run")
 
@@ -329,8 +327,7 @@ def run_compliance(
     )
     if fix_supply_chain and not resolved_token:
         raise ValueError(
-            "--fix-supply-chain requires a GitLab token "
-            "(--token, GITLAB_TOKEN, or CI_JOB_TOKEN)"
+            "--fix requires a GitLab token " "(--token, GITLAB_TOKEN, or CI_JOB_TOKEN)"
         )
     if fix_policies and not resolved_token:
         raise ValueError(

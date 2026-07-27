@@ -9,7 +9,7 @@ from src.compliance.builtin_policies import (
     BUILTIN_SHELL_POLICIES_DIR,
     BUILTIN_SUPPLY_CHAIN_POLICIES_DIR,
 )
-from src.compliance.metadata import PolicyRoot, discover_policies, iter_feature_files
+from src.compliance.metadata import iter_feature_files
 from src.compliance.release_cache import ReleaseMetadataCache
 from src.compliance.runner import (
     _assert_within_directory,
@@ -478,9 +478,7 @@ class TestComponentPinningPolicies:
 
 class TestRunComplianceFix:
     def test_fix_with_dry_run_raises(self):
-        with pytest.raises(
-            ValueError, match="--fix-supply-chain cannot be used with --dry-run"
-        ):
+        with pytest.raises(ValueError, match="--fix cannot be used with --dry-run"):
             run_compliance(
                 features_dir=str(PASSING_POLICIES),
                 pipeline_file=str(SAMPLE_PIPELINE),
@@ -491,9 +489,7 @@ class TestRunComplianceFix:
     def test_fix_without_token_raises(self, monkeypatch):
         monkeypatch.delenv("GITLAB_TOKEN", raising=False)
         monkeypatch.delenv("CI_JOB_TOKEN", raising=False)
-        with pytest.raises(
-            ValueError, match="--fix-supply-chain requires a GitLab token"
-        ):
+        with pytest.raises(ValueError, match="--fix requires a GitLab token"):
             run_compliance(
                 features_dir=str(PASSING_POLICIES),
                 pipeline_file=str(SAMPLE_PIPELINE),

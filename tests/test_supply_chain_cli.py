@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from unittest.mock import patch
 
 from click.testing import CliRunner
 
@@ -18,16 +19,17 @@ def test_supply_chain_help():
     result = runner.invoke(gitlab_compliance, ["supply-chain", "--help"])
     assert result.exit_code == 0
     assert "supply-chain pinning policies" in result.output
-    assert "GLCI-IMAGE-PINNING" in result.output or "include" in result.output.lower()
+    assert "--fix" in result.output
+    assert "mutates YAML" in result.output
 
 
-def test_check_help_includes_with_supply_chain():
+def test_check_help_includes_with_supply_chain_and_fix():
     runner = CliRunner()
     result = runner.invoke(gitlab_compliance, ["check", "--help"])
     assert result.exit_code == 0
     assert "--with-supply-chain" in result.output
+    assert "--fix" in result.output
     assert "--fix-supply-chain" in result.output
-    assert "not the same as --with-supply-chain" in result.output
 
 
 def test_supply_chain_runs_packaged_policies():
@@ -40,6 +42,51 @@ def test_supply_chain_runs_packaged_policies():
     assert "GLCI-IMAGE-PINNING" in result.output
     assert "GLCI-INCLUDE-VERSIONS" in result.output
     assert "Complete" in result.output
+
+
+def test_supply_chain_without_fix_does_not_mutate_yaml(tmp_path):
+    pipeline = tmp_path / ".gitlab-ci.yml"
+    original = (
+        "include:\n"
+        "  - project: org/templates\n"
+        "    ref: main\n"
+        "    file: ci.yml\n"
+        "job:\n"
+        "  script:\n"
+        "    - echo hi\n"
+    )
+    pipeline.write_text(original, encoding="utf-8")
+
+    runner = CliRunner()
+    with patch(
+        "src.compliance.supply_chain_fix.apply_supply_chain_fixes"
+    ) as apply_fixes:
+        result = runner.invoke(
+            gitlab_compliance,
+            ["supply-chain", "-p", str(pipeline)],
+        )
+
+    assert result.exit_code in {0, 1}
+    apply_fixes.assert_not_called()
+    assert pipeline.read_text(encoding="utf-8") == original
+
+
+def test_supply_chain_fix_invokes_yaml_remediation(tmp_path):
+    pipeline = tmp_path / ".gitlab-ci.yml"
+    pipeline.write_text("job:\n  script:\n    - echo hi\n", encoding="utf-8")
+
+    runner = CliRunner()
+    with patch(
+        "src.compliance.supply_chain_fix.apply_supply_chain_fixes",
+        return_value=["pinned image: nginx"],
+    ) as apply_fixes:
+        result = runner.invoke(
+            gitlab_compliance,
+            ["supply-chain", "-p", str(pipeline), "--fix", "--token", "secret"],
+        )
+
+    assert result.exit_code in {0, 1}
+    apply_fixes.assert_called_once()
 
 
 def test_check_with_supply_chain_only():

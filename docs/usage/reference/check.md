@@ -38,7 +38,7 @@ CLI writes the HTML file, then the rendered report:
 
 ### Supply-chain fix merge request
 
-`--fix-supply-chain --create-mr` opens or updates an MR. Offline GIF shows the
+`--fix --create-mr` opens or updates an MR. Offline GIF shows the
 dry-run prelude;
 
 ![gitlab-compliance check create-mr prelude](../../demos/gifs/check-create-mr.gif)
@@ -115,7 +115,7 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml --dry-run
 
 ### Supply-chain and policy remediations
 
-#### `--fix-supply-chain` {#fix-supply-chain}
+#### `--fix` {#fix}
 
 Auto-remediate supply-chain issues before running policies:
 
@@ -130,11 +130,14 @@ cause the tool to pin or bump to attacker-controlled versions. Review every
 `--create-mr` diff before merge.
 
 Requires a GitLab token (`--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`). Cannot
-be combined with `--dry-run`.
+be combined with `--dry-run`. Also available as `--fix-supply-chain` (alias).
+
+Use with `check --with-supply-chain` or `supply-chain --fix` when you want to
+check and remediate supply-chain pinning in one run.
 
 ```bash
-gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
-  --fix-supply-chain
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
+gitlab-compliance supply-chain -p .gitlab-ci.yml --fix
 ```
 
 #### `--fix-policies` {#fix-policies}
@@ -152,7 +155,7 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix-policies
 
 #### `--create-mr` {#create-mr}
 
-After `--fix-supply-chain` and/or `--fix-policies` rewrites local YAML, commit
+After `--fix` and/or `--fix-policies` rewrites local YAML, commit
 the changed files and open a GitLab merge request. Requires at least one fix
 mode, `--project` (or `CI_PROJECT_PATH`), and a token that can create branches,
 commits, and merge requests.
@@ -184,7 +187,7 @@ Optional: `--mr-branch`, `--mr-target-branch`.
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
-  --fix-supply-chain --create-mr --project "$CI_PROJECT_PATH" \
+  --fix --create-mr --project "$CI_PROJECT_PATH" \
   --token "$GITLAB_TOKEN"
 ```
 
@@ -240,7 +243,7 @@ See [`shell-check`](shell-check.md).
 #### `--with-supply-chain` {#with-supply-chain}
 
 Also run packaged supply-chain pinning policies for includes, images, and
-services. Read-only checks; use `--fix-supply-chain` to auto-remediate YAML.
+services. Read-only unless you also pass `--fix`.
 Omit `-f` to run only the bundled supply-chain pack.
 
 ```bash
@@ -277,6 +280,7 @@ gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 \
 ```
 
 <!-- MANUAL DOCS:END -->
+
 
 
 
@@ -397,9 +401,10 @@ Usage: gitlab-compliance check [OPTIONS]
 * `fix_supply_chain`:
   * Type: BOOL
   * Default: `false`
-  * Usage: `--fix-supply-chain`
+  * Usage: `--fix
+--fix-supply-chain`
 
-  Auto-fix outdated include refs and pin container images to sha256 digests (mutates YAML; not the same as --with-supply-chain policy checks).
+  Auto-fix outdated include refs and pin container images to sha256 digests before running checks (mutates YAML).
 
 * `fix_policies`:
   * Type: BOOL
@@ -413,7 +418,7 @@ Usage: gitlab-compliance check [OPTIONS]
   * Default: `false`
   * Usage: `--create-mr`
 
-  After --fix-supply-chain and/or --fix-policies, commit changed files and open a GitLab merge request (requires --token/GITLAB_TOKEN PAT; CI_JOB_TOKEN is rejected; failures exit 2 after the report).
+  After --fix and/or --fix-policies, commit changed files and open a GitLab merge request (requires --token/GITLAB_TOKEN PAT; CI_JOB_TOKEN is rejected; failures exit 2 after the report).
 
 * `post_mr_comment`:
   * Type: BOOL
@@ -469,7 +474,7 @@ Usage: gitlab-compliance check [OPTIONS]
   * Default: `false`
   * Usage: `--with-supply-chain`
 
-  Also run packaged supply-chain pinning policies (include, image, and service pinning). Read-only checks; use --fix-supply-chain to auto-remediate YAML.
+  Also run packaged supply-chain pinning policies (include, image, and service pinning). Read-only unless you also pass --fix.
 
 * `help`:
   * Type: BOOL
@@ -518,18 +523,17 @@ Options:
   --policy-cache-dir TEXT         Directory used when pulling OCI policy
                                   bundles (default: system temp).
   --dry-run                       Parse and list scenarios without asserting.
-  --fix-supply-chain              Auto-fix outdated include refs and pin
-                                  container images to sha256 digests (mutates
-                                  YAML; not the same as --with-supply-chain
-                                  policy checks).
+  --fix, --fix-supply-chain       Auto-fix outdated include refs and pin
+                                  container images to sha256 digests before
+                                  running checks (mutates YAML).
   --fix-policies                  After an initial policy run, apply
                                   allowlisted BDD remediations (see
                                   docs/usage/fix-policies.md), then re-check.
-  --create-mr                     After --fix-supply-chain and/or --fix-
-                                  policies, commit changed files and open a
-                                  GitLab merge request (requires
-                                  --token/GITLAB_TOKEN PAT; CI_JOB_TOKEN is
-                                  rejected; failures exit 2 after the report).
+  --create-mr                     After --fix and/or --fix-policies, commit
+                                  changed files and open a GitLab merge
+                                  request (requires --token/GITLAB_TOKEN PAT;
+                                  CI_JOB_TOKEN is rejected; failures exit 2
+                                  after the report).
   --post-mr-comment               Post the compliance mr-comment body to a
                                   GitLab merge request.
   --mr-iid INTEGER                Merge request IID for --post-mr-comment
@@ -549,7 +553,7 @@ Options:
                                   after_script.
   --with-supply-chain             Also run packaged supply-chain pinning
                                   policies (include, image, and service
-                                  pinning). Read-only checks; use --fix-
-                                  supply-chain to auto-remediate YAML.
+                                  pinning). Read-only unless you also pass
+                                  --fix.
   --help                          Show this message and exit.
 ```

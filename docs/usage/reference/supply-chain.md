@@ -4,6 +4,7 @@ Run packaged supply-chain pinning policies against GitLab CI YAML.
 
     Validates include, image, and service version pinning using bundled
     GLCI-IMAGE-PINNING, GLCI-INCLUDE-VERSIONS, and related policies.
+    Pass --fix to auto-remediate YAML before checking.
 
 <!-- MANUAL DOCS:START -->
 
@@ -21,17 +22,17 @@ Bundled policies cover:
 gitlab-compliance supply-chain -p .gitlab-ci.yml
 ```
 
-Also available via `check --with-supply-chain` (read-only policy checks; not the
-same as `check --fix-supply-chain`, which mutates YAML). Omit `-f` to run only
-the bundled pack, or pass `-f` to merge your policies alongside it.
+Also available via `check --with-supply-chain` (read-only policy checks). Pass
+`--fix` on either command to auto-remediate YAML before checking. Omit `-f` to
+run only the bundled pack, or pass `-f` to merge your policies alongside it.
 
-For auto-remediation of outdated includes and unpinned images, use
-[`check --fix-supply-chain`](check.md#fix-supply-chain).
+For merge requests after fixes, use [`check --fix --create-mr`](check.md#create-mr).
 
 See [Image pinning](../../examples/image-pinning.md) and
 [Include versions](../../examples/include-versions.md).
 
 <!-- MANUAL DOCS:END -->
+
 
 
 
@@ -122,6 +123,13 @@ Usage: gitlab-compliance supply-chain [OPTIONS]
 
   Fail API-backed scenarios when connection info is missing (default: skip).
 
+* `fix`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--fix`
+
+  Auto-fix outdated include refs and pin container images to sha256 digests before running supply-chain checks (mutates YAML).
+
 * `help`:
   * Type: BOOL
   * Default: `false`
@@ -138,7 +146,8 @@ Usage: gitlab-compliance supply-chain [OPTIONS]
   Run packaged supply-chain pinning policies against GitLab CI YAML.
 
   Validates include, image, and service version pinning using bundled GLCI-
-  IMAGE-PINNING, GLCI-INCLUDE-VERSIONS, and related policies.
+  IMAGE-PINNING, GLCI-INCLUDE-VERSIONS, and related policies. Pass --fix to
+  auto-remediate YAML before checking.
 
 Options:
   -p, --pipeline TEXT             Path to the GitLab CI pipeline YAML file.
@@ -165,5 +174,8 @@ Options:
                                   policy checks.
   --strict                        Fail API-backed scenarios when connection
                                   info is missing (default: skip).
+  --fix                           Auto-fix outdated include refs and pin
+                                  container images to sha256 digests before
+                                  running supply-chain checks (mutates YAML).
   --help                          Show this message and exit.
 ```

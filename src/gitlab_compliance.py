@@ -585,12 +585,14 @@ def _resolve_policies_dir(
     help="Parse and list scenarios without asserting.",
 )
 @click.option(
+    "--fix",
     "--fix-supply-chain",
+    "fix_supply_chain",
     is_flag=True,
     default=False,
     help=(
         "Auto-fix outdated include refs and pin container images to sha256 digests "
-        "(mutates YAML; not the same as --with-supply-chain policy checks)."
+        "before running checks (mutates YAML)."
     ),
 )
 @click.option(
@@ -607,7 +609,7 @@ def _resolve_policies_dir(
     is_flag=True,
     default=False,
     help=(
-        "After --fix-supply-chain and/or --fix-policies, commit changed files "
+        "After --fix and/or --fix-policies, commit changed files "
         "and open a GitLab merge request (requires --token/GITLAB_TOKEN PAT; "
         "CI_JOB_TOKEN is rejected; failures exit 2 after the report)."
     ),
@@ -664,7 +666,7 @@ def _resolve_policies_dir(
     default=False,
     help=(
         "Also run packaged supply-chain pinning policies (include, image, and service "
-        "pinning). Read-only checks; use --fix-supply-chain to auto-remediate YAML."
+        "pinning). Read-only unless you also pass --fix."
     ),
 )
 def check(
@@ -861,6 +863,15 @@ def check(
     default=False,
     help="Fail API-backed scenarios when connection info is missing (default: skip).",
 )
+@click.option(
+    "--fix",
+    is_flag=True,
+    default=False,
+    help=(
+        "Auto-fix outdated include refs and pin container images to sha256 digests "
+        "before running supply-chain checks (mutates YAML)."
+    ),
+)
 def supply_chain(
     pipeline_file,
     output_format,
@@ -873,12 +884,14 @@ def supply_chain(
     project,
     group,
     strict,
+    fix,
 ):
     """
     Run packaged supply-chain pinning policies against GitLab CI YAML.
 
     Validates include, image, and service version pinning using bundled
     GLCI-IMAGE-PINNING, GLCI-INCLUDE-VERSIONS, and related policies.
+    Pass --fix to auto-remediate YAML before checking.
     """
     from src.compliance.builtin_policies import BUILTIN_SUPPLY_CHAIN_POLICIES_DIR
     from src.compliance.console import print_error, print_success
@@ -898,6 +911,7 @@ def supply_chain(
             group=group,
             strict=strict,
             output_format=output_format,
+            fix_supply_chain=fix,
             with_builtin=False,
         )
     except (ValueError, FileNotFoundError, OSError) as exc:
