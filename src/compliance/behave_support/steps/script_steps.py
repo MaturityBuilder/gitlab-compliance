@@ -20,8 +20,8 @@ from src.compliance.script_analysis import (
     script_has_dangerous_rm,
     script_has_hardcoded_secrets,
     script_has_nested_backticks,
-    script_has_pipeline,
     script_has_pipefail,
+    script_has_pipeline,
     script_has_remote_pipe_to_shell,
     script_has_shebang,
     script_has_unpinned_apk,
@@ -155,16 +155,19 @@ def when_variables_in_path(context):
 @when("command substitution is used")
 def when_command_substitution(context):
     filtered = filter_entities(
-        context.stash, lambda e: script_has_unquoted_command_substitution(e)
-        or "$(" in str(e.get("values", {}).get("effective_script", ""))
+        context.stash,
+        lambda e: script_has_unquoted_command_substitution(e)
+        or "$(" in str(e.get("values", {}).get("effective_script", "")),
     )
     if not filtered:
         filtered = filter_entities(
             context.stash,
-            lambda e: "$(" in "\n".join(
+            lambda e: "$("
+            in "\n".join(
                 map(str, e.get("values", {}).get("effective_script", []) or [])
             )
-            or "`" in "\n".join(
+            or "`"
+            in "\n".join(
                 map(str, e.get("values", {}).get("effective_script", []) or [])
             ),
         )

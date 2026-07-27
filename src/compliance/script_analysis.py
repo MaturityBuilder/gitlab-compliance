@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+
 from src.compliance.stash import get_property
 
 _UNQUOTED_VAR = re.compile(
@@ -87,7 +88,9 @@ def _strip_comment(line: str) -> str:
 
 
 def _active_lines(entity: dict, field: str = "effective_script") -> list[str]:
-    return [_strip_comment(line) for line in _script_lines(entity, field) if line.strip()]
+    return [
+        _strip_comment(line) for line in _script_lines(entity, field) if line.strip()
+    ]
 
 
 def job_has_effective_script(entity: dict) -> bool:
@@ -297,9 +300,10 @@ def script_has_unpinned_npm(entity: dict) -> bool:
     for line in _active_lines(entity):
         if not _NPM_GLOBAL.search(line):
             continue
-        if "@" not in line.split("install", 1)[-1] and "@" not in line.split("add", 1)[
-            -1
-        ]:
+        if (
+            "@" not in line.split("install", 1)[-1]
+            and "@" not in line.split("add", 1)[-1]
+        ):
             return True
     return False
 

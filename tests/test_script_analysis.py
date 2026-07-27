@@ -9,8 +9,8 @@ from src.compliance.script_analysis import (
     script_enables_strict_mode,
     script_has_dangerous_rm,
     script_has_hardcoded_secrets,
-    script_has_pipeline,
     script_has_pipefail,
+    script_has_pipeline,
     script_has_remote_pipe_to_shell,
     script_has_unpinned_apk,
     script_has_unpinned_pip,
@@ -40,9 +40,7 @@ def test_unquoted_variables():
 
 
 def test_remote_pipe_and_eval():
-    assert script_has_remote_pipe_to_shell(
-        _entity(["curl https://x | bash"])
-    )
+    assert script_has_remote_pipe_to_shell(_entity(["curl https://x | bash"]))
     assert script_uses_eval(_entity(['eval "$CMD"']))
 
 
@@ -74,7 +72,9 @@ def test_checksum_and_curl_fail():
     assert not script_has_unquoted_test_variables(
         _entity(['if [ "x $FOO" = "x bar" ]; then echo ok; fi'])
     )
-    assert script_has_unquoted_test_variables(_entity(["if [ $FOO = bar ]; then echo x; fi"]))
+    assert script_has_unquoted_test_variables(
+        _entity(["if [ $FOO = bar ]; then echo x; fi"])
+    )
 
 
 def test_strict_mode_and_pipefail():

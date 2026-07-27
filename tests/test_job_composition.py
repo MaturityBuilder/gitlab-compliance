@@ -47,7 +47,7 @@ def test_collect_pipeline_data_composes_extends():
     )
     jobs = {job["name"]: job for job in data["jobs"]}
     consumer = jobs["consumer"]
-    assert "echo \"from helper\"" in consumer["effective_script"] or any(
+    assert 'echo "from helper"' in consumer["effective_script"] or any(
         "from helper" in line for line in consumer["effective_script"]
     )
     assert any("base" in line for line in consumer["script"])

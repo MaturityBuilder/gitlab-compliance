@@ -62,21 +62,25 @@ def _entity(lines, **extra):
 
 
 def test_gitlab_reference_helpers():
-    assert str(UnresolvedReference(path=(".a", "script"))) == "!reference ['.a', 'script']"
+    assert (
+        str(UnresolvedReference(path=(".a", "script"))) == "!reference ['.a', 'script']"
+    )
     node = SimpleNamespace(value=[".job", "script"])
     marker = construct_reference(None, node)
     assert marker.path == (".job", "script")
     scalar = construct_reference(None, SimpleNamespace(value="x"))
     assert scalar.path == ("x",)
-    assert resolve_reference_value(UnresolvedReference(path=()), {}) == UnresolvedReference(
-        path=()
-    )
+    assert resolve_reference_value(
+        UnresolvedReference(path=()), {}
+    ) == UnresolvedReference(path=())
     assert resolve_reference_value(
         UnresolvedReference(path=("missing", "script")), {}
     ).path == ("missing", "script")
     registry = {".job": {"config": {"nested": {"k": 1}}}}
     assert (
-        resolve_reference_value(UnresolvedReference(path=(".job", "nested", "k")), registry)
+        resolve_reference_value(
+            UnresolvedReference(path=(".job", "nested", "k")), registry
+        )
         == 1
     )
     assert isinstance(
@@ -142,9 +146,7 @@ def test_script_analysis_remaining_branches():
     assert script_is_multiline(_entity(["a", "b"]))
     assert script_masks_failures(_entity(["cmd || true"]))
     assert script_defines_functions(_entity(["foo() {", "  echo", "}"]))
-    assert script_functions_mask_failures(
-        _entity(["foo() {", "  cmd || true", "}"])
-    )
+    assert script_functions_mask_failures(_entity(["foo() {", "  cmd || true", "}"]))
     assert script_has_unquoted_test_variables(_entity(["[ $FOO = bar ]"]))
     assert script_has_bashism_in_posix_test(_entity(["[ a == b ]"]))
     assert script_has_chmod_777(_entity(["chmod 777 file"]))
@@ -214,13 +216,13 @@ def test_script_analysis_edge_branches():
     from src.compliance.script_analysis import (
         _script_lines,
         _strip_comment,
-        script_has_dangerous_rm,
-        script_has_unquoted_variables,
-        script_has_unpinned_pip,
-        script_shebang_is_valid,
         script_defines_functions,
-        script_functions_mask_failures,
         script_downloads_without_checksum,
+        script_functions_mask_failures,
+        script_has_dangerous_rm,
+        script_has_unpinned_pip,
+        script_has_unquoted_variables,
+        script_shebang_is_valid,
     )
 
     assert _script_lines({"values": {}}) == []
@@ -240,8 +242,8 @@ def test_script_analysis_edge_branches():
 
 
 def test_job_composition_missing_and_unresolved():
-    from src.modules.job_composition import compose_job_scripts, _walk_extends
     from src.modules.gitlab_reference import UnresolvedReference
+    from src.modules.job_composition import _walk_extends, compose_job_scripts
 
     assert _walk_extends("missing", {}) == []
     registry = {
@@ -264,11 +266,13 @@ def test_job_composition_missing_and_unresolved():
 
 
 def test_reference_with_real_loader():
-    from src.modules.common import EnvLoader
     import yaml
+
+    from src.modules.common import EnvLoader
 
     data = yaml.load("x: !reference [.job, script]\n", Loader=EnvLoader)
     assert isinstance(data["x"], UnresolvedReference)
+
     # Non-list constructed path through construct_object (scalar reference form)
     class FakeLoader:
         def construct_object(self, node):
@@ -341,9 +345,7 @@ def test_script_steps_helpers_and_assertions():
     ctx.stash = [_entity(["echo hi"], name=".hidden")]
     ctx.stash[0]["name"] = ".hidden"
     steps.when_name_starts_with_prefix(ctx, ".")
-    ctx.stash = [
-        _entity(["foo() {", "cmd || true", "}"])
-    ]
+    ctx.stash = [_entity(["foo() {", "cmd || true", "}"])]
     try:
         steps.then_functions_propagate(ctx)
         assert False
@@ -352,11 +354,13 @@ def test_script_steps_helpers_and_assertions():
     ctx.stash = [_entity(["echo hi"])]
     steps.then_functions_propagate(ctx)
     # Cover continue path for quoted expansions and functions without masking.
+    from src.compliance.script_analysis import script_defines_functions as _defines
+    from src.compliance.script_analysis import script_functions_mask_failures as _masks
     from src.compliance.script_analysis import (
-        script_defines_functions as _defines,
-        script_functions_mask_failures as _masks,
-        script_has_unquoted_variables as _unquoted,
         script_has_unquoted_test_variables as _test_unquoted,
+    )
+    from src.compliance.script_analysis import (
+        script_has_unquoted_variables as _unquoted,
     )
 
     assert not _unquoted(_entity(['echo "pre $FOO post"']))
@@ -374,10 +378,10 @@ def test_all_script_then_steps_smoke():
     good = _entity(
         [
             "set -euo pipefail",
-            "echo \"$FOO\"",
-            "cd \"$HOME\"",
-            "x=\"$(date)\"",
-            "echo \"${arr[@]}\"",
+            'echo "$FOO"',
+            'cd "$HOME"',
+            'x="$(date)"',
+            'echo "${arr[@]}"',
             "curl -fsSL https://example.com -o /tmp/f",
             "sha256sum -c sums",
             "apk add curl=1",
@@ -388,7 +392,7 @@ def test_all_script_then_steps_smoke():
             "git clone https://x.git",
             "git checkout abc",
             "tmp=$(mktemp)",
-            "if [ \"$FOO\" = bar ]; then echo x; fi",
+            'if [ "$FOO" = bar ]; then echo x; fi',
             "#!/usr/bin/env bash",
         ]
     )
