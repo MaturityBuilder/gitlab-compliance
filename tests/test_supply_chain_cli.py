@@ -23,6 +23,42 @@ def test_supply_chain_help():
     assert "mutates YAML" in result.output
 
 
+def test_check_fix_without_token_exits_with_error():
+    runner = CliRunner()
+    result = runner.invoke(
+        gitlab_compliance,
+        ["check", "--with-supply-chain", "--fix", "-p", str(SAMPLE_PIPELINE)],
+    )
+    assert result.exit_code == 2
+    assert "token" in result.output.lower()
+
+
+def test_supply_chain_help_includes_create_mr():
+    runner = CliRunner()
+    result = runner.invoke(gitlab_compliance, ["supply-chain", "--help"])
+    assert result.exit_code == 0
+    assert "--create-mr" in result.output
+
+
+def test_supply_chain_create_mr_requires_fix():
+    runner = CliRunner()
+    result = runner.invoke(
+        gitlab_compliance,
+        [
+            "supply-chain",
+            "-p",
+            str(SAMPLE_PIPELINE),
+            "--create-mr",
+            "--token",
+            "secret",
+            "--project",
+            "org/project",
+        ],
+    )
+    assert result.exit_code == 2
+    assert "--create-mr requires --fix and/or --fix-policies" in result.output
+
+
 def test_check_help_includes_with_supply_chain_and_fix():
     runner = CliRunner()
     result = runner.invoke(gitlab_compliance, ["check", "--help"])
@@ -41,7 +77,7 @@ def test_supply_chain_runs_packaged_policies():
     assert result.exit_code in {0, 1}
     assert "GLCI-IMAGE-PINNING" in result.output
     assert "GLCI-INCLUDE-VERSIONS" in result.output
-    assert "Complete" in result.output
+    assert "gitlab-compliance supply-chain" in result.output
 
 
 def test_supply_chain_without_fix_does_not_mutate_yaml(tmp_path):

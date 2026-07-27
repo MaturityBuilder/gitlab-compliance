@@ -63,6 +63,21 @@ def test_pinning_predicates():
         _entity(["pip3 install package@git+https://example.com/repo.git@abc123"])
     )
     assert not script_has_unpinned_pip(_entity(["pip install -r requirements.txt"]))
+    assert script_has_unpinned_pip(_entity(["pip install pkg@stable"]))
+
+
+def test_npm_and_go_pinning_predicates():
+    from src.compliance.script_analysis import (
+        script_has_unpinned_go_install,
+        script_has_unpinned_npm,
+    )
+
+    assert script_has_unpinned_npm(_entity(["npm install -g pkg@latest"]))
+    assert not script_has_unpinned_npm(_entity(["npm install -g cowsay@1.0.0"]))
+    assert script_has_unpinned_go_install(_entity(["go install pkg@latest"]))
+    assert not script_has_unpinned_go_install(
+        _entity(["go install example.com/cmd@v1.2.3"])
+    )
 
 
 def test_docker_image_pinning_predicates():
@@ -75,6 +90,9 @@ def test_docker_image_pinning_predicates():
     assert not _container_image_ref_is_pinned("python:latest")
     assert _container_image_ref_is_pinned("$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG")
     assert not _container_image_ref_is_pinned("$CI_REGISTRY_IMAGE")
+
+    assert not _container_image_ref_is_pinned("registry:5000/myimage")
+    assert _container_image_ref_is_pinned("registry:5000/myimage:1.0")
 
     assert script_has_unpinned_docker_image(_entity(["docker pull nginx"]))
     assert script_has_unpinned_docker_image(_entity(["docker run --rm nginx"]))

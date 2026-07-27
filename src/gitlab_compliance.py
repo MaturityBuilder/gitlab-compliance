@@ -591,8 +591,8 @@ def _resolve_policies_dir(
     is_flag=True,
     default=False,
     help=(
-        "Auto-fix outdated include refs and pin container images to sha256 digests "
-        "before running checks (mutates YAML)."
+        "Supply-chain YAML auto-remediation only (includes/images). "
+        "Use --fix-policies for allowlisted BDD remediations. Mutates YAML."
     ),
 )
 @click.option(
@@ -731,7 +731,6 @@ def check(
             strict=strict,
             dry_run=dry_run,
             output_format=output_format,
-            policies_source=features_dir,
             policy_cache_dir=policy_cache_dir,
             fix_supply_chain=fix_supply_chain,
             fix_policies=fix_policies,
@@ -752,7 +751,7 @@ def check(
     if output_format != "console":
         from src.compliance.runner import resolve_policies_source_label
 
-        report_features_dir = features_dir or resolve_policies_source_label(
+        report_features_dir = resolve_policies_source_label(
             features_dir,
             with_builtin=with_builtin,
             with_shell_check=with_shell_check,
@@ -872,6 +871,28 @@ def check(
         "before running supply-chain checks (mutates YAML)."
     ),
 )
+@click.option(
+    "--create-mr",
+    is_flag=True,
+    default=False,
+    help=(
+        "After --fix, commit changed files and open a GitLab merge request "
+        "(requires --token/GITLAB_TOKEN PAT; CI_JOB_TOKEN is rejected)."
+    ),
+)
+@click.option(
+    "--mr-branch",
+    default=None,
+    help=(
+        "Source branch for --create-mr "
+        "(default: gitlab-compliance/supply-chain-fix)."
+    ),
+)
+@click.option(
+    "--mr-target-branch",
+    default=None,
+    help="Target branch for --create-mr (default: project default branch).",
+)
 def supply_chain(
     pipeline_file,
     output_format,
@@ -885,6 +906,9 @@ def supply_chain(
     group,
     strict,
     fix,
+    create_mr,
+    mr_branch,
+    mr_target_branch,
 ):
     """
     Run packaged supply-chain pinning policies against GitLab CI YAML.
@@ -912,25 +936,17 @@ def supply_chain(
             strict=strict,
             output_format=output_format,
             fix_supply_chain=fix,
+            create_mr=create_mr,
+            mr_branch=mr_branch,
+            mr_target_branch=mr_target_branch,
+            command_title="supply-chain",
             with_builtin=False,
         )
     except (ValueError, FileNotFoundError, OSError) as exc:
         print_error(str(exc))
         raise SystemExit(2) from exc
 
-    if output_format == "console":
-        if result.success:
-            print_success(
-                f"Supply-chain checks passed for `{pipeline_file}`",
-                title="Complete",
-            )
-        else:
-            print_error(
-                f"Supply-chain checks failed for `{pipeline_file}`",
-                title="Complete",
-                hint="Review supply-chain findings, then re-run after fixes.",
-            )
-    else:
+    if output_format != "console":
         report = _gitlab_docs.render_compliance_report(
             result=result,
             pipeline_file=pipeline_file,
@@ -1037,25 +1053,14 @@ def shell_check(
             include_nested=include_nested,
             max_include_depth=max_include_depth,
             output_format=output_format,
+            command_title="shell-check",
             with_builtin=False,
         )
     except (ValueError, FileNotFoundError, OSError) as exc:
         print_error(str(exc))
         raise SystemExit(2) from exc
 
-    if output_format == "console":
-        if result.success:
-            print_success(
-                f"Shell-check passed for `{pipeline_file}`",
-                title="Complete",
-            )
-        else:
-            print_error(
-                f"Shell-check failed for `{pipeline_file}`",
-                title="Complete",
-                hint="Review GLCI-SHELL findings, then re-run after fixes.",
-            )
-    else:
+    if output_format != "console":
         report = _gitlab_docs.render_compliance_report(
             result=result,
             pipeline_file=pipeline_file,

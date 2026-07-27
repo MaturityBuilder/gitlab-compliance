@@ -283,6 +283,7 @@ def render_compliance_console(
     pipeline_file: str,
     features_dir: str,
     *,
+    command_title: str = "check",
     console: Console | None = None,
 ) -> None:
     """Render a width-aware Rich compliance report."""
@@ -304,7 +305,7 @@ def render_compliance_console(
     out.print(
         Panel(
             header,
-            title="[bold]gitlab-compliance check[/bold]",
+            title=f"[bold]gitlab-compliance {command_title}[/bold]",
             border_style=border_style,
             padding=(1, 2),
             expand=True,

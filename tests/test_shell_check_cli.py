@@ -56,6 +56,7 @@ def test_shell_check_fails_on_bad_pipeline():
         ["shell-check", "-p", str(FIXTURES / "bad-pipeline.yml")],
     )
     assert result.exit_code == 1
+    assert "GLCI-SHELL-PIN-009" in result.output
 
 
 def test_shell_check_passes_on_good_pipeline():

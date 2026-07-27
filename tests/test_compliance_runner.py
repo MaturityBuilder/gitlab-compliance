@@ -626,6 +626,19 @@ class TestResolvePoliciesSourceLabel:
         assert BUILTIN_SUPPLY_CHAIN_POLICIES_DIR in label
         assert ", " in label
 
+    def test_features_dir_only_returns_user_dir(self):
+        label = resolve_policies_source_label(str(PASSING_POLICIES))
+        assert label == os.path.abspath(str(PASSING_POLICIES))
+
+    def test_features_dir_plus_with_builtin_joins_labels(self):
+        label = resolve_policies_source_label(
+            str(PASSING_POLICIES),
+            with_builtin=True,
+        )
+        assert os.path.abspath(str(PASSING_POLICIES)) in label
+        assert BUILTIN_POLICIES_DIR in label
+        assert ", " in label
+
 
 class TestScenarioOutlinePolicies:
     def test_variable_outline_expands_and_passes(self, tmp_path):

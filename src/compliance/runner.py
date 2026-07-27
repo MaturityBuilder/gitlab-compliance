@@ -94,18 +94,23 @@ def _resolve_policy_directories(
     with_supply_chain: bool = False,
 ) -> list[PolicyRoot]:
     roots: list[PolicyRoot] = []
+    seen_paths: set[str] = set()
+
+    def _append_root(path: str, *, recursive: bool = True) -> None:
+        real_path = os.path.realpath(path)
+        if real_path in seen_paths:
+            return
+        seen_paths.add(real_path)
+        roots.append(PolicyRoot(path, recursive=recursive))
+
     if with_builtin:
-        roots.append(PolicyRoot(os.path.abspath(BUILTIN_POLICIES_DIR), recursive=False))
+        _append_root(os.path.abspath(BUILTIN_POLICIES_DIR), recursive=False)
     if with_shell_check:
-        shell_dir = os.path.abspath(BUILTIN_SHELL_POLICIES_DIR)
-        if not any(root.path == shell_dir for root in roots):
-            roots.append(PolicyRoot(shell_dir))
+        _append_root(os.path.abspath(BUILTIN_SHELL_POLICIES_DIR))
     if with_supply_chain:
-        supply_dir = os.path.abspath(BUILTIN_SUPPLY_CHAIN_POLICIES_DIR)
-        if not any(root.path == supply_dir for root in roots):
-            roots.append(PolicyRoot(supply_dir))
+        _append_root(os.path.abspath(BUILTIN_SUPPLY_CHAIN_POLICIES_DIR))
     if features_dir:
-        roots.append(PolicyRoot(os.path.abspath(features_dir)))
+        _append_root(os.path.abspath(features_dir))
     if not roots:
         raise ValueError(
             "No policy source provided. Pass --features/-f and/or enable "
@@ -121,22 +126,35 @@ def resolve_policies_source_label(
     with_shell_check: bool = False,
     with_supply_chain: bool = False,
 ) -> str:
+    labels: list[str] = []
+    seen: set[str] = set()
+
+    def _add(label: str) -> None:
+        real_path = os.path.realpath(label) if os.path.isdir(label) else label
+        if real_path in seen:
+            return
+        seen.add(real_path)
+        labels.append(label)
+
     if features_dir:
-        return features_dir
-    enabled = [
-        label
-        for flag, label in (
-            (with_builtin, BUILTIN_POLICIES_DIR),
-            (with_shell_check, BUILTIN_SHELL_POLICIES_DIR),
-            (with_supply_chain, BUILTIN_SUPPLY_CHAIN_POLICIES_DIR),
+        resolved = (
+            os.path.abspath(features_dir)
+            if os.path.isdir(features_dir)
+            else features_dir
         )
-        if flag
-    ]
-    if not enabled:
+        _add(resolved)
+    for flag, label in (
+        (with_builtin, BUILTIN_POLICIES_DIR),
+        (with_shell_check, BUILTIN_SHELL_POLICIES_DIR),
+        (with_supply_chain, BUILTIN_SUPPLY_CHAIN_POLICIES_DIR),
+    ):
+        if flag:
+            _add(label)
+    if not labels:
         return BUILTIN_POLICIES_DIR
-    if len(enabled) == 1:
-        return enabled[0]
-    return ", ".join(enabled)
+    if len(labels) == 1:
+        return labels[0]
+    return ", ".join(labels)
 
 
 def _collect_feature_files_from_dirs(features_dirs: list[str]) -> list[tuple[str, str]]:
@@ -288,6 +306,7 @@ def run_compliance(
     mr_branch: str | None = None,
     mr_target_branch: str | None = None,
     mr_comment_file: str | None = None,
+    command_title: str = "check",
 ) -> ComplianceResult:
     if not (features_dir or with_builtin or with_shell_check or with_supply_chain):
         raise ValueError(
@@ -504,6 +523,7 @@ def run_compliance(
             result=result,
             pipeline_file=pipeline_file,
             features_dir=policies_source,
+            command_title=command_title,
         )
     else:
         logger.info(

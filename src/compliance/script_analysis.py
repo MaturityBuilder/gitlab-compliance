@@ -98,6 +98,29 @@ _MASK_FAILURE = re.compile(r"\|\|\s*true\b")
 _PIPEFAIL = re.compile(r"\bset\s+-o\s+pipefail\b")
 _TEST_BRACKET = re.compile(r"\[\s+([^\]]+)\]")
 _PATH_WITH_VAR = re.compile(r"(?:^|\s)(?:cd|rm|cp|mv|cat|chmod|chown|mkdir)\s+[^\n]*\$")
+_FLOATING_AT_REF = re.compile(
+    r"^(?:latest|main|master|develop|dev|HEAD|stable|trunk)$",
+    re.IGNORECASE,
+)
+
+
+def _at_version_is_pinned(at_ref: str) -> bool:
+    """Return whether an @suffix counts as a pinned package/module version."""
+    ref = at_ref.lstrip("@").strip()
+    if not ref or _FLOATING_AT_REF.match(ref):
+        return False
+    if re.match(r"(?:git\+|https?://|file:|ssh://)", ref, re.IGNORECASE):
+        return True
+    return bool(re.match(r"v?\d", ref))
+
+
+def _image_tag_is_pinned(tag: str) -> bool:
+    """Return whether the tag segment of a container image reference is pinned."""
+    if not tag or tag.lower() == "latest":
+        return False
+    if "/" in tag or tag.isdigit():
+        return False
+    return True
 
 
 def _script_lines(entity: dict, field: str = "effective_script") -> list[str]:
@@ -319,10 +342,11 @@ def _container_image_ref_is_pinned(ref: str) -> bool:
     if "@sha256:" in lower:
         return True
     if cleaned.startswith("$"):
-        return ":" in cleaned
+        if ":" not in cleaned:
+            return False
+        return _image_tag_is_pinned(cleaned.rsplit(":", 1)[-1])
     if ":" in cleaned:
-        tag = cleaned.rsplit(":", 1)[-1]
-        return tag.lower() != "latest"
+        return _image_tag_is_pinned(cleaned.rsplit(":", 1)[-1])
     return False
 
 
@@ -334,11 +358,10 @@ def _pip_install_line_is_pinned(line: str) -> bool:
         return True
     if "@" not in line:
         return False
-    if re.search(r"@\s*(?:latest|main|master|develop|dev|HEAD)\b", line, re.IGNORECASE):
+    at_refs = [match.group(1) for match in re.finditer(r"@(\S+)", line)]
+    if not at_refs:
         return False
-    if re.search(r"@\s*(?:git\+|https?://|file:|ssh://)", line, re.IGNORECASE):
-        return True
-    return bool(re.search(r"@[\w.+-]+", line))
+    return all(_at_version_is_pinned("@" + ref) for ref in at_refs)
 
 
 def _is_volume_mount(token: str) -> bool:
@@ -437,10 +460,16 @@ def script_has_unpinned_npm(entity: dict) -> bool:
     for line in _active_lines(entity):
         if not _NPM_GLOBAL.search(line):
             continue
-        if (
-            "@" not in line.split("install", 1)[-1]
-            and "@" not in line.split("add", 1)[-1]
-        ):
+        if "==" in line:
+            continue
+        if "install" in line:
+            segment = line.split("install", 1)[-1]
+        else:
+            segment = line.split("add", 1)[-1]
+        at_refs = [match.group(1) for match in re.finditer(r"@(\S+)", segment)]
+        if not at_refs:
+            return True
+        if any(not _at_version_is_pinned("@" + ref) for ref in at_refs):
             return True
     return False
 
@@ -450,6 +479,9 @@ def script_has_unpinned_go_install(entity: dict) -> bool:
         if not _GO_INSTALL.search(line):
             continue
         if "@" not in line:
+            return True
+        at_ref = line.rsplit("@", 1)[-1].split()[0]
+        if not _at_version_is_pinned("@" + at_ref):
             return True
     return False
 
