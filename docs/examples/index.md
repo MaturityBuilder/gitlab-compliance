@@ -25,7 +25,7 @@ See [GitLab Docs output example](gitlab-docs-output-example.md) for sample `gene
 
 - **Shell check:** Embedded CI script standards (quoting, pinning, security)
   - [Shell check](shell-check.md)
-  - [Shell pinning](shell-pinning.md)
+  - [Shell pinning](shell-pinning.md) (Gherkin per package manager)
 - **Image pinning:** Floating `latest` tags
   - [Image Pinning](image-pinning.md)
 - **Component pinning:** Unpinned `@main` components

@@ -49,10 +49,17 @@ Feature: AWS CLI tagging
       "aws\\s+ec2\\s+run-instances(?![^\\n]*--tags)"
 ```
 
-Run with your policy directory:
+Run custom policies with your feature directory:
 
 ```bash
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 ```
+
+## Package manager pinning Gherkin
+
+Bundled `GLCI-SHELL-PIN-*` scenarios cover `apk`, `apt`/`apt-get`,
+`yum`/`dnf`/`microdnf`, `pip`/`pip3`, `npm`/`yarn`, and `go`. See
+[Shell pinning](shell-pinning.md) for the Gherkin, bad/good CI snippets, and
+policy IDs for each manager.
 
 Back to [Examples](index.md).

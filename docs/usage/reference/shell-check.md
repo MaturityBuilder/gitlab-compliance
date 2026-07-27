@@ -53,6 +53,9 @@ must use an explicit tag or `sha256` digest (`GLCI-SHELL-PIN-009`).
 
 Not covered yet: `zypper`, `pacman`, and similar tools outside the table above.
 
+Gherkin scenarios, bad/good CI snippets, and policy IDs for each manager are in
+[Shell pinning examples](../../examples/shell-pinning.md).
+
 ## Quick start
 
 ```bash
