@@ -54,6 +54,8 @@ def test_pinning_predicates():
     assert not script_has_unpinned_pip(_entity(['pip install "requests==2.0"']))
     assert script_has_unpinned_pip(_entity(["pip3 install requests"]))
     assert not script_has_unpinned_pip(_entity(['pip3 install "requests==2.0"']))
+    assert script_has_unpinned_pip(_entity(["pip3 install pkg@latest"]))
+    assert script_has_unpinned_pip(_entity(["pip install requests@latest"]))
     assert not script_has_unpinned_pip(
         _entity(['pip3 install -q "gitlab-compliance==2.1.1"'])
     )
@@ -72,12 +74,14 @@ def test_docker_image_pinning_predicates():
     assert not _container_image_ref_is_pinned("python")
     assert not _container_image_ref_is_pinned("python:latest")
     assert _container_image_ref_is_pinned("$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG")
+    assert not _container_image_ref_is_pinned("$CI_REGISTRY_IMAGE")
 
     assert script_has_unpinned_docker_image(_entity(["docker pull nginx"]))
     assert script_has_unpinned_docker_image(_entity(["docker run --rm nginx"]))
     assert script_has_unpinned_docker_image(
         _entity(["docker run --rm maturitybuilder/gitlab-compliance:latest --help"])
     )
+    assert script_has_unpinned_docker_image(_entity(["docker pull $CI_REGISTRY_IMAGE"]))
     assert not script_has_unpinned_docker_image(_entity(["docker pull python:3.12.0"]))
     assert not script_has_unpinned_docker_image(
         _entity(

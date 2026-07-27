@@ -22,6 +22,7 @@ Compared to the generate command, the get-attribute command allows you to pass t
 
 
 
+
 ## Usage
 
 ```
@@ -29,40 +30,40 @@ Usage: gitlab-compliance get-attributes [OPTIONS]
 ```
 
 ## Options
-* `attributes`: 
-  * Type: STRING 
+* `attributes`:
+  * Type: STRING
   * Default: `readme.md`
   * Usage: `--attributes
 -a`
 
   Pass a comma seperated list of gitlab ci yml attributes
 
-* `OUTPUT_FILE`: 
-  * Type: STRING 
+* `OUTPUT_FILE`:
+  * Type: STRING
   * Default: `readme.md`
   * Usage: `--output-file
 -o`
 
   Output location of the markdown documentation.
 
-* `GLDOCS_CONFIG_FILE`: 
-  * Type: STRING 
+* `GLDOCS_CONFIG_FILE`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--input-config
 -i`
 
   The Gitlab CI Input configuration file to generated documentation from.
 
-* `json_format`: 
-  * Type: BOOL 
+* `json_format`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--json
 -j`
 
   Return results in json format.
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 

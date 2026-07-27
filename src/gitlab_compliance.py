@@ -588,7 +588,10 @@ def _resolve_policies_dir(
     "--fix-supply-chain",
     is_flag=True,
     default=False,
-    help="Auto-fix outdated include refs and pin container images to sha256 digests.",
+    help=(
+        "Auto-fix outdated include refs and pin container images to sha256 digests "
+        "(mutates YAML; not the same as --with-supply-chain policy checks)."
+    ),
 )
 @click.option(
     "--fix-policies",
@@ -660,8 +663,8 @@ def _resolve_policies_dir(
     is_flag=True,
     default=False,
     help=(
-        "Also run packaged supply-chain policies for include, component, image, "
-        "and service pinning."
+        "Also run packaged supply-chain pinning policies (include, image, and service "
+        "pinning). Read-only checks; use --fix-supply-chain to auto-remediate YAML."
     ),
 )
 def check(
@@ -745,9 +748,9 @@ def check(
         raise SystemExit(2) from exc
 
     if output_format != "console":
-        from src.compliance.runner import _resolve_policies_source_label
+        from src.compliance.runner import resolve_policies_source_label
 
-        report_features_dir = features_dir or _resolve_policies_source_label(
+        report_features_dir = features_dir or resolve_policies_source_label(
             features_dir,
             with_builtin=with_builtin,
             with_shell_check=with_shell_check,
@@ -829,7 +832,7 @@ def check(
     default=None,
     help=(
         "Policy directory to run instead of packaged supply-chain policies. "
-        "Defaults to bundled include, component, image, and service pinning."
+        "Defaults to bundled include, image, and service pinning."
     ),
 )
 @click.option(
@@ -874,8 +877,8 @@ def supply_chain(
     """
     Run packaged supply-chain pinning policies against GitLab CI YAML.
 
-    Validates include, component, image, and service version pinning using
-    bundled GLCI-IMAGE-PINNING, GLCI-INCLUDE-VERSIONS, and related policies.
+    Validates include, image, and service version pinning using bundled
+    GLCI-IMAGE-PINNING, GLCI-INCLUDE-VERSIONS, and related policies.
     """
     from src.compliance.builtin_policies import BUILTIN_SUPPLY_CHAIN_POLICIES_DIR
     from src.compliance.console import print_error, print_success
@@ -901,7 +904,19 @@ def supply_chain(
         print_error(str(exc))
         raise SystemExit(2) from exc
 
-    if output_format != "console":
+    if output_format == "console":
+        if result.success:
+            print_success(
+                f"Supply-chain checks passed for `{pipeline_file}`",
+                title="Complete",
+            )
+        else:
+            print_error(
+                f"Supply-chain checks failed for `{pipeline_file}`",
+                title="Complete",
+                hint="Review supply-chain findings, then re-run after fixes.",
+            )
+    else:
         report = _gitlab_docs.render_compliance_report(
             result=result,
             pipeline_file=pipeline_file,
@@ -1014,7 +1029,19 @@ def shell_check(
         print_error(str(exc))
         raise SystemExit(2) from exc
 
-    if output_format != "console":
+    if output_format == "console":
+        if result.success:
+            print_success(
+                f"Shell-check passed for `{pipeline_file}`",
+                title="Complete",
+            )
+        else:
+            print_error(
+                f"Shell-check failed for `{pipeline_file}`",
+                title="Complete",
+                hint="Review GLCI-SHELL findings, then re-run after fixes.",
+            )
+    else:
         report = _gitlab_docs.render_compliance_report(
             result=result,
             pipeline_file=pipeline_file,

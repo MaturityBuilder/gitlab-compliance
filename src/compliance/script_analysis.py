@@ -313,15 +313,32 @@ def script_downloads_without_checksum(entity: dict) -> bool:
 def _container_image_ref_is_pinned(ref: str) -> bool:
     """Return whether a container image reference includes a tag or digest."""
     cleaned = ref.strip("'\"")
-    if not cleaned or cleaned.startswith("$"):
+    if not cleaned:
         return True
     lower = cleaned.lower()
     if "@sha256:" in lower:
         return True
+    if cleaned.startswith("$"):
+        return ":" in cleaned
     if ":" in cleaned:
         tag = cleaned.rsplit(":", 1)[-1]
         return tag.lower() != "latest"
     return False
+
+
+def _pip_install_line_is_pinned(line: str) -> bool:
+    """Return whether a pip/pip3 install line pins package versions."""
+    if "==" in line or "--require-hashes" in line:
+        return True
+    if re.search(r"\s-(?:r|--requirement)\b", line):
+        return True
+    if "@" not in line:
+        return False
+    if re.search(r"@\s*(?:latest|main|master|develop|dev|HEAD)\b", line, re.IGNORECASE):
+        return False
+    if re.search(r"@\s*(?:git\+|https?://|file:|ssh://)", line, re.IGNORECASE):
+        return True
+    return bool(re.search(r"@[\w.+-]+", line))
 
 
 def _is_volume_mount(token: str) -> bool:
@@ -381,11 +398,8 @@ def script_has_unpinned_pip(entity: dict) -> bool:
     for line in _active_lines(entity):
         if not _PIP.search(line):
             continue
-        if "==" in line or "@" in line or "--require-hashes" in line:
-            continue
-        if "-r" in line or "--requirement" in line:
-            continue
-        return True
+        if not _pip_install_line_is_pinned(line):
+            return True
     return False
 
 

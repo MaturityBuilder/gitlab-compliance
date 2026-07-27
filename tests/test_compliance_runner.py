@@ -9,11 +9,13 @@ from src.compliance.builtin_policies import (
     BUILTIN_SHELL_POLICIES_DIR,
     BUILTIN_SUPPLY_CHAIN_POLICIES_DIR,
 )
+from src.compliance.metadata import PolicyRoot, discover_policies, iter_feature_files
 from src.compliance.release_cache import ReleaseMetadataCache
 from src.compliance.runner import (
     _assert_within_directory,
     _collect_feature_files,
     _resolve_policy_directories,
+    resolve_policies_source_label,
     run_compliance,
 )
 
@@ -534,43 +536,99 @@ class TestRunComplianceFix:
 
 class TestResolvePolicyDirectories:
     def test_with_builtin_includes_package_dir(self):
-        dirs = _resolve_policy_directories(str(PASSING_POLICIES), with_builtin=True)
-        assert os.path.abspath(BUILTIN_POLICIES_DIR) in dirs
-        assert os.path.abspath(str(PASSING_POLICIES)) in dirs
+        roots = _resolve_policy_directories(str(PASSING_POLICIES), with_builtin=True)
+        paths = [root.path for root in roots]
+        assert os.path.abspath(BUILTIN_POLICIES_DIR) in paths
+        assert os.path.abspath(str(PASSING_POLICIES)) in paths
+        builtin_root = next(
+            root for root in roots if root.path == os.path.abspath(BUILTIN_POLICIES_DIR)
+        )
+        assert builtin_root.recursive is False
 
     def test_without_builtin_only_user_dir(self):
-        dirs = _resolve_policy_directories(str(PASSING_POLICIES), with_builtin=False)
-        assert len(dirs) == 1
-        assert dirs[0] == os.path.abspath(str(PASSING_POLICIES))
+        roots = _resolve_policy_directories(str(PASSING_POLICIES), with_builtin=False)
+        assert len(roots) == 1
+        assert roots[0].path == os.path.abspath(str(PASSING_POLICIES))
 
     def test_without_features_dir_requires_builtin_or_shell_flag(self):
         with pytest.raises(ValueError, match="No policy source provided"):
             _resolve_policy_directories(None)
 
     def test_shell_check_only_without_features_dir(self):
-        dirs = _resolve_policy_directories(None, with_shell_check=True)
-        assert dirs == [os.path.abspath(BUILTIN_SHELL_POLICIES_DIR)]
+        roots = _resolve_policy_directories(None, with_shell_check=True)
+        assert [root.path for root in roots] == [
+            os.path.abspath(BUILTIN_SHELL_POLICIES_DIR)
+        ]
 
     def test_builtin_only_without_features_dir(self):
-        dirs = _resolve_policy_directories(None, with_builtin=True)
-        assert dirs == [os.path.abspath(BUILTIN_POLICIES_DIR)]
+        roots = _resolve_policy_directories(None, with_builtin=True)
+        assert len(roots) == 1
+        assert roots[0].path == os.path.abspath(BUILTIN_POLICIES_DIR)
+        assert roots[0].recursive is False
+
+    def test_builtin_excludes_shell_and_supply_chain_subdirs(self):
+        roots = _resolve_policy_directories(None, with_builtin=True)
+        feature_files = list(
+            iter_feature_files(roots[0].path, recursive=roots[0].recursive)
+        )
+        assert feature_files
+        assert not any("/shell/" in path for path in feature_files)
+        assert not any("/supply-chain/" in path for path in feature_files)
 
     def test_supply_chain_only_without_features_dir(self):
-        dirs = _resolve_policy_directories(None, with_supply_chain=True)
-        assert dirs == [os.path.abspath(BUILTIN_SUPPLY_CHAIN_POLICIES_DIR)]
+        roots = _resolve_policy_directories(None, with_supply_chain=True)
+        assert [root.path for root in roots] == [
+            os.path.abspath(BUILTIN_SUPPLY_CHAIN_POLICIES_DIR)
+        ]
 
     def test_with_shell_check_includes_shell_policies_dir(self):
-        dirs = _resolve_policy_directories(str(PASSING_POLICIES), with_shell_check=True)
-        assert os.path.abspath(BUILTIN_SHELL_POLICIES_DIR) in dirs
-        assert os.path.abspath(str(PASSING_POLICIES)) in dirs
+        roots = _resolve_policy_directories(
+            str(PASSING_POLICIES), with_shell_check=True
+        )
+        paths = [root.path for root in roots]
+        assert os.path.abspath(BUILTIN_SHELL_POLICIES_DIR) in paths
+        assert os.path.abspath(str(PASSING_POLICIES)) in paths
 
     def test_with_builtin_and_shell_check_does_not_duplicate_shell_dir(self):
-        dirs = _resolve_policy_directories(
+        roots = _resolve_policy_directories(
             str(PASSING_POLICIES),
             with_builtin=True,
             with_shell_check=True,
         )
-        assert dirs.count(os.path.abspath(BUILTIN_SHELL_POLICIES_DIR)) == 1
+        paths = [root.path for root in roots]
+        assert paths.count(os.path.abspath(BUILTIN_SHELL_POLICIES_DIR)) == 1
+
+    def test_with_builtin_and_shell_check_does_not_duplicate_shell_scenarios(self):
+        good_pipeline = (
+            REPO_ROOT / "tests" / "fixtures" / "shell_check" / "good-pipeline.yml"
+        )
+        result = run_compliance(
+            features_dir=None,
+            pipeline_file=str(good_pipeline),
+            with_builtin=True,
+            with_shell_check=True,
+        )
+        shell_ids = [
+            s.policy_id
+            for s in result.scenario_results
+            if s.policy_id.startswith("GLCI-SHELL")
+        ]
+        assert shell_ids
+        assert len(shell_ids) == len(set(shell_ids))
+
+
+class TestResolvePoliciesSourceLabel:
+    def test_multiple_bundled_flags_join_labels(self):
+        label = resolve_policies_source_label(
+            None,
+            with_builtin=True,
+            with_shell_check=True,
+            with_supply_chain=True,
+        )
+        assert BUILTIN_POLICIES_DIR in label
+        assert BUILTIN_SHELL_POLICIES_DIR in label
+        assert BUILTIN_SUPPLY_CHAIN_POLICIES_DIR in label
+        assert ", " in label
 
 
 class TestScenarioOutlinePolicies:

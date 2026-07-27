@@ -46,8 +46,8 @@ gitlab-compliance shell-check -p .gitlab-ci.yml --format markdown -o SHELL-CHECK
 ```
 
 Also available via `check --with-shell-check` (adds packaged `GLCI-SHELL-*`
-policies alongside your `-f` directory) or `check --with-builtin` (bundled YAML
-and shell policies).
+policies alongside your `-f` directory). `--with-builtin` does **not** include
+shell policies; add `--with-shell-check` explicitly when needed.
 
 ## Custom policies
 
@@ -66,6 +66,7 @@ See [Shell check examples](../../examples/shell-check.md).
 
 
 
+
 ## Usage
 
 ```
@@ -73,53 +74,53 @@ Usage: gitlab-compliance shell-check [OPTIONS]
 ```
 
 ## Options
-* `pipeline_file`: 
-  * Type: STRING 
+* `pipeline_file`:
+  * Type: STRING
   * Default: `.gitlab-ci.yml`
   * Usage: `--pipeline
 -p`
 
   Path to the GitLab CI pipeline YAML file.
 
-* `output_format`: 
-  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality']) 
+* `output_format`:
+  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality'])
   * Default: `console`
   * Usage: `--format`
 
   Output format for the script validation report.
 
-* `output_file`: 
-  * Type: STRING 
+* `output_file`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--output-file
 -o`
 
   Write rendered report to this file (markdown, html, mr-comment).
 
-* `include_nested`: 
-  * Type: BOOL 
+* `include_nested`:
+  * Type: BOOL
   * Default: `true`
   * Usage: `--include-nested`
 
   Resolve nested local include files into the compliance stash.
 
-* `max_include_depth`: 
-  * Type: INT 
+* `max_include_depth`:
+  * Type: INT
   * Default: `none`
   * Usage: `--max-include-depth`
 
   Max local include nesting depth from the root file (omit for unlimited).
 
-* `features_dir`: 
-  * Type: STRING 
+* `features_dir`:
+  * Type: STRING
   * Default: `none`
   * Usage: `--features
 -f`
 
   Policy directory to run instead of packaged shell standards. Defaults to packaged GLCI-SHELL policies.
 
-* `help`: 
-  * Type: BOOL 
+* `help`:
+  * Type: BOOL
   * Default: `false`
   * Usage: `--help`
 

@@ -6,9 +6,7 @@ import os
 
 BUILTIN_POLICIES_DIR = os.path.join(os.path.dirname(__file__))
 BUILTIN_SHELL_POLICIES_DIR = os.path.join(BUILTIN_POLICIES_DIR, "shell")
-BUILTIN_SUPPLY_CHAIN_POLICIES_DIR = os.path.join(
-    BUILTIN_POLICIES_DIR, "supply-chain"
-)
+BUILTIN_SUPPLY_CHAIN_POLICIES_DIR = os.path.join(BUILTIN_POLICIES_DIR, "supply-chain")
 
 __all__ = [
     "BUILTIN_POLICIES_DIR",

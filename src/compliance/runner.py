@@ -19,6 +19,7 @@ from src.compliance.builtin_policies import (
 )
 from src.compliance.console import print_error, render_compliance_console
 from src.compliance.metadata import (
+    PolicyRoot,
     discover_policies,
     iter_feature_files,
     normalize_scenario_name,
@@ -91,29 +92,29 @@ def _resolve_policy_directories(
     with_builtin: bool = False,
     with_shell_check: bool = False,
     with_supply_chain: bool = False,
-) -> list[str]:
-    directories = []
+) -> list[PolicyRoot]:
+    roots: list[PolicyRoot] = []
     if with_builtin:
-        directories.append(os.path.abspath(BUILTIN_POLICIES_DIR))
+        roots.append(PolicyRoot(os.path.abspath(BUILTIN_POLICIES_DIR), recursive=False))
     if with_shell_check:
         shell_dir = os.path.abspath(BUILTIN_SHELL_POLICIES_DIR)
-        if shell_dir not in directories:
-            directories.append(shell_dir)
+        if not any(root.path == shell_dir for root in roots):
+            roots.append(PolicyRoot(shell_dir))
     if with_supply_chain:
         supply_dir = os.path.abspath(BUILTIN_SUPPLY_CHAIN_POLICIES_DIR)
-        if supply_dir not in directories:
-            directories.append(supply_dir)
+        if not any(root.path == supply_dir for root in roots):
+            roots.append(PolicyRoot(supply_dir))
     if features_dir:
-        directories.append(os.path.abspath(features_dir))
-    if not directories:
+        roots.append(PolicyRoot(os.path.abspath(features_dir)))
+    if not roots:
         raise ValueError(
             "No policy source provided. Pass --features/-f and/or enable "
             "--with-builtin, --with-shell-check, or --with-supply-chain."
         )
-    return directories
+    return roots
 
 
-def _resolve_policies_source_label(
+def resolve_policies_source_label(
     features_dir: str | None,
     *,
     with_builtin: bool = False,
@@ -131,9 +132,11 @@ def _resolve_policies_source_label(
         )
         if flag
     ]
+    if not enabled:
+        return BUILTIN_POLICIES_DIR
     if len(enabled) == 1:
         return enabled[0]
-    return BUILTIN_POLICIES_DIR
+    return ", ".join(enabled)
 
 
 def _collect_feature_files_from_dirs(features_dirs: list[str]) -> list[tuple[str, str]]:
@@ -292,7 +295,7 @@ def run_compliance(
             "--with-builtin, --with-shell-check, or --with-supply-chain."
         )
 
-    policies_source = policies_source or _resolve_policies_source_label(
+    policies_source = policies_source or resolve_policies_source_label(
         features_dir,
         with_builtin=with_builtin,
         with_shell_check=with_shell_check,
@@ -359,17 +362,17 @@ def run_compliance(
             )
         )
 
-    policy_directories = _resolve_policy_directories(
+    policy_roots = _resolve_policy_directories(
         resolved_features_dir,
         with_builtin=with_builtin,
         with_shell_check=with_shell_check,
         with_supply_chain=with_supply_chain,
     )
-    discovery = discover_policies(policy_directories)
+    discovery = discover_policies(policy_roots)
     policy_catalog = discovery.catalog
     api_requirements = discovery.api_requirements
     workspace = _build_behave_workspace(
-        policy_directories, collected=discovery.feature_files
+        [root.path for root in policy_roots], collected=discovery.feature_files
     )
 
     need_enrich_includes = (

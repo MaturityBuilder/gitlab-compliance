@@ -79,9 +79,9 @@ Equivalent to running `shell-check` in the same invocation. See
 
 ### `--with-supply-chain` {#with-supply-chain}
 
-Also run packaged supply-chain pinning policies for includes, components,
-container images, and services. Your `-f` directory is **optional** when this
-flag is set.
+Also run packaged supply-chain pinning policies for includes, container images,
+and services. Your `-f` directory is **optional** when this flag is set. This is
+a **read-only policy check**; use `--fix-supply-chain` to auto-remediate YAML.
 
 ```bash
 gitlab-compliance check -p .gitlab-ci.yml --with-supply-chain
@@ -90,9 +90,9 @@ gitlab-compliance check -p .gitlab-ci.yml --with-supply-chain
 Equivalent to `supply-chain` in the same invocation. See
 [`supply-chain`](reference/supply-chain.md).
 
-`--with-builtin` still includes shell policies because they live under
-`builtin_policies/shell/`; use `--with-shell-check` when you only want script
-checks added to your own policy set.
+`--with-builtin` runs only the top-level bundled baseline pack (it does **not**
+include `shell/` or `supply-chain/` subdirectories). Add `--with-shell-check`
+or `--with-supply-chain` when you want those policy sets.
 
 ### `-p` / `--pipeline`
 

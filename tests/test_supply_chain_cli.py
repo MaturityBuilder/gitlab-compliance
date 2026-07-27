@@ -18,6 +18,7 @@ def test_supply_chain_help():
     result = runner.invoke(gitlab_compliance, ["supply-chain", "--help"])
     assert result.exit_code == 0
     assert "supply-chain pinning policies" in result.output
+    assert "GLCI-IMAGE-PINNING" in result.output or "include" in result.output.lower()
 
 
 def test_check_help_includes_with_supply_chain():
@@ -25,6 +26,8 @@ def test_check_help_includes_with_supply_chain():
     result = runner.invoke(gitlab_compliance, ["check", "--help"])
     assert result.exit_code == 0
     assert "--with-supply-chain" in result.output
+    assert "--fix-supply-chain" in result.output
+    assert "not the same as --with-supply-chain" in result.output
 
 
 def test_supply_chain_runs_packaged_policies():
@@ -34,7 +37,9 @@ def test_supply_chain_runs_packaged_policies():
         ["supply-chain", "-p", str(SAMPLE_PIPELINE)],
     )
     assert result.exit_code in {0, 1}
-    assert "GLCI-IMAGE-PINNING" in result.output or "GLCI-INCLUDE" in result.output
+    assert "GLCI-IMAGE-PINNING" in result.output
+    assert "GLCI-INCLUDE-VERSIONS" in result.output
+    assert "Complete" in result.output
 
 
 def test_check_with_supply_chain_only():
@@ -44,11 +49,15 @@ def test_check_with_supply_chain_only():
         ["check", "--with-supply-chain", "-p", str(SAMPLE_PIPELINE)],
     )
     assert result.exit_code in {0, 1}
-    assert "GLCI-IMAGE-PINNING" in result.output or "GLCI-INCLUDE" in result.output
+    assert "GLCI-IMAGE-PINNING" in result.output
+    assert "GLCI-INCLUDE-VERSIONS" in result.output
 
 
 def test_builtin_supply_chain_dir_contains_pinning_policies():
     policy_files = list(Path(BUILTIN_SUPPLY_CHAIN_POLICIES_DIR).glob("*.feature"))
     names = {path.name for path in policy_files}
-    assert "image-pinning.feature" in names
-    assert "include-versions.feature" in names
+    assert names == {
+        "image-pinning.feature",
+        "include-versions.feature",
+        "service-pinning.feature",
+    }
