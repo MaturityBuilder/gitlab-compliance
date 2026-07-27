@@ -4,7 +4,10 @@ from unittest.mock import patch
 
 import pytest
 
-from src.compliance.builtin_policies import BUILTIN_POLICIES_DIR
+from src.compliance.builtin_policies import (
+    BUILTIN_POLICIES_DIR,
+    BUILTIN_SHELL_POLICIES_DIR,
+)
 from src.compliance.release_cache import ReleaseMetadataCache
 from src.compliance.runner import (
     _assert_within_directory,
@@ -539,6 +542,19 @@ class TestResolvePolicyDirectories:
         assert len(dirs) == 1
         assert dirs[0] == os.path.abspath(str(PASSING_POLICIES))
 
+    def test_with_shell_check_includes_shell_policies_dir(self):
+        dirs = _resolve_policy_directories(str(PASSING_POLICIES), with_shell_check=True)
+        assert os.path.abspath(BUILTIN_SHELL_POLICIES_DIR) in dirs
+        assert os.path.abspath(str(PASSING_POLICIES)) in dirs
+
+    def test_with_builtin_and_shell_check_does_not_duplicate_shell_dir(self):
+        dirs = _resolve_policy_directories(
+            str(PASSING_POLICIES),
+            with_builtin=True,
+            with_shell_check=True,
+        )
+        assert dirs.count(os.path.abspath(BUILTIN_SHELL_POLICIES_DIR)) == 1
+
 
 class TestScenarioOutlinePolicies:
     def test_variable_outline_expands_and_passes(self, tmp_path):
@@ -683,3 +699,19 @@ class TestWithBuiltinPolicies:
         assert result.scenarios >= 2
         policy_ids = {s.policy_id for s in result.scenario_results if s.policy_id}
         assert any(pid.startswith("GLCI-BUILTIN") for pid in policy_ids)
+
+
+class TestWithShellCheckPolicies:
+    def test_with_shell_check_merges_shell_policies(self):
+        good_pipeline = (
+            REPO_ROOT / "tests" / "fixtures" / "shell_check" / "good-pipeline.yml"
+        )
+        result = run_compliance(
+            features_dir=str(PASSING_POLICIES),
+            pipeline_file=str(good_pipeline),
+            with_shell_check=True,
+        )
+        policy_ids = {s.policy_id for s in result.scenario_results if s.policy_id}
+        assert any(pid.startswith("GLCI-SHELL") for pid in policy_ids)
+        assert any(pid == "GLCI-SHELL-PIN-003" for pid in policy_ids)
+        assert not any(pid.startswith("GLCI-BUILTIN") for pid in policy_ids)

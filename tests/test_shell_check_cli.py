@@ -18,6 +18,13 @@ def test_shell_check_help():
     assert "not the ShellCheck tool" in result.output
 
 
+def test_check_help_includes_with_shell_check():
+    runner = CliRunner()
+    result = runner.invoke(gitlab_compliance, ["check", "--help"])
+    assert result.exit_code == 0
+    assert "--with-shell-check" in result.output
+
+
 def test_shell_check_fails_on_bad_pipeline():
     runner = CliRunner()
     result = runner.invoke(

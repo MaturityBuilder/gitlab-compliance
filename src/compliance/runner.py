@@ -12,7 +12,10 @@ from behave.model import ScenarioOutline
 from behave.runner import Runner
 from behave.step_registry import registry
 
-from src.compliance.builtin_policies import BUILTIN_POLICIES_DIR
+from src.compliance.builtin_policies import (
+    BUILTIN_POLICIES_DIR,
+    BUILTIN_SHELL_POLICIES_DIR,
+)
 from src.compliance.console import print_error, render_compliance_console
 from src.compliance.metadata import (
     discover_policies,
@@ -83,11 +86,17 @@ def _collect_feature_files(features_dir: str) -> list[str]:
 
 
 def _resolve_policy_directories(
-    features_dir: str, with_builtin: bool = False
+    features_dir: str,
+    with_builtin: bool = False,
+    with_shell_check: bool = False,
 ) -> list[str]:
     directories = []
     if with_builtin:
         directories.append(os.path.abspath(BUILTIN_POLICIES_DIR))
+    if with_shell_check:
+        shell_dir = os.path.abspath(BUILTIN_SHELL_POLICIES_DIR)
+        if shell_dir not in directories:
+            directories.append(shell_dir)
     directories.append(os.path.abspath(features_dir))
     return directories
 
@@ -95,8 +104,13 @@ def _resolve_policy_directories(
 def _collect_feature_files_from_dirs(features_dirs: list[str]) -> list[tuple[str, str]]:
     """Return (source_dir, feature_path) pairs from one or more policy roots."""
     collected: list[tuple[str, str]] = []
+    seen_files: set[str] = set()
     for features_dir in features_dirs:
         for feature_file in _collect_feature_files(features_dir):
+            real_path = os.path.realpath(feature_file)
+            if real_path in seen_files:
+                continue
+            seen_files.add(real_path)
             collected.append((features_dir, feature_file))
     return collected
 
@@ -228,6 +242,7 @@ def run_compliance(
     fix_supply_chain: bool = False,
     fix_policies: bool = False,
     with_builtin: bool = False,
+    with_shell_check: bool = False,
     create_mr: bool = False,
     post_mr_comment: bool = False,
     mr_iid: int | None = None,
@@ -295,7 +310,9 @@ def run_compliance(
         )
 
     policy_directories = _resolve_policy_directories(
-        resolved_features_dir, with_builtin=with_builtin
+        resolved_features_dir,
+        with_builtin=with_builtin,
+        with_shell_check=with_shell_check,
     )
     discovery = discover_policies(policy_directories)
     policy_catalog = discovery.catalog

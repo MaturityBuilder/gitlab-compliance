@@ -211,6 +211,31 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
 
 ![MR comment UI preview](../../demos/screenshots/check-post-mr-comment-ui.png)
 
+### Bundled policies
+
+#### `--with-builtin` {#with-builtin}
+
+Also run baseline policies shipped inside the package (job images, include
+pinning, variable allowlists, component input outlines). Your `-f` directory
+remains required; bundled policies are merged alongside it.
+
+```bash
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --with-builtin
+```
+
+#### `--with-shell-check` {#with-shell-check}
+
+Also run packaged `GLCI-SHELL-*` script standards for `before_script`,
+`script`, and `after_script`. Use this when you want shell checks without
+enabling the other bundled YAML baseline rules.
+
+```bash
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --with-shell-check
+```
+
+Equivalent to combining your policy directory with `shell-check` in one run.
+See [`shell-check`](shell-check.md).
+
 ### OCI policy bundles
 
 #### `--update` {#update}
@@ -234,6 +259,7 @@ gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 \
 ```
 
 <!-- MANUAL DOCS:END -->
+
 
 
 
@@ -410,6 +436,13 @@ Usage: gitlab-compliance check [OPTIONS]
 
   Also run bundled baseline policies shipped with gitlab-compliance.
 
+* `with_shell_check`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--with-shell-check`
+
+  Also run packaged GLCI-SHELL script standards for before_script, script, and after_script.
+
 * `help`:
   * Type: BOOL
   * Default: `false`
@@ -480,5 +513,8 @@ Options:
                                   with --post-mr-comment.
   --with-builtin                  Also run bundled baseline policies shipped
                                   with gitlab-compliance.
+  --with-shell-check              Also run packaged GLCI-SHELL script
+                                  standards for before_script, script, and
+                                  after_script.
   --help                          Show this message and exit.
 ```

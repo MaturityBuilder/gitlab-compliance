@@ -2,8 +2,8 @@
 
 Run packaged Gherkin shell standards for CI scripts (not the ShellCheck tool).
 
-Validates before_script/script/after_script using builtin GLCI-SHELL-* policies.
-Does not install, detect, or invoke the external ShellCheck binary.
+    Validates before_script/script/after_script using builtin GLCI-SHELL-* policies.
+    Does not install, detect, or invoke the external ShellCheck binary.
 
 <!-- MANUAL DOCS:START -->
 
@@ -45,8 +45,9 @@ Markdown report:
 gitlab-compliance shell-check -p .gitlab-ci.yml --format markdown -o SHELL-CHECK.md
 ```
 
-Also available via `check --with-builtin` (shell features ship alongside other
-bundled policies).
+Also available via `check --with-shell-check` (adds packaged `GLCI-SHELL-*`
+policies alongside your `-f` directory) or `check --with-builtin` (bundled YAML
+and shell policies).
 
 ## Custom policies
 
@@ -60,6 +61,7 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 See [Shell check examples](../../examples/shell-check.md).
 
 <!-- MANUAL DOCS:END -->
+
 
 
 ## Usage

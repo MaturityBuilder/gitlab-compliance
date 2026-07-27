@@ -59,11 +59,27 @@ bundled pack alongside your policies.
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml --with-builtin
 ```
 
-Bundled policies include plain scenarios (job images, include pinning),
-**shell script standards** (`GLCI-SHELL-*` under `builtin_policies/shell/`), and
+Bundled policies include plain scenarios (job images, include pinning) and
 **advanced Scenario Outline** matrices (variable allowlists, component input
-constraints). See [Advanced scenarios](../bdd-reference/advanced-scenarios.md)
-and [`shell-check`](reference/shell-check.md).
+constraints). See [Advanced scenarios](../bdd-reference/advanced-scenarios.md).
+
+### `--with-shell-check` {#with-shell-check}
+
+Also run packaged **shell script standards** (`GLCI-SHELL-*`) for
+`before_script`, `script`, and `after_script`. Your `-f` directory remains
+**required**; `--with-shell-check` **adds** the shell pack alongside your
+policies without enabling the other bundled YAML baseline rules.
+
+```bash
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --with-shell-check
+```
+
+Equivalent to running `shell-check` in the same invocation. See
+[`shell-check`](reference/shell-check.md).
+
+`--with-builtin` still includes shell policies because they live under
+`builtin_policies/shell/`; use `--with-shell-check` when you only want script
+checks added to your own policy set.
 
 ### `-p` / `--pipeline`
 

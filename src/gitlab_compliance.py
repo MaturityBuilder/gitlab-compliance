@@ -640,6 +640,15 @@ def _resolve_policies_dir(
     default=False,
     help="Also run bundled baseline policies shipped with gitlab-compliance.",
 )
+@click.option(
+    "--with-shell-check",
+    is_flag=True,
+    default=False,
+    help=(
+        "Also run packaged GLCI-SHELL script standards for before_script, "
+        "script, and after_script."
+    ),
+)
 def check(
     features_dir,
     pipeline_file,
@@ -664,6 +673,7 @@ def check(
     mr_target_branch,
     mr_comment_file,
     with_builtin,
+    with_shell_check,
 ):
     """
     Run Gherkin compliance policies against GitLab CI YAML and optional API settings.
@@ -698,6 +708,7 @@ def check(
             fix_supply_chain=fix_supply_chain,
             fix_policies=fix_policies,
             with_builtin=with_builtin,
+            with_shell_check=with_shell_check,
             create_mr=create_mr,
             post_mr_comment=post_mr_comment,
             mr_iid=mr_iid,
