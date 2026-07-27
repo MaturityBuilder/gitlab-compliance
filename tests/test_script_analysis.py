@@ -94,6 +94,43 @@ def test_multi_package_pinning_predicates():
     assert script_has_unpinned_apt(_entity(["apt-get install curl=1.0 wget"]))
 
 
+def test_pip_and_apk_flags_with_arguments():
+    assert not script_has_unpinned_pip(
+        _entity(["pip install --index-url https://pypi.org/simple requests==2.0"])
+    )
+    assert not script_has_unpinned_pip(
+        _entity(["pip install --target /tmp requests==2.0"])
+    )
+    assert not script_has_unpinned_pip(
+        _entity(["pip install --constraint constraints.txt requests==1.0"])
+    )
+    assert not script_has_unpinned_pip(
+        _entity(
+            [
+                "pip install --extra-index-url https://example.com/simple "
+                '"gitlab-compliance==2.1.1"'
+            ]
+        )
+    )
+    assert script_has_unpinned_pip(
+        _entity(["pip install --index-url https://pypi.org/simple requests"])
+    )
+    assert not script_has_unpinned_apk(
+        _entity(["apk add --virtual .build-deps gcc=13.2.1-r0 musl-dev=1.2.4-r0"])
+    )
+    assert script_has_unpinned_apk(
+        _entity(["apk add --virtual .build-deps gcc musl-dev=1.2.4-r0"])
+    )
+    assert not script_has_unpinned_apt(
+        _entity(
+            [
+                "apt-get install -y --no-install-recommends "
+                "-t bookworm-backports curl=7.88.1-10"
+            ]
+        )
+    )
+
+
 def test_docker_image_pinning_predicates():
     digest = (
         "python@sha256:66d292e5c26bd33a6f6f61cacb880de2186339a524ecba1ce098dbbaceed6515"

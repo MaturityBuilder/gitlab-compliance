@@ -350,6 +350,73 @@ def _container_image_ref_is_pinned(ref: str) -> bool:
     return False
 
 
+# Flags that consume the next CLI token (not package names).
+_PIP_FLAGS_WITH_ARG = frozenset(
+    {
+        "-c",
+        "--constraint",
+        "-f",
+        "--find-links",
+        "-i",
+        "--index-url",
+        "--extra-index-url",
+        "--trusted-host",
+        "-r",
+        "--requirement",
+        "-t",
+        "--target",
+        "--root",
+        "--prefix",
+        "--src",
+        "--proxy",
+        "--retries",
+        "--timeout",
+        "--exists-action",
+        "--platform",
+        "--python-version",
+        "--implementation",
+        "--abi",
+        "--config-settings",
+        "--global-option",
+        "--no-binary",
+        "--only-binary",
+        "--progress-bar",
+        "--report",
+        "--hash",
+        "--use-feature",
+        "--use-deprecated",
+        "--log",
+        "--cache-dir",
+        "--client-cert",
+        "--cert",
+        "--key",
+    }
+)
+_APK_FLAGS_WITH_ARG = frozenset(
+    {
+        "-p",
+        "--root",
+        "-X",
+        "--repository",
+        "-t",
+        "--virtual",
+        "--keys-dir",
+        "--arch",
+        "--repositories-file",
+    }
+)
+_APT_FLAGS_WITH_ARG = frozenset(
+    {
+        "-o",
+        "--option",
+        "-c",
+        "--config-file",
+        "-t",
+        "--target-release",
+    }
+)
+
+
 def _split_command_tokens(segment: str) -> list[str]:
     """Tokenize the argument segment of an install command."""
     try:
@@ -364,6 +431,36 @@ def _tokens_after_subcommand(line: str, subcommand: re.Pattern[str]) -> list[str
     if not match:
         return []
     return _split_command_tokens(line[match.end() :])
+
+
+def _package_tokens(
+    tokens: list[str],
+    *,
+    flags_with_arg: frozenset[str],
+    skip_tokens: frozenset[str] | None = None,
+) -> list[str]:
+    """Extract package tokens, skipping flags and flag arguments."""
+    packages: list[str] = []
+    skip = skip_tokens or frozenset()
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token in skip:
+            index += 1
+            continue
+        if token.startswith("-"):
+            # ``--flag=value`` forms do not consume a following token.
+            if "=" in token:
+                index += 1
+                continue
+            if token in flags_with_arg:
+                index += 2
+                continue
+            index += 1
+            continue
+        packages.append(token)
+        index += 1
+    return packages
 
 
 def _pip_package_is_pinned(token: str) -> bool:
@@ -386,18 +483,7 @@ def _pip_install_line_is_pinned(line: str) -> bool:
     tokens = _tokens_after_subcommand(line, _PIP)
     if not tokens:
         return True
-    packages: list[str] = []
-    index = 0
-    while index < len(tokens):
-        token = tokens[index]
-        if token in ("-r", "--requirement"):
-            index += 2
-            continue
-        if token.startswith("-"):
-            index += 1
-            continue
-        packages.append(token)
-        index += 1
+    packages = _package_tokens(tokens, flags_with_arg=_PIP_FLAGS_WITH_ARG)
     if not packages:
         return True
     return all(_pip_package_is_pinned(package) for package in packages)
@@ -410,7 +496,7 @@ def _apk_package_is_pinned(token: str) -> bool:
 def _apk_line_is_pinned(line: str) -> bool:
     """Return whether every apk package on the line has a pinned version."""
     tokens = _tokens_after_subcommand(line, _APK)
-    packages = [token for token in tokens if not token.startswith("-")]
+    packages = _package_tokens(tokens, flags_with_arg=_APK_FLAGS_WITH_ARG)
     if not packages:
         return True
     return all(_apk_package_is_pinned(package) for package in packages)
@@ -423,7 +509,7 @@ def _apt_package_is_pinned(token: str) -> bool:
 def _apt_line_is_pinned(line: str) -> bool:
     """Return whether every apt package on the line has a pinned version."""
     tokens = _tokens_after_subcommand(line, _APT)
-    packages = [token for token in tokens if not token.startswith("-")]
+    packages = _package_tokens(tokens, flags_with_arg=_APT_FLAGS_WITH_ARG)
     if not packages:
         return True
     return all(_apt_package_is_pinned(package) for package in packages)
