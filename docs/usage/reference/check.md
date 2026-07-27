@@ -237,6 +237,18 @@ gitlab-compliance check -p .gitlab-ci.yml --with-shell-check
 Equivalent to combining your policy directory with `shell-check` in one run.
 See [`shell-check`](shell-check.md).
 
+#### `--with-supply-chain` {#with-supply-chain}
+
+Also run packaged supply-chain pinning policies for includes, components,
+images, and services. Omit `-f` to run only the bundled supply-chain pack.
+
+```bash
+gitlab-compliance check -p .gitlab-ci.yml --with-supply-chain
+```
+
+Equivalent to `supply-chain` in the same invocation. See
+[`supply-chain`](supply-chain.md).
+
 ### OCI policy bundles
 
 #### `--update` {#update}
@@ -267,6 +279,7 @@ gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 \
 
 
 
+
 ## Usage
 
 ```
@@ -280,7 +293,7 @@ Usage: gitlab-compliance check [OPTIONS]
   * Usage: `--features
 -f`
 
-  Directory containing compliance policy .feature files or an OCI reference (oci://registry.example.com/policies:1.0.0). Optional when --with-builtin and/or --with-shell-check is set.
+  Directory containing compliance policy .feature files or an OCI reference (oci://registry.example.com/policies:1.0.0). Optional when --with-builtin, --with-shell-check, and/or --with-supply-chain is set.
 
 * `pipeline_file`: 
   * Type: STRING 
@@ -445,6 +458,13 @@ Usage: gitlab-compliance check [OPTIONS]
 
   Also run packaged GLCI-SHELL script standards for before_script, script, and after_script.
 
+* `with_supply_chain`: 
+  * Type: BOOL 
+  * Default: `false`
+  * Usage: `--with-supply-chain`
+
+  Also run packaged supply-chain policies for include, component, image, and service pinning.
+
 * `help`: 
   * Type: BOOL 
   * Default: `false`
@@ -465,8 +485,8 @@ Options:
   -f, --features TEXT             Directory containing compliance policy
                                   .feature files or an OCI reference
                                   (oci://registry.example.com/policies:1.0.0).
-                                  Optional when --with-builtin and/or --with-
-                                  shell-check is set.
+                                  Optional when --with-builtin, --with-shell-
+                                  check, and/or --with-supply-chain is set.
   -p, --pipeline TEXT             Path to the GitLab CI pipeline YAML file.
   --format [console|markdown|html|mr-comment|codequality]
                                   Output format for the compliance report.
@@ -519,5 +539,8 @@ Options:
   --with-shell-check              Also run packaged GLCI-SHELL script
                                   standards for before_script, script, and
                                   after_script.
+  --with-supply-chain             Also run packaged supply-chain policies for
+                                  include, component, image, and service
+                                  pinning.
   --help                          Show this message and exit.
 ```

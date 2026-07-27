@@ -7,6 +7,7 @@ import pytest
 from src.compliance.builtin_policies import (
     BUILTIN_POLICIES_DIR,
     BUILTIN_SHELL_POLICIES_DIR,
+    BUILTIN_SUPPLY_CHAIN_POLICIES_DIR,
 )
 from src.compliance.release_cache import ReleaseMetadataCache
 from src.compliance.runner import (
@@ -554,6 +555,10 @@ class TestResolvePolicyDirectories:
         dirs = _resolve_policy_directories(None, with_builtin=True)
         assert dirs == [os.path.abspath(BUILTIN_POLICIES_DIR)]
 
+    def test_supply_chain_only_without_features_dir(self):
+        dirs = _resolve_policy_directories(None, with_supply_chain=True)
+        assert dirs == [os.path.abspath(BUILTIN_SUPPLY_CHAIN_POLICIES_DIR)]
+
     def test_with_shell_check_includes_shell_policies_dir(self):
         dirs = _resolve_policy_directories(str(PASSING_POLICIES), with_shell_check=True)
         assert os.path.abspath(BUILTIN_SHELL_POLICIES_DIR) in dirs
@@ -747,3 +752,15 @@ class TestWithShellCheckPolicies:
                 features_dir=None,
                 pipeline_file=str(SAMPLE_PIPELINE),
             )
+
+
+class TestWithSupplyChainPolicies:
+    def test_with_supply_chain_only_without_features_dir(self):
+        result = run_compliance(
+            features_dir=None,
+            pipeline_file=str(SAMPLE_PIPELINE),
+            with_supply_chain=True,
+        )
+        policy_ids = {s.policy_id for s in result.scenario_results if s.policy_id}
+        assert any(pid.startswith("GLCI-IMAGE-PINNING") for pid in policy_ids)
+        assert any(pid.startswith("GLCI-INCLUDE-VERSIONS") for pid in policy_ids)

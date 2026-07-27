@@ -79,6 +79,7 @@ __all__ = [
     "resolve_features_dir",
     "run_compliance",
     "shell_check",
+    "supply_chain",
 ]
 
 
@@ -501,7 +502,7 @@ def _resolve_policies_dir(
     help=(
         "Directory containing compliance policy .feature files or an OCI reference "
         "(oci://registry.example.com/policies:1.0.0). Optional when "
-        "--with-builtin and/or --with-shell-check is set."
+        "--with-builtin, --with-shell-check, and/or --with-supply-chain is set."
     ),
 )
 @click.option(
@@ -654,6 +655,15 @@ def _resolve_policies_dir(
         "script, and after_script."
     ),
 )
+@click.option(
+    "--with-supply-chain",
+    is_flag=True,
+    default=False,
+    help=(
+        "Also run packaged supply-chain policies for include, component, image, "
+        "and service pinning."
+    ),
+)
 def check(
     features_dir,
     pipeline_file,
@@ -679,6 +689,7 @@ def check(
     mr_comment_file,
     with_builtin,
     with_shell_check,
+    with_supply_chain,
 ):
     """
     Run Gherkin compliance policies against GitLab CI YAML and optional API settings.
@@ -687,9 +698,10 @@ def check(
 
     from src.compliance.console import print_error, print_success
 
-    if not (features_dir or with_builtin or with_shell_check):
+    if not (features_dir or with_builtin or with_shell_check or with_supply_chain):
         raise click.UsageError(
-            "Provide --features/-f or enable --with-builtin and/or --with-shell-check."
+            "Provide --features/-f or enable --with-builtin, "
+            "--with-shell-check, and/or --with-supply-chain."
         )
 
     if (
@@ -720,6 +732,7 @@ def check(
             fix_policies=fix_policies,
             with_builtin=with_builtin,
             with_shell_check=with_shell_check,
+            with_supply_chain=with_supply_chain,
             create_mr=create_mr,
             post_mr_comment=post_mr_comment,
             mr_iid=mr_iid,
@@ -738,6 +751,7 @@ def check(
             features_dir,
             with_builtin=with_builtin,
             with_shell_check=with_shell_check,
+            with_supply_chain=with_supply_chain,
         )
         report = _gitlab_docs.render_compliance_report(
             result=result,
@@ -766,6 +780,155 @@ def check(
                 f"Compliance failed for `{pipeline_file}`",
                 title="Complete",
                 hint="Review the report, then re-run after fixes.",
+            )
+    raise SystemExit(result.exit_code)
+
+
+@click.command("supply-chain")
+@click.option(
+    "--pipeline",
+    "-p",
+    "pipeline_file",
+    required=False,
+    default=".gitlab-ci.yml",
+    help="Path to the GitLab CI pipeline YAML file.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    required=False,
+    type=click.Choice(COMPLIANCE_OUTPUT_FORMATS, case_sensitive=False),
+    default="console",
+    help="Output format for the supply-chain compliance report.",
+)
+@click.option(
+    "--output-file",
+    "-o",
+    "output_file",
+    required=False,
+    default=None,
+    help="Write rendered report to this file (markdown, html, mr-comment).",
+)
+@click.option(
+    "--include-nested/--no-include-nested",
+    default=True,
+    help="Resolve nested local include files into the compliance stash.",
+)
+@click.option(
+    "--max-include-depth",
+    "max_include_depth",
+    type=int,
+    default=None,
+    help="Max local include nesting depth from the root file (omit for unlimited).",
+)
+@click.option(
+    "--features",
+    "-f",
+    "features_dir",
+    required=False,
+    default=None,
+    help=(
+        "Policy directory to run instead of packaged supply-chain policies. "
+        "Defaults to bundled include, component, image, and service pinning."
+    ),
+)
+@click.option(
+    "--gitlab-url",
+    default=None,
+    help="GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).",
+)
+@click.option(
+    "--token",
+    default=None,
+    help="GitLab API token (default: GITLAB_TOKEN or CI_JOB_TOKEN).",
+)
+@click.option(
+    "--project",
+    default=None,
+    help="GitLab project path or ID for API-backed policy checks.",
+)
+@click.option(
+    "--group",
+    default=None,
+    help="GitLab group path or ID for API-backed policy checks.",
+)
+@click.option(
+    "--strict",
+    is_flag=True,
+    default=False,
+    help="Fail API-backed scenarios when connection info is missing (default: skip).",
+)
+def supply_chain(
+    pipeline_file,
+    output_format,
+    output_file,
+    include_nested,
+    max_include_depth,
+    features_dir,
+    gitlab_url,
+    token,
+    project,
+    group,
+    strict,
+):
+    """
+    Run packaged supply-chain pinning policies against GitLab CI YAML.
+
+    Validates include, component, image, and service version pinning using
+    bundled GLCI-IMAGE-PINNING, GLCI-INCLUDE-VERSIONS, and related policies.
+    """
+    from src.compliance.builtin_policies import BUILTIN_SUPPLY_CHAIN_POLICIES_DIR
+    from src.compliance.console import print_error, print_success
+
+    output_format = output_format.lower()
+    supply_features = features_dir or BUILTIN_SUPPLY_CHAIN_POLICIES_DIR
+
+    try:
+        result = _gitlab_docs.run_compliance(
+            features_dir=supply_features,
+            pipeline_file=pipeline_file,
+            include_nested=include_nested,
+            max_include_depth=max_include_depth,
+            gitlab_url=gitlab_url,
+            token=token,
+            project=project,
+            group=group,
+            strict=strict,
+            output_format=output_format,
+            with_builtin=False,
+        )
+    except (ValueError, FileNotFoundError, OSError) as exc:
+        print_error(str(exc))
+        raise SystemExit(2) from exc
+
+    if output_format != "console":
+        report = _gitlab_docs.render_compliance_report(
+            result=result,
+            pipeline_file=pipeline_file,
+            features_dir=supply_features,
+            output_format=output_format,
+        )
+        target = _resolve_compliance_output(output_format, output_file)
+        if target:
+            with open(target, "w", encoding="utf-8") as handle:
+                handle.write(report)
+            print_success(
+                f"Supply-chain report written to `{target}`",
+                title="Report written",
+            )
+        else:
+            click.echo(report)
+
+        if result.success:
+            print_success(
+                f"Supply-chain checks passed for `{pipeline_file}`",
+                title="Complete",
+            )
+        else:
+            print_error(
+                f"Supply-chain checks failed for `{pipeline_file}`",
+                title="Complete",
+                hint="Review supply-chain findings, then re-run after fixes.",
             )
     raise SystemExit(result.exit_code)
 
@@ -1059,6 +1222,7 @@ gitlab_compliance.add_command(generate)
 gitlab_compliance.add_command(generate_html)
 gitlab_compliance.add_command(check)
 gitlab_compliance.add_command(shell_check)
+gitlab_compliance.add_command(supply_chain)
 gitlab_compliance.add_command(policies)
 gitlab_compliance.add_command(document)
 gitlab_compliance.add_command(release_notes)

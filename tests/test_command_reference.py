@@ -105,9 +105,10 @@ class TestDumpsCli:
         assert (docs_dir / "policies-doc.md").is_file()
         assert (docs_dir / "document-gitstrings.md").is_file()
         assert (docs_dir / "shell-check.md").is_file()
+        assert (docs_dir / "supply-chain.md").is_file()
         index_text = (docs_dir / "command-reference.md").read_text(encoding="utf-8")
         assert "# CLI subcommands" in index_text
-        assert "Created 13 command docs" in result.output
+        assert "Created 14 command docs" in result.output
 
     def test_missing_module_reports_error(self, tmp_path):
         runner = CliRunner()

@@ -15,6 +15,7 @@ from behave.step_registry import registry
 from src.compliance.builtin_policies import (
     BUILTIN_POLICIES_DIR,
     BUILTIN_SHELL_POLICIES_DIR,
+    BUILTIN_SUPPLY_CHAIN_POLICIES_DIR,
 )
 from src.compliance.console import print_error, render_compliance_console
 from src.compliance.metadata import (
@@ -89,6 +90,7 @@ def _resolve_policy_directories(
     features_dir: str | None,
     with_builtin: bool = False,
     with_shell_check: bool = False,
+    with_supply_chain: bool = False,
 ) -> list[str]:
     directories = []
     if with_builtin:
@@ -97,12 +99,16 @@ def _resolve_policy_directories(
         shell_dir = os.path.abspath(BUILTIN_SHELL_POLICIES_DIR)
         if shell_dir not in directories:
             directories.append(shell_dir)
+    if with_supply_chain:
+        supply_dir = os.path.abspath(BUILTIN_SUPPLY_CHAIN_POLICIES_DIR)
+        if supply_dir not in directories:
+            directories.append(supply_dir)
     if features_dir:
         directories.append(os.path.abspath(features_dir))
     if not directories:
         raise ValueError(
             "No policy source provided. Pass --features/-f and/or enable "
-            "--with-builtin or --with-shell-check."
+            "--with-builtin, --with-shell-check, or --with-supply-chain."
         )
     return directories
 
@@ -112,11 +118,21 @@ def _resolve_policies_source_label(
     *,
     with_builtin: bool = False,
     with_shell_check: bool = False,
+    with_supply_chain: bool = False,
 ) -> str:
     if features_dir:
         return features_dir
-    if with_shell_check and not with_builtin:
-        return BUILTIN_SHELL_POLICIES_DIR
+    enabled = [
+        label
+        for flag, label in (
+            (with_builtin, BUILTIN_POLICIES_DIR),
+            (with_shell_check, BUILTIN_SHELL_POLICIES_DIR),
+            (with_supply_chain, BUILTIN_SUPPLY_CHAIN_POLICIES_DIR),
+        )
+        if flag
+    ]
+    if len(enabled) == 1:
+        return enabled[0]
     return BUILTIN_POLICIES_DIR
 
 
@@ -262,6 +278,7 @@ def run_compliance(
     fix_policies: bool = False,
     with_builtin: bool = False,
     with_shell_check: bool = False,
+    with_supply_chain: bool = False,
     create_mr: bool = False,
     post_mr_comment: bool = False,
     mr_iid: int | None = None,
@@ -269,16 +286,17 @@ def run_compliance(
     mr_target_branch: str | None = None,
     mr_comment_file: str | None = None,
 ) -> ComplianceResult:
-    if not (features_dir or with_builtin or with_shell_check):
+    if not (features_dir or with_builtin or with_shell_check or with_supply_chain):
         raise ValueError(
             "No policy source provided. Pass --features/-f and/or enable "
-            "--with-builtin or --with-shell-check."
+            "--with-builtin, --with-shell-check, or --with-supply-chain."
         )
 
     policies_source = policies_source or _resolve_policies_source_label(
         features_dir,
         with_builtin=with_builtin,
         with_shell_check=with_shell_check,
+        with_supply_chain=with_supply_chain,
     )
     if features_dir:
         resolved_features_dir = (
@@ -345,6 +363,7 @@ def run_compliance(
         resolved_features_dir,
         with_builtin=with_builtin,
         with_shell_check=with_shell_check,
+        with_supply_chain=with_supply_chain,
     )
     discovery = discover_policies(policy_directories)
     policy_catalog = discovery.catalog
