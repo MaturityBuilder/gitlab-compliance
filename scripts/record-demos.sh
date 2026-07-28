@@ -26,6 +26,8 @@ OFFLINE_TAPES=(
   check-html.tape
   check-mr-comment-body.tape
   check-create-mr-offline.tape
+  shell-check-console.tape
+  shell-check-markdown.tape
   generate-markdown.tape
   generate-html.tape
   get-attributes.tape

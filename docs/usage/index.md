@@ -52,16 +52,47 @@ Use `--update` with OCI references to pull the latest bundle before running.
 ### `--with-builtin` {#with-builtin}
 
 Also run bundled baseline policies shipped inside the `gitlab-compliance`
-package. Your `-f` directory remains **required**; `--with-builtin` **adds** the
-bundled pack alongside your policies.
+package. Your `-f` directory is **optional** when this flag is set; omit `-f`
+to run only the bundled pack, or pass `-f` to merge your policies alongside it.
 
 ```bash
-gitlab-compliance check -f policies/ -p .gitlab-ci.yml --with-builtin
+gitlab-compliance check -p .gitlab-ci.yml --with-builtin
 ```
 
 Bundled policies include plain scenarios (job images, include pinning) and
 **advanced Scenario Outline** matrices (variable allowlists, component input
 constraints). See [Advanced scenarios](../bdd-reference/advanced-scenarios.md).
+
+### `--with-shell-check` {#with-shell-check}
+
+Also run packaged **shell script standards** (`GLCI-SHELL-*`) for
+`before_script`, `script`, and `after_script`. Your `-f` directory is
+**optional** when this flag is set; omit `-f` to run only the packaged shell
+policies.
+
+```bash
+gitlab-compliance check -p .gitlab-ci.yml --with-shell-check
+```
+
+Equivalent to running `shell-check` in the same invocation. See
+[`shell-check`](reference/shell-check.md).
+
+### `--with-supply-chain` {#with-supply-chain}
+
+Also run packaged supply-chain pinning policies for includes, container images,
+and services. Your `-f` directory is **optional** when this flag is set. This is
+a **read-only policy check**; pass `--fix` to auto-remediate YAML.
+
+```bash
+gitlab-compliance check -p .gitlab-ci.yml --with-supply-chain
+```
+
+Equivalent to `supply-chain` in the same invocation. See
+[`supply-chain`](reference/supply-chain.md).
+
+`--with-builtin` runs only the top-level bundled baseline pack (it does **not**
+include `shell/` or `supply-chain/` subdirectories). Add `--with-shell-check`
+or `--with-supply-chain` when you want those policy sets.
 
 ### `-p` / `--pipeline`
 
@@ -107,6 +138,7 @@ COMPLIANCE-REPORT.md
 | Command               | Description                                                       |
 | --------------------- | ----------------------------------------------------------------- |
 | `check`               | Run Gherkin compliance policies against pipeline YAML             |
+| `shell-check`         | Run packaged Gherkin shell standards for CI scripts (not ShellCheck) |
 | `generate`            | Build Markdown or HTML documentation from pipeline YAML           |
 | `get-attributes`      | Export selected job attributes as a table                         |
 | `policies doc`        | Generate a policy catalog from `# METADATA` annotations         |

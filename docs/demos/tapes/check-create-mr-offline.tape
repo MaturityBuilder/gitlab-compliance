@@ -12,7 +12,7 @@ Set Theme "Catppuccin Mocha"
 Type "cd docs/demos/fixtures && gitlab-compliance check -f policies/ -p create-mr.gitlab-ci.yml --dry-run"
 Enter
 Sleep 6s
-Type "echo 'Live MR create: add --fix-supply-chain --create-mr --project ... --token ...'"
+Type "echo 'Live MR create: add --fix --create-mr --project ... --token ...'"
 Enter
 Sleep 4s
 Type "echo 'Re-record with: bash scripts/record-demos.sh live'"

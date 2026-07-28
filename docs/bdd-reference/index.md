@@ -20,6 +20,7 @@ And     → continue the previous step type
 - **[GIVEN Directives](given.md):** Entity selection
 - **[WHEN Directives](when.md):** Filtering
 - **[THEN Directives](then.md):** Assertions
+- **[Script steps](script-steps.md):** Embedded CI script Given/When/Then
 - **[Using AND](using-and.md):** Chaining steps
 - **[Policy Metadata](metadata.md):** `# METADATA` annotations and catalogs
 - **[Advanced scenarios](advanced-scenarios.md):** Scenario Outline matrices, value specs

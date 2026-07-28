@@ -1,0 +1,10 @@
+stages: [test]
+
+demo:
+  stage: test
+  script:
+    - set -euo pipefail
+    - echo "$CI_COMMIT_SHA"
+    - curl -fsSL "https://example.com/file.tgz" -o /tmp/file.tgz
+    - echo "deadbeef  /tmp/file.tgz" | sha256sum -c -
+    - apk add --no-cache curl=8.5.0-r0
