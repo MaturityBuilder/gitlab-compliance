@@ -6,10 +6,12 @@ from pathlib import Path
 
 from src.compliance.models import ComplianceResult, ScenarioResult
 from src.compliance.shell_render import (
+    escape_markdown_cell,
     parse_shell_violations,
     render_shell_check_html,
     render_shell_check_markdown,
     render_shell_check_report,
+    split_location,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures" / "shell_check"
@@ -157,3 +159,93 @@ class TestRenderShellCheckReport:
         assert "GitLab CI Compliance Report" not in text
         assert "Findings" in text
         assert "`.bad-template`" in text
+
+    def test_mr_comment_includes_coverage_and_skipped(self):
+        result = ComplianceResult(
+            success=False,
+            exit_code=1,
+            scenario_results=[
+                _failed_scenario(),
+                ScenarioResult(
+                    feature="skip.feature",
+                    name="Skipped",
+                    status="skipped",
+                    message="",
+                    policy_id="GLCI-SHELL-SKIP",
+                    title="Skipped policy",
+                ),
+            ],
+            scenarios=2,
+            passed=0,
+            failed=1,
+            skipped=1,
+            unresolved_includes=[
+                {
+                    "include_type": "project",
+                    "reference": "g/p",
+                    "reason": "no_token",
+                    "source_file": ".gitlab-ci.yml",
+                    "line": 1,
+                }
+            ],
+        )
+        text = render_shell_check_report(result, PIPELINE, POLICIES, "mr-comment")
+        assert "Coverage gaps" in text
+        assert "Skipped policies" in text
+        assert "GLCI-SHELL-SKIP" in text
+
+
+class TestShellRenderHelpers:
+    def test_split_location_edge_cases(self):
+        assert split_location("") == ("", 0)
+        assert split_location("no-line") == ("no-line", 0)
+        assert split_location("file.yml:abc") == ("file.yml:abc", 0)
+        assert split_location("file.yml:12") == ("file.yml", 12)
+
+    def test_escape_markdown_cell(self):
+        assert escape_markdown_cell("a|b\nc") == "a\\|b c"
+
+    def test_markdown_renders_skipped_passed_and_unstructured(self):
+        result = ComplianceResult(
+            success=True,
+            exit_code=0,
+            scenario_results=[
+                ScenarioResult(
+                    feature="pass.feature",
+                    name="ok",
+                    status="passed",
+                    policy_id="PASS-1",
+                    title="Passed",
+                ),
+                ScenarioResult(
+                    feature="skip.feature",
+                    name="skip",
+                    status="skipped",
+                    message="No entities",
+                    policy_id="SKIP-1",
+                    title="Skipped",
+                ),
+                ScenarioResult(
+                    feature="fail.feature",
+                    name="fail",
+                    status="failed",
+                    message="ASSERT FAILED: unstructured detail only",
+                    policy_id="FAIL-1",
+                    title="Failed unstructured",
+                    description="desc",
+                ),
+            ],
+            scenarios=3,
+            passed=1,
+            failed=1,
+            skipped=1,
+        )
+        text = render_shell_check_markdown(result, PIPELINE, POLICIES)
+        assert "Passed policies" in text
+        assert "Skipped policies" in text
+        assert "unstructured detail only" in text
+
+        html_text = render_shell_check_html(result, PIPELINE, POLICIES)
+        assert "Skipped policies" in html_text
+        assert "unstructured detail only" in html_text
+        assert "Passed policies" in html_text

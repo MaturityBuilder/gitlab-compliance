@@ -403,6 +403,40 @@ class TestIncludeResolutionReporting:
         assert sum(1 for job in data["jobs"] if job["name"] == "shared") == 1
         assert mock_get.call_count == 1
 
+    def test_project_nested_local_resolved_via_api(self, tmp_path):
+        root = tmp_path / ".gitlab-ci.yml"
+        root.write_text(
+            "include:\n"
+            "  - project: group/project\n"
+            "    ref: main\n"
+            "    file: root.yml\n"
+            "root:\n  script: [echo root]\n",
+            encoding="utf-8",
+        )
+        mock_project = MagicMock()
+
+        def _raw(file_path, ref):
+            if file_path == "root.yml":
+                return b"include:\n  - local: nested.yml\nparent:\n  script: [echo parent]\n"
+            if file_path == "nested.yml":
+                return b"nested:\n  script: [echo nested]\n"
+            raise AssertionError(file_path)
+
+        mock_project.files.raw.side_effect = _raw
+        mock_gl = MagicMock()
+        mock_gl.projects.get.return_value = mock_project
+        with patch("src.compliance.include_fetch._gitlab_client", return_value=mock_gl):
+            data = collect_pipeline_data(
+                str(root),
+                detailed=True,
+                include_nested=True,
+                resolve_external_includes=True,
+                token="glpat-test",
+                gitlab_url="https://gitlab.com",
+            )
+        assert "nested" in _job_names(data)
+        assert not data.get("unresolved_includes")
+
     def test_duplicate_job_names_keep_distinct_scripts(self):
         from src.compliance.script_analysis import script_has_unpinned_apt
 

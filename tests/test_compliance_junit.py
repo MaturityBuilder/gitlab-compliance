@@ -87,3 +87,33 @@ class TestRenderComplianceJunit:
         assert render_compliance_report(
             result, "ci.yml", "policies", "junit", suite_name="shell-check"
         )
+
+
+def test_compliance_markdown_includes_coverage_gaps_and_shell_table():
+    from src.compliance.render import (
+        render_compliance_html,
+        render_compliance_markdown,
+        render_compliance_mr_comment,
+    )
+
+    result = _result(_failed_shell_scenario())
+    result.unresolved_includes = [
+        {
+            "include_type": "remote",
+            "reference": "https://example.com/ci.yml",
+            "reason": "fetch_failed",
+            "detail": "404",
+            "source_file": ".gitlab-ci.yml",
+            "line": 2,
+        }
+    ]
+    markdown = render_compliance_markdown(result, "ci.yml", "policies")
+    assert "Coverage gaps" in markdown
+    assert "Job" in markdown and "Location" in markdown
+
+    html = render_compliance_html(result, "ci.yml", "policies")
+    assert "Coverage gaps" in html
+
+    mr = render_compliance_mr_comment(result, "ci.yml", "policies")
+    assert "Coverage gaps" in mr
+    assert "Unpinned apt package install" in mr
