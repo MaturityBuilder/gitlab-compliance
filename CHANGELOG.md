@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.2.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.1.1...v2.2.0) (2026-07-28)
+
+
+### Features
+
+* **cli:** shell-check, supply-chain pinning, and review fixes ([#94](https://github.com/MaturityBuilder/gitlab-compliance/issues/94)) ([66c5b6a](https://github.com/MaturityBuilder/gitlab-compliance/commit/66c5b6a5959afa633e1aa29e915b8b526c2bdda9))
+
+
+### Dependencies
+
+* **deps-dev:** Bump the "all-dependencies" group with 1 update across multiple ecosystems ([#91](https://github.com/MaturityBuilder/gitlab-compliance/issues/91)) ([590cdf2](https://github.com/MaturityBuilder/gitlab-compliance/commit/590cdf25df950bb8ed6e102648acc740dff7443e))
+* **deps:** Bump the "all-dependencies" group with 1 update across multiple ecosystems ([#90](https://github.com/MaturityBuilder/gitlab-compliance/issues/90)) ([2d5101d](https://github.com/MaturityBuilder/gitlab-compliance/commit/2d5101d775c77a185842291fdaaf22ca880395a7))
+
 ## [2.1.1](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.1.0...v2.1.1) (2026-07-19)
 
 
