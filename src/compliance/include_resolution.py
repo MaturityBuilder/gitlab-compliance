@@ -98,8 +98,8 @@ def format_include_warning(report: IncludeResolutionReport) -> str:
 
     lines = [
         "Some include entries were not resolved; scripts from those files were "
-        "not validated. Pass --token (or set GITLAB_TOKEN) and enable external "
-        "include resolution to fetch project and remote includes.",
+        + "not validated. Pass --token (or set GITLAB_TOKEN) and enable external "
+        + "include resolution to fetch project and remote includes.",
         "",
     ]
     for item in report.unresolved:
