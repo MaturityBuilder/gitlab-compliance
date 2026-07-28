@@ -116,6 +116,27 @@ shell-check:
       - SHELL-CHECK.md
 ```
 
+## Built-in Gherkin policies
+
+Packaged scenarios live under `src/compliance/builtin_policies/shell/`:
+
+| File | Focus |
+| --- | --- |
+| `shell-quoting.feature` | Variable and word splitting |
+| `shell-error-handling.feature` | `set -e`, exit codes, traps |
+| `shell-file-operations.feature` | Paths, redirects, temp files |
+| `shell-command-substitution.feature` | `` ` `` and `$()` usage |
+| `shell-conditionals.feature` | `if`/`test`/`[` patterns |
+| `shell-pipelines.feature` | Pipes and pipeline exit status |
+| `shell-security.feature` | Curl pipes, secrets, unsafe commands |
+| `shell-portability.feature` | Bashisms and POSIX portability |
+| `shell-ci-conventions.feature` | CI script hygiene |
+| `shell-references.feature` | `!reference` resolution |
+| `shell-pinning.feature` | Package manager and download pinning |
+
+Pinning scenarios (`GLCI-SHELL-PIN-*`) include per-manager Gherkin, bad/good CI
+snippets, and policy IDs in [Shell pinning examples](../../examples/shell-pinning.md).
+
 ## Custom policies
 
 Write org-specific Gherkin using the same script steps, for example requiring
