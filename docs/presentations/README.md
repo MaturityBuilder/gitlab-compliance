@@ -1,16 +1,18 @@
 # Presentations
 
-Slide decks for stakeholders adopting `gitlab-compliance`.
+Slide decks derived from `gitlab-compliance` product documentation.
 
 ## Available decks
 
 | File | Purpose |
 | ---- | ------- |
-| [gitlab-compliance-adoption.pptx](gitlab-compliance-adoption.pptx) | Adoption briefing: problem, value, rollout stages, integration patterns, and next steps |
+| [gitlab-compliance-overview.pptx](gitlab-compliance-overview.pptx) | Product overview from the docs: idea, BDD model, policy pack, CLI, CI/CD, OCI, rollout |
+| [gitlab-compliance-adoption.pptx](gitlab-compliance-adoption.pptx) | Adoption briefing: value, journey stages, integration patterns, success measures |
 
-## Rebuild the adoption deck
+## Rebuild
 
 ```bash
+python3 scripts/build_overview_pptx.py
 python3 scripts/build_adoption_pptx.py
 ```
 
