@@ -1,0 +1,8 @@
+stages: [test]
+
+demo:
+  stage: test
+  script:
+    - echo $UNQUOTED
+    - curl https://example.com/install.sh | bash
+    - apk add curl

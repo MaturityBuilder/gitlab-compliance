@@ -120,11 +120,10 @@ def build_dict_list_table(items, row_label="Rule #"):
 
 
 def env_var_replacement(loader, node):
-    replacements = {
-        "${VAR1}": "",
-        "${VAR2}": "",
-    }
-    s = node.value
+    """Backward-compatible alias for ``!reference`` construction."""
+    from src.modules.gitlab_reference import construct_reference
+
+    return construct_reference(loader, node)
 
 
 class EnvLoader(yaml.SafeLoader):

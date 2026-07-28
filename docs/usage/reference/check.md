@@ -38,7 +38,7 @@ CLI writes the HTML file, then the rendered report:
 
 ### Supply-chain fix merge request
 
-`--fix-supply-chain --create-mr` opens or updates an MR. Offline GIF shows the
+`--fix --create-mr` opens or updates an MR. Offline GIF shows the
 dry-run prelude;
 
 ![gitlab-compliance check create-mr prelude](../../demos/gifs/check-create-mr.gif)
@@ -115,7 +115,7 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml --dry-run
 
 ### Supply-chain and policy remediations
 
-#### `--fix-supply-chain` {#fix-supply-chain}
+#### `--fix` {#fix}
 
 Auto-remediate supply-chain issues before running policies:
 
@@ -130,11 +130,14 @@ cause the tool to pin or bump to attacker-controlled versions. Review every
 `--create-mr` diff before merge.
 
 Requires a GitLab token (`--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`). Cannot
-be combined with `--dry-run`.
+be combined with `--dry-run`. Also available as `--fix-supply-chain` (alias).
+
+Use with `check --with-supply-chain` or `supply-chain --fix` when you want to
+check and remediate supply-chain pinning in one run.
 
 ```bash
-gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
-  --fix-supply-chain
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix
+gitlab-compliance supply-chain -p .gitlab-ci.yml --fix
 ```
 
 #### `--fix-policies` {#fix-policies}
@@ -152,7 +155,7 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix-policies
 
 #### `--create-mr` {#create-mr}
 
-After `--fix-supply-chain` and/or `--fix-policies` rewrites local YAML, commit
+After `--fix` and/or `--fix-policies` rewrites local YAML, commit
 the changed files and open a GitLab merge request. Requires at least one fix
 mode, `--project` (or `CI_PROJECT_PATH`), and a token that can create branches,
 commits, and merge requests.
@@ -184,7 +187,7 @@ Optional: `--mr-branch`, `--mr-target-branch`.
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
-  --fix-supply-chain --create-mr --project "$CI_PROJECT_PATH" \
+  --fix --create-mr --project "$CI_PROJECT_PATH" \
   --token "$GITLAB_TOKEN"
 ```
 
@@ -210,6 +213,49 @@ gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
 ![gitlab-compliance check mr-comment](../../demos/gifs/check-mr-comment.gif)
 
 ![MR comment UI preview](../../demos/screenshots/check-post-mr-comment-ui.png)
+
+### Bundled policies
+
+#### `--with-builtin` {#with-builtin}
+
+Also run baseline policies shipped inside the package (job images, include
+pinning, variable allowlists, component input outlines). Your `-f` directory is
+optional when this flag is set; omit `-f` to run only the bundled baseline pack.
+
+```bash
+gitlab-compliance check -p .gitlab-ci.yml --with-builtin
+```
+
+#### `--with-shell-check` {#with-shell-check}
+
+Also run packaged `GLCI-SHELL-*` script standards for `before_script`,
+`script`, and `after_script`. Use this when you want shell checks without
+enabling the other bundled YAML baseline rules. Omit `-f` to run only the
+packaged shell policies.
+
+```bash
+gitlab-compliance check -p .gitlab-ci.yml --with-shell-check
+```
+
+Equivalent to combining your policy directory with `shell-check` in one run.
+See [`shell-check`](shell-check.md).
+
+#### `--with-supply-chain` {#with-supply-chain}
+
+Also run packaged supply-chain pinning policies for includes, images, and
+services. Read-only unless you also pass `--fix`.
+Omit `-f` to run only the bundled supply-chain pack.
+
+```bash
+gitlab-compliance check -p .gitlab-ci.yml --with-supply-chain
+```
+
+Equivalent to `supply-chain` in the same invocation. See
+[`supply-chain`](supply-chain.md).
+
+`--with-builtin` uses only top-level bundled policies (not `shell/` or
+`supply-chain/`). Combine flags to merge multiple bundled packs without
+duplicating scenarios.
 
 ### OCI policy bundles
 
@@ -238,6 +284,13 @@ gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 \
 
 
 
+
+
+
+
+
+
+
 ## Usage
 
 ```
@@ -245,13 +298,13 @@ Usage: gitlab-compliance check [OPTIONS]
 ```
 
 ## Options
-* `features_dir` (REQUIRED):
+* `features_dir`:
   * Type: STRING
-  * Default: `sentinel.unset`
+  * Default: `none`
   * Usage: `--features
 -f`
 
-  Directory containing compliance policy .feature files or an OCI reference (oci://registry.example.com/policies:1.0.0).
+  Directory containing compliance policy .feature files or an OCI reference (oci://registry.example.com/policies:1.0.0). Optional when --with-builtin, --with-shell-check, and/or --with-supply-chain is set.
 
 * `pipeline_file`:
   * Type: STRING
@@ -349,9 +402,10 @@ Usage: gitlab-compliance check [OPTIONS]
 * `fix_supply_chain`:
   * Type: BOOL
   * Default: `false`
-  * Usage: `--fix-supply-chain`
+  * Usage: `--fix
+--fix-supply-chain`
 
-  Auto-fix outdated include refs and pin container images to sha256 digests.
+  Supply-chain YAML auto-remediation only (includes/images). Use --fix-policies for allowlisted BDD remediations. Mutates YAML.
 
 * `fix_policies`:
   * Type: BOOL
@@ -365,7 +419,7 @@ Usage: gitlab-compliance check [OPTIONS]
   * Default: `false`
   * Usage: `--create-mr`
 
-  After --fix-supply-chain and/or --fix-policies, commit changed files and open a GitLab merge request (requires --token/GITLAB_TOKEN PAT; CI_JOB_TOKEN is rejected; failures exit 2 after the report).
+  After --fix and/or --fix-policies, commit changed files and open a GitLab merge request (requires --token/GITLAB_TOKEN PAT; CI_JOB_TOKEN is rejected; failures exit 2 after the report).
 
 * `post_mr_comment`:
   * Type: BOOL
@@ -409,6 +463,20 @@ Usage: gitlab-compliance check [OPTIONS]
 
   Also run bundled baseline policies shipped with gitlab-compliance.
 
+* `with_shell_check`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--with-shell-check`
+
+  Also run packaged GLCI-SHELL script standards for before_script, script, and after_script.
+
+* `with_supply_chain`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--with-supply-chain`
+
+  Also run packaged supply-chain pinning policies (include, image, and service pinning). Read-only unless you also pass --fix.
+
 * `help`:
   * Type: BOOL
   * Default: `false`
@@ -429,7 +497,8 @@ Options:
   -f, --features TEXT             Directory containing compliance policy
                                   .feature files or an OCI reference
                                   (oci://registry.example.com/policies:1.0.0).
-                                  [required]
+                                  Optional when --with-builtin, --with-shell-
+                                  check, and/or --with-supply-chain is set.
   -p, --pipeline TEXT             Path to the GitLab CI pipeline YAML file.
   --format [console|markdown|html|mr-comment|codequality]
                                   Output format for the compliance report.
@@ -455,16 +524,17 @@ Options:
   --policy-cache-dir TEXT         Directory used when pulling OCI policy
                                   bundles (default: system temp).
   --dry-run                       Parse and list scenarios without asserting.
-  --fix-supply-chain              Auto-fix outdated include refs and pin
-                                  container images to sha256 digests.
+  --fix, --fix-supply-chain       Supply-chain YAML auto-remediation only
+                                  (includes/images). Use --fix-policies for
+                                  allowlisted BDD remediations. Mutates YAML.
   --fix-policies                  After an initial policy run, apply
                                   allowlisted BDD remediations (see
                                   docs/usage/fix-policies.md), then re-check.
-  --create-mr                     After --fix-supply-chain and/or --fix-
-                                  policies, commit changed files and open a
-                                  GitLab merge request (requires
-                                  --token/GITLAB_TOKEN PAT; CI_JOB_TOKEN is
-                                  rejected; failures exit 2 after the report).
+  --create-mr                     After --fix and/or --fix-policies, commit
+                                  changed files and open a GitLab merge
+                                  request (requires --token/GITLAB_TOKEN PAT;
+                                  CI_JOB_TOKEN is rejected; failures exit 2
+                                  after the report).
   --post-mr-comment               Post the compliance mr-comment body to a
                                   GitLab merge request.
   --mr-iid INTEGER                Merge request IID for --post-mr-comment
@@ -479,5 +549,12 @@ Options:
                                   with --post-mr-comment.
   --with-builtin                  Also run bundled baseline policies shipped
                                   with gitlab-compliance.
+  --with-shell-check              Also run packaged GLCI-SHELL script
+                                  standards for before_script, script, and
+                                  after_script.
+  --with-supply-chain             Also run packaged supply-chain pinning
+                                  policies (include, image, and service
+                                  pinning). Read-only unless you also pass
+                                  --fix.
   --help                          Show this message and exit.
 ```

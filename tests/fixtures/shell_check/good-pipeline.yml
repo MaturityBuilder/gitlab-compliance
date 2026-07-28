@@ -1,0 +1,25 @@
+stages:
+  - test
+
+.safe-template:
+  script:
+    - set -euo pipefail
+    - echo "hello"
+    - curl -fsSL "https://example.com/file.tgz" -o /tmp/file.tgz
+    - echo "abc123  /tmp/file.tgz" | sha256sum -c -
+    - apk add --no-cache curl=8.5.0-r0
+    - pip install "requests==2.32.0"
+    - pip3 install -q "gitlab-compliance==2.1.1"
+    - docker pull python:3.12.0
+    - docker run --rm -v "$PWD:/work" -w /work python:3.12.0 python --version
+    - docker run --rm python@sha256:66d292e5c26bd33a6f6f61cacb880de2186339a524ecba1ce098dbbaceed6515 --help
+    - value="$(echo hi)"
+    - cd "$HOME"
+    - if [ "$CI_COMMIT_SHA" = "abc" ]; then echo ok; fi
+
+safe-job:
+  stage: test
+  extends:
+    - .safe-template
+  script:
+    - printf '%s\n' "${items[@]}"

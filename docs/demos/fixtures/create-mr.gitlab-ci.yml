@@ -1,4 +1,4 @@
-# Demo fixture for --fix-supply-chain / --create-mr (mutable refs).
+# Demo fixture for --fix / --create-mr (mutable refs).
 stages:
   - build
 
