@@ -13,10 +13,7 @@ env:
   PYTHON_VERSION: "3.12"
 
 permissions:
-  security-events: write
-  id-token: write
   contents: read
-  actions: read
 
 jobs:
   deps:
@@ -181,38 +178,3 @@ jobs:
             echo "Run: bash scripts/record-demos.sh offline" >&2
             exit 1
           fi
-
-  scorecard:
-    name: OpenSSF Scorecard
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-      id-token: write
-      contents: read
-      actions: read
-      pull-requests: read
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          fetch-depth: 0
-
-      - name: Run OpenSSF Scorecard
-        uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a
-        with:
-          results_file: scorecard.sarif
-          # results_format: sarif
-          publish_results: true
-
-      # - name: Upload SARIF Results
-      #   uses: github/codeql-action/upload-sarif@v4
-      #   with:
-      #     sarif_file: scorecard.sarif
-
-      - name: Upload Scorecard Results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        if: always()
-        with:
-          name: scorecard-results
-          path: scorecard.sarif
-          retention-days: 30
