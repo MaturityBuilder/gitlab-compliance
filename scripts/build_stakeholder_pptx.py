@@ -119,6 +119,22 @@ def _card(slide, left, top, width, height):
     return _rect(slide, left, top, width, height, WHITE)
 
 
+def _notes(slide, text: str) -> None:
+    """Attach presenter notes for the slide."""
+    notes = slide.notes_slide
+    tf = notes.notes_text_frame
+    tf.clear()
+    tf.word_wrap = True
+    # Split on blank lines into paragraphs for readability in PowerPoint.
+    paragraphs = [p.strip() for p in text.strip().split("\n\n") if p.strip()]
+    for i, para in enumerate(paragraphs):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        p.text = para
+        p.space_after = Pt(8)
+        for run in p.runs:
+            _font(run, size=Pt(12), color=BODY)
+
+
 def build() -> Path:
     prs = Presentation()
     prs.slide_width = SLIDE_W
@@ -158,6 +174,16 @@ def build() -> Path:
             ("Non-conformance is usually unintentional drift — not deliberate rule-breaking", SEA_SOFT, False, Pt(13)),
         ],
     )
+    _notes(
+        s,
+        "Open by framing secure by design — not a blame conversation.\n\n"
+        "Key message: Gitlab Compliance helps us measure control coverage, detect "
+        "non-conforming configuration, and place controls so Dedicated and Nexus work "
+        "is guided by evidence.\n\n"
+        "Emphasise that non-conformance is usually unintentional drift — people are not "
+        "trying to break rules. We need visibility and detection so we can place the "
+        "right controls early.",
+    )
 
     # 2 Agenda
     s = prs.slides.add_slide(blank)
@@ -175,6 +201,12 @@ def build() -> Path:
             "6.  What good looks like — identify and place controls",
         ],
         size=Pt(20),
+    )
+    _notes(
+        s,
+        "Walk the agenda briefly. Promise outcomes, not tooling detail.\n\n"
+        "Signal the destination early: what good looks like is identifying and placing "
+        "controls — with continuous measurement and detection afterwards.",
     )
 
     # 3 Opportunity / design gap (not blame)
@@ -207,6 +239,14 @@ def build() -> Path:
         _rect(s, left, top, Inches(0.12), Inches(2.15), AMBER if i % 2 else SEA)
         _text(_box(s, left + Inches(0.4), top + Inches(0.35), Inches(5.3), Inches(0.45)), h, size=Pt(18), bold=True, color=INK)
         _text(_box(s, left + Inches(0.4), top + Inches(0.95), Inches(5.3), Inches(0.9)), body, size=Pt(15), color=BODY)
+    _notes(
+        s,
+        "Stay non-judgemental. The problem is missing measurement and late detection — "
+        "not people ignoring standards.\n\n"
+        "Say explicitly: drift into non-conformance is usually unintentional. Without "
+        "detection, we only discover it when change is expensive.\n\n"
+        "Transition: Dedicated and Nexus make this design gap visible and urgent.",
+    )
 
     # 4 Why now
     s = prs.slides.add_slide(blank)
@@ -238,6 +278,15 @@ def build() -> Path:
             "Remediation stays reviewable and sustainable",
         ],
         size=Pt(15),
+    )
+    _notes(
+        s,
+        "Position Dedicated and Nexus as design moments — chances to build security in, "
+        "not bolt it on after cutover.\n\n"
+        "Left: migration needs a measured baseline of controls before we move.\n\n"
+        "Right: Nexus needs detectable pinning and freshness controls, with evidence that "
+        "those controls work.\n\n"
+        "Avoid ‘people must follow rules’ language — focus on placing measurable controls.",
     )
 
     # 5 What it enables
@@ -276,6 +325,14 @@ def build() -> Path:
         _rect(s, left, top, Inches(4.0), Inches(0.1), SEA)
         _text(_box(s, left + Inches(0.25), top + Inches(0.3), Inches(3.5), Inches(0.45)), h, size=Pt(15), bold=True, color=INK)
         _text(_box(s, left + Inches(0.25), top + Inches(0.9), Inches(3.5), Inches(0.85)), body, size=Pt(13), color=BODY)
+    _notes(
+        s,
+        "This is the capability story in business language.\n\n"
+        "Stress the sequence: measure → detect non-conforming code → place controls → "
+        "guide behaviour with shared evidence.\n\n"
+        "Remind the room that detected non-conformance is usually drift, not intent. "
+        "The tool creates early signals so we can act calmly.",
+    )
 
     # 6 How capabilities map
     s = prs.slides.add_slide(blank)
@@ -304,6 +361,14 @@ def build() -> Path:
             align=PP_ALIGN.CENTER,
         )
         _text(_box(s, Inches(3.7), top + Inches(0.3), Inches(8.6), Inches(0.55)), body, size=Pt(15), color=BODY)
+    _notes(
+        s,
+        "Map each capability to a secure-by-design outcome without diving into commands.\n\n"
+        "Check = detect non-conformance. Scan = measure cohort coverage. Supply-chain = "
+        "place Nexus-aligned controls. Document = keep control intent visible.\n\n"
+        "If asked for detail: these work from pipeline configuration and optional project "
+        "settings — still keep the conversation on outcomes.",
+    )
 
     # 7 Control areas
     s = prs.slides.add_slide(blank)
@@ -326,6 +391,14 @@ def build() -> Path:
         _card(s, left, top, Inches(4.0), Inches(2.15))
         _text(_box(s, left + Inches(0.25), top + Inches(0.35), Inches(3.5), Inches(0.55)), h, size=Pt(15), bold=True, color=SEA)
         _text(_box(s, left + Inches(0.25), top + Inches(1.0), Inches(3.5), Inches(0.85)), body, size=Pt(13), color=BODY)
+    _notes(
+        s,
+        "Use this as a control catalogue — where we identify and place protections.\n\n"
+        "For each card, say ‘this is a control we can define, detect against, and place’.\n\n"
+        "Tie trusted components and freshness to Nexus; tie release guards and patterns to "
+        "predictable Dedicated cutover. Automated assurance means the control is checked "
+        "continuously, not only written in guidance.",
+    )
 
     # 8 Journey
     s = prs.slides.add_slide(blank)
@@ -361,6 +434,13 @@ def build() -> Path:
         )
         _text(_box(s, Inches(1.8), top + Inches(0.12), Inches(3.2), Inches(0.35)), title, size=Pt(16), bold=True, color=INK)
         _text(_box(s, Inches(5.1), top + Inches(0.2), Inches(7.2), Inches(0.5)), body, size=Pt(14), color=BODY)
+    _notes(
+        s,
+        "Walk the five steps as the programme path.\n\n"
+        "Identify → Prioritise → Place controls → Measure → Sustain.\n\n"
+        "Pause on ‘Place controls’ — that is the heart of what good looks like. Sustain "
+        "matters so unintentional drift is still detected after Dedicated go-live.",
+    )
 
     # 9 Readable policies
     s = prs.slides.add_slide(blank)
@@ -396,6 +476,14 @@ def build() -> Path:
         size=Pt(14),
         color=BODY,
     )
+    _notes(
+        s,
+        "Readable policies are how controls stay understandable after migration.\n\n"
+        "Read the example aloud. Then note: when the check fires, it usually means "
+        "unintentional drift — a measurable signal that a control is not yet in place.\n\n"
+        "This is how security and delivery share one control definition without needing "
+        "specialist decoding in every forum.",
+    )
 
     # 10 Programme support
     s = prs.slides.add_slide(blank)
@@ -422,6 +510,14 @@ def build() -> Path:
         _rect(s, Inches(6.45), top, Inches(6.2), Inches(0.7), bg)
         _text(_box(s, Inches(0.85), top + Inches(0.18), Inches(5.3), Inches(0.4)), left, size=Pt(13), bold=(i == 0), color=lc)
         _text(_box(s, Inches(6.65), top + Inches(0.18), Inches(5.8), Inches(0.4)), right, size=Pt(13), bold=(i == 0), color=rc)
+    _notes(
+        s,
+        "Use the table as a programme translation layer: need → secure-by-design response.\n\n"
+        "Highlight early detection of non-conforming code so controls can be placed calmly — "
+        "not in a rush at go-live.\n\n"
+        "Close the slide on continuity: readable policies remain the design contract after "
+        "the Dedicated move.",
+    )
 
     # 11 What good looks like
     s = prs.slides.add_slide(blank)
@@ -450,6 +546,13 @@ def build() -> Path:
         _card(s, left, top, Inches(4.0), Inches(2.15))
         _text(_box(s, left + Inches(0.25), top + Inches(0.35), Inches(3.5), Inches(0.5)), h, size=Pt(15), bold=True, color=SEA)
         _text(_box(s, left + Inches(0.25), top + Inches(0.95), Inches(3.5), Inches(0.95)), body, size=Pt(13), color=BODY)
+    _notes(
+        s,
+        "This is the success definition. Lead with identify and place controls.\n\n"
+        "Then: non-conformance is detected automatically; measurement is shared; priorities "
+        "follow data; the same controls stay detectable after cutover.\n\n"
+        "Do not turn this into a people-performance story. It is a control-design story.",
+    )
 
     # 12 Closing — secure by design outcome
     s = prs.slides.add_slide(blank)
@@ -477,6 +580,14 @@ def build() -> Path:
         "What good looks like: controls identified and placed — with continuous detection of non-conformance.",
         size=Pt(14),
         color=SEA_SOFT,
+    )
+    _notes(
+        s,
+        "Close on secure by design in practice — five practical steps, not a leadership ask.\n\n"
+        "Repeat the punchline: what good looks like is controls identified and placed, with "
+        "continuous detection of non-conformance.\n\n"
+        "Invite discussion on which control areas to baseline first for the Dedicated cohort "
+        "and Nexus expectations.",
     )
 
     out = Path("/workspace/docs/presentations/gitlab-compliance-stakeholder-briefing.pptx")

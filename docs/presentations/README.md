@@ -6,7 +6,7 @@ Stakeholder slide decks for `gitlab-compliance`.
 
 | File | Purpose |
 | ---- | ------- |
-| [gitlab-compliance-stakeholder-briefing.pptx](gitlab-compliance-stakeholder-briefing.pptx) | Secure-by-design briefing: measure controls, detect unintentional non-conforming code, identify and place controls for Dedicated and Nexus |
+| [gitlab-compliance-stakeholder-briefing.pptx](gitlab-compliance-stakeholder-briefing.pptx) | Secure-by-design briefing with speaker notes: measure controls, detect unintentional non-conforming code, identify and place controls for Dedicated and Nexus |
 
 ## Rebuild
 
