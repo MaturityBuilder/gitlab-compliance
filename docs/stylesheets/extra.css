@@ -1,0 +1,56 @@
+/* Example workflow badges (check / shell-check / supply-chain) */
+.example-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+  align-items: center;
+}
+
+.example-badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  text-decoration: none !important;
+  border: 1px solid transparent;
+}
+
+.example-badge:hover {
+  filter: brightness(0.95);
+}
+
+.example-badge--check {
+  color: #0b3d4a;
+  background: #d7eef3;
+  border-color: #9ec9d4;
+}
+
+.example-badge--shell-check {
+  color: #1a3d2b;
+  background: #dcefe3;
+  border-color: #9fc4ab;
+}
+
+.example-badge--supply-chain {
+  color: #4a3420;
+  background: #f3e6d7;
+  border-color: #d4b896;
+}
+
+.example-badge--generate {
+  color: #2c3340;
+  background: #e8eaf0;
+  border-color: #b8becc;
+}
+
+.example-badge-legend {
+  margin: 0 0 1.5rem;
+}
+
+.example-badge-legend .example-badges {
+  margin-bottom: 0.5rem;
+}

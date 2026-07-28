@@ -1,5 +1,10 @@
 # Fragment Pinning
 
+<p class="example-badges">
+  <a class="example-badge example-badge--check" href="../usage/reference/check.md">check</a>
+  <a class="example-badge example-badge--supply-chain" href="../usage/reference/check.md#fix-supply-chain">supply-chain</a>
+</p>
+
 Shared YAML from other projects must pin `ref:` to a tag or SHA, not a moving
 branch.
 

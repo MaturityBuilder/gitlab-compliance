@@ -1,5 +1,9 @@
 # Execution Policy
 
+<p class="example-badges">
+  <a class="example-badge example-badge--check" href="../usage/reference/check.md">check</a>
+</p>
+
 Control **when** pipeline jobs run. Jobs without `rules:` can execute on every
 push, tag, or schedule — including deploy stages that should be gated to
 protected branches or merge requests.

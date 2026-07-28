@@ -1,5 +1,9 @@
 # Pipeline documentation example
 
+<p class="example-badges">
+  <a class="example-badge example-badge--generate" href="../usage/reference/generate.md">generate</a>
+</p>
+
 Sample `generate` output.
 
 <!-- gitlab-compliance-opening-auto-generated -->

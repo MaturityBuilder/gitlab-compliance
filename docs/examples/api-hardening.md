@@ -1,5 +1,9 @@
 # API Hardening
 
+<p class="example-badges">
+  <a class="example-badge example-badge--check" href="../usage/reference/check.md">check</a>
+</p>
+
 Some controls cannot be expressed in YAML alone. API-backed scenarios read
 project settings and CI variables via the GitLab API.
 

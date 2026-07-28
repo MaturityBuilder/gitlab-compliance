@@ -1,5 +1,10 @@
 # Service Pinning
 
+<p class="example-badges">
+  <a class="example-badge example-badge--check" href="../usage/reference/check.md">check</a>
+  <a class="example-badge example-badge--supply-chain" href="../usage/reference/check.md#fix-supply-chain">supply-chain</a>
+</p>
+
 Service containers (for example `docker:dind`) should use explicit versions.
 
 ## Bad

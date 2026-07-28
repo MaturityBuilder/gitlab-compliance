@@ -1,5 +1,10 @@
 # Component Pinning
 
+<p class="example-badges">
+  <a class="example-badge example-badge--check" href="../usage/reference/check.md">check</a>
+  <a class="example-badge example-badge--supply-chain" href="../usage/reference/check.md#fix-supply-chain">supply-chain</a>
+</p>
+
 CI/CD components in `include:` must use immutable version refs, not branch names
 like `@main`.
 

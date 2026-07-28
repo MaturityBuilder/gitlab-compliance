@@ -1,5 +1,9 @@
 # Shell check (CI script standards)
 
+<p class="example-badges">
+  <a class="example-badge example-badge--shell-check" href="../usage/reference/shell-check.md">shell-check</a>
+</p>
+
 Validate `before_script`, `script`, and `after_script` blocks with packaged
 Gherkin policies. This is **not** the ShellCheck binary — standards are
 executable BDD scenarios with `GLCI-SHELL-*` control IDs.
