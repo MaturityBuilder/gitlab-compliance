@@ -6,7 +6,7 @@ Slide decks derived from `gitlab-compliance` product documentation.
 
 | File | Purpose |
 | ---- | ------- |
-| [gitlab-compliance-dedicated-nexus-impact.pptx](gitlab-compliance-dedicated-nexus-impact.pptx) | Impact briefing: check, shell scan, supply chain, and document for Dedicated migration, Nexus compliance, and tech-debt discovery |
+| [gitlab-compliance-dedicated-nexus-impact.pptx](gitlab-compliance-dedicated-nexus-impact.pptx) | Impact briefing: check, shell scan, supply chain, document, and readable Gherkin policies for Dedicated migration, Nexus compliance, tech-debt discovery, and ongoing standards |
 | [gitlab-compliance-overview.pptx](gitlab-compliance-overview.pptx) | Product overview from the docs: idea, BDD model, policy pack, CLI, CI/CD, OCI, rollout |
 | [gitlab-compliance-adoption.pptx](gitlab-compliance-adoption.pptx) | Adoption briefing: value, journey stages, integration patterns, success measures |
 
