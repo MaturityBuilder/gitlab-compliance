@@ -78,9 +78,7 @@ def _result(
 
 class TestRichConsoleHelpers:
     def test_hint_lookup_and_miss(self):
-        assert _hint_for_message(
-            "--create-mr requires --fix-supply-chain and/or --fix-policies"
-        )
+        assert _hint_for_message("--create-mr requires --fix and/or --fix-policies")
         assert _hint_for_message("totally unknown message") is None
 
     def test_get_console_with_and_without_width(self):
@@ -91,14 +89,14 @@ class TestRichConsoleHelpers:
     def test_print_error_includes_hint(self):
         console = Console(width=80, record=True, force_terminal=True)
         print_error(
-            "--create-mr requires --fix-supply-chain and/or --fix-policies",
+            "--create-mr requires --fix and/or --fix-policies",
             console=console,
         )
         text = console.export_text()
         assert "Error" in text
-        assert "--create-mr requires --fix-supply-chain and/or --fix-policies" in text
+        assert "--create-mr requires --fix and/or --fix-policies" in text
         assert "Hint:" in text
-        assert "--fix-supply-chain --create-mr" in text
+        assert "--fix --create-mr" in text
 
     def test_print_error_explicit_hint_overrides(self):
         console = Console(width=80, record=True, force_terminal=True)
@@ -248,10 +246,7 @@ class TestRichConsoleHelpers:
             ],
         )
         assert result.exit_code == 2
-        assert (
-            "--create-mr requires --fix-supply-chain and/or --fix-policies"
-            in result.output
-        )
+        assert "--create-mr requires --fix and/or --fix-policies" in result.output
         assert "Hint:" in result.output
 
     def test_check_cli_missing_pipeline_rich_error(self, tmp_path):

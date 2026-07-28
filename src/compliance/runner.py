@@ -12,9 +12,14 @@ from behave.model import ScenarioOutline
 from behave.runner import Runner
 from behave.step_registry import registry
 
-from src.compliance.builtin_policies import BUILTIN_POLICIES_DIR
+from src.compliance.builtin_policies import (
+    BUILTIN_POLICIES_DIR,
+    BUILTIN_SHELL_POLICIES_DIR,
+    BUILTIN_SUPPLY_CHAIN_POLICIES_DIR,
+)
 from src.compliance.console import print_error, render_compliance_console
 from src.compliance.metadata import (
+    PolicyRoot,
     discover_policies,
     iter_feature_files,
     normalize_scenario_name,
@@ -83,20 +88,85 @@ def _collect_feature_files(features_dir: str) -> list[str]:
 
 
 def _resolve_policy_directories(
-    features_dir: str, with_builtin: bool = False
-) -> list[str]:
-    directories = []
+    features_dir: str | None,
+    with_builtin: bool = False,
+    with_shell_check: bool = False,
+    with_supply_chain: bool = False,
+) -> list[PolicyRoot]:
+    roots: list[PolicyRoot] = []
+    seen_paths: set[str] = set()
+
+    def _append_root(path: str, *, recursive: bool = True) -> None:
+        real_path = os.path.realpath(path)
+        if real_path in seen_paths:
+            return
+        seen_paths.add(real_path)
+        roots.append(PolicyRoot(path, recursive=recursive))
+
     if with_builtin:
-        directories.append(os.path.abspath(BUILTIN_POLICIES_DIR))
-    directories.append(os.path.abspath(features_dir))
-    return directories
+        _append_root(os.path.abspath(BUILTIN_POLICIES_DIR), recursive=False)
+    if with_shell_check:
+        _append_root(os.path.abspath(BUILTIN_SHELL_POLICIES_DIR))
+    if with_supply_chain:
+        _append_root(os.path.abspath(BUILTIN_SUPPLY_CHAIN_POLICIES_DIR))
+    if features_dir:
+        _append_root(os.path.abspath(features_dir))
+    if not roots:
+        raise ValueError(
+            "No policy source provided. Pass --features/-f and/or enable "
+            "--with-builtin, --with-shell-check, or --with-supply-chain."
+        )
+    return roots
+
+
+def resolve_policies_source_label(
+    features_dir: str | None,
+    *,
+    with_builtin: bool = False,
+    with_shell_check: bool = False,
+    with_supply_chain: bool = False,
+) -> str:
+    labels: list[str] = []
+    seen: set[str] = set()
+
+    def _add(label: str) -> None:
+        real_path = os.path.realpath(label) if os.path.isdir(label) else label
+        if real_path in seen:
+            return
+        seen.add(real_path)
+        labels.append(label)
+
+    if features_dir:
+        resolved = (
+            os.path.abspath(features_dir)
+            if os.path.isdir(features_dir)
+            else features_dir
+        )
+        _add(resolved)
+    for flag, label in (
+        (with_builtin, BUILTIN_POLICIES_DIR),
+        (with_shell_check, BUILTIN_SHELL_POLICIES_DIR),
+        (with_supply_chain, BUILTIN_SUPPLY_CHAIN_POLICIES_DIR),
+    ):
+        if flag:
+            _add(label)
+    if not labels:
+        return BUILTIN_POLICIES_DIR
+    if len(labels) == 1:
+        return labels[0]
+    return ", ".join(labels)
 
 
 def _collect_feature_files_from_dirs(features_dirs: list[str]) -> list[tuple[str, str]]:
     """Return (source_dir, feature_path) pairs from one or more policy roots."""
     collected: list[tuple[str, str]] = []
+    seen_files: set[str] = set()
     for features_dir in features_dirs:
         for feature_file in _collect_feature_files(features_dir):
+            real_path = os.path.realpath(feature_file)
+            if real_path in seen_files:
+                continue
+            seen_files.add(real_path)
             collected.append((features_dir, feature_file))
     return collected
 
@@ -212,7 +282,7 @@ def _collect_scenario_results(runner: Runner, policy_catalog) -> list[ScenarioRe
 
 
 def run_compliance(
-    features_dir: str,
+    features_dir: str | None,
     pipeline_file: str,
     include_nested: bool = True,
     max_include_depth: int | None = None,
@@ -228,31 +298,46 @@ def run_compliance(
     fix_supply_chain: bool = False,
     fix_policies: bool = False,
     with_builtin: bool = False,
+    with_shell_check: bool = False,
+    with_supply_chain: bool = False,
     create_mr: bool = False,
     post_mr_comment: bool = False,
     mr_iid: int | None = None,
     mr_branch: str | None = None,
     mr_target_branch: str | None = None,
     mr_comment_file: str | None = None,
+    command_title: str = "check",
 ) -> ComplianceResult:
-    policies_source = policies_source or features_dir
-    resolved_features_dir = (
-        resolve_features_dir(features_dir, cache_dir=policy_cache_dir)
-        if not os.path.isdir(features_dir)
-        else os.path.abspath(features_dir)
+    if not (features_dir or with_builtin or with_shell_check or with_supply_chain):
+        raise ValueError(
+            "No policy source provided. Pass --features/-f and/or enable "
+            "--with-builtin, --with-shell-check, or --with-supply-chain."
+        )
+
+    policies_source = policies_source or resolve_policies_source_label(
+        features_dir,
+        with_builtin=with_builtin,
+        with_shell_check=with_shell_check,
+        with_supply_chain=with_supply_chain,
     )
+    if features_dir:
+        resolved_features_dir = (
+            resolve_features_dir(features_dir, cache_dir=policy_cache_dir)
+            if not os.path.isdir(features_dir)
+            else os.path.abspath(features_dir)
+        )
+    else:
+        resolved_features_dir = None
 
     if not os.path.exists(pipeline_file):
         raise FileNotFoundError(f"Pipeline file not found: {pipeline_file}")
 
     if create_mr and not (fix_supply_chain or fix_policies):
-        raise ValueError(
-            "--create-mr requires --fix-supply-chain and/or --fix-policies"
-        )
+        raise ValueError("--create-mr requires --fix and/or --fix-policies")
     if create_mr and dry_run:
         raise ValueError("--create-mr cannot be used with --dry-run")
     if fix_supply_chain and dry_run:
-        raise ValueError("--fix-supply-chain cannot be used with --dry-run")
+        raise ValueError("--fix cannot be used with --dry-run")
     if fix_policies and dry_run:
         raise ValueError("--fix-policies cannot be used with --dry-run")
 
@@ -261,8 +346,7 @@ def run_compliance(
     )
     if fix_supply_chain and not resolved_token:
         raise ValueError(
-            "--fix-supply-chain requires a GitLab token "
-            "(--token, GITLAB_TOKEN, or CI_JOB_TOKEN)"
+            "--fix requires a GitLab token " "(--token, GITLAB_TOKEN, or CI_JOB_TOKEN)"
         )
     if fix_policies and not resolved_token:
         raise ValueError(
@@ -294,14 +378,17 @@ def run_compliance(
             )
         )
 
-    policy_directories = _resolve_policy_directories(
-        resolved_features_dir, with_builtin=with_builtin
+    policy_roots = _resolve_policy_directories(
+        resolved_features_dir,
+        with_builtin=with_builtin,
+        with_shell_check=with_shell_check,
+        with_supply_chain=with_supply_chain,
     )
-    discovery = discover_policies(policy_directories)
+    discovery = discover_policies(policy_roots)
     policy_catalog = discovery.catalog
     api_requirements = discovery.api_requirements
     workspace = _build_behave_workspace(
-        policy_directories, collected=discovery.feature_files
+        [root.path for root in policy_roots], collected=discovery.feature_files
     )
 
     need_enrich_includes = (
@@ -436,6 +523,7 @@ def run_compliance(
             result=result,
             pipeline_file=pipeline_file,
             features_dir=policies_source,
+            command_title=command_title,
         )
     else:
         logger.info(

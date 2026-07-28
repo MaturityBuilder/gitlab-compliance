@@ -11,7 +11,7 @@ predicates** are rewritten (for example, unpinned job images for
 left alone.
 
 This is separate from
-[`--fix-supply-chain`](reference/check.md#fix-supply-chain), which rewrites
+[`--fix`](reference/check.md#fix) (alias: `--fix-supply-chain`), which rewrites
 includes/images before policies run.
 
 ## Usage
@@ -36,7 +36,7 @@ Both fix modes can be combined:
 
 ```bash
 gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml \
-  --fix-supply-chain --fix-policies --create-mr --project "$CI_PROJECT_PATH" \
+  --fix --fix-policies --create-mr --project "$CI_PROJECT_PATH" \
   --token "$GITLAB_TOKEN"
 ```
 
@@ -45,7 +45,7 @@ Requires a GitLab token. Cannot be combined with `--dry-run`.
 ## Trust model
 
 Allowlisted remediations use the same GitLab/registry “latest” metadata as
-`--fix-supply-chain`. Always review generated YAML (and any `--create-mr`
+`--fix`. Always review generated YAML (and any `--create-mr`
 diff) before merging — a compromised upstream tag or registry can steer pins
 and version bumps.
 
@@ -54,7 +54,7 @@ token patterns and secret environment values before logging or posting.
 
 ## Flow
 
-1. Optional `--fix-supply-chain` rewrites.
+1. Optional `--fix` rewrites.
 2. Initial policy run.
 3. Allowlisted failed scenarios → YAML remediations for failing entities only.
 4. Policies re-run; the final report reflects post-fix status.

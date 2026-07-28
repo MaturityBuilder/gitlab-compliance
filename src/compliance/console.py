@@ -18,8 +18,8 @@ _STATUS_STYLES = {
 }
 
 _HINTS = {
-    "--create-mr requires --fix-supply-chain and/or --fix-policies": (
-        "Run with a fix mode, e.g. `--fix-supply-chain --create-mr` "
+    "--create-mr requires --fix and/or --fix-policies": (
+        "Run with a fix mode, e.g. `--fix --create-mr` "
         "or `--fix-policies --create-mr`."
     ),
     "--create-mr cannot be used with --dry-run": (
@@ -29,6 +29,12 @@ _HINTS = {
         "Set `--token` or `GITLAB_TOKEN` to a project/personal access token "
         "with permission to create branches and merge requests "
         "(`CI_JOB_TOKEN` is not accepted for `--create-mr`)."
+    ),
+    "--fix cannot be used with --dry-run": (
+        "Drop `--dry-run` when applying supply-chain fixes."
+    ),
+    "--fix requires a GitLab token": (
+        "Set `--token`, `GITLAB_TOKEN`, or `CI_JOB_TOKEN`."
     ),
     "--fix-supply-chain cannot be used with --dry-run": (
         "Drop `--dry-run` when applying supply-chain fixes."
@@ -277,6 +283,7 @@ def render_compliance_console(
     pipeline_file: str,
     features_dir: str,
     *,
+    command_title: str = "check",
     console: Console | None = None,
 ) -> None:
     """Render a width-aware Rich compliance report."""
@@ -298,7 +305,7 @@ def render_compliance_console(
     out.print(
         Panel(
             header,
-            title="[bold]gitlab-compliance check[/bold]",
+            title=f"[bold]gitlab-compliance {command_title}[/bold]",
             border_style=border_style,
             padding=(1, 2),
             expand=True,

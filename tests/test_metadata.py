@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from src.compliance.metadata import (
+    PolicyRoot,
     _parse_metadata_yaml,
     build_policy_catalog,
     discover_policies,
@@ -94,6 +95,22 @@ class TestDiscoverPolicies:
         assert discovery.api_requirements.enrich_includes is True
         assert discovery.api_requirements.enrich_images is False
         assert discovery.api_requirements.load_api_entities is False
+
+    def test_duplicate_roots_dedupe_feature_files(self, tmp_path):
+        policies = tmp_path / "policies"
+        policies.mkdir()
+        feature = policies / "jobs.feature"
+        feature.write_text("Feature: Jobs\n  Scenario: ok\n", encoding="utf-8")
+
+        discovery = discover_policies(
+            [
+                PolicyRoot(str(policies)),
+                PolicyRoot(str(policies)),
+            ]
+        )
+
+        assert len(discovery.feature_files) == 1
+        assert len(discovery.catalog.features) == 1
 
 
 class TestScenarioOutlineMetadata:

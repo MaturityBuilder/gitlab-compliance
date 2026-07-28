@@ -27,5 +27,5 @@ gitlab-compliance:
 ```
 
 Depending on your workflow and security policy the pipeline can potentially auto
-resolve includes and image updates by passing arg `--fix-supply-chain`
+resolve includes and image updates by passing `--fix` (alias: `--fix-supply-chain`).
 Next: [Usage](../usage/index.md).
