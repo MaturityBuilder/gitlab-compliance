@@ -6,7 +6,7 @@ Stakeholder slide decks for `gitlab-compliance`.
 
 | File | Purpose |
 | ---- | ------- |
-| [gitlab-compliance-stakeholder-briefing.pptx](gitlab-compliance-stakeholder-briefing.pptx) | Non-technical briefing: delivery risk, GitLab Dedicated migration, Nexus compliance, readable ongoing standards, and the leadership ask |
+| [gitlab-compliance-stakeholder-briefing.pptx](gitlab-compliance-stakeholder-briefing.pptx) | Secure-by-design briefing: measurement, detection, placing controls, Dedicated migration, Nexus compliance, and what good looks like |
 
 ## Rebuild
 

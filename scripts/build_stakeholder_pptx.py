@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a single non-technical stakeholder briefing for gitlab-compliance."""
+"""Build a non-technical secure-by-design stakeholder briefing."""
 
 from __future__ import annotations
 
@@ -98,7 +98,7 @@ def _header(slide, title: str, subtitle: str | None = None) -> None:
 def _footer(slide, page: int) -> None:
     _text(
         _box(slide, Inches(0.65), Inches(7.05), Inches(9), Inches(0.28)),
-        "Gitlab Compliance  ·  Stakeholder briefing",
+        "Gitlab Compliance  ·  Secure by design",
         size=Pt(11),
         color=MUTED,
     )
@@ -132,61 +132,61 @@ def build() -> Path:
     _rect(s, Inches(0), Inches(5.85), SLIDE_W, Inches(1.65), RGBColor(0x17, 0x30, 0x3F))
     _text(
         _box(s, Inches(0.85), Inches(1.5), Inches(11.5), Inches(0.35)),
-        "STAKEHOLDER BRIEFING",
+        "SECURE BY DESIGN",
         size=Pt(13),
         bold=True,
         color=SEA_SOFT,
     )
     _text(
-        _box(s, Inches(0.85), Inches(2.0), Inches(11.5), Inches(1.4)),
+        _box(s, Inches(0.85), Inches(2.0), Inches(11.5), Inches(1.2)),
         "Gitlab Compliance",
         size=Pt(42),
         bold=True,
         color=WHITE,
     )
     _text(
-        _box(s, Inches(0.85), Inches(3.4), Inches(11), Inches(1.2)),
-        "Find delivery risk early, meet Nexus expectations, support the GitLab Dedicated move — "
-        "and keep standards clear for everyone afterwards.",
+        _box(s, Inches(0.85), Inches(3.35), Inches(11), Inches(1.3)),
+        "A way to measure, detect, and place controls in delivery pipelines — "
+        "so Dedicated migration and Nexus expectations are guided by evidence, not assumption.",
         size=Pt(18),
         color=RGBColor(0xC0, 0xD0, 0xD8),
     )
     _lines(
         _box(s, Inches(0.85), Inches(6.2), Inches(11.5), Inches(0.9)),
         [
-            ("For delivery, security, and programme leaders", WHITE, True, Pt(15)),
-            ("Plain-language rules · clearer readiness · less last-minute surprise", SEA_SOFT, False, Pt(13)),
+            ("Measurement · Detection · Data-driven behaviour", WHITE, True, Pt(15)),
+            ("Readable controls that stay in place after go-live", SEA_SOFT, False, Pt(13)),
         ],
     )
 
     # 2 Agenda
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "What we will cover", "Outcomes first — not tooling detail")
+    _header(s, "What we will cover", "Secure by design — measured and detectable")
     _footer(s, 2)
     _bullets(
         _box(s, Inches(0.9), Inches(1.8), Inches(11.5), Inches(4.8)),
         [
-            "1.  The problem we are solving",
-            "2.  Why it matters for Dedicated and Nexus",
-            "3.  What Gitlab Compliance does in plain terms",
-            "4.  How we find and fix delivery risk",
-            "5.  How easy-to-read policies keep standards ongoing",
-            "6.  What good looks like — and the ask",
+            "1.  Why delivery needs measurable controls",
+            "2.  Dedicated migration and Nexus as design moments",
+            "3.  What Gitlab Compliance enables",
+            "4.  Where controls are identified and placed",
+            "5.  Readable policies that keep standards ongoing",
+            "6.  What good looks like",
         ],
         size=Pt(20),
     )
 
-    # 3 The problem
+    # 3 Opportunity / design gap (not blame)
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "The problem", "Important delivery rules are easy to miss until something breaks")
+    _header(s, "The design gap", "Without measurement, control gaps stay invisible until late")
     _footer(s, 3)
     cards = [
-        ("Hidden risk", "Build and release setups can quietly drift from agreed standards."),
-        ("Late discovery", "Issues often show up close to go-live — when change is costly."),
-        ("Hard to explain", "Rules live in long technical files that few people can review with confidence."),
-        ("Uneven practice", "Some teams follow the rules; others do not — and leaders cannot see the gap."),
+        ("Hard to measure", "We cannot see which delivery setups meet the intended control standard."),
+        ("Hard to detect", "Gaps appear late — often near go-live — when change is expensive."),
+        ("Hard to place controls", "Expectations exist in guidance, but are not consistently applied in pipelines."),
+        ("Hard to decide with data", "Progress relies on anecdotes instead of a shared, evidence-based view."),
     ]
     for i, (h, body) in enumerate(cards):
         col = i % 2
@@ -201,7 +201,7 @@ def build() -> Path:
     # 4 Why now
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "Why this matters now", "Two programmes that make invisible risk visible")
+    _header(s, "Why this matters now", "Two moments to design security into delivery — not bolt it on later")
     _footer(s, 4)
     _card(s, Inches(0.65), Inches(1.65), Inches(5.9), Inches(4.7))
     _rect(s, Inches(0.65), Inches(1.65), Inches(5.9), Inches(0.7), SEA)
@@ -209,10 +209,10 @@ def build() -> Path:
     _bullets(
         _box(s, Inches(0.95), Inches(2.6), Inches(5.3), Inches(3.4)),
         [
-            "We need a clear picture of delivery readiness before cutover",
-            "Unknown debt turns into schedule risk",
-            "Leaders need simple evidence — not technical archaeology",
-            "Better to fix early than discover during migration",
+            "Cutover is a chance to baseline control coverage",
+            "Unknown gaps become schedule and service risk",
+            "Readiness should be evidenced, not assumed",
+            "Secure by design means controls are in place before the move",
         ],
         size=Pt(15),
     )
@@ -222,32 +222,33 @@ def build() -> Path:
     _bullets(
         _box(s, Inches(7.1), Inches(2.6), Inches(5.3), Inches(3.4)),
         [
-            "Approved, trusted components become mandatory",
-            "Loose or outdated dependencies create control gaps",
-            "We need proof that standards are followed",
-            "Fixes must be reviewable and sustainable",
+            "Trusted, approved components need detectable controls",
+            "Freshness and pinning expectations must be measurable",
+            "Evidence of control effectiveness supports assurance",
+            "Remediation stays reviewable and sustainable",
         ],
         size=Pt(15),
     )
 
-    # 5 What it is
+    # 5 What it enables
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "What Gitlab Compliance does", "A practical way to check delivery setups against agreed standards")
+    _header(s, "What Gitlab Compliance enables", "A measurement and detection layer for delivery controls")
     _footer(s, 5)
     _text(
         _box(s, Inches(0.7), Inches(1.55), Inches(12), Inches(0.55)),
-        "It checks how teams build and release software — before changes are approved — and highlights where practice does not match the standard.",
+        "It turns agreed security expectations into detectable signals — so teams can place controls "
+        "early and improve based on data.",
         size=Pt(16),
         color=BODY,
     )
     points = [
-        ("Find issues early", "Spot delivery risk while there is still time to fix it."),
-        ("Speak plainly", "Standards are written in everyday language teams can share."),
-        ("Show the evidence", "Clear reports for programme, security, and delivery forums."),
-        ("Help fix what matters", "Guided remediations reduce the backlog of known debt."),
-        ("Keep knowledge current", "Living summaries of how pipelines actually work."),
-        ("Stay consistent", "The same standard applies across teams and projects."),
+        ("Measure", "See where intended controls are present or missing across projects."),
+        ("Detect", "Surface gaps before approval — while change is still low-cost."),
+        ("Guide behaviour", "Shared evidence supports consistent, data-driven decisions."),
+        ("Place controls", "Readable policies define the control; checks confirm it is applied."),
+        ("Strengthen supply chain", "Pinning and freshness controls align with Nexus expectations."),
+        ("Keep visibility", "Living summaries make pipeline intent understandable over time."),
     ]
     for i, (h, body) in enumerate(points):
         col = i % 3
@@ -259,43 +260,43 @@ def build() -> Path:
         _text(_box(s, left + Inches(0.25), top + Inches(0.3), Inches(3.5), Inches(0.45)), h, size=Pt(15), bold=True, color=INK)
         _text(_box(s, left + Inches(0.25), top + Inches(0.9), Inches(3.5), Inches(0.85)), body, size=Pt(13), color=BODY)
 
-    # 6 How we work
+    # 6 How capabilities map
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "How we use it", "Four simple activities — one outcome: fewer surprises")
+    _header(s, "How the tool supports secure by design", "Four capabilities that make controls measurable")
     _footer(s, 6)
     caps = [
-        ("Check", "Compare each project against the agreed standard and list what needs attention."),
-        ("Scan widely", "Review many projects quickly so the migration cohort has a ranked risk view."),
-        ("Strengthen supply chain", "Tighten use of trusted components and close known gaps against Nexus expectations."),
-        ("Document clearly", "Produce readable summaries so non-specialists can join the readiness conversation."),
+        ("Check", "Detect whether each project meets the intended control standard."),
+        ("Scan widely", "Measure coverage across the migration cohort with a shared risk view."),
+        ("Supply-chain controls", "Place pinning and freshness controls that support Nexus expectations."),
+        ("Document", "Keep a clear record of pipeline design so control intent stays visible."),
     ]
     for i, (h, body) in enumerate(caps):
         top = Inches(1.55 + i * 1.2)
         _card(s, Inches(0.65), top, Inches(12), Inches(1.08))
-        _rect(s, Inches(0.65), top, Inches(2.6), Inches(1.08), SEA)
+        _rect(s, Inches(0.65), top, Inches(2.8), Inches(1.08), SEA)
         _text(
-            _box(s, Inches(0.75), top + Inches(0.32), Inches(2.4), Inches(0.45)),
+            _box(s, Inches(0.75), top + Inches(0.32), Inches(2.6), Inches(0.45)),
             h,
-            size=Pt(15),
+            size=Pt(14),
             bold=True,
             color=WHITE,
             align=PP_ALIGN.CENTER,
         )
-        _text(_box(s, Inches(3.5), top + Inches(0.3), Inches(8.8), Inches(0.55)), body, size=Pt(15), color=BODY)
+        _text(_box(s, Inches(3.7), top + Inches(0.3), Inches(8.6), Inches(0.55)), body, size=Pt(15), color=BODY)
 
-    # 7 Tech debt in business terms
+    # 7 Control areas
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "The risk we need to surface", "Common delivery debt — explained without jargon")
+    _header(s, "Where we identify and place controls", "Control areas that make delivery safer by design")
     _footer(s, 7)
     debts = [
-        ("Untrusted building blocks", "Projects using components that can change without notice."),
-        ("Out-of-date dependencies", "Critical parts lagging behind agreed freshness windows."),
-        ("Weak release guards", "Steps that can run when they should not."),
-        ("Bypassed standards", "Teams skipping the shared delivery patterns."),
-        ("Poor visibility", "No clear picture of how a pipeline works today."),
-        ("Policy only on paper", "Rules exist in guidance, but are not checked automatically."),
+        ("Trusted components", "Control: only known, pinned building blocks."),
+        ("Dependency freshness", "Control: stay within agreed update windows."),
+        ("Release guards", "Control: steps run only when intended."),
+        ("Shared delivery patterns", "Control: standard templates are applied consistently."),
+        ("Pipeline visibility", "Control: current design is documented and reviewable."),
+        ("Automated assurance", "Control: expectations are checked continuously, not only on paper."),
     ]
     for i, (h, body) in enumerate(debts):
         col = i % 3
@@ -309,14 +310,14 @@ def build() -> Path:
     # 8 Journey
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "The journey", "From unknown risk to confident, ongoing control")
+    _header(s, "From gap to control", "A practical path to secure-by-design delivery")
     _footer(s, 8)
     steps = [
-        ("1", "Discover", "Scan the migration cohort and produce a clear risk list."),
-        ("2", "Prioritise", "Focus first on the highest-impact projects and gaps."),
-        ("3", "Remediate", "Fix supply-chain and standards issues with reviewable changes."),
-        ("4", "Explain", "Share readable reports and pipeline summaries with stakeholders."),
-        ("5", "Maintain", "Keep the same plain-language standards in force after go-live."),
+        ("1", "Identify", "Baseline where intended controls are missing or incomplete."),
+        ("2", "Prioritise", "Focus first on highest-impact control gaps for Dedicated and Nexus."),
+        ("3", "Place controls", "Apply readable policies and remediations with reviewable change."),
+        ("4", "Measure", "Track coverage and findings with shared reports and summaries."),
+        ("5", "Sustain", "Keep detection in place so secure-by-design behaviour continues after go-live."),
     ]
     for i, (num, title, body) in enumerate(steps):
         top = Inches(1.55 + i * 0.95)
@@ -336,50 +337,50 @@ def build() -> Path:
     # 9 Readable policies
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "Standards people can understand", "Easy-to-read policies keep the rules alive after migration")
+    _header(s, "Controls written so people understand them", "Readable policies make secure by design sustainable")
     _footer(s, 9)
     _text(
         _box(s, Inches(0.7), Inches(1.5), Inches(12), Inches(0.5)),
-        "Migration finds the debt once. Clear policies make sure the same expectations stay true every day after.",
+        "A control only works if people can understand it, apply it, and see when it is missing.",
         size=Pt(15),
         color=BODY,
     )
     _card(s, Inches(0.65), Inches(2.15), Inches(5.9), Inches(4.2))
-    _text(_box(s, Inches(0.95), Inches(2.4), Inches(5.3), Inches(0.4)), "Business benefits", size=Pt(16), bold=True, color=INK)
+    _text(_box(s, Inches(0.95), Inches(2.4), Inches(5.3), Inches(0.4)), "Why readable controls matter", size=Pt(16), bold=True, color=INK)
     _bullets(
         _box(s, Inches(0.95), Inches(3.0), Inches(5.3), Inches(3.0)),
         [
-            "Security and delivery share one understandable contract",
-            "New Nexus or Dedicated rules can be written plainly",
-            "Ownership is clear — standards are not buried in tribal knowledge",
-            "Findings are explainable in programme forums",
-            "Standards survive team and supplier change",
+            "Security and delivery share one understandable control definition",
+            "New Nexus or Dedicated expectations can be expressed clearly",
+            "Detection findings are explainable without specialist decoding",
+            "Control ownership is visible and versioned",
+            "Standards remain usable as teams and suppliers change",
         ],
         size=Pt(14),
     )
     _card(s, Inches(6.8), Inches(2.15), Inches(5.9), Inches(4.2))
-    _text(_box(s, Inches(7.1), Inches(2.4), Inches(5.3), Inches(0.4)), "Example of a readable rule", size=Pt(16), bold=True, color=INK)
+    _text(_box(s, Inches(7.1), Inches(2.4), Inches(5.3), Inches(0.4)), "Example of a clear control", size=Pt(16), bold=True, color=INK)
     _text(
         _box(s, Inches(7.1), Inches(3.1), Inches(5.3), Inches(2.8)),
-        "“If a job uses a software image, it must not use an open-ended ‘latest’ version.”\n\n"
-        "That idea becomes a short scenario both technical and non-technical colleagues can follow — "
-        "and the check confirms it is true before approval.",
+        "“Software images used in delivery must not rely on an open-ended ‘latest’ version.”\n\n"
+        "That control is written in plain language, checked automatically, and creates a measurable "
+        "signal when it is not yet in place.",
         size=Pt(14),
         color=BODY,
     )
 
-    # 10 Value for Dedicated + Nexus
+    # 10 Programme support
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "How this supports our programmes", "One approach serving migration and compliance together")
+    _header(s, "How this supports our programmes", "Evidence-led readiness for Dedicated and Nexus")
     _footer(s, 10)
     rows = [
-        ("Need", "How Gitlab Compliance helps"),
-        ("Know readiness before Dedicated cutover", "Ranked risk view across the migration cohort"),
-        ("Meet Nexus expectations", "Checks and fixes for trusted, up-to-date components"),
-        ("Reduce last-minute surprise", "Issues found and discussed before go-live pressure"),
-        ("Give leaders usable evidence", "Clear reports and summaries for decision forums"),
-        ("Keep standards after the move", "Readable policies remain the ongoing contract"),
+        ("Programme need", "Secure-by-design response"),
+        ("Know control coverage before Dedicated cutover", "Measured baseline across the migration cohort"),
+        ("Meet Nexus expectations", "Detectable pinning and freshness controls"),
+        ("Reduce late surprise", "Gaps detected early enough to place controls calmly"),
+        ("Decide with data", "Shared reports replace assumption-based status"),
+        ("Keep controls after the move", "Readable policies remain the ongoing design contract"),
     ]
     for i, (left, right) in enumerate(rows):
         top = Inches(1.5 + i * 0.8)
@@ -394,15 +395,15 @@ def build() -> Path:
     # 11 What good looks like
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "What good looks like", "Simple measures for programme confidence")
+    _header(s, "What good looks like", "Controls identified, placed, and continuously detectable")
     _footer(s, 11)
     measures = [
-        ("Coverage", "Most migration projects have been reviewed against the standard."),
-        ("Open issues falling", "Critical gaps are tracked and trending down."),
-        ("Faster fixes", "Time from finding to approved fix is shortening."),
-        ("Clear explanations", "Teams can explain a finding without specialist decoding."),
-        ("Ready evidence", "Readiness packs include current summaries and reports."),
-        ("Standards stick", "The same rules still protect delivery after cutover."),
+        ("Controls identified", "Intended controls are defined in plain language for each risk area."),
+        ("Controls placed", "Those controls are applied in delivery pipelines, not only described."),
+        ("Detection active", "Gaps are spotted automatically before approval."),
+        ("Measurement shared", "Coverage and findings are visible in a common evidence view."),
+        ("Data-driven improvement", "Priorities follow measured gap severity, not anecdote."),
+        ("Secure by design sustained", "The same controls remain detectable after Dedicated cutover."),
     ]
     for i, (h, body) in enumerate(measures):
         col = i % 3
@@ -410,20 +411,20 @@ def build() -> Path:
         left = Inches(0.55 + col * 4.2)
         top = Inches(1.65 + row * 2.4)
         _card(s, left, top, Inches(4.0), Inches(2.15))
-        _text(_box(s, left + Inches(0.25), top + Inches(0.35), Inches(3.5), Inches(0.45)), h, size=Pt(16), bold=True, color=SEA)
-        _text(_box(s, left + Inches(0.25), top + Inches(0.95), Inches(3.5), Inches(0.9)), body, size=Pt(13), color=BODY)
+        _text(_box(s, left + Inches(0.25), top + Inches(0.35), Inches(3.5), Inches(0.5)), h, size=Pt(15), bold=True, color=SEA)
+        _text(_box(s, left + Inches(0.25), top + Inches(0.95), Inches(3.5), Inches(0.95)), body, size=Pt(13), color=BODY)
 
-    # 12 Ask / next steps
+    # 12 Closing — secure by design outcome
     s = prs.slides.add_slide(blank)
     _rect(s, Inches(0), Inches(0), SLIDE_W, SLIDE_H, INK)
     _rect(s, Inches(0), Inches(0), Inches(0.2), SLIDE_H, SEA)
-    _text(_box(s, Inches(0.85), Inches(1.2), Inches(11.5), Inches(0.7)), "The ask", size=Pt(34), bold=True, color=WHITE)
+    _text(_box(s, Inches(0.85), Inches(1.2), Inches(11.5), Inches(0.7)), "Secure by design in practice", size=Pt(30), bold=True, color=WHITE)
     actions = [
-        "Endorse a readiness scan of the Dedicated migration cohort",
-        "Agree that Nexus-related standards will be written in plain language and checked before approval",
-        "Support a warn-first approach, then strengthen once the baseline is clean",
-        "Use the reports in programme forums as the shared view of risk and progress",
-        "Confirm that the same readable standards remain in force after cutover",
+        "Define the controls that matter for Dedicated readiness and Nexus assurance",
+        "Measure where those controls are already in place across the cohort",
+        "Detect remaining gaps early and place controls with reviewable change",
+        "Use shared evidence to prioritise and track improvement",
+        "Keep readable policies as the ongoing design standard after go-live",
     ]
     box = _box(s, Inches(0.85), Inches(2.15), Inches(11.5), Inches(3.6))
     tf = box.text_frame
@@ -436,7 +437,7 @@ def build() -> Path:
             _font(run, size=Pt(16), color=WHITE)
     _text(
         _box(s, Inches(0.85), Inches(6.2), Inches(11.5), Inches(0.5)),
-        "Outcome: fewer surprises, clearer ownership, and standards that stay understandable.",
+        "What good looks like: controls identified, placed, measured, and continuously detectable.",
         size=Pt(14),
         color=SEA_SOFT,
     )
