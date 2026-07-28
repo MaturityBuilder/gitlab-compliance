@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -36,6 +37,7 @@ NESTED_CI = NESTED_ROOT / ".gitlab-ci.yml"
 NESTED_POLICIES = (
     Path(__file__).resolve().parent / "compliance_policies" / "nested-includes"
 )
+SHELL_FIXTURES = Path(__file__).resolve().parent / "fixtures" / "shell_check"
 
 EXPECTED_NESTED_JOBS = {
     "root_lint",
@@ -85,7 +87,7 @@ class TestNestedIncludeFixture:
         assert (NESTED_ROOT / "includes/build/docker/publish.yml").is_file()
 
 
-class TestCollectPipelineDataNested:
+class TestCollectPipelineData:
     def test_include_nested_true_walks_full_tree(self):
         data = collect_pipeline_data(str(NESTED_CI), detailed=True, include_nested=True)
 
@@ -288,9 +290,97 @@ class TestCollectPipelineDataNested:
         assert result.skipped == 6
 
 
+class TestIncludeResolutionReporting:
+    def test_external_includes_recorded_when_not_resolved(self):
+        data = collect_pipeline_data(str(NESTED_CI), detailed=True, include_nested=True)
+        unresolved = data.get("unresolved_includes", [])
+        reasons = {item["reason"] for item in unresolved}
+        types = {item["include_type"] for item in unresolved}
+        assert "project" in types
+        assert "component" in types
+        assert "template" in types
+        assert "remote" in types
+        assert "no_token" in reasons or "fetch_failed" in reasons
+
+    def test_no_include_nested_records_local_gaps(self):
+        data = collect_pipeline_data(
+            str(NESTED_CI), detailed=True, include_nested=False
+        )
+        unresolved = data.get("unresolved_includes", [])
+        assert unresolved
+        assert all(item["reason"] == "include_nested_disabled" for item in unresolved)
+
+    def test_max_depth_records_depth_exceeded(self):
+        data = collect_pipeline_data(
+            str(NESTED_CI),
+            detailed=True,
+            include_nested=True,
+            max_include_depth=0,
+        )
+        unresolved = data.get("unresolved_includes", [])
+        assert any(item["reason"] == "depth_exceeded" for item in unresolved)
+
+    def test_remote_include_merged_when_fetch_succeeds(self, tmp_path):
+        root = tmp_path / ".gitlab-ci.yml"
+        root.write_text(
+            "include:\n"
+            "  - remote: https://example.com/ci.yml\n"
+            "root:\n  script: [echo root]\n",
+            encoding="utf-8",
+        )
+        with patch(
+            "src.compliance.include_fetch.requests.get",
+            return_value=MagicMock(
+                status_code=200,
+                text="remote_job:\n  script: [echo remote]\n",
+            ),
+        ) as mock_get:
+            mock_get.return_value.raise_for_status = MagicMock()
+            data = collect_pipeline_data(
+                str(root),
+                detailed=True,
+                include_nested=True,
+                resolve_external_includes=True,
+            )
+        assert "remote_job" in _job_names(data)
+        assert not any(
+            item["include_type"] == "remote" for item in data["unresolved_includes"]
+        )
+
+    def test_duplicate_job_names_keep_distinct_scripts(self):
+        from src.compliance.script_analysis import script_has_unpinned_apt
+
+        data = collect_pipeline_data(
+            str(SHELL_FIXTURES / "collision-root.yml"),
+            include_nested=True,
+            resolve_job_composition=True,
+        )
+        jobs = {(job["name"], job["source_file"]): job for job in data["jobs"]}
+        child_key = next(
+            key
+            for key in jobs
+            if key[0] == "a" and key[1].endswith("collision-child.yml")
+        )
+        root_key = next(
+            key
+            for key in jobs
+            if key[0] == "a" and key[1].endswith("collision-root.yml")
+        )
+        child_entity = {
+            "name": "a",
+            "effective_script": jobs[child_key]["effective_script"],
+        }
+        root_entity = {
+            "name": "a",
+            "effective_script": jobs[root_key]["effective_script"],
+        }
+        assert script_has_unpinned_apt(child_entity)
+        assert not script_has_unpinned_apt(root_entity)
+
+
 class TestComplianceNestedLoading:
     def test_load_yaml_entities_nested_true(self):
-        entities = load_yaml_entities(str(NESTED_CI), include_nested=True)
+        entities, unresolved = load_yaml_entities(str(NESTED_CI), include_nested=True)
         job_names = {job["name"] for job in entities["jobs"]}
         include_projects = {
             include["values"].get("project") for include in entities["includes"]
@@ -303,13 +393,15 @@ class TestComplianceNestedLoading:
             == "registry.gitlab.com/security-products/sast:4.2.1"
             for image in entities["container_images"]
         )
+        assert unresolved
 
     def test_load_yaml_entities_nested_false(self):
-        entities = load_yaml_entities(str(NESTED_CI), include_nested=False)
+        entities, unresolved = load_yaml_entities(str(NESTED_CI), include_nested=False)
         job_names = {job["name"] for job in entities["jobs"]}
 
         assert job_names == ROOT_ONLY_JOBS
         assert "deep_sast" not in job_names
+        assert unresolved
 
     def test_check_workflow_passes_with_nested_enabled(self):
         result = run_compliance(

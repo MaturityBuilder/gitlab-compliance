@@ -2,12 +2,38 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from typing import Any
 
 from src.modules.gitlab_reference import UnresolvedReference, resolve_reference_value
 
 SCRIPT_KEYS = ("before_script", "script", "after_script")
+
+
+def job_registry_key(source_file: str, job_name: str) -> str:
+    """Stable registry key scoped to a YAML source file."""
+    return f"{os.path.realpath(source_file)}::{job_name}"
+
+
+def register_job_entry(
+    job_registry: dict[str, dict],
+    *,
+    job_name: str,
+    config: dict,
+    source_file: str,
+    line: int,
+) -> None:
+    """Register a job for composition and !reference resolution."""
+    entry = {
+        "config": config,
+        "source_file": source_file,
+        "line": line,
+        "name": job_name,
+    }
+    job_registry[job_registry_key(source_file, job_name)] = entry
+    # GitLab merges jobs by name; last registration wins for cross-file references.
+    job_registry[job_name] = entry
 
 
 @dataclass
@@ -144,11 +170,24 @@ def _resolve_config_value(
     return value
 
 
+def _lookup_job_entry(
+    job_registry: dict[str, dict], job_name: str, source_file: str | None = None
+) -> dict:
+    if source_file:
+        keyed = job_registry.get(job_registry_key(source_file, job_name))
+        if keyed:
+            return keyed
+    return job_registry.get(job_name) or {}
+
+
 def compose_job_scripts(
-    job_name: str, job_registry: dict[str, dict]
+    job_name: str,
+    job_registry: dict[str, dict],
+    *,
+    source_file: str | None = None,
 ) -> EffectiveJobScripts:
     """Build effective script blocks for ``job_name`` including extends merge."""
-    entry = job_registry.get(job_name) or {}
+    entry = _lookup_job_entry(job_registry, job_name, source_file)
     source_file = entry.get("source_file", "")
     line = int(entry.get("line") or 0)
     unresolved: list[str] = []
@@ -157,7 +196,10 @@ def compose_job_scripts(
 
     buckets: dict[str, list[ScriptLine]] = {key: [] for key in SCRIPT_KEYS}
     for name in ordered:
-        job_entry = job_registry.get(name)
+        if name == job_name and source_file:
+            job_entry = _lookup_job_entry(job_registry, name, source_file)
+        else:
+            job_entry = job_registry.get(name)
         if not job_entry:
             continue
         config = job_entry.get("config") or {}

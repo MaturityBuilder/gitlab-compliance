@@ -36,6 +36,20 @@ CLI writes the HTML file, then the rendered report:
 
 ![MR comment UI preview](../../demos/screenshots/check-post-mr-comment-ui.png)
 
+### JUnit XML report
+
+Use `--format junit` to publish compliance results as CI test reports:
+
+```bash
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --format junit -o junit.xml
+```
+
+```yaml
+artifacts:
+  reports:
+    junit: junit.xml
+```
+
 ### Supply-chain fix merge request
 
 `--fix --create-mr` opens or updates an MR. Offline GIF shows the
@@ -280,12 +294,6 @@ gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 \
 ```
 
 <!-- MANUAL DOCS:END -->
-
-
-
-
-
-
 
 
 

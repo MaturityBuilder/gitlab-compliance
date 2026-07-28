@@ -6,13 +6,29 @@ DEFAULT_OUTPUT_FILES = {
     "html": "gitlab-compliance.html",
 }
 
-COMPLIANCE_OUTPUT_FORMATS = ("console", "markdown", "html", "mr-comment", "codequality")
+COMPLIANCE_OUTPUT_FORMATS = (
+    "console",
+    "markdown",
+    "html",
+    "mr-comment",
+    "codequality",
+    "junit",
+)
 
 COMPLIANCE_DEFAULT_OUTPUT_FILES = {
     "markdown": "COMPLIANCE-REPORT.md",
     "html": "COMPLIANCE-REPORT.html",
     "mr-comment": "COMPLIANCE-MR-COMMENT.md",
     "codequality": "gl-code-quality-report.json",
+    "junit": "junit.xml",
+}
+
+SHELL_CHECK_DEFAULT_OUTPUT_FILES = {
+    "markdown": "SHELL-CHECK.md",
+    "html": "SHELL-CHECK.html",
+    "mr-comment": "SHELL-CHECK-MR-COMMENT.md",
+    "codequality": "gl-code-quality-report.json",
+    "junit": "SHELL-CHECK.xml",
 }
 
 POLICY_DOC_OUTPUT_FORMATS = ("markdown", "html")

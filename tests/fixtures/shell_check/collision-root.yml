@@ -1,0 +1,5 @@
+include: collision-child.yml
+
+a:
+  script:
+    - echo root

@@ -489,7 +489,7 @@ class TestStashAndApi:
 
 class TestModelMetadataPolicy:
     def test_load_yaml_entities_sample(self):
-        entities = load_yaml_entities(str(SAMPLE))
+        entities, _unresolved = load_yaml_entities(str(SAMPLE))
         assert entities["jobs"]
 
     def test_load_pipeline_entities_without_api(self, monkeypatch):

@@ -17,7 +17,7 @@ from src.compliance.builtin_policies import (
     BUILTIN_SHELL_POLICIES_DIR,
     BUILTIN_SUPPLY_CHAIN_POLICIES_DIR,
 )
-from src.compliance.console import print_error, render_compliance_console
+from src.compliance.console import print_error, print_warning, render_compliance_console
 from src.compliance.metadata import (
     PolicyRoot,
     discover_policies,
@@ -291,6 +291,7 @@ def run_compliance(
     project: str | None = None,
     group: str | None = None,
     strict: bool = False,
+    resolve_external_includes: bool | None = None,
     dry_run: bool = False,
     output_format: str = "console",
     policies_source: str | None = None,
@@ -362,6 +363,26 @@ def run_compliance(
 
     release_cache = ReleaseMetadataCache()
     fix_messages: list[str] = []
+
+    from src.compliance.include_resolution import (
+        IncludeResolutionReport,
+        format_include_warning,
+    )
+    from src.compliance.model import load_yaml_entities
+
+    _, unresolved_includes = load_yaml_entities(
+        pipeline_file,
+        include_nested=include_nested,
+        max_include_depth=max_include_depth,
+        resolve_external_includes=resolve_external_includes,
+        gitlab_url=gitlab_url,
+        token=resolved_token or token,
+    )
+    include_report = IncludeResolutionReport()
+    include_report.extend(unresolved_includes)
+    include_warning = format_include_warning(include_report)
+    if include_warning:
+        print_warning(include_warning, title="Include coverage gap")
     if fix_supply_chain:
         from src.compliance.supply_chain_fix import apply_supply_chain_fixes
 
@@ -436,6 +457,11 @@ def run_compliance(
             "enrich_includes": "true" if need_enrich_includes else "false",
             "enrich_images": "true" if need_enrich_images else "false",
             "load_api_entities": "true" if need_api_entities else "false",
+            "resolve_external_includes": (
+                "true"
+                if resolve_external_includes is True
+                else "false" if resolve_external_includes is False else "auto"
+            ),
             "release_cache": release_cache,
         }
 
@@ -514,6 +540,7 @@ def run_compliance(
         failed=failed_count,
         skipped=skipped,
         scenario_results=scenario_results,
+        unresolved_includes=unresolved_includes,
     )
 
     # Always emit the compliance report before optional GitLab side effects so a

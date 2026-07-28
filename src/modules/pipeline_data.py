@@ -4,10 +4,19 @@ from __future__ import annotations
 
 import os
 import re
+import tempfile
 from typing import Any
 
 import src.modules.common as common
+from src.compliance.include_fetch import (
+    IncludeFetchCache,
+    IncludeFetchFailure,
+    default_gitlab_url,
+    fetch_include_content,
+)
+from src.compliance.include_resolution import UnresolvedInclude, record_unresolved
 from src.compliance.include_versions import is_valid_semver_version
+from src.modules.job_composition import compose_job_scripts, register_job_entry
 from src.modules.output_filters import apply_output_filters
 
 JOB_EXCLUDE_KEYWORDS = [
@@ -33,6 +42,19 @@ def _normalize_include(entry: Any) -> dict:
     if isinstance(entry, str):
         return {"local": entry}
     return entry
+
+
+def _iter_include_entries(include_value: Any) -> list[Any]:
+    """Normalize GitLab ``include`` values to a list of include specs."""
+    if include_value is None:
+        return []
+    if isinstance(include_value, str):
+        return [include_value]
+    if isinstance(include_value, dict):
+        return [include_value]
+    if isinstance(include_value, list):
+        return include_value
+    return [include_value]
 
 
 def _include_valid_version(version: str, file: str, include: str) -> bool:
@@ -290,6 +312,213 @@ def _resolve_local_include_path(config_file: str, local_path: str) -> str | None
     return candidate if os.path.exists(candidate) else None
 
 
+def _should_resolve_external(
+    resolve_external_includes: bool | None,
+    *,
+    include_type: str,
+    token: str | None,
+) -> bool:
+    if resolve_external_includes is False:
+        return False
+    if resolve_external_includes is True:
+        return include_type in {"remote", "project"}
+    if include_type == "remote":
+        return True
+    if include_type == "project":
+        return bool(token)
+    return False
+
+
+def _merge_nested_pipeline_data(target: dict[str, Any], nested: dict[str, Any]) -> None:
+    target["includes"].extend(nested.get("includes", []))
+    target["jobs"].extend(nested.get("jobs", []))
+    target.setdefault("unresolved_includes", []).extend(
+        nested.get("unresolved_includes", [])
+    )
+
+
+def _collect_from_fetched_yaml(
+    *,
+    yaml_text: str,
+    config_label: str,
+    detailed: bool,
+    include_nested: bool,
+    max_include_depth: int | None,
+    exclude_sections: set[str] | None,
+    exclude_attributes: set[str] | None,
+    group_by: str | None,
+    include_scripts: bool,
+    resolve_job_composition: bool,
+    resolve_external_includes: bool | None,
+    gitlab_url: str | None,
+    token: str | None,
+    _depth: int,
+    _visited: set[str],
+    _job_registry: dict[str, dict],
+    _fetch_cache: IncludeFetchCache,
+    _unresolved: list[UnresolvedInclude],
+) -> dict[str, Any]:
+    temp_path = ""
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            suffix=".yml",
+            delete=False,
+            encoding="utf-8",
+        ) as handle:
+            handle.write(yaml_text)
+            temp_path = handle.name
+        return collect_pipeline_data(
+            temp_path,
+            detailed=detailed,
+            include_nested=include_nested,
+            max_include_depth=max_include_depth,
+            exclude_sections=exclude_sections,
+            exclude_attributes=exclude_attributes,
+            group_by=group_by,
+            include_scripts=include_scripts,
+            resolve_job_composition=resolve_job_composition,
+            resolve_external_includes=resolve_external_includes,
+            gitlab_url=gitlab_url,
+            token=token,
+            _depth=_depth,
+            _visited=_visited,
+            _job_registry=_job_registry,
+            _fetch_cache=_fetch_cache,
+            _unresolved=_unresolved,
+            _source_label=config_label,
+        )
+    finally:
+        if temp_path:
+            try:
+                os.unlink(temp_path)
+            except OSError:
+                pass
+
+
+def _process_parsed_include(
+    parsed: dict[str, Any],
+    *,
+    config_file: str,
+    data: dict[str, Any],
+    can_recurse: bool,
+    include_nested: bool,
+    detailed: bool,
+    max_include_depth: int | None,
+    exclude_sections: set[str] | None,
+    exclude_attributes: set[str] | None,
+    group_by: str | None,
+    include_scripts: bool,
+    resolve_job_composition: bool,
+    resolve_external_includes: bool | None,
+    gitlab_url: str | None,
+    token: str | None,
+    _depth: int,
+    _visited: set[str],
+    _job_registry: dict[str, dict],
+    _fetch_cache: IncludeFetchCache,
+    _unresolved: list[UnresolvedInclude],
+) -> None:
+    include_type = parsed.get("include_type", "")
+    if not can_recurse:
+        reason = "include_nested_disabled" if not include_nested else "depth_exceeded"
+        record_unresolved(_unresolved, parsed, reason=reason)
+        return
+
+    if include_type == "local":
+        sub_config = _resolve_local_include_path(config_file, parsed["project"])
+        if not sub_config:
+            base_dir = os.path.realpath(os.path.dirname(os.path.abspath(config_file)))
+            candidate = os.path.realpath(
+                os.path.normpath(
+                    os.path.join(base_dir, str(parsed["project"]).lstrip("/"))
+                )
+            )
+            try:
+                outside_base = os.path.commonpath([base_dir, candidate]) != base_dir
+            except ValueError:
+                outside_base = True
+            reason = "path_rejected" if outside_base else "not_found"
+            record_unresolved(_unresolved, parsed, reason=reason)
+            return
+        nested = collect_pipeline_data(
+            sub_config,
+            detailed=detailed,
+            include_nested=include_nested,
+            max_include_depth=max_include_depth,
+            exclude_sections=exclude_sections,
+            exclude_attributes=exclude_attributes,
+            group_by=group_by,
+            include_scripts=include_scripts,
+            resolve_job_composition=resolve_job_composition,
+            resolve_external_includes=resolve_external_includes,
+            gitlab_url=gitlab_url,
+            token=token,
+            _depth=_depth + 1,
+            _visited=_visited,
+            _job_registry=_job_registry,
+            _fetch_cache=_fetch_cache,
+            _unresolved=_unresolved,
+        )
+        _merge_nested_pipeline_data(data, nested)
+        return
+
+    if include_type in {"component", "template"}:
+        record_unresolved(_unresolved, parsed, reason="unsupported_type")
+        return
+
+    if not _should_resolve_external(
+        resolve_external_includes,
+        include_type=include_type,
+        token=token,
+    ):
+        if resolve_external_includes is False:
+            reason = "external_resolution_disabled"
+        elif include_type == "project":
+            reason = "no_token"
+        else:
+            reason = "unsupported_type"
+        record_unresolved(_unresolved, parsed, reason=reason)
+        return
+
+    fetched = fetch_include_content(
+        parsed,
+        gitlab_url=default_gitlab_url(gitlab_url),
+        token=token,
+        cache=_fetch_cache,
+    )
+    if isinstance(fetched, IncludeFetchFailure):
+        record_unresolved(
+            _unresolved,
+            parsed,
+            reason=fetched.reason,
+            detail=fetched.detail,
+        )
+        return
+
+    nested = _collect_from_fetched_yaml(
+        yaml_text=fetched.yaml_text,
+        config_label=fetched.config_label,
+        detailed=detailed,
+        include_nested=include_nested,
+        max_include_depth=max_include_depth,
+        exclude_sections=exclude_sections,
+        exclude_attributes=exclude_attributes,
+        group_by=group_by,
+        include_scripts=include_scripts,
+        resolve_job_composition=resolve_job_composition,
+        resolve_external_includes=resolve_external_includes,
+        gitlab_url=gitlab_url,
+        token=token,
+        _depth=_depth + 1,
+        _visited=_visited,
+        _job_registry=_job_registry,
+        _fetch_cache=_fetch_cache,
+        _unresolved=_unresolved,
+    )
+    _merge_nested_pipeline_data(data, nested)
+
+
 def collect_pipeline_data(
     config_file: str,
     detailed: bool = False,
@@ -301,9 +530,15 @@ def collect_pipeline_data(
     *,
     include_scripts: bool = False,
     resolve_job_composition: bool = False,
+    resolve_external_includes: bool | None = None,
+    gitlab_url: str | None = None,
+    token: str | None = None,
     _depth: int = 0,
     _visited: set[str] | None = None,
     _job_registry: dict[str, dict] | None = None,
+    _fetch_cache: IncludeFetchCache | None = None,
+    _unresolved: list[UnresolvedInclude] | None = None,
+    _source_label: str | None = None,
 ) -> dict:
     if resolve_job_composition:
         include_scripts = True
@@ -314,6 +549,8 @@ def collect_pipeline_data(
     resolved_config = os.path.realpath(os.path.abspath(config_file))
     visited = _visited if _visited is not None else set()
     job_registry = _job_registry if _job_registry is not None else {}
+    fetch_cache = _fetch_cache if _fetch_cache is not None else IncludeFetchCache()
+    unresolved = _unresolved if _unresolved is not None else []
     if resolved_config in visited:
         return {
             "config_file": config_file,
@@ -324,6 +561,7 @@ def collect_pipeline_data(
             "jobs": [],
             "container_images": [],
             "job_registry": job_registry,
+            "unresolved_includes": [item.to_dict() for item in unresolved],
             "line_index": {
                 "jobs": {},
                 "includes": [],
@@ -347,13 +585,14 @@ def collect_pipeline_data(
     skip_jobs = exclude_sections and "jobs" in exclude_sections
 
     data: dict[str, Any] = {
-        "config_file": config_file,
+        "config_file": _source_label or config_file,
         "inputs": [],
         "variables": [],
         "includes": [],
         "workflow_rules": [],
         "jobs": [],
         "container_images": [],
+        "unresolved_includes": [],
     }
 
     can_recurse = include_nested and (
@@ -385,7 +624,7 @@ def collect_pipeline_data(
         if exclude_sections and "includes" in exclude_sections:
             pass
         elif "include" in document:
-            for index, entry in enumerate(document["include"]):
+            for index, entry in enumerate(_iter_include_entries(document["include"])):
                 include_line = (
                     line_index["includes"][index]
                     if index < len(line_index["includes"])
@@ -396,27 +635,28 @@ def collect_pipeline_data(
                 )
                 if parsed:
                     data["includes"].append(parsed)
-                    if can_recurse and parsed["include_type"] == "local":
-                        sub_config = _resolve_local_include_path(
-                            config_file, parsed["project"]
-                        )
-                        if sub_config:
-                            nested = collect_pipeline_data(
-                                sub_config,
-                                detailed=detailed,
-                                include_nested=include_nested,
-                                max_include_depth=max_include_depth,
-                                exclude_sections=exclude_sections,
-                                exclude_attributes=exclude_attributes,
-                                group_by=group_by,
-                                include_scripts=include_scripts,
-                                resolve_job_composition=resolve_job_composition,
-                                _depth=_depth + 1,
-                                _visited=visited,
-                                _job_registry=job_registry,
-                            )
-                            data["includes"].extend(nested["includes"])
-                            data["jobs"].extend(nested["jobs"])
+                    _process_parsed_include(
+                        parsed,
+                        config_file=config_file,
+                        data=data,
+                        can_recurse=can_recurse,
+                        include_nested=include_nested,
+                        detailed=detailed,
+                        max_include_depth=max_include_depth,
+                        exclude_sections=exclude_sections,
+                        exclude_attributes=exclude_attributes,
+                        group_by=group_by,
+                        include_scripts=include_scripts,
+                        resolve_job_composition=resolve_job_composition,
+                        resolve_external_includes=resolve_external_includes,
+                        gitlab_url=gitlab_url,
+                        token=token,
+                        _depth=_depth,
+                        _visited=visited,
+                        _job_registry=job_registry,
+                        _fetch_cache=fetch_cache,
+                        _unresolved=unresolved,
+                    )
 
         if exclude_sections and "workflow" in exclude_sections:
             pass
@@ -435,11 +675,13 @@ def collect_pipeline_data(
                     continue
                 job_line = line_index["jobs"].get(key, 0)
                 if include_scripts or resolve_job_composition:
-                    job_registry[key] = {
-                        "config": value,
-                        "source_file": config_file,
-                        "line": job_line,
-                    }
+                    register_job_entry(
+                        job_registry,
+                        job_name=key,
+                        config=value,
+                        source_file=config_file,
+                        line=job_line,
+                    )
                 data["jobs"].append(
                     _parse_job(
                         key,
@@ -456,16 +698,18 @@ def collect_pipeline_data(
         data["container_images"] = _collect_container_images(data["jobs"])
     data["line_index"] = line_index
     data["job_registry"] = job_registry
+    data["unresolved_includes"] = [item.to_dict() for item in unresolved]
 
     if resolve_job_composition and _depth == 0 and job_registry:
-        from src.modules.job_composition import (
-            compose_job_scripts,
-            effective_scripts_as_values,
-        )
+        from src.modules.job_composition import effective_scripts_as_values
 
         composed_jobs = []
         for job in data["jobs"]:
-            effective = compose_job_scripts(job["name"], job_registry)
+            effective = compose_job_scripts(
+                job["name"],
+                job_registry,
+                source_file=job.get("source_file", config_file),
+            )
             values = effective_scripts_as_values(effective)
             enriched = dict(job)
             enriched.update(
