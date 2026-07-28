@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.2.0...v2.3.0) (2026-07-28)
+
+
+### Features
+
+* **shell-check:** reports, junit output, and nested include validation ([#97](https://github.com/MaturityBuilder/gitlab-compliance/issues/97)) ([62bd0ea](https://github.com/MaturityBuilder/gitlab-compliance/commit/62bd0ea8ef31b6695748f2fe376f564dfb3fbf1d))
+
 ## [2.2.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.1.1...v2.2.0) (2026-07-28)
 
 
