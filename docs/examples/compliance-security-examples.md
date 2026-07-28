@@ -1,5 +1,11 @@
 # GitLab Compliance Security Examples
 
+<p class="example-badges">
+  <a class="example-badge example-badge--check" href="../usage/reference/check.md">check</a>
+  <a class="example-badge example-badge--shell-check" href="../usage/reference/shell-check.md">shell-check</a>
+  <a class="example-badge example-badge--supply-chain" href="../usage/reference/check.md#fix-supply-chain">supply-chain</a>
+</p>
+
 !!! note "Moved"
     This content has been reorganized to match
     [terraform-compliance.com](https://terraform-compliance.com/) documentation
