@@ -35,6 +35,19 @@ def _normalize_include(entry: Any) -> dict:
     return entry
 
 
+def _iter_include_entries(include_value: Any) -> list[Any]:
+    """Normalize GitLab ``include`` values to a list of include specs."""
+    if include_value is None:
+        return []
+    if isinstance(include_value, str):
+        return [include_value]
+    if isinstance(include_value, dict):
+        return [include_value]
+    if isinstance(include_value, list):
+        return include_value
+    return [include_value]
+
+
 def _include_valid_version(version: str, file: str, include: str) -> bool:
     return is_valid_semver_version(version)
 
@@ -385,7 +398,7 @@ def collect_pipeline_data(
         if exclude_sections and "includes" in exclude_sections:
             pass
         elif "include" in document:
-            for index, entry in enumerate(document["include"]):
+            for index, entry in enumerate(_iter_include_entries(document["include"])):
                 include_line = (
                     line_index["includes"][index]
                     if index < len(line_index["includes"])

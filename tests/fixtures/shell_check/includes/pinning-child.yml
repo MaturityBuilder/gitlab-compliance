@@ -1,0 +1,10 @@
+# Template with unpinned apt install for nested-include pinning tests.
+.template:
+  script:
+    - echo "do something"
+    - apt update && apt install -qq -y yq
+
+nested_job:
+  stage: test
+  script:
+    - apk add curl

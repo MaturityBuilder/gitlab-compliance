@@ -3,10 +3,13 @@
 from pathlib import Path
 
 from src.modules.pipeline_data import (
+    _iter_include_entries,
     _parse_include_entry,
     _parse_remote_url_version,
     collect_pipeline_data,
 )
+
+SHELL_FIXTURES = Path(__file__).resolve().parent / "fixtures" / "shell_check"
 
 FIXTURE = (
     Path(__file__).resolve().parents[1]
@@ -46,6 +49,19 @@ class TestParseIncludeEntry:
         assert parsed["version"] == "1.2.0"
 
 
+class TestIterIncludeEntries:
+    def test_string_include_becomes_single_entry(self):
+        assert _iter_include_entries("ci/child.yml") == ["ci/child.yml"]
+
+    def test_dict_include_becomes_single_entry(self):
+        spec = {"local": "ci/child.yml"}
+        assert _iter_include_entries(spec) == [spec]
+
+    def test_list_include_is_unchanged(self):
+        entries = [{"local": "a.yml"}, "b.yml"]
+        assert _iter_include_entries(entries) == entries
+
+
 class TestCollectPipelineData:
     def test_collects_all_include_types_and_container_images(self):
         data = collect_pipeline_data(str(FIXTURE), detailed=True)
@@ -72,3 +88,23 @@ class TestCollectPipelineData:
         assert data["jobs_grouped"]
         for job in data["jobs"]:
             assert all(item["key"] != "image" for item in job["attributes"])
+
+    def test_string_include_loads_nested_jobs(self):
+        data = collect_pipeline_data(
+            str(SHELL_FIXTURES / "string-include.yml"),
+            include_nested=True,
+            resolve_job_composition=True,
+        )
+        names = {job["name"] for job in data["jobs"]}
+        assert ".template" in names
+        assert "deploy" in names
+
+    def test_dict_include_loads_nested_jobs(self):
+        data = collect_pipeline_data(
+            str(SHELL_FIXTURES / "dict-include.yml"),
+            include_nested=True,
+            resolve_job_composition=True,
+        )
+        names = {job["name"] for job in data["jobs"]}
+        assert ".template" in names
+        assert "deploy" in names

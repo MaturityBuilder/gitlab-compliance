@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from click.testing import CliRunner
 
 from src.gitlab_compliance import gitlab_compliance
@@ -102,3 +103,17 @@ def test_shell_check_junit_report(tmp_path):
     text = out.read_text(encoding="utf-8")
     assert 'name="shell-check"' in text
     assert "<failure" in text
+
+
+@pytest.mark.parametrize("pipeline", ["string-include.yml", "dict-include.yml"])
+def test_shell_check_detects_pinning_in_nested_includes(pipeline):
+    runner = CliRunner()
+    result = runner.invoke(
+        gitlab_compliance,
+        ["shell-check", "-p", str(FIXTURES / pipeline)],
+    )
+    assert result.exit_code == 1, result.output
+    assert (
+        "GLCI-SHELL-PIN-005" in result.output
+        or "apt packages must be version-pinned" in result.output
+    )
