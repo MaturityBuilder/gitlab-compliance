@@ -1,5 +1,9 @@
 # Advanced scenario examples
 
+<p class="example-badges">
+  <a class="example-badge example-badge--check" href="../usage/reference/check.md">check</a>
+</p>
+
 Worked **Scenario Outline** examples for matrix-style policies. For syntax and
 value-spec rules, see [Advanced scenarios](../bdd-reference/advanced-scenarios.md).
 

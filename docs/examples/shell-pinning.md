@@ -1,5 +1,10 @@
 # Shell script dependency pinning
 
+<p class="example-badges">
+  <a class="example-badge example-badge--shell-check" href="../usage/reference/shell-check.md">shell-check</a>
+  <a class="example-badge example-badge--supply-chain" href="../usage/reference/check.md#fix-supply-chain">supply-chain</a>
+</p>
+
 Supply-chain controls for packages and downloads inside GitLab CI job scripts.
 
 ## Policy pack

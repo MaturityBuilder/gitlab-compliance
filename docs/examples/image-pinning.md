@@ -1,5 +1,10 @@
 # Image Pinning
 
+<p class="example-badges">
+  <a class="example-badge example-badge--check" href="../usage/reference/check.md">check</a>
+  <a class="example-badge example-badge--supply-chain" href="../usage/reference/check.md#fix-supply-chain">supply-chain</a>
+</p>
+
 Prevent jobs from using mutable or unpinned container images. **Sha256 digest
 pinning** is the recommended default for supply-chain security.
 

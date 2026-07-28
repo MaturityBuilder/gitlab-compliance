@@ -1,5 +1,9 @@
 # OCI Policy Packs
 
+<p class="example-badges">
+  <a class="example-badge example-badge--check" href="../usage/reference/check.md">check</a>
+</p>
+
 Publish and consume policy bundles from OCI-compliant registries (GitLab
 Container Registry, GHCR, ACR, ECR), similar to [Conftest
 sharing](https://www.conftest.dev/sharing/).

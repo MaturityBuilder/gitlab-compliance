@@ -1,5 +1,9 @@
 # Gitstrings inline YAML example
 
+<p class="example-badges">
+  <a class="example-badge example-badge--generate" href="../usage/reference/generate.md">generate</a>
+</p>
+
 Generate README tables from decorated YAML snippets without editing the rest of the page. See the [gitstrings user guide](../usage/gitstrings.md).
 
 ## Before

@@ -1,5 +1,9 @@
 # Template Extends
 
+<p class="example-badges">
+  <a class="example-badge example-badge--check" href="../usage/reference/check.md">check</a>
+</p>
+
 Jobs should extend organization template jobs (for example shared security or
 deploy config) instead of duplicating or bypassing them.
 

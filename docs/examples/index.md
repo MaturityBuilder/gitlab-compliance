@@ -4,16 +4,44 @@ Sample policies for common GitLab CI/CD compliance checks. Full files are in the
 repository under
 [`examples/example-policies/security/`](https://github.com/MaturityBuilder/gitlab-compliance/tree/main/examples/example-policies/security).
 
+## Workflow badges
+
+Each example page is tagged with the command or focus area it demonstrates:
+
+<p class="example-badges example-badge-legend">
+  <a class="example-badge example-badge--check" href="../usage/reference/check.md">check</a>
+  <a class="example-badge example-badge--shell-check" href="../usage/reference/shell-check.md">shell-check</a>
+  <a class="example-badge example-badge--supply-chain" href="../usage/reference/check.md#fix-supply-chain">supply-chain</a>
+</p>
+
+| Badge | Command / focus | Use when |
+| ----- | --------------- | -------- |
+| **check** | `gitlab-compliance check` | Gherkin policies against pipeline YAML (and optional API settings) |
+| **shell-check** | `gitlab-compliance shell-check` | Packaged standards for `script` / `before_script` / `after_script` |
+| **supply-chain** | `check` + pinning / `--fix-supply-chain` | Images, includes, components, services, and auto-remediation |
+
 ## Quick start
 
-**Compliance**
+**Compliance (`check`)**
 
 ```bash
 cp -r examples/example-policies/security/ policies/
 gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 ```
 
-**Documentation**
+**Shell standards (`shell-check`)**
+
+```bash
+gitlab-compliance shell-check -p .gitlab-ci.yml
+```
+
+**Supply-chain remediations**
+
+```bash
+gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml --fix-supply-chain
+```
+
+**Documentation (`generate`)**
 
 ```bash
 gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeline-reference.md
@@ -21,37 +49,55 @@ gitlab-compliance generate -i .gitlab-ci.yml --format swagger-markdown -o pipeli
 
 See [GitLab Docs output example](gitlab-docs-output-example.md) for sample `generate` output.
 
-## Policy index
+## check — compliance policies
 
-- **Shell check:** Embedded CI script standards (quoting, pinning, security)
-  - [Shell check](shell-check.md)
-  - [Shell pinning](shell-pinning.md)
-- **Image pinning:** Floating `latest` tags
-  - [Image Pinning](image-pinning.md)
-- **Component pinning:** Unpinned `@main` components
-  - [Component Pinning](component-pinning.md)
-- **Fragment pinning:** Unpinned template `ref:`
-  - [Fragment Pinning](fragment-pinning.md)
-- **Include versions:** Invalid semver or outdated refs
-  - [Include Versions](include-versions.md)
-- **Service pinning:** Unversioned service images
-  - [Service Pinning](service-pinning.md)
-- **Execution policy:** Jobs without `rules:` or weak guards
-  - [Execution Policy](execution-policy.md)
-- **Template extends:** Jobs bypassing org templates
-  - [Template Extends](template-extends.md)
-- **API hardening:** Public logs, unmasked variables
-  - [API Hardening](api-hardening.md)
-- **Advanced scenarios:** Scenario Outline matrices (variables, component inputs)
-  - [Advanced scenarios](advanced-scenarios.md)
-- **OCI policy packs:** Central policy distribution
-  - [OCI Policy Packs](oci-policy-packs.md)
+<p class="example-badges">
+  <a class="example-badge example-badge--check" href="../usage/reference/check.md">check</a>
+</p>
+
+Gherkin policies run with `gitlab-compliance check`:
+
+- [Execution Policy](execution-policy.md) — jobs without `rules:` or weak guards
+- [Template Extends](template-extends.md) — jobs bypassing org templates
+- [API Hardening](api-hardening.md) — public logs, unmasked variables
+- [Advanced scenarios](advanced-scenarios.md) — Scenario Outline matrices
+- [OCI Policy Packs](oci-policy-packs.md) — central policy distribution
+
+## shell-check — CI script standards
+
+<p class="example-badges">
+  <a class="example-badge example-badge--shell-check" href="../usage/reference/shell-check.md">shell-check</a>
+</p>
+
+Packaged shell standards (not the ShellCheck binary):
+
+- [Shell check](shell-check.md) — quoting, remote pipes, unsafe patterns
+- [Shell pinning](shell-pinning.md) — package and download pinning in scripts
+
+## supply-chain — pinning and remediations
+
+<p class="example-badges">
+  <a class="example-badge example-badge--supply-chain" href="../usage/reference/check.md#fix-supply-chain">supply-chain</a>
+</p>
+
+Pinning policies (via `check`) and optional `--fix-supply-chain` remediations:
+
+- [Image Pinning](image-pinning.md) — floating `latest` tags / digest pins
+- [Component Pinning](component-pinning.md) — unpinned `@main` components
+- [Fragment Pinning](fragment-pinning.md) — unpinned template `ref:`
+- [Include Versions](include-versions.md) — invalid semver or outdated refs
+- [Service Pinning](service-pinning.md) — unversioned service images
 
 ## Documentation examples
+
+<p class="example-badges">
+  <a class="example-badge example-badge--generate" href="../usage/reference/generate.md">generate</a>
+</p>
 
 | Topic | Example page |
 |-------|----------------|
 | Inline YAML (gitstrings) | [Gitstrings inline YAML](gitstrings-inline-yaml.md) |
+| Generated pipeline docs | [GitLab Docs output example](gitlab-docs-output-example.md) |
 
 ## Consumption patterns
 
