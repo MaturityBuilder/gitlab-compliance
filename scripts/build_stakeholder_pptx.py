@@ -146,16 +146,16 @@ def build() -> Path:
     )
     _text(
         _box(s, Inches(0.85), Inches(3.35), Inches(11), Inches(1.3)),
-        "A way to measure, detect, and place controls in delivery pipelines — "
-        "so Dedicated migration and Nexus expectations are guided by evidence, not assumption.",
+        "Measure control coverage, detect non-conforming configuration, and place controls "
+        "in delivery pipelines — so Dedicated migration and Nexus expectations are guided by evidence.",
         size=Pt(18),
         color=RGBColor(0xC0, 0xD0, 0xD8),
     )
     _lines(
         _box(s, Inches(0.85), Inches(6.2), Inches(11.5), Inches(0.9)),
         [
-            ("Measurement · Detection · Data-driven behaviour", WHITE, True, Pt(15)),
-            ("Readable controls that stay in place after go-live", SEA_SOFT, False, Pt(13)),
+            ("Measurement · Detection of non-conforming code · Place controls", WHITE, True, Pt(15)),
+            ("Non-conformance is usually unintentional drift — not deliberate rule-breaking", SEA_SOFT, False, Pt(13)),
         ],
     )
 
@@ -172,7 +172,7 @@ def build() -> Path:
             "3.  What Gitlab Compliance enables",
             "4.  Where controls are identified and placed",
             "5.  Readable policies that keep standards ongoing",
-            "6.  What good looks like",
+            "6.  What good looks like — identify and place controls",
         ],
         size=Pt(20),
     )
@@ -180,12 +180,22 @@ def build() -> Path:
     # 3 Opportunity / design gap (not blame)
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "The design gap", "Without measurement, control gaps stay invisible until late")
+    _header(
+        s,
+        "The design gap",
+        "Without measurement, unintentional non-conformance stays invisible until late",
+    )
     _footer(s, 3)
     cards = [
         ("Hard to measure", "We cannot see which delivery setups meet the intended control standard."),
-        ("Hard to detect", "Gaps appear late — often near go-live — when change is expensive."),
-        ("Hard to place controls", "Expectations exist in guidance, but are not consistently applied in pipelines."),
+        (
+            "Hard to detect",
+            "Non-conforming configuration often appears late — near go-live — when change is expensive.",
+        ),
+        (
+            "Hard to place controls",
+            "Expectations exist in guidance, but drift into non-conformance is usually unintentional — not deliberate.",
+        ),
         ("Hard to decide with data", "Progress relies on anecdotes instead of a shared, evidence-based view."),
     ]
     for i, (h, body) in enumerate(cards):
@@ -210,9 +220,9 @@ def build() -> Path:
         _box(s, Inches(0.95), Inches(2.6), Inches(5.3), Inches(3.4)),
         [
             "Cutover is a chance to baseline control coverage",
-            "Unknown gaps become schedule and service risk",
+            "Undetected non-conformance becomes schedule and service risk",
             "Readiness should be evidenced, not assumed",
-            "Secure by design means controls are in place before the move",
+            "Secure by design means controls are identified and placed before the move",
         ],
         size=Pt(15),
     )
@@ -233,20 +243,27 @@ def build() -> Path:
     # 5 What it enables
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "What Gitlab Compliance enables", "A measurement and detection layer for delivery controls")
+    _header(
+        s,
+        "What Gitlab Compliance enables",
+        "Measurement and detection of non-conforming code — then place controls",
+    )
     _footer(s, 5)
     _text(
         _box(s, Inches(0.7), Inches(1.55), Inches(12), Inches(0.55)),
-        "It turns agreed security expectations into detectable signals — so teams can place controls "
-        "early and improve based on data.",
+        "It turns agreed security expectations into measurable signals — detecting unintentional "
+        "non-conforming configuration early so controls can be placed with confidence.",
         size=Pt(16),
         color=BODY,
     )
     points = [
         ("Measure", "See where intended controls are present or missing across projects."),
-        ("Detect", "Surface gaps before approval — while change is still low-cost."),
+        (
+            "Detect non-conformance",
+            "Find non-conforming code and configuration before approval — usually drift, not intent.",
+        ),
         ("Guide behaviour", "Shared evidence supports consistent, data-driven decisions."),
-        ("Place controls", "Readable policies define the control; checks confirm it is applied."),
+        ("Place controls", "Readable policies define the control; checks confirm it is in place."),
         ("Strengthen supply chain", "Pinning and freshness controls align with Nexus expectations."),
         ("Keep visibility", "Living summaries make pipeline intent understandable over time."),
     ]
@@ -266,8 +283,11 @@ def build() -> Path:
     _header(s, "How the tool supports secure by design", "Four capabilities that make controls measurable")
     _footer(s, 6)
     caps = [
-        ("Check", "Detect whether each project meets the intended control standard."),
-        ("Scan widely", "Measure coverage across the migration cohort with a shared risk view."),
+        (
+            "Check",
+            "Detect non-conforming configuration against the intended control standard.",
+        ),
+        ("Scan widely", "Measure coverage across the migration cohort with a shared evidence view."),
         ("Supply-chain controls", "Place pinning and freshness controls that support Nexus expectations."),
         ("Document", "Keep a clear record of pipeline design so control intent stays visible."),
     ]
@@ -310,14 +330,22 @@ def build() -> Path:
     # 8 Journey
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "From gap to control", "A practical path to secure-by-design delivery")
+    _header(s, "From non-conformance to control", "A practical path to secure-by-design delivery")
     _footer(s, 8)
     steps = [
         ("1", "Identify", "Baseline where intended controls are missing or incomplete."),
-        ("2", "Prioritise", "Focus first on highest-impact control gaps for Dedicated and Nexus."),
+        (
+            "2",
+            "Prioritise",
+            "Focus first on highest-impact non-conformance for Dedicated and Nexus.",
+        ),
         ("3", "Place controls", "Apply readable policies and remediations with reviewable change."),
-        ("4", "Measure", "Track coverage and findings with shared reports and summaries."),
-        ("5", "Sustain", "Keep detection in place so secure-by-design behaviour continues after go-live."),
+        ("4", "Measure", "Track coverage and non-conformance findings with shared reports."),
+        (
+            "5",
+            "Sustain",
+            "Keep detection in place so unintentional drift is caught after go-live.",
+        ),
     ]
     for i, (num, title, body) in enumerate(steps):
         top = Inches(1.55 + i * 0.95)
@@ -341,7 +369,7 @@ def build() -> Path:
     _footer(s, 9)
     _text(
         _box(s, Inches(0.7), Inches(1.5), Inches(12), Inches(0.5)),
-        "A control only works if people can understand it, apply it, and see when it is missing.",
+        "A control only works if people can understand it, place it, and detect when configuration drifts.",
         size=Pt(15),
         color=BODY,
     )
@@ -352,7 +380,7 @@ def build() -> Path:
         [
             "Security and delivery share one understandable control definition",
             "New Nexus or Dedicated expectations can be expressed clearly",
-            "Detection findings are explainable without specialist decoding",
+            "Non-conformance findings are explainable without specialist decoding",
             "Control ownership is visible and versioned",
             "Standards remain usable as teams and suppliers change",
         ],
@@ -364,7 +392,7 @@ def build() -> Path:
         _box(s, Inches(7.1), Inches(3.1), Inches(5.3), Inches(2.8)),
         "“Software images used in delivery must not rely on an open-ended ‘latest’ version.”\n\n"
         "That control is written in plain language, checked automatically, and creates a measurable "
-        "signal when it is not yet in place.",
+        "signal when non-conforming configuration appears — usually by accident, not intent.",
         size=Pt(14),
         color=BODY,
     )
@@ -378,7 +406,10 @@ def build() -> Path:
         ("Programme need", "Secure-by-design response"),
         ("Know control coverage before Dedicated cutover", "Measured baseline across the migration cohort"),
         ("Meet Nexus expectations", "Detectable pinning and freshness controls"),
-        ("Reduce late surprise", "Gaps detected early enough to place controls calmly"),
+        (
+            "Reduce late surprise",
+            "Non-conforming code detected early enough to place controls calmly",
+        ),
         ("Decide with data", "Shared reports replace assumption-based status"),
         ("Keep controls after the move", "Readable policies remain the ongoing design contract"),
     ]
@@ -395,14 +426,20 @@ def build() -> Path:
     # 11 What good looks like
     s = prs.slides.add_slide(blank)
     _bg(s)
-    _header(s, "What good looks like", "Controls identified, placed, and continuously detectable")
+    _header(s, "What good looks like", "Identifying and placing controls — then measuring continuously")
     _footer(s, 11)
     measures = [
         ("Controls identified", "Intended controls are defined in plain language for each risk area."),
         ("Controls placed", "Those controls are applied in delivery pipelines, not only described."),
-        ("Detection active", "Gaps are spotted automatically before approval."),
+        (
+            "Non-conformance detected",
+            "Non-conforming code is spotted automatically before approval.",
+        ),
         ("Measurement shared", "Coverage and findings are visible in a common evidence view."),
-        ("Data-driven improvement", "Priorities follow measured gap severity, not anecdote."),
+        (
+            "Data-driven improvement",
+            "Priorities follow measured non-conformance severity, not anecdote.",
+        ),
         ("Secure by design sustained", "The same controls remain detectable after Dedicated cutover."),
     ]
     for i, (h, body) in enumerate(measures):
@@ -420,9 +457,9 @@ def build() -> Path:
     _rect(s, Inches(0), Inches(0), Inches(0.2), SLIDE_H, SEA)
     _text(_box(s, Inches(0.85), Inches(1.2), Inches(11.5), Inches(0.7)), "Secure by design in practice", size=Pt(30), bold=True, color=WHITE)
     actions = [
-        "Define the controls that matter for Dedicated readiness and Nexus assurance",
+        "Identify the controls that matter for Dedicated readiness and Nexus assurance",
         "Measure where those controls are already in place across the cohort",
-        "Detect remaining gaps early and place controls with reviewable change",
+        "Detect unintentional non-conforming code early and place controls with reviewable change",
         "Use shared evidence to prioritise and track improvement",
         "Keep readable policies as the ongoing design standard after go-live",
     ]
@@ -437,7 +474,7 @@ def build() -> Path:
             _font(run, size=Pt(16), color=WHITE)
     _text(
         _box(s, Inches(0.85), Inches(6.2), Inches(11.5), Inches(0.5)),
-        "What good looks like: controls identified, placed, measured, and continuously detectable.",
+        "What good looks like: controls identified and placed — with continuous detection of non-conformance.",
         size=Pt(14),
         color=SEA_SOFT,
     )
