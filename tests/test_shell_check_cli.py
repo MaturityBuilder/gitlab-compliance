@@ -17,6 +17,9 @@ def test_shell_check_help():
     result = runner.invoke(gitlab_compliance, ["shell-check", "--help"])
     assert result.exit_code == 0
     assert "not the ShellCheck tool" in result.output
+    assert "--gitlab-url" in result.output
+    assert "--token" in result.output
+    assert "--include-nested" in result.output
 
 
 def test_shell_check_fails_on_bad_pipeline():

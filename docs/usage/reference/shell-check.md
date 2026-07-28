@@ -63,6 +63,26 @@ artifacts:
 Also available via `check --with-builtin` (shell features ship alongside other
 bundled policies).
 
+## Include resolution and GitLab API
+
+`shell-check` uses the same include and API flags as [`check`](check.md):
+
+- `--include-nested` / `--no-include-nested` — walk nested **local** `include:` files (default: on)
+- `--max-include-depth` — limit local include nesting depth
+- `--gitlab-url`, `--token`, `--project`, `--group` — GitLab API connection (same env fallbacks as `check`: `GITLAB_TOKEN`, `CI_JOB_TOKEN`, `CI_PROJECT_PATH`)
+- `--strict` — fail API-backed scenarios when credentials are missing (default: skip)
+
+Local includes are resolved on disk without a token. Project, remote, component, and
+template includes are recorded for metadata; release enrichment uses a token when
+policies require it, the same as `check`.
+
+```bash
+gitlab-compliance shell-check -p .gitlab-ci.yml \
+  --include-nested \
+  --token "$GITLAB_TOKEN" \
+  --project "$CI_PROJECT_PATH"
+```
+
 ## Custom policies
 
 Write org-specific Gherkin using the same script steps, for example requiring

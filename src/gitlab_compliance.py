@@ -781,6 +781,32 @@ def check(
     help="Max local include nesting depth from the root file (omit for unlimited).",
 )
 @click.option(
+    "--gitlab-url",
+    default=None,
+    help="GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).",
+)
+@click.option(
+    "--token",
+    default=None,
+    help="GitLab API token (default: GITLAB_TOKEN or CI_JOB_TOKEN).",
+)
+@click.option(
+    "--project",
+    default=None,
+    help="GitLab project path or ID for API-backed policy checks.",
+)
+@click.option(
+    "--group",
+    default=None,
+    help="GitLab group path or ID for API-backed policy checks.",
+)
+@click.option(
+    "--strict",
+    is_flag=True,
+    default=False,
+    help="Fail API-backed scenarios when connection info is missing (default: skip).",
+)
+@click.option(
     "--features",
     "-f",
     "features_dir",
@@ -797,6 +823,11 @@ def shell_check(
     output_file,
     include_nested,
     max_include_depth,
+    gitlab_url,
+    token,
+    project,
+    group,
+    strict,
     features_dir,
 ):
     """
@@ -817,6 +848,11 @@ def shell_check(
             pipeline_file=pipeline_file,
             include_nested=include_nested,
             max_include_depth=max_include_depth,
+            gitlab_url=gitlab_url,
+            token=token,
+            project=project,
+            group=group,
+            strict=strict,
             output_format=output_format,
             with_builtin=False,
         )
