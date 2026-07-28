@@ -35,6 +35,7 @@ from src.modules.constants import (
     DEFAULT_OUTPUT_FILES,
     POLICY_DOC_DEFAULT_OUTPUT_FILES,
     POLICY_DOC_OUTPUT_FORMATS,
+    SHELL_CHECK_DEFAULT_OUTPUT_FILES,
     SUPPORTED_OUTPUT_FORMATS,
 )
 from src.modules.doc_controller import (
@@ -471,11 +472,12 @@ def generate_html(detailed, OUTPUT_FILE, GLDOCS_CONFIG_FILE):
     )
 
 
-def _resolve_compliance_output(output_format, output_file):
+def _resolve_compliance_output(output_format, output_file, defaults=None):
     if output_file:
         return output_file
-    if output_format in COMPLIANCE_DEFAULT_OUTPUT_FILES:
-        return COMPLIANCE_DEFAULT_OUTPUT_FILES[output_format]
+    default_files = defaults or COMPLIANCE_DEFAULT_OUTPUT_FILES
+    if output_format in default_files:
+        return default_files[output_format]
     return None
 
 
@@ -823,13 +825,24 @@ def shell_check(
         raise SystemExit(2) from exc
 
     if output_format != "console":
-        report = _gitlab_docs.render_compliance_report(
+        from src.compliance.shell_render import render_shell_check_report
+
+        report = render_shell_check_report(
             result=result,
             pipeline_file=pipeline_file,
             features_dir=shell_features,
             output_format=output_format,
         )
-        target = _resolve_compliance_output(output_format, output_file)
+        if report is None:
+            report = _gitlab_docs.render_compliance_report(
+                result=result,
+                pipeline_file=pipeline_file,
+                features_dir=shell_features,
+                output_format=output_format,
+            )
+        target = _resolve_compliance_output(
+            output_format, output_file, SHELL_CHECK_DEFAULT_OUTPUT_FILES
+        )
         if target:
             with open(target, "w", encoding="utf-8") as handle:
                 handle.write(report)

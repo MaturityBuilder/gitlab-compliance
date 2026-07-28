@@ -15,6 +15,13 @@ COMPLIANCE_DEFAULT_OUTPUT_FILES = {
     "codequality": "gl-code-quality-report.json",
 }
 
+SHELL_CHECK_DEFAULT_OUTPUT_FILES = {
+    "markdown": "SHELL-CHECK.md",
+    "html": "SHELL-CHECK.html",
+    "mr-comment": "SHELL-CHECK-MR-COMMENT.md",
+    "codequality": "gl-code-quality-report.json",
+}
+
 POLICY_DOC_OUTPUT_FORMATS = ("markdown", "html")
 
 POLICY_DOC_DEFAULT_OUTPUT_FILES = {
