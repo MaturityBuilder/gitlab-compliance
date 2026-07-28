@@ -15,8 +15,9 @@ from src.compliance.secret_redact import redact_secrets
 from src.modules.common import render_markdown_table
 
 JOB_VIOLATION_RE = re.compile(
-    r"Job '([^']+)'\s+([^:]+:\d+):\s*(.+?)(?:\s+via:\s+(.+))?$"
+    r"Job '([^']+)'\s+(.+):(\d+):\s*(.+?)(?:\s+via:\s+(.+))?$"
 )
+JOB_BOUNDARY_RE = re.compile(r"; (?=Job ')")
 
 
 @dataclass(frozen=True)
@@ -25,6 +26,23 @@ class ShellViolation:
     location: str
     message: str
     inheritance: str = ""
+
+
+def split_location(location: str) -> tuple[str, int]:
+    """Split ``path:line`` supporting Windows drive letters."""
+    if not location:
+        return "", 0
+    if ":" not in location:
+        return location, 0
+    file_part, line_part = location.rsplit(":", 1)
+    if line_part.isdigit():
+        return file_part, int(line_part)
+    return location, 0
+
+
+def escape_markdown_cell(text: str) -> str:
+    """Escape pipe characters so markdown table cells stay intact."""
+    return str(text).replace("|", "\\|").replace("\n", " ")
 
 
 def _relative_path(path: str, base_dir: str | None = None) -> str:
@@ -40,11 +58,11 @@ def _relative_path(path: str, base_dir: str | None = None) -> str:
 def _display_location(location: str, pipeline_file: str) -> str:
     if not location:
         return ""
+    file_part, line_number = split_location(location)
     pipeline_dir = os.path.dirname(os.path.abspath(pipeline_file)) or "."
-    if os.path.isabs(location.split(":", 1)[0]):
-        file_part, _, line_part = location.partition(":")
+    if os.path.isabs(file_part) or (len(file_part) > 1 and file_part[1] == ":"):
         rel_file = _relative_path(file_part, pipeline_dir)
-        return f"{rel_file}:{line_part}" if line_part else rel_file
+        return f"{rel_file}:{line_number}" if line_number else rel_file
     return location
 
 
@@ -128,7 +146,8 @@ def parse_shell_violations(message: str) -> list[ShellViolation]:
         text = text[len("ASSERT FAILED: ") :]
 
     violations: list[ShellViolation] = []
-    for part in text.split("; "):
+    # Only split between job findings — messages may contain "; ".
+    for part in JOB_BOUNDARY_RE.split(text):
         part = part.strip()
         if not part:
             continue
@@ -137,9 +156,9 @@ def parse_shell_violations(message: str) -> list[ShellViolation]:
             violations.append(
                 ShellViolation(
                     job=match.group(1),
-                    location=match.group(2),
-                    message=match.group(3),
-                    inheritance=match.group(4) or "",
+                    location=f"{match.group(2)}:{match.group(3)}",
+                    message=match.group(4),
+                    inheritance=match.group(5) or "",
                 )
             )
         else:
@@ -172,14 +191,14 @@ def _violation_rows(
     for item in violations:
         rows.append(
             [
-                f"`{item.job}`" if item.job else "—",
+                f"`{escape_markdown_cell(item.job)}`" if item.job else "—",
                 (
-                    f"`{_display_location(item.location, pipeline_file)}`"
+                    f"`{escape_markdown_cell(_display_location(item.location, pipeline_file))}`"
                     if item.location
                     else "—"
                 ),
-                item.message,
-                item.inheritance or "—",
+                escape_markdown_cell(item.message),
+                escape_markdown_cell(item.inheritance) if item.inheritance else "—",
             ]
         )
     return rows
@@ -499,6 +518,103 @@ def render_shell_check_html(
 """
 
 
+def render_shell_check_mr_comment(
+    result: ComplianceResult,
+    pipeline_file: str,
+    features_dir: str,
+) -> str:
+    """Render a compact shell-check merge-request comment."""
+    grouped = _group_by_status(result)
+    _, pipeline, policies, _ = _report_meta(pipeline_file, features_dir)
+    overall = (
+        ":white_check_mark: **Shell check passed**"
+        if result.success
+        else ":x: **Shell check failed**"
+    )
+    lines = [
+        "### Shell Check Report",
+        "",
+        overall,
+        "",
+        (
+            "> Validates CI scripts with packaged GLCI-SHELL policies. "
+            "This is **not** the ShellCheck binary."
+        ),
+        "",
+        f"**Pipeline:** `{pipeline}`  ",
+        f"**Policies:** {policies}",
+        "",
+        "| | Count |",
+        "|---|---|",
+        f"| :white_check_mark: Passed | {result.passed} |",
+        f"| :x: Failed | {result.failed} |",
+        f"| :fast_forward: Skipped | {result.skipped} |",
+        "",
+    ]
+
+    coverage = _render_coverage_gaps_markdown(result.unresolved_includes)
+    if coverage:
+        # Drop the H2 for MR density; keep table and note.
+        lines.append("#### Coverage gaps")
+        lines.append("")
+        lines.extend(coverage[2:])
+
+    if grouped["failed"]:
+        lines.append("#### Findings")
+        lines.append("")
+        for scenario in grouped["failed"]:
+            label = html.escape(scenario.policy_id or scenario.feature)
+            title = html.escape(scenario.title or scenario.name)
+            lines.extend(
+                [
+                    "<details>",
+                    f"<summary><code>{label}</code> — {title}</summary>",
+                    "",
+                ]
+            )
+            if scenario.description:
+                lines.extend([html.escape(scenario.description), ""])
+            violations = parse_shell_violations(scenario.message)
+            if violations and any(v.job or v.location for v in violations):
+                lines.append(
+                    render_markdown_table(
+                        ["Job", "Location", "Issue", "Inheritance"],
+                        _violation_rows(violations, pipeline_file),
+                    )
+                )
+            else:
+                lines.extend(
+                    [
+                        "```",
+                        redact_secrets(scenario.message or "Scenario failed."),
+                        "```",
+                    ]
+                )
+            lines.extend(["", "</details>", ""])
+
+    if grouped["skipped"]:
+        lines.append("#### Skipped policies")
+        lines.append("")
+        for scenario in grouped["skipped"]:
+            reason = redact_secrets(
+                scenario.message or "Filter did not match any entities."
+            )
+            label = scenario.policy_id or scenario.feature
+            title = scenario.title or scenario.name
+            lines.append(f"- `{label}` — {title}: {reason}")
+        lines.append("")
+
+    if not result.success:
+        lines.extend(
+            [
+                "---",
+                "*Merge is blocked until failing shell-check policies are resolved.*",
+            ]
+        )
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def render_shell_check_report(
     result: ComplianceResult,
     pipeline_file: str,
@@ -511,4 +627,6 @@ def render_shell_check_report(
         return render_shell_check_markdown(result, pipeline_file, features_dir)
     if fmt == "html":
         return render_shell_check_html(result, pipeline_file, features_dir)
+    if fmt == "mr-comment":
+        return render_shell_check_mr_comment(result, pipeline_file, features_dir)
     return None

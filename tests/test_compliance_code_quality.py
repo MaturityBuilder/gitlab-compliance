@@ -148,3 +148,24 @@ class TestRenderComplianceCodeQuality:
         assert not raw.startswith("\ufeff")
         payload = json.loads(raw)
         assert payload[0]["location"]["path"] == "gitlab-ci.yml"
+
+    def test_shell_check_message_uses_job_locations(self):
+        result = _result(
+            ScenarioResult(
+                feature="shell-quoting.feature",
+                name="Unquoted variables",
+                status="failed",
+                message=(
+                    "ASSERT FAILED: Job 'demo' ci/jobs.yml:12: Unquoted variable; "
+                    "Job 'other' ci/jobs.yml:20: Unquoted variable"
+                ),
+                policy_id="GLCI-SHELL-QUOTE-001",
+                severity="HIGH",
+            )
+        )
+        payload = json.loads(render_compliance_code_quality(result, ".gitlab-ci.yml"))
+        assert len(payload) == 2
+        assert payload[0]["location"]["path"] == "ci/jobs.yml"
+        assert payload[0]["location"]["lines"]["begin"] == 12
+        assert payload[0]["description"] == "Unquoted variable"
+        assert payload[1]["location"]["lines"]["begin"] == 20

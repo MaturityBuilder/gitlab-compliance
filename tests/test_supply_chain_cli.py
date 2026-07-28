@@ -21,6 +21,15 @@ def test_supply_chain_help():
     assert "supply-chain pinning policies" in result.output
     assert "--fix" in result.output
     assert "mutates YAML" in result.output
+    assert "--resolve-external-includes" in result.output
+
+
+def test_check_help_includes_resolve_external_includes():
+    runner = CliRunner()
+    result = runner.invoke(gitlab_compliance, ["check", "--help"])
+    assert result.exit_code == 0
+    assert "--resolve-external-includes" in result.output
+    assert "junit" in result.output
 
 
 def test_check_fix_without_token_exits_with_error():

@@ -66,6 +66,40 @@ def test_compose_job_scripts_cycle_raises():
         assert "Cycle" in str(exc)
 
 
+def test_compose_prefers_same_file_extends_parent(tmp_path):
+    from src.modules.job_composition import job_registry_key, register_job_entry
+
+    file_a = str(tmp_path / "a.yml")
+    file_b = str(tmp_path / "b.yml")
+    registry: dict = {}
+    register_job_entry(
+        registry,
+        job_name=".base",
+        config={"script": ["echo from-a"]},
+        source_file=file_a,
+        line=1,
+    )
+    register_job_entry(
+        registry,
+        job_name=".base",
+        config={"script": ["echo from-b"]},
+        source_file=file_b,
+        line=1,
+    )
+    register_job_entry(
+        registry,
+        job_name="child",
+        config={"extends": ".base", "script": ["echo child"]},
+        source_file=file_a,
+        line=5,
+    )
+    effective = compose_job_scripts("child", registry, source_file=file_a)
+    texts = [line.text for line in effective.script]
+    assert "echo from-a" in texts
+    assert "echo from-b" not in texts
+    assert job_registry_key(file_a, ".base") in registry
+
+
 def test_hidden_jobs_included_in_composition():
     data = collect_pipeline_data(
         str(FIXTURES / "bad-pipeline.yml"),

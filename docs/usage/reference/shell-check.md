@@ -2,8 +2,8 @@
 
 Run packaged Gherkin shell standards for CI scripts (not the ShellCheck tool).
 
-Validates before_script/script/after_script using builtin GLCI-SHELL-* policies.
-Does not install, detect, or invoke the external ShellCheck binary.
+    Validates before_script/script/after_script using builtin GLCI-SHELL-* policies.
+    Does not install, detect, or invoke the external ShellCheck binary.
 
 <!-- MANUAL DOCS:START -->
 
@@ -88,9 +88,15 @@ Flags:
 - `--gitlab-url`, `--token`, `--project`, `--group` — GitLab API connection (same env fallbacks as `check`: `GITLAB_TOKEN`, `CI_JOB_TOKEN`, `CI_PROJECT_PATH`)
 - `--strict` — fail API-backed scenarios when credentials are missing (default: skip)
 
-Local includes are resolved on disk without a token. When an include cannot be
-resolved, `shell-check` prints an **Include coverage gap** warning and lists the
-entry in markdown/HTML reports under **Coverage gaps**.
+Tokens are only sent on `remote:` HTTP fetches when the remote URL host matches
+`--gitlab-url` (or `CI_SERVER_URL` / `GITLAB_URL`). Arbitrary third-party remotes
+are fetched without authentication.
+
+Local includes are resolved on disk without a token. Nested `local:` includes
+inside fetched `remote:` / `project:` YAML are resolved relative to that origin
+(URL directory or same project/ref). When an include cannot be resolved,
+`shell-check` prints an **Include coverage gap** warning and lists the entry in
+markdown/HTML reports under **Coverage gaps**.
 
 ```bash
 gitlab-compliance shell-check -p .gitlab-ci.yml \
@@ -151,6 +157,7 @@ See [Shell check examples](../../examples/shell-check.md).
 <!-- MANUAL DOCS:END -->
 
 
+
 ## Usage
 
 ```
@@ -167,7 +174,7 @@ Usage: gitlab-compliance shell-check [OPTIONS]
   Path to the GitLab CI pipeline YAML file.
 
 * `output_format`:
-  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality'])
+  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality', 'junit'])
   * Default: `console`
   * Usage: `--format`
 
@@ -179,7 +186,7 @@ Usage: gitlab-compliance shell-check [OPTIONS]
   * Usage: `--output-file
 -o`
 
-  Write rendered report to this file (markdown, html, mr-comment).
+  Write rendered report to this file (markdown, html, mr-comment, junit).
 
 * `include_nested`:
   * Type: BOOL
@@ -194,6 +201,48 @@ Usage: gitlab-compliance shell-check [OPTIONS]
   * Usage: `--max-include-depth`
 
   Max local include nesting depth from the root file (omit for unlimited).
+
+* `resolve_external_includes`:
+  * Type: BOOL
+  * Default: `none`
+  * Usage: `--resolve-external-includes`
+
+  Fetch remote and project include YAML (default: auto — remote always, project when a token is available).
+
+* `gitlab_url`:
+  * Type: STRING
+  * Default: `none`
+  * Usage: `--gitlab-url`
+
+  GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).
+
+* `token`:
+  * Type: STRING
+  * Default: `none`
+  * Usage: `--token`
+
+  GitLab API token (default: GITLAB_TOKEN or CI_JOB_TOKEN).
+
+* `project`:
+  * Type: STRING
+  * Default: `none`
+  * Usage: `--project`
+
+  GitLab project path or ID for API-backed policy checks.
+
+* `group`:
+  * Type: STRING
+  * Default: `none`
+  * Usage: `--group`
+
+  GitLab group path or ID for API-backed policy checks.
+
+* `strict`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--strict`
+
+  Fail API-backed scenarios when connection info is missing (default: skip).
 
 * `features_dir`:
   * Type: STRING
@@ -225,16 +274,30 @@ Usage: gitlab-compliance shell-check [OPTIONS]
 
 Options:
   -p, --pipeline TEXT             Path to the GitLab CI pipeline YAML file.
-  --format [console|markdown|html|mr-comment|codequality]
+  --format [console|markdown|html|mr-comment|codequality|junit]
                                   Output format for the script validation
                                   report.
   -o, --output-file TEXT          Write rendered report to this file
-                                  (markdown, html, mr-comment).
+                                  (markdown, html, mr-comment, junit).
   --include-nested / --no-include-nested
                                   Resolve nested local include files into the
                                   compliance stash.
   --max-include-depth INTEGER     Max local include nesting depth from the
                                   root file (omit for unlimited).
+  --resolve-external-includes / --no-resolve-external-includes
+                                  Fetch remote and project include YAML
+                                  (default: auto — remote always, project when
+                                  a token is available).
+  --gitlab-url TEXT               GitLab instance URL (default: CI_SERVER_URL
+                                  or https://gitlab.com).
+  --token TEXT                    GitLab API token (default: GITLAB_TOKEN or
+                                  CI_JOB_TOKEN).
+  --project TEXT                  GitLab project path or ID for API-backed
+                                  policy checks.
+  --group TEXT                    GitLab group path or ID for API-backed
+                                  policy checks.
+  --strict                        Fail API-backed scenarios when connection
+                                  info is missing (default: skip).
   -f, --features TEXT             Policy directory to run instead of packaged
                                   shell standards. Defaults to packaged GLCI-
                                   SHELL policies.

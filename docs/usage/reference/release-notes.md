@@ -39,7 +39,7 @@ Usage: gitlab-compliance release-notes [OPTIONS]
   Baseline tag name (default: latest semver tag, else most recent by date)
 
 * `markdown_dir`:
-  * Type: <click.types.Path object at 0x7f28b2ba6f60>
+  * Type: <click.types.Path object at 0x7f034382c290>
   * Default: `.`
   * Usage: `--markdown`
 

@@ -132,6 +132,7 @@ def _walk_extends(
     job_name: str,
     job_registry: dict[str, dict],
     *,
+    preferred_source_file: str | None = None,
     seen: set[str] | None = None,
 ) -> list[str]:
     """Return extends chain from root parent to the job itself (exclusive of self)."""
@@ -140,13 +141,21 @@ def _walk_extends(
     if job_name in seen:
         raise ValueError(f"Cycle detected in extends chain involving '{job_name}'")
     seen.add(job_name)
-    entry = job_registry.get(job_name)
+    entry = _lookup_job_entry(job_registry, job_name, preferred_source_file)
     if not entry:
         return []
     config = entry.get("config") or {}
     parents: list[str] = []
+    parent_source = entry.get("source_file") or preferred_source_file
     for parent in _normalize_extends(config.get("extends")):
-        parents.extend(_walk_extends(parent, job_registry, seen=set(seen)))
+        parents.extend(
+            _walk_extends(
+                parent,
+                job_registry,
+                preferred_source_file=parent_source,
+                seen=set(seen),
+            )
+        )
         parents.append(parent)
     return parents
 
@@ -188,18 +197,18 @@ def compose_job_scripts(
 ) -> EffectiveJobScripts:
     """Build effective script blocks for ``job_name`` including extends merge."""
     entry = _lookup_job_entry(job_registry, job_name, source_file)
-    source_file = entry.get("source_file", "")
+    source_file = entry.get("source_file", "") or source_file or ""
     line = int(entry.get("line") or 0)
     unresolved: list[str] = []
-    chain = _walk_extends(job_name, job_registry)
+    chain = _walk_extends(
+        job_name, job_registry, preferred_source_file=source_file or None
+    )
     ordered = chain + [job_name]
 
     buckets: dict[str, list[ScriptLine]] = {key: [] for key in SCRIPT_KEYS}
     for name in ordered:
-        if name == job_name and source_file:
-            job_entry = _lookup_job_entry(job_registry, name, source_file)
-        else:
-            job_entry = job_registry.get(name)
+        # Prefer same-file definitions when duplicate job names exist across includes.
+        job_entry = _lookup_job_entry(job_registry, name, source_file or None)
         if not job_entry:
             continue
         config = job_entry.get("config") or {}

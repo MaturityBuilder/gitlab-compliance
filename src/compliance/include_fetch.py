@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import requests
 
@@ -42,6 +42,17 @@ class IncludeFetchCache:
     )
 
 
+@dataclass(frozen=True)
+class ExternalIncludeContext:
+    """Origin metadata for YAML loaded from remote or project includes."""
+
+    kind: str
+    visit_key: str
+    base_url: str = ""
+    project_path: str = ""
+    ref: str = ""
+
+
 def _cache_key(include_type: str, *parts: str) -> str:
     return f"{include_type}:" + ":".join(parts)
 
@@ -64,10 +75,42 @@ def _normalize_project_files(file_value: Any) -> list[str]:
     return [str(file_value)]
 
 
-def _fetch_remote(url: str, token: str | None) -> FetchedInclude | IncludeFetchFailure:
-    headers: dict[str, str] = {}
-    if token:
-        headers["PRIVATE-TOKEN"] = token
+def remote_url_allows_token(url: str, gitlab_url: str | None) -> bool:
+    """Return True when ``url`` is on the same host as the GitLab instance."""
+    if not gitlab_url:
+        return False
+    remote_host = (urlparse(url).netloc or "").lower()
+    gitlab_host = (urlparse(gitlab_url).netloc or "").lower()
+    if not remote_host or not gitlab_host:
+        return False
+    if remote_host == gitlab_host:
+        return True
+    return remote_host == f"www.{gitlab_host}" or gitlab_host == f"www.{remote_host}"
+
+
+def _remote_headers(
+    url: str, token: str | None, gitlab_url: str | None
+) -> dict[str, str]:
+    if token and remote_url_allows_token(url, gitlab_url):
+        return {"PRIVATE-TOKEN": token}
+    return {}
+
+
+def remote_directory_url(url: str) -> str:
+    """Return the directory URL for resolving nested local includes."""
+    parsed = urlparse(url)
+    path = parsed.path or "/"
+    if not path.endswith("/"):
+        path = path.rsplit("/", 1)[0] + "/"
+    return parsed._replace(path=path, params="", query="", fragment="").geturl()
+
+
+def _fetch_remote(
+    url: str,
+    token: str | None,
+    gitlab_url: str | None = None,
+) -> FetchedInclude | IncludeFetchFailure:
+    headers = _remote_headers(url, token, gitlab_url)
     try:
         response = requests.get(url, headers=headers, timeout=30)
         response.raise_for_status()
@@ -135,7 +178,7 @@ def _fetch_template(template_name: str) -> FetchedInclude | IncludeFetchFailure:
             reason="unsupported_type", detail="empty template name"
         )
     url = f"{GITLAB_TEMPLATE_BASE}/{name}"
-    return _fetch_remote(url, token=None)
+    return _fetch_remote(url, token=None, gitlab_url=None)
 
 
 def fetch_include_content(
@@ -155,7 +198,7 @@ def fetch_include_content(
         key = _cache_key("remote", url)
         if key in cache.entries:
             return cache.entries[key]
-        result = _fetch_remote(url, token)
+        result = _fetch_remote(url, token, gitlab_url=gitlab_url)
         cache.entries[key] = result
         return result
 
@@ -197,6 +240,71 @@ def fetch_include_content(
         return IncludeFetchFailure(reason="unsupported_type")
 
     return IncludeFetchFailure(reason="unsupported_type", detail=include_type)
+
+
+def context_for_fetched(
+    parsed: dict[str, Any], fetched: FetchedInclude
+) -> ExternalIncludeContext:
+    """Build origin context used to resolve nested locals inside fetched YAML."""
+    include_type = parsed.get("include_type", "")
+    if include_type == "remote":
+        return ExternalIncludeContext(
+            kind="remote",
+            visit_key=fetched.config_label,
+            base_url=remote_directory_url(fetched.config_label),
+        )
+    if include_type == "project":
+        project_path = resolve_include_project_path(
+            "project", str(parsed.get("project", ""))
+        ) or str(parsed.get("project", ""))
+        ref = str(parsed.get("version", "") or parsed.get("ref", "") or "main")
+        return ExternalIncludeContext(
+            kind="project",
+            visit_key=fetched.config_label,
+            project_path=project_path,
+            ref=ref or "main",
+        )
+    return ExternalIncludeContext(kind=include_type, visit_key=fetched.config_label)
+
+
+def resolve_nested_local_from_context(
+    local_path: str,
+    context: ExternalIncludeContext,
+    *,
+    gitlab_url: str,
+    token: str | None,
+    cache: IncludeFetchCache,
+) -> FetchedInclude | IncludeFetchFailure:
+    """Resolve a nested ``local:`` path relative to an external include origin."""
+    normalized = str(local_path).lstrip("/")
+    if context.kind == "remote":
+        url = urljoin(context.base_url, normalized)
+        key = _cache_key("remote", url)
+        if key in cache.entries:
+            return cache.entries[key]
+        result = _fetch_remote(url, token, gitlab_url=gitlab_url)
+        cache.entries[key] = result
+        return result
+
+    if context.kind == "project":
+        if not token:
+            return IncludeFetchFailure(reason="no_token")
+        parsed = {
+            "include_type": "project",
+            "project": context.project_path,
+            "version": context.ref,
+            "file": normalized,
+        }
+        return fetch_include_content(
+            parsed,
+            gitlab_url=gitlab_url,
+            token=token,
+            cache=cache,
+        )
+
+    return IncludeFetchFailure(
+        reason="unsupported_type", detail=f"nested local from {context.kind}"
+    )
 
 
 def include_reference_label(parsed: dict[str, Any]) -> str:

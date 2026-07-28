@@ -55,6 +55,19 @@ class TestParseShellViolations:
         assert violations[0].message == "curl without --fail/-f"
         assert violations[1].inheritance == "extends:.bad-template"
 
+    def test_preserves_semicolon_inside_message(self):
+        message = "ASSERT FAILED: Job 'demo' file.yml:1: do not use foo; bar is wrong"
+        violations = parse_shell_violations(message)
+        assert len(violations) == 1
+        assert violations[0].message == "do not use foo; bar is wrong"
+
+    def test_parses_windows_style_path(self):
+        message = r"ASSERT FAILED: Job 'demo' C:\repo\.gitlab-ci.yml:4: unquoted"
+        violations = parse_shell_violations(message)
+        assert len(violations) == 1
+        assert violations[0].location == r"C:\repo\.gitlab-ci.yml:4"
+        assert violations[0].message == "unquoted"
+
 
 class TestRenderShellCheckMarkdown:
     def test_markdown_uses_shell_check_title(self):
@@ -133,4 +146,14 @@ class TestRenderShellCheckReport:
         result = _failed_result()
         assert render_shell_check_report(result, PIPELINE, POLICIES, "markdown")
         assert render_shell_check_report(result, PIPELINE, POLICIES, "html")
+        assert render_shell_check_report(result, PIPELINE, POLICIES, "mr-comment")
         assert render_shell_check_report(result, PIPELINE, POLICIES, "console") is None
+
+    def test_mr_comment_uses_shell_branding(self):
+        text = render_shell_check_report(
+            _failed_result(), PIPELINE, POLICIES, "mr-comment"
+        )
+        assert "### Shell Check Report" in text
+        assert "GitLab CI Compliance Report" not in text
+        assert "Findings" in text
+        assert "`.bad-template`" in text

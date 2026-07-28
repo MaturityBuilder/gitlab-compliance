@@ -347,6 +347,62 @@ class TestIncludeResolutionReporting:
             item["include_type"] == "remote" for item in data["unresolved_includes"]
         )
 
+    def test_remote_nested_local_resolved_from_remote_base(self, tmp_path):
+        root = tmp_path / ".gitlab-ci.yml"
+        root.write_text(
+            "include:\n"
+            "  - remote: https://example.com/ci/root.yml\n"
+            "root:\n  script: [echo root]\n",
+            encoding="utf-8",
+        )
+
+        def _fake_get(url, headers=None, timeout=30):
+            response = MagicMock(status_code=200)
+            response.raise_for_status = MagicMock()
+            if url.endswith("/ci/root.yml"):
+                response.text = "include:\n  - local: nested.yml\nparent:\n  script: [echo parent]\n"
+            elif url.endswith("/ci/nested.yml"):
+                response.text = "nested:\n  script: [echo nested]\n"
+            else:
+                raise AssertionError(f"unexpected url {url}")
+            return response
+
+        with patch("src.compliance.include_fetch.requests.get", side_effect=_fake_get):
+            data = collect_pipeline_data(
+                str(root),
+                detailed=True,
+                include_nested=True,
+                resolve_external_includes=True,
+            )
+        assert "nested" in _job_names(data)
+        assert not data.get("unresolved_includes")
+
+    def test_duplicate_remote_include_visited_once(self, tmp_path):
+        root = tmp_path / ".gitlab-ci.yml"
+        root.write_text(
+            "include:\n"
+            "  - remote: https://example.com/shared.yml\n"
+            "  - remote: https://example.com/shared.yml\n"
+            "root:\n  script: [echo root]\n",
+            encoding="utf-8",
+        )
+        with patch(
+            "src.compliance.include_fetch.requests.get",
+            return_value=MagicMock(
+                status_code=200,
+                text="shared:\n  script: [echo shared]\n",
+            ),
+        ) as mock_get:
+            mock_get.return_value.raise_for_status = MagicMock()
+            data = collect_pipeline_data(
+                str(root),
+                detailed=True,
+                include_nested=True,
+                resolve_external_includes=True,
+            )
+        assert sum(1 for job in data["jobs"] if job["name"] == "shared") == 1
+        assert mock_get.call_count == 1
+
     def test_duplicate_job_names_keep_distinct_scripts(self):
         from src.compliance.script_analysis import script_has_unpinned_apt
 

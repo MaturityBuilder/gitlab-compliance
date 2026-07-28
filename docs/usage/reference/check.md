@@ -299,6 +299,7 @@ gitlab-compliance check -f oci://registry.example.com/org/policies:1.0.0 \
 
 
 
+
 ## Usage
 
 ```
@@ -323,7 +324,7 @@ Usage: gitlab-compliance check [OPTIONS]
   Path to the GitLab CI pipeline YAML file.
 
 * `output_format`:
-  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality'])
+  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality', 'junit'])
   * Default: `console`
   * Usage: `--format`
 
@@ -335,7 +336,7 @@ Usage: gitlab-compliance check [OPTIONS]
   * Usage: `--output-file
 -o`
 
-  Write rendered report to this file (markdown, html, mr-comment).
+  Write rendered report to this file (markdown, html, mr-comment, junit).
 
 * `include_nested`:
   * Type: BOOL
@@ -350,6 +351,13 @@ Usage: gitlab-compliance check [OPTIONS]
   * Usage: `--max-include-depth`
 
   Max local include nesting depth from the root file (omit for unlimited).
+
+* `resolve_external_includes`:
+  * Type: BOOL
+  * Default: `none`
+  * Usage: `--resolve-external-includes`
+
+  Fetch remote and project include YAML (default: auto — remote always, project when a token is available).
 
 * `gitlab_url`:
   * Type: STRING
@@ -508,15 +516,19 @@ Options:
                                   Optional when --with-builtin, --with-shell-
                                   check, and/or --with-supply-chain is set.
   -p, --pipeline TEXT             Path to the GitLab CI pipeline YAML file.
-  --format [console|markdown|html|mr-comment|codequality]
+  --format [console|markdown|html|mr-comment|codequality|junit]
                                   Output format for the compliance report.
   -o, --output-file TEXT          Write rendered report to this file
-                                  (markdown, html, mr-comment).
+                                  (markdown, html, mr-comment, junit).
   --include-nested / --no-include-nested
                                   Resolve nested local include files into the
                                   compliance stash.
   --max-include-depth INTEGER     Max local include nesting depth from the
                                   root file (omit for unlimited).
+  --resolve-external-includes / --no-resolve-external-includes
+                                  Fetch remote and project include YAML
+                                  (default: auto — remote always, project when
+                                  a token is available).
   --gitlab-url TEXT               GitLab instance URL (default: CI_SERVER_URL
                                   or https://gitlab.com).
   --token TEXT                    GitLab API token (default: GITLAB_TOKEN or

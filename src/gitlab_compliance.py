@@ -529,7 +529,7 @@ def _resolve_policies_dir(
     "output_file",
     required=False,
     default=None,
-    help="Write rendered report to this file (markdown, html, mr-comment).",
+    help="Write rendered report to this file (markdown, html, mr-comment, junit).",
 )
 @click.option(
     "--include-nested/--no-include-nested",
@@ -824,7 +824,7 @@ def check(
     "output_file",
     required=False,
     default=None,
-    help="Write rendered report to this file (markdown, html, mr-comment).",
+    help="Write rendered report to this file (markdown, html, mr-comment, junit).",
 )
 @click.option(
     "--include-nested/--no-include-nested",
@@ -837,6 +837,15 @@ def check(
     type=int,
     default=None,
     help="Max local include nesting depth from the root file (omit for unlimited).",
+)
+@click.option(
+    "--resolve-external-includes/--no-resolve-external-includes",
+    "resolve_external_includes",
+    default=None,
+    help=(
+        "Fetch remote and project include YAML (default: auto — remote always, "
+        "project when a token is available)."
+    ),
 )
 @click.option(
     "--features",
@@ -912,6 +921,7 @@ def supply_chain(
     output_file,
     include_nested,
     max_include_depth,
+    resolve_external_includes,
     features_dir,
     gitlab_url,
     token,
@@ -942,6 +952,7 @@ def supply_chain(
             pipeline_file=pipeline_file,
             include_nested=include_nested,
             max_include_depth=max_include_depth,
+            resolve_external_includes=resolve_external_includes,
             gitlab_url=gitlab_url,
             token=token,
             project=project,
@@ -1014,7 +1025,7 @@ def supply_chain(
     "output_file",
     required=False,
     default=None,
-    help="Write rendered report to this file (markdown, html, mr-comment).",
+    help="Write rendered report to this file (markdown, html, mr-comment, junit).",
 )
 @click.option(
     "--include-nested/--no-include-nested",

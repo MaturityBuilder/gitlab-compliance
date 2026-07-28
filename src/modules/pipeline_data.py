@@ -9,10 +9,13 @@ from typing import Any
 
 import src.modules.common as common
 from src.compliance.include_fetch import (
+    ExternalIncludeContext,
     IncludeFetchCache,
     IncludeFetchFailure,
+    context_for_fetched,
     default_gitlab_url,
     fetch_include_content,
+    resolve_nested_local_from_context,
 )
 from src.compliance.include_resolution import UnresolvedInclude, record_unresolved
 from src.compliance.include_versions import is_valid_semver_version
@@ -357,7 +360,28 @@ def _collect_from_fetched_yaml(
     _job_registry: dict[str, dict],
     _fetch_cache: IncludeFetchCache,
     _unresolved: list[UnresolvedInclude],
+    _external_context: ExternalIncludeContext | None,
 ) -> dict[str, Any]:
+    if config_label in _visited:
+        return {
+            "config_file": config_label,
+            "inputs": [],
+            "variables": [],
+            "includes": [],
+            "workflow_rules": [],
+            "jobs": [],
+            "container_images": [],
+            "job_registry": _job_registry,
+            "unresolved_includes": [item.to_dict() for item in _unresolved],
+            "line_index": {
+                "jobs": {},
+                "includes": [],
+                "variables": {},
+                "workflow_rules": [],
+            },
+        }
+    _visited.add(config_label)
+
     temp_path = ""
     try:
         with tempfile.NamedTemporaryFile(
@@ -387,6 +411,7 @@ def _collect_from_fetched_yaml(
             _fetch_cache=_fetch_cache,
             _unresolved=_unresolved,
             _source_label=config_label,
+            _external_context=_external_context,
         )
     finally:
         if temp_path:
@@ -394,6 +419,121 @@ def _collect_from_fetched_yaml(
                 os.unlink(temp_path)
             except OSError:
                 pass
+
+
+def _process_local_include(
+    parsed: dict[str, Any],
+    *,
+    config_file: str,
+    data: dict[str, Any],
+    detailed: bool,
+    include_nested: bool,
+    max_include_depth: int | None,
+    exclude_sections: set[str] | None,
+    exclude_attributes: set[str] | None,
+    group_by: str | None,
+    include_scripts: bool,
+    resolve_job_composition: bool,
+    resolve_external_includes: bool | None,
+    gitlab_url: str | None,
+    token: str | None,
+    _depth: int,
+    _visited: set[str],
+    _job_registry: dict[str, dict],
+    _fetch_cache: IncludeFetchCache,
+    _unresolved: list[UnresolvedInclude],
+    _external_context: ExternalIncludeContext | None,
+) -> None:
+    if _external_context is not None:
+        fetched = resolve_nested_local_from_context(
+            str(parsed["project"]),
+            _external_context,
+            gitlab_url=default_gitlab_url(gitlab_url),
+            token=token,
+            cache=_fetch_cache,
+        )
+        if isinstance(fetched, IncludeFetchFailure):
+            record_unresolved(
+                _unresolved,
+                parsed,
+                reason=fetched.reason,
+                detail=fetched.detail,
+            )
+            return
+        nested_context: ExternalIncludeContext
+        if _external_context.kind == "remote":
+            from src.compliance.include_fetch import remote_directory_url
+
+            nested_context = ExternalIncludeContext(
+                kind="remote",
+                visit_key=fetched.config_label,
+                base_url=remote_directory_url(fetched.config_label),
+            )
+        else:
+            nested_context = ExternalIncludeContext(
+                kind="project",
+                visit_key=fetched.config_label,
+                project_path=_external_context.project_path,
+                ref=_external_context.ref,
+            )
+        nested = _collect_from_fetched_yaml(
+            yaml_text=fetched.yaml_text,
+            config_label=fetched.config_label,
+            detailed=detailed,
+            include_nested=include_nested,
+            max_include_depth=max_include_depth,
+            exclude_sections=exclude_sections,
+            exclude_attributes=exclude_attributes,
+            group_by=group_by,
+            include_scripts=include_scripts,
+            resolve_job_composition=resolve_job_composition,
+            resolve_external_includes=resolve_external_includes,
+            gitlab_url=gitlab_url,
+            token=token,
+            _depth=_depth + 1,
+            _visited=_visited,
+            _job_registry=_job_registry,
+            _fetch_cache=_fetch_cache,
+            _unresolved=_unresolved,
+            _external_context=nested_context,
+        )
+        _merge_nested_pipeline_data(data, nested)
+        return
+
+    sub_config = _resolve_local_include_path(config_file, parsed["project"])
+    if not sub_config:
+        base_dir = os.path.realpath(os.path.dirname(os.path.abspath(config_file)))
+        candidate = os.path.realpath(
+            os.path.normpath(os.path.join(base_dir, str(parsed["project"]).lstrip("/")))
+        )
+        try:
+            outside_base = os.path.commonpath([base_dir, candidate]) != base_dir
+        except ValueError:
+            outside_base = True
+        reason = "path_rejected" if outside_base else "not_found"
+        record_unresolved(_unresolved, parsed, reason=reason)
+        return
+    nested = collect_pipeline_data(
+        sub_config,
+        detailed=detailed,
+        include_nested=include_nested,
+        max_include_depth=max_include_depth,
+        exclude_sections=exclude_sections,
+        exclude_attributes=exclude_attributes,
+        group_by=group_by,
+        include_scripts=include_scripts,
+        resolve_job_composition=resolve_job_composition,
+        resolve_external_includes=resolve_external_includes,
+        gitlab_url=gitlab_url,
+        token=token,
+        _depth=_depth + 1,
+        _visited=_visited,
+        _job_registry=_job_registry,
+        _fetch_cache=_fetch_cache,
+        _unresolved=_unresolved,
+        _external_context=None,
+    )
+    _merge_nested_pipeline_data(data, nested)
 
 
 def _process_parsed_include(
@@ -418,6 +558,7 @@ def _process_parsed_include(
     _job_registry: dict[str, dict],
     _fetch_cache: IncludeFetchCache,
     _unresolved: list[UnresolvedInclude],
+    _external_context: ExternalIncludeContext | None,
 ) -> None:
     include_type = parsed.get("include_type", "")
     if not can_recurse:
@@ -426,23 +567,10 @@ def _process_parsed_include(
         return
 
     if include_type == "local":
-        sub_config = _resolve_local_include_path(config_file, parsed["project"])
-        if not sub_config:
-            base_dir = os.path.realpath(os.path.dirname(os.path.abspath(config_file)))
-            candidate = os.path.realpath(
-                os.path.normpath(
-                    os.path.join(base_dir, str(parsed["project"]).lstrip("/"))
-                )
-            )
-            try:
-                outside_base = os.path.commonpath([base_dir, candidate]) != base_dir
-            except ValueError:
-                outside_base = True
-            reason = "path_rejected" if outside_base else "not_found"
-            record_unresolved(_unresolved, parsed, reason=reason)
-            return
-        nested = collect_pipeline_data(
-            sub_config,
+        _process_local_include(
+            parsed,
+            config_file=config_file,
+            data=data,
             detailed=detailed,
             include_nested=include_nested,
             max_include_depth=max_include_depth,
@@ -454,13 +582,13 @@ def _process_parsed_include(
             resolve_external_includes=resolve_external_includes,
             gitlab_url=gitlab_url,
             token=token,
-            _depth=_depth + 1,
+            _depth=_depth,
             _visited=_visited,
             _job_registry=_job_registry,
             _fetch_cache=_fetch_cache,
             _unresolved=_unresolved,
+            _external_context=_external_context,
         )
-        _merge_nested_pipeline_data(data, nested)
         return
 
     if include_type in {"component", "template"}:
@@ -515,6 +643,7 @@ def _process_parsed_include(
         _job_registry=_job_registry,
         _fetch_cache=_fetch_cache,
         _unresolved=_unresolved,
+        _external_context=context_for_fetched(parsed, fetched),
     )
     _merge_nested_pipeline_data(data, nested)
 
@@ -539,6 +668,7 @@ def collect_pipeline_data(
     _fetch_cache: IncludeFetchCache | None = None,
     _unresolved: list[UnresolvedInclude] | None = None,
     _source_label: str | None = None,
+    _external_context: ExternalIncludeContext | None = None,
 ) -> dict:
     if resolve_job_composition:
         include_scripts = True
@@ -656,6 +786,7 @@ def collect_pipeline_data(
                         _job_registry=job_registry,
                         _fetch_cache=fetch_cache,
                         _unresolved=unresolved,
+                        _external_context=_external_context,
                     )
 
         if exclude_sections and "workflow" in exclude_sections:

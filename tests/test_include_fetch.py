@@ -38,7 +38,7 @@ class TestFetchRemoteInclude:
     def test_fetch_remote_uses_token_header(self):
         parsed = {
             "include_type": "remote",
-            "project": "https://example.com/private.yml",
+            "project": "https://gitlab.com/group/project/-/raw/main/ci.yml",
         }
         with patch("src.compliance.include_fetch.requests.get") as mock_get:
             mock_get.return_value = MagicMock(
@@ -54,6 +54,26 @@ class TestFetchRemoteInclude:
             )
         headers = mock_get.call_args.kwargs["headers"]
         assert headers["PRIVATE-TOKEN"] == "glpat-test"
+
+    def test_fetch_remote_omits_token_for_foreign_host(self):
+        parsed = {
+            "include_type": "remote",
+            "project": "https://evil.example/private.yml",
+        }
+        with patch("src.compliance.include_fetch.requests.get") as mock_get:
+            mock_get.return_value = MagicMock(
+                status_code=200,
+                text="job:\n  script: [echo]\n",
+            )
+            mock_get.return_value.raise_for_status = MagicMock()
+            fetch_include_content(
+                parsed,
+                gitlab_url="https://gitlab.com",
+                token="glpat-test",
+                cache=IncludeFetchCache(),
+            )
+        headers = mock_get.call_args.kwargs["headers"]
+        assert "PRIVATE-TOKEN" not in headers
 
     def test_fetch_remote_failure(self):
         parsed = {

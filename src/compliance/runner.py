@@ -617,6 +617,7 @@ def run_compliance(
             failed=result.failed,
             skipped=result.skipped,
             scenario_results=result.scenario_results,
+            unresolved_includes=result.unresolved_includes,
         )
 
     return result
