@@ -1,21 +1,17 @@
 # Presentations
 
-Slide decks derived from `gitlab-compliance` product documentation.
+Stakeholder slide decks for `gitlab-compliance`.
 
-## Available decks
+## Available deck
 
 | File | Purpose |
 | ---- | ------- |
-| [gitlab-compliance-dedicated-nexus-impact.pptx](gitlab-compliance-dedicated-nexus-impact.pptx) | Impact briefing: check, shell scan, supply chain, document, and readable Gherkin policies for Dedicated migration, Nexus compliance, tech-debt discovery, and ongoing standards |
-| [gitlab-compliance-overview.pptx](gitlab-compliance-overview.pptx) | Product overview from the docs: idea, BDD model, policy pack, CLI, CI/CD, OCI, rollout |
-| [gitlab-compliance-adoption.pptx](gitlab-compliance-adoption.pptx) | Adoption briefing: value, journey stages, integration patterns, success measures |
+| [gitlab-compliance-stakeholder-briefing.pptx](gitlab-compliance-stakeholder-briefing.pptx) | Non-technical briefing: delivery risk, GitLab Dedicated migration, Nexus compliance, readable ongoing standards, and the leadership ask |
 
 ## Rebuild
 
 ```bash
-python3 scripts/build_impact_pptx.py
-python3 scripts/build_overview_pptx.py
-python3 scripts/build_adoption_pptx.py
+python3 scripts/build_stakeholder_pptx.py
 ```
 
 Requires `python-pptx` (`pip install python-pptx`).
