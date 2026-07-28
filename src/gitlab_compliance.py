@@ -839,6 +839,7 @@ def shell_check(
                 pipeline_file=pipeline_file,
                 features_dir=shell_features,
                 output_format=output_format,
+                suite_name="shell-check",
             )
         target = _resolve_compliance_output(
             output_format, output_file, SHELL_CHECK_DEFAULT_OUTPUT_FILES

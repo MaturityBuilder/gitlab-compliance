@@ -45,6 +45,21 @@ Markdown report:
 gitlab-compliance shell-check -p .gitlab-ci.yml --format markdown -o SHELL-CHECK.md
 ```
 
+JUnit report for GitLab CI test artifacts:
+
+```bash
+gitlab-compliance shell-check -p .gitlab-ci.yml --format junit -o SHELL-CHECK.xml
+```
+
+```yaml
+# .gitlab-ci.yml excerpt
+script:
+  - gitlab-compliance shell-check -p .gitlab-ci.yml --format junit -o SHELL-CHECK.xml
+artifacts:
+  reports:
+    junit: SHELL-CHECK.xml
+```
+
 Also available via `check --with-builtin` (shell features ship alongside other
 bundled policies).
 

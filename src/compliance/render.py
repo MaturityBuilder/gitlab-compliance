@@ -7,6 +7,7 @@ import html
 import json
 import os
 import re
+import xml.etree.ElementTree as ET  # nosec B405 - XML is generated, not parsed
 from datetime import datetime, timezone
 
 from src.compliance.models import ComplianceResult, ScenarioResult
@@ -336,6 +337,112 @@ def _findings_for_scenario(scenario: ScenarioResult, pipeline_file: str) -> list
     return findings
 
 
+def _failure_body_for_scenario(scenario: ScenarioResult, pipeline_file: str) -> str:
+    message = scenario.message or ""
+    if message.startswith("ASSERT FAILED:"):
+        from src.compliance.shell_render import (
+            _display_location,
+            parse_shell_violations,
+        )
+
+        lines: list[str] = []
+        for violation in parse_shell_violations(message):
+            location = _display_location(violation.location, pipeline_file) or "unknown"
+            line = f"{violation.job} @ {location}: {violation.message}"
+            if violation.inheritance:
+                line = f"{line} ({violation.inheritance})"
+            lines.append(line)
+        if lines:
+            return "\n".join(lines)
+    return redact_secrets(_description_for_scenario(scenario))
+
+
+def _scenario_classname(scenario: ScenarioResult) -> str:
+    return scenario.policy_id or scenario.feature
+
+
+def _scenario_name(scenario: ScenarioResult) -> str:
+    return scenario.title or scenario.name
+
+
+def _group_scenarios_by_feature(
+    scenarios: list[ScenarioResult],
+) -> dict[str, list[ScenarioResult]]:
+    grouped: dict[str, list[ScenarioResult]] = {}
+    for scenario in scenarios:
+        grouped.setdefault(scenario.feature, []).append(scenario)
+    return grouped
+
+
+def render_compliance_junit(
+    result: ComplianceResult,
+    pipeline_file: str,
+    *,
+    suite_name: str = "gitlab-compliance",
+) -> str:
+    """Render compliance scenarios as JUnit XML for CI test report artifacts."""
+    root = ET.Element(
+        "testsuites",
+        {
+            "name": suite_name,
+            "tests": str(result.scenarios),
+            "failures": str(result.failed),
+            "errors": "0",
+            "skipped": str(result.skipped),
+        },
+    )
+
+    for feature, scenarios in _group_scenarios_by_feature(
+        result.scenario_results
+    ).items():
+        suite = ET.SubElement(
+            root,
+            "testsuite",
+            {
+                "name": feature,
+                "tests": str(len(scenarios)),
+                "failures": str(sum(1 for s in scenarios if s.status == "failed")),
+                "errors": "0",
+                "skipped": str(sum(1 for s in scenarios if s.status == "skipped")),
+            },
+        )
+        for scenario in scenarios:
+            testcase = ET.SubElement(
+                suite,
+                "testcase",
+                {
+                    "classname": _scenario_classname(scenario),
+                    "name": _scenario_name(scenario),
+                    "time": "0",
+                },
+            )
+            if scenario.status == "failed":
+                failure = ET.SubElement(
+                    testcase,
+                    "failure",
+                    {
+                        "message": redact_secrets(_description_for_scenario(scenario))[
+                            :500
+                        ],
+                        "type": "failure",
+                    },
+                )
+                failure.text = _failure_body_for_scenario(scenario, pipeline_file)
+            elif scenario.status == "skipped":
+                ET.SubElement(
+                    testcase,
+                    "skipped",
+                    {
+                        "message": redact_secrets(
+                            scenario.message or "Filter did not match any entities."
+                        ),
+                    },
+                )
+
+    xml_body = ET.tostring(root, encoding="unicode")
+    return f'<?xml version="1.0" encoding="UTF-8"?>\n{xml_body}\n'
+
+
 def render_compliance_code_quality(
     result: ComplianceResult,
     pipeline_file: str,
@@ -354,6 +461,8 @@ def render_compliance_report(
     pipeline_file: str,
     features_dir: str,
     output_format: str,
+    *,
+    suite_name: str = "gitlab-compliance",
 ) -> str | None:
     fmt = output_format.lower()
     if fmt == "markdown":
@@ -364,4 +473,6 @@ def render_compliance_report(
         return render_compliance_mr_comment(result, pipeline_file, features_dir)
     if fmt == "codequality":
         return render_compliance_code_quality(result, pipeline_file)
+    if fmt == "junit":
+        return render_compliance_junit(result, pipeline_file, suite_name=suite_name)
     return None

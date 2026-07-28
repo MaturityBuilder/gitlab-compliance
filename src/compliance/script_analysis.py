@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import shlex
 
 from src.compliance.stash import get_property
 
@@ -19,13 +20,42 @@ _REMOTE_PIPE = re.compile(
     r"\b(curl|wget)\b[^|\n]*\|\s*(ba)?sh\b",
     re.IGNORECASE,
 )
-_PIP = re.compile(r"\bpip(?:3)?\s+install\b", re.IGNORECASE)
+_PIP = re.compile(r"(?:\bpython(?:3)?\s+-m\s+)?\bpip(?:3)?\s+install\b", re.IGNORECASE)
 _APK = re.compile(r"\bapk\s+add\b", re.IGNORECASE)
 _APT = re.compile(r"\bapt(?:-get)?\s+install\b", re.IGNORECASE)
 _NPM_GLOBAL = re.compile(
-    r"\b(?:npm\s+install\s+-g|yarn\s+global\s+add)\b", re.IGNORECASE
+    r"\b(?:npm\s+(?:install|i)\s+(?:-g|--global)\b|npm\s+(?:-g|--global)\s+(?:install|i)\b|"
+    r"yarn\s+global\s+add|pnpm\s+(?:add|install)\s+(?:-g|--global)\b|"
+    r"pnpm\s+(?:-g|--global)\s+(?:add|install)\b)\b",
+    re.IGNORECASE,
 )
 _GO_INSTALL = re.compile(r"\bgo\s+install\b", re.IGNORECASE)
+_COMMAND_SPLIT = re.compile(r"\s*(?:&&|;)\s*")
+_APT_VALUE_FLAGS = frozenset(
+    {"-o", "--option", "-t", "--target", "-t", "--target-release"}
+)
+_APK_VALUE_FLAGS = frozenset(
+    {"-p", "--repository", "-X", "--repository", "-U", "--upgrade"}
+)
+_PIP_VALUE_FLAGS = frozenset(
+    {
+        "-r",
+        "--requirement",
+        "-c",
+        "--constraint",
+        "-i",
+        "--index-url",
+        "--extra-index-url",
+        "--find-links",
+        "-f",
+        "--editable",
+        "-e",
+        "--prefix",
+        "--root",
+        "--target",
+        "--src",
+    }
+)
 _GIT_CLONE = re.compile(r"\bgit\s+clone\b", re.IGNORECASE)
 _EVAL = re.compile(r"(^|\s)eval\s")
 _RM_RF_ROOT = re.compile(r"\brm\s+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)\s+/")
@@ -91,6 +121,100 @@ def _active_lines(entity: dict, field: str = "effective_script") -> list[str]:
     return [
         _strip_comment(line) for line in _script_lines(entity, field) if line.strip()
     ]
+
+
+def _split_commands(line: str) -> list[str]:
+    parts = _COMMAND_SPLIT.split(line.strip())
+    return [part.strip() for part in parts if part.strip()]
+
+
+def _install_tokens(segment: str, install_pattern: re.Pattern[str]) -> list[str]:
+    match = install_pattern.search(segment)
+    if not match:
+        return []
+    tail = segment[match.end() :].strip()
+    if not tail:
+        return []
+    try:
+        return shlex.split(tail, posix=True)
+    except ValueError:
+        return tail.split()
+
+
+def _skip_flag_tokens(
+    tokens: list[str],
+    *,
+    value_flags: frozenset[str] | None = None,
+    virtual_flag: str | None = None,
+) -> list[str]:
+    value_flags = value_flags or frozenset()
+    packages: list[str] = []
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token == virtual_flag:
+            index += 2
+            continue
+        if token in value_flags:
+            index += 2
+            continue
+        if token.startswith("-") and "=" not in token:
+            index += 1
+            continue
+        packages.append(token)
+        index += 1
+    return packages
+
+
+def _is_version_pinned_token(token: str, manager: str) -> bool:
+    if manager in {"apt", "apk"}:
+        return "=" in token and not token.startswith("=")
+    if manager == "pip":
+        if token in {".", "./", ".."}:
+            return True
+        if token.startswith(("-", ".")):
+            return True
+        return "==" in token or "@" in token
+    if manager == "npm":
+        if "@" not in token:
+            return False
+        version = token.rsplit("@", 1)[-1]
+        return bool(version) and version.lower() != "latest"
+    if manager == "go":
+        if "@" not in token:
+            return False
+        version = token.rsplit("@", 1)[-1]
+        return bool(version) and version.lower() != "latest"
+    return False
+
+
+def _has_unpinned_packages(
+    line: str,
+    install_pattern: re.Pattern[str],
+    manager: str,
+    *,
+    value_flags: frozenset[str] | None = None,
+    virtual_flag: str | None = None,
+    allow_requirements: bool = False,
+) -> bool:
+    for segment in _split_commands(line):
+        if not install_pattern.search(segment):
+            continue
+        tokens = _install_tokens(segment, install_pattern)
+        if allow_requirements and any(
+            token in {"-r", "--requirement"} for token in tokens
+        ):
+            continue
+        packages = _skip_flag_tokens(
+            tokens,
+            value_flags=value_flags,
+            virtual_flag=virtual_flag,
+        )
+        if not packages:
+            continue
+        if any(not _is_version_pinned_token(package, manager) for package in packages):
+            return True
+    return False
 
 
 def job_has_effective_script(entity: dict) -> bool:
@@ -268,11 +392,16 @@ def script_has_unpinned_pip(entity: dict) -> bool:
     for line in _active_lines(entity):
         if not _PIP.search(line):
             continue
-        if "==" in line or "@" in line or "--require-hashes" in line:
+        if "--require-hashes" in line:
             continue
-        if "-r" in line or "--requirement" in line:
-            continue
-        return True
+        if _has_unpinned_packages(
+            line,
+            _PIP,
+            "pip",
+            value_flags=_PIP_VALUE_FLAGS,
+            allow_requirements=True,
+        ):
+            return True
     return False
 
 
@@ -280,9 +409,13 @@ def script_has_unpinned_apk(entity: dict) -> bool:
     for line in _active_lines(entity):
         if not _APK.search(line):
             continue
-        packages = re.findall(r"\b[A-Za-z0-9][A-Za-z0-9+_.-]*(?:=[^\s]+)?", line)
-        # Heuristic: require at least one pkg=version after apk add flags.
-        if not any("=" in pkg for pkg in packages if not pkg.startswith("-")):
+        if _has_unpinned_packages(
+            line,
+            _APK,
+            "apk",
+            value_flags=_APK_VALUE_FLAGS,
+            virtual_flag="--virtual",
+        ):
             return True
     return False
 
@@ -291,7 +424,12 @@ def script_has_unpinned_apt(entity: dict) -> bool:
     for line in _active_lines(entity):
         if not _APT.search(line):
             continue
-        if not re.search(r"[A-Za-z0-9][A-Za-z0-9+_.-]*=[^\s]+", line):
+        if _has_unpinned_packages(
+            line,
+            _APT,
+            "apt",
+            value_flags=_APT_VALUE_FLAGS,
+        ):
             return True
     return False
 
@@ -300,10 +438,7 @@ def script_has_unpinned_npm(entity: dict) -> bool:
     for line in _active_lines(entity):
         if not _NPM_GLOBAL.search(line):
             continue
-        if (
-            "@" not in line.split("install", 1)[-1]
-            and "@" not in line.split("add", 1)[-1]
-        ):
+        if _has_unpinned_packages(line, _NPM_GLOBAL, "npm"):
             return True
     return False
 
@@ -312,8 +447,12 @@ def script_has_unpinned_go_install(entity: dict) -> bool:
     for line in _active_lines(entity):
         if not _GO_INSTALL.search(line):
             continue
-        if "@" not in line:
+        tokens = _install_tokens(line, _GO_INSTALL)
+        if not tokens:
             return True
+        for token in _skip_flag_tokens(tokens):
+            if not _is_version_pinned_token(token, "go"):
+                return True
     return False
 
 

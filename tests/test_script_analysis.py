@@ -13,6 +13,9 @@ from src.compliance.script_analysis import (
     script_has_pipeline,
     script_has_remote_pipe_to_shell,
     script_has_unpinned_apk,
+    script_has_unpinned_apt,
+    script_has_unpinned_go_install,
+    script_has_unpinned_npm,
     script_has_unpinned_pip,
     script_has_unquoted_test_variables,
     script_has_unquoted_variables,
@@ -49,6 +52,28 @@ def test_pinning_predicates():
     assert not script_has_unpinned_apk(_entity(["apk add curl=8.5.0-r0"]))
     assert script_has_unpinned_pip(_entity(["pip install requests"]))
     assert not script_has_unpinned_pip(_entity(['pip install "requests==2.0"']))
+    assert script_has_unpinned_apt(_entity(["apt update && apt install -qq -y yq"]))
+    assert script_has_unpinned_apt(
+        _entity(
+            [
+                "DEBIAN_FRONTEND=noninteractive apt-get install -y "
+                "--no-install-recommends yq"
+            ]
+        )
+    )
+    assert script_has_unpinned_apt(_entity(["apt install curl git=1.0"]))
+    assert not script_has_unpinned_apt(_entity(["apt install curl=1 git=2"]))
+    assert script_has_unpinned_npm(_entity(["npm i -g yq"]))
+    assert not script_has_unpinned_npm(_entity(["npm install -g cowsay@1.0.0"]))
+    assert script_has_unpinned_go_install(
+        _entity(["go install github.com/mikefarah/yq/v4@latest"])
+    )
+    assert not script_has_unpinned_go_install(
+        _entity(["go install example.com/cmd@v1.2.3"])
+    )
+    assert script_has_unpinned_pip(_entity(["pip install requests flask==1.0"]))
+    assert not script_has_unpinned_pip(_entity(["pip install -r requirements.txt"]))
+    assert script_has_unpinned_pip(_entity(["python -m pip install requests"]))
 
 
 def test_checksum_and_curl_fail():

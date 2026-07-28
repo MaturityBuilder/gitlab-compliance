@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import sys
+import xml.etree.ElementTree as ET
 
 from behave import then, when
 
@@ -135,3 +136,20 @@ def step_code_quality_contains_path(context, expected_path):
         payload = json.loads(handle.read())
     paths = [finding["location"]["path"] for finding in payload]
     assert any(expected_path in path for path in paths), paths
+
+
+@then("the report file should be valid JUnit XML")
+def step_report_valid_junit_xml(context):
+    with open(context.report_path, encoding="utf-8") as handle:
+        content = handle.read()
+    assert content.startswith('<?xml version="1.0"'), content[:80]
+    root = ET.fromstring(content)
+    assert root.tag == "testsuites"
+    assert int(root.attrib.get("tests", "0")) > 0
+
+
+@then("the JUnit report should contain a failed testcase")
+def step_junit_contains_failure(context):
+    with open(context.report_path, encoding="utf-8") as handle:
+        root = ET.fromstring(handle.read())
+    assert root.findall(".//failure"), ET.tostring(root, encoding="unicode")

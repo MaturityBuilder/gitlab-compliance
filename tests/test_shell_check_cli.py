@@ -80,3 +80,25 @@ def test_shell_check_html_report(tmp_path):
     text = out.read_text(encoding="utf-8")
     assert "Shell Check Report" in text
     assert "<h2>Findings" in text
+
+
+def test_shell_check_junit_report(tmp_path):
+    runner = CliRunner()
+    out = tmp_path / "report.xml"
+    result = runner.invoke(
+        gitlab_compliance,
+        [
+            "shell-check",
+            "-p",
+            str(FIXTURES / "bad-pipeline.yml"),
+            "--format",
+            "junit",
+            "-o",
+            str(out),
+        ],
+    )
+    assert result.exit_code == 1
+    assert out.exists()
+    text = out.read_text(encoding="utf-8")
+    assert 'name="shell-check"' in text
+    assert "<failure" in text
