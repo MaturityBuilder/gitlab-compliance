@@ -27,3 +27,9 @@ Feature: Compliance report output formats
     Then the report file should exist
     And the report file should be valid Code Quality JSON
     And the Code Quality report should contain finding for ".gitlab-ci.yml"
+
+  Scenario: JUnit XML report is generated for a failing policy run
+    When I run compliance with format "junit" on "examples/sample-files/.gitlab-ci.yml" policies "tests/compliance_policies/failing" to "/tmp/compliance-junit.xml"
+    Then the report file should exist
+    And the report file should be valid JUnit XML
+    And the JUnit report should contain a failed testcase

@@ -198,7 +198,7 @@ class TestMetadataAndModel:
         assert values["variables"]["K"] == "v"
 
     def test_load_yaml_entities_includes_workflow(self):
-        entities = load_yaml_entities(str(SAMPLE))
+        entities, _unresolved = load_yaml_entities(str(SAMPLE))
         assert entities["workflow_rules"] or entities["jobs"]
 
 

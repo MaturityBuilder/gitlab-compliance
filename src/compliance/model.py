@@ -110,7 +110,10 @@ def load_yaml_entities(
     pipeline_file: str,
     include_nested: bool = True,
     max_include_depth: int | None = None,
-) -> dict[str, list[dict]]:
+    resolve_external_includes: bool | None = None,
+    gitlab_url: str | None = None,
+    token: str | None = None,
+) -> tuple[dict[str, list[dict]], list[dict]]:
     if not os.path.exists(pipeline_file):
         raise FileNotFoundError(f"Pipeline file not found: {pipeline_file}")
 
@@ -121,6 +124,9 @@ def load_yaml_entities(
         max_include_depth=max_include_depth,
         include_scripts=True,
         resolve_job_composition=True,
+        resolve_external_includes=resolve_external_includes,
+        gitlab_url=gitlab_url,
+        token=token,
     )
 
     line_index = pipeline_data.get("line_index") or {}
@@ -170,7 +176,7 @@ def load_yaml_entities(
             for index, image in enumerate(pipeline_data["container_images"], 1)
         ],
     }
-    return entities
+    return entities, list(pipeline_data.get("unresolved_includes") or [])
 
 
 def _job_values(job: dict) -> dict:
@@ -205,6 +211,9 @@ def load_merged_job_scripts(
     pipeline_file: str,
     include_nested: bool = True,
     max_include_depth: int | None = None,
+    resolve_external_includes: bool | None = None,
+    gitlab_url: str | None = None,
+    token: str | None = None,
 ) -> list[dict]:
     """Return jobs with composed effective scripts for shell validation."""
     pipeline_data = collect_pipeline_data(
@@ -214,6 +223,9 @@ def load_merged_job_scripts(
         max_include_depth=max_include_depth,
         include_scripts=True,
         resolve_job_composition=True,
+        resolve_external_includes=resolve_external_includes,
+        gitlab_url=gitlab_url,
+        token=token,
     )
     return list(pipeline_data.get("merged_jobs") or pipeline_data.get("jobs") or [])
 
@@ -229,16 +241,21 @@ def load_pipeline_entities(
     enrich_includes: bool = True,
     enrich_images: bool = True,
     load_api_entities: bool = True,
+    resolve_external_includes: bool | None = None,
     cache: "ReleaseMetadataCache | None" = None,
 ) -> dict[str, list[dict]]:
     from src.compliance.api_config import resolve_group, resolve_project, resolve_token
     from src.compliance.release_cache import ReleaseMetadataCache
 
-    entities = load_yaml_entities(
+    entities, unresolved_includes = load_yaml_entities(
         pipeline_file,
         include_nested=include_nested,
         max_include_depth=max_include_depth,
+        resolve_external_includes=resolve_external_includes,
+        gitlab_url=gitlab_url,
+        token=token,
     )
+    entities["unresolved_includes"] = unresolved_includes
 
     userdata = {
         "project": project or "",

@@ -38,6 +38,7 @@ See [Image pinning](../../examples/image-pinning.md) and
 
 
 
+
 ## Usage
 
 ```
@@ -54,7 +55,7 @@ Usage: gitlab-compliance supply-chain [OPTIONS]
   Path to the GitLab CI pipeline YAML file.
 
 * `output_format`:
-  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality'])
+  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality', 'junit'])
   * Default: `console`
   * Usage: `--format`
 
@@ -66,7 +67,7 @@ Usage: gitlab-compliance supply-chain [OPTIONS]
   * Usage: `--output-file
 -o`
 
-  Write rendered report to this file (markdown, html, mr-comment).
+  Write rendered report to this file (markdown, html, mr-comment, junit).
 
 * `include_nested`:
   * Type: BOOL
@@ -81,6 +82,13 @@ Usage: gitlab-compliance supply-chain [OPTIONS]
   * Usage: `--max-include-depth`
 
   Max local include nesting depth from the root file (omit for unlimited).
+
+* `resolve_external_includes`:
+  * Type: BOOL
+  * Default: `none`
+  * Usage: `--resolve-external-includes`
+
+  Fetch remote and project include YAML (default: auto — remote always, project when a token is available).
 
 * `features_dir`:
   * Type: STRING
@@ -174,16 +182,20 @@ Usage: gitlab-compliance supply-chain [OPTIONS]
 
 Options:
   -p, --pipeline TEXT             Path to the GitLab CI pipeline YAML file.
-  --format [console|markdown|html|mr-comment|codequality]
+  --format [console|markdown|html|mr-comment|codequality|junit]
                                   Output format for the supply-chain
                                   compliance report.
   -o, --output-file TEXT          Write rendered report to this file
-                                  (markdown, html, mr-comment).
+                                  (markdown, html, mr-comment, junit).
   --include-nested / --no-include-nested
                                   Resolve nested local include files into the
                                   compliance stash.
   --max-include-depth INTEGER     Max local include nesting depth from the
                                   root file (omit for unlimited).
+  --resolve-external-includes / --no-resolve-external-includes
+                                  Fetch remote and project include YAML
+                                  (default: auto — remote always, project when
+                                  a token is available).
   -f, --features TEXT             Policy directory to run instead of packaged
                                   supply-chain policies. Defaults to bundled
                                   include, image, and service pinning.

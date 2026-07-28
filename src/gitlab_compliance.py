@@ -35,6 +35,7 @@ from src.modules.constants import (
     DEFAULT_OUTPUT_FILES,
     POLICY_DOC_DEFAULT_OUTPUT_FILES,
     POLICY_DOC_OUTPUT_FORMATS,
+    SHELL_CHECK_DEFAULT_OUTPUT_FILES,
     SUPPORTED_OUTPUT_FORMATS,
 )
 from src.modules.doc_controller import (
@@ -472,11 +473,12 @@ def generate_html(detailed, OUTPUT_FILE, GLDOCS_CONFIG_FILE):
     )
 
 
-def _resolve_compliance_output(output_format, output_file):
+def _resolve_compliance_output(output_format, output_file, defaults=None):
     if output_file:
         return output_file
-    if output_format in COMPLIANCE_DEFAULT_OUTPUT_FILES:
-        return COMPLIANCE_DEFAULT_OUTPUT_FILES[output_format]
+    default_files = defaults or COMPLIANCE_DEFAULT_OUTPUT_FILES
+    if output_format in default_files:
+        return default_files[output_format]
     return None
 
 
@@ -527,7 +529,7 @@ def _resolve_policies_dir(
     "output_file",
     required=False,
     default=None,
-    help="Write rendered report to this file (markdown, html, mr-comment).",
+    help="Write rendered report to this file (markdown, html, mr-comment, junit).",
 )
 @click.option(
     "--include-nested/--no-include-nested",
@@ -540,6 +542,15 @@ def _resolve_policies_dir(
     type=int,
     default=None,
     help="Max local include nesting depth from the root file (omit for unlimited).",
+)
+@click.option(
+    "--resolve-external-includes/--no-resolve-external-includes",
+    "resolve_external_includes",
+    default=None,
+    help=(
+        "Fetch remote and project include YAML (default: auto — remote always, "
+        "project when a token is available)."
+    ),
 )
 @click.option(
     "--gitlab-url",
@@ -676,6 +687,7 @@ def check(
     output_file,
     include_nested,
     max_include_depth,
+    resolve_external_includes,
     gitlab_url,
     token,
     project,
@@ -724,6 +736,7 @@ def check(
             pipeline_file=pipeline_file,
             include_nested=include_nested,
             max_include_depth=max_include_depth,
+            resolve_external_includes=resolve_external_includes,
             gitlab_url=gitlab_url,
             token=token,
             project=project,
@@ -811,7 +824,7 @@ def check(
     "output_file",
     required=False,
     default=None,
-    help="Write rendered report to this file (markdown, html, mr-comment).",
+    help="Write rendered report to this file (markdown, html, mr-comment, junit).",
 )
 @click.option(
     "--include-nested/--no-include-nested",
@@ -824,6 +837,15 @@ def check(
     type=int,
     default=None,
     help="Max local include nesting depth from the root file (omit for unlimited).",
+)
+@click.option(
+    "--resolve-external-includes/--no-resolve-external-includes",
+    "resolve_external_includes",
+    default=None,
+    help=(
+        "Fetch remote and project include YAML (default: auto — remote always, "
+        "project when a token is available)."
+    ),
 )
 @click.option(
     "--features",
@@ -899,6 +921,7 @@ def supply_chain(
     output_file,
     include_nested,
     max_include_depth,
+    resolve_external_includes,
     features_dir,
     gitlab_url,
     token,
@@ -929,6 +952,7 @@ def supply_chain(
             pipeline_file=pipeline_file,
             include_nested=include_nested,
             max_include_depth=max_include_depth,
+            resolve_external_includes=resolve_external_includes,
             gitlab_url=gitlab_url,
             token=token,
             project=project,
@@ -1001,7 +1025,7 @@ def supply_chain(
     "output_file",
     required=False,
     default=None,
-    help="Write rendered report to this file (markdown, html, mr-comment).",
+    help="Write rendered report to this file (markdown, html, mr-comment, junit).",
 )
 @click.option(
     "--include-nested/--no-include-nested",
@@ -1014,6 +1038,41 @@ def supply_chain(
     type=int,
     default=None,
     help="Max local include nesting depth from the root file (omit for unlimited).",
+)
+@click.option(
+    "--resolve-external-includes/--no-resolve-external-includes",
+    "resolve_external_includes",
+    default=None,
+    help=(
+        "Fetch remote and project include YAML (default: auto — remote always, "
+        "project when a token is available)."
+    ),
+)
+@click.option(
+    "--gitlab-url",
+    default=None,
+    help="GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).",
+)
+@click.option(
+    "--token",
+    default=None,
+    help="GitLab API token (default: GITLAB_TOKEN or CI_JOB_TOKEN).",
+)
+@click.option(
+    "--project",
+    default=None,
+    help="GitLab project path or ID for API-backed policy checks.",
+)
+@click.option(
+    "--group",
+    default=None,
+    help="GitLab group path or ID for API-backed policy checks.",
+)
+@click.option(
+    "--strict",
+    is_flag=True,
+    default=False,
+    help="Fail API-backed scenarios when connection info is missing (default: skip).",
 )
 @click.option(
     "--features",
@@ -1032,6 +1091,12 @@ def shell_check(
     output_file,
     include_nested,
     max_include_depth,
+    resolve_external_includes,
+    gitlab_url,
+    token,
+    project,
+    group,
+    strict,
     features_dir,
 ):
     """
@@ -1052,6 +1117,12 @@ def shell_check(
             pipeline_file=pipeline_file,
             include_nested=include_nested,
             max_include_depth=max_include_depth,
+            resolve_external_includes=resolve_external_includes,
+            gitlab_url=gitlab_url,
+            token=token,
+            project=project,
+            group=group,
+            strict=strict,
             output_format=output_format,
             command_title="shell-check",
             with_builtin=False,
@@ -1061,13 +1132,25 @@ def shell_check(
         raise SystemExit(2) from exc
 
     if output_format != "console":
-        report = _gitlab_docs.render_compliance_report(
+        from src.compliance.shell_render import render_shell_check_report
+
+        report = render_shell_check_report(
             result=result,
             pipeline_file=pipeline_file,
             features_dir=shell_features,
             output_format=output_format,
         )
-        target = _resolve_compliance_output(output_format, output_file)
+        if report is None:
+            report = _gitlab_docs.render_compliance_report(
+                result=result,
+                pipeline_file=pipeline_file,
+                features_dir=shell_features,
+                output_format=output_format,
+                suite_name="shell-check",
+            )
+        target = _resolve_compliance_output(
+            output_format, output_file, SHELL_CHECK_DEFAULT_OUTPUT_FILES
+        )
         if target:
             with open(target, "w", encoding="utf-8") as handle:
                 handle.write(report)

@@ -6,6 +6,15 @@ from src.compliance.model import load_pipeline_entities
 from src.compliance.release_cache import ReleaseMetadataCache
 
 
+def _resolve_external_flag(value: str | None) -> bool | None:
+    normalized = str(value or "auto").strip().lower()
+    if normalized in {"true", "yes", "on", "1"}:
+        return True
+    if normalized in {"false", "no", "off", "0"}:
+        return False
+    return None
+
+
 def before_all(context):
     context.compliance_entities = {}
     context.stash = []
@@ -42,6 +51,9 @@ def before_scenario(context, scenario):
             == "true",
             load_api_entities=context.config.userdata.get("load_api_entities", "true")
             == "true",
+            resolve_external_includes=_resolve_external_flag(
+                context.config.userdata.get("resolve_external_includes", "auto")
+            ),
             cache=getattr(context, "release_cache", None),
         )
 

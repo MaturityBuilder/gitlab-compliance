@@ -1,0 +1,10 @@
+# Dict include form (single mapping, not a list).
+include:
+  local: includes/pinning-child.yml
+
+stages:
+  - test
+
+deploy:
+  stage: test
+  extends: .template

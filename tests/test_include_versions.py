@@ -343,7 +343,7 @@ class TestLoadYamlEntities:
             encoding="utf-8",
         )
 
-        entities = load_yaml_entities(str(pipeline))
+        entities, _unresolved = load_yaml_entities(str(pipeline))
         project_includes = [
             item for item in entities["includes"] if item["include_type"] == "project"
         ]

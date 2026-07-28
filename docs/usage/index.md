@@ -59,9 +59,11 @@ to run only the bundled pack, or pass `-f` to merge your policies alongside it.
 gitlab-compliance check -p .gitlab-ci.yml --with-builtin
 ```
 
-Bundled policies include plain scenarios (job images, include pinning) and
+Bundled policies include plain scenarios (job images, include pinning),
+**shell script standards** (`GLCI-SHELL-*` under `builtin_policies/shell/`), and
 **advanced Scenario Outline** matrices (variable allowlists, component input
-constraints). See [Advanced scenarios](../bdd-reference/advanced-scenarios.md).
+constraints). See [Advanced scenarios](../bdd-reference/advanced-scenarios.md)
+and [`shell-check`](reference/shell-check.md).
 
 ### `--with-shell-check` {#with-shell-check}
 

@@ -1,0 +1,9 @@
+# String include form (not a list).
+include: includes/pinning-child.yml
+
+stages:
+  - test
+
+deploy:
+  stage: test
+  extends: .template

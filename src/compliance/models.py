@@ -27,3 +27,4 @@ class ComplianceResult:
     failed: int = 0
     skipped: int = 0
     scenario_results: list[ScenarioResult] = field(default_factory=list)
+    unresolved_includes: list[dict] = field(default_factory=list)

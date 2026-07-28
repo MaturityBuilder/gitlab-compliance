@@ -7,6 +7,7 @@ import html
 import json
 import os
 import re
+import xml.etree.ElementTree as ET  # nosec B405 - XML is generated, not parsed
 from datetime import datetime, timezone
 
 from src.compliance.models import ComplianceResult, ScenarioResult
@@ -22,6 +23,35 @@ METADATA_SEVERITY_MAP = {
     "medium": "minor",
     "low": "info",
 }
+
+
+def _coverage_gaps_markdown(unresolved_includes: list[dict]) -> list[str]:
+    from src.compliance.shell_render import _render_coverage_gaps_markdown
+
+    return _render_coverage_gaps_markdown(unresolved_includes)
+
+
+def _coverage_gaps_html(unresolved_includes: list[dict]) -> str:
+    from src.compliance.shell_render import _render_coverage_gaps_html
+
+    return _render_coverage_gaps_html(unresolved_includes)
+
+
+def _shell_details_markdown(message: str, pipeline_file: str) -> str | None:
+    from src.compliance.shell_render import (
+        _violation_rows,
+        parse_shell_violations,
+    )
+
+    if not message or "Job '" not in message:
+        return None
+    violations = parse_shell_violations(message)
+    if not violations or not any(v.job or v.location for v in violations):
+        return None
+    return render_markdown_table(
+        ["Job", "Location", "Issue", "Inheritance"],
+        _violation_rows(violations, pipeline_file),
+    )
 
 
 def _status_icon(status: str, for_mr: bool = False) -> str:
@@ -72,6 +102,10 @@ def render_compliance_markdown(
         "",
     ]
 
+    coverage = _coverage_gaps_markdown(result.unresolved_includes)
+    if coverage:
+        lines.extend(coverage)
+
     for status in ("failed", "skipped", "passed"):
         scenarios = grouped[status]
         if not scenarios:
@@ -88,7 +122,12 @@ def render_compliance_markdown(
             if scenario.description:
                 lines.append(f"- **Description:** {scenario.description}")
             if scenario.message:
-                lines.append(f"- **Details:** {redact_secrets(scenario.message)}")
+                structured = _shell_details_markdown(scenario.message, pipeline_file)
+                if structured:
+                    lines.append("")
+                    lines.append(structured)
+                else:
+                    lines.append(f"- **Details:** {redact_secrets(scenario.message)}")
             lines.append("")
 
     return "\n".join(lines).rstrip() + "\n"
@@ -137,12 +176,20 @@ def render_compliance_mr_comment(
             )
             if scenario.description:
                 lines.extend([html.escape(scenario.description), ""])
+            structured = _shell_details_markdown(scenario.message, pipeline_file)
+            if structured:
+                lines.extend([structured, ""])
+            else:
+                lines.extend(
+                    [
+                        "```",
+                        redact_secrets(scenario.message or "Scenario failed."),
+                        "```",
+                        "",
+                    ]
+                )
             lines.extend(
                 [
-                    "```",
-                    redact_secrets(scenario.message or "Scenario failed."),
-                    "```",
-                    "",
                     "</details>",
                     "",
                 ]
@@ -158,6 +205,13 @@ def render_compliance_mr_comment(
             label = scenario.policy_id or scenario.feature
             title = scenario.title or scenario.name
             lines.append(f"- `{label}` — {title}: {reason}")
+
+    coverage = _coverage_gaps_markdown(result.unresolved_includes)
+    if coverage:
+        lines.append("")
+        lines.append("#### Coverage gaps")
+        lines.append("")
+        lines.extend(coverage[2:])
 
     if not result.success:
         lines.extend(
@@ -185,20 +239,30 @@ def render_compliance_html(
             return "<tr><td colspan='4'>None</td></tr>"
         rows = []
         for scenario in scenarios:
+            detail = ""
+            if scenario.message:
+                structured = _shell_details_markdown(scenario.message, pipeline_file)
+                if structured:
+                    detail = (
+                        f"<tr><td colspan='4'><pre>"
+                        f"{html.escape(structured)}</pre></td></tr>"
+                    )
+                else:
+                    detail = (
+                        f"<tr><td colspan='4'><pre>"
+                        f"{html.escape(redact_secrets(scenario.message))}</pre></td></tr>"
+                    )
             rows.append(
                 "<tr>"
                 f"<td><code>{html.escape(scenario.policy_id or '-')}</code></td>"
                 f"<td>{html.escape(scenario.feature)}</td>"
                 f"<td>{html.escape(scenario.title or scenario.name)}</td>"
                 f"<td class='{html.escape(scenario.status)}'>{_status_icon(scenario.status)}</td>"
-                "</tr>"
-                + (
-                    f"<tr><td colspan='4'><pre>{html.escape(redact_secrets(scenario.message))}</pre></td></tr>"
-                    if scenario.message
-                    else ""
-                )
+                "</tr>" + detail
             )
         return "".join(rows)
+
+    coverage_section = _coverage_gaps_html(result.unresolved_includes)
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -235,6 +299,8 @@ def render_compliance_html(
       <tr><td>Skipped</td><td>{result.skipped}</td></tr>
     </tbody>
   </table>
+
+  {coverage_section}
 
   <h2>Failed scenarios</h2>
   <table>
@@ -320,7 +386,36 @@ def _findings_for_scenario(scenario: ScenarioResult, pipeline_file: str) -> list
     )
 
     findings = []
-    for path, line in _parse_locations(scenario.message, fallback_path):
+    message = scenario.message or ""
+    if "Job '" in message:
+        from src.compliance.shell_render import parse_shell_violations, split_location
+
+        for violation in parse_shell_violations(message):
+            if violation.location:
+                path, line = split_location(violation.location)
+                path = _normalize_repo_path(path) or fallback_path
+                line = line or 1
+            else:
+                path, line = fallback_path, 1
+            finding_description = violation.message or description
+            findings.append(
+                {
+                    "description": finding_description,
+                    "check_name": check_name,
+                    "fingerprint": _fingerprint(
+                        check_name, path, line, finding_description
+                    ),
+                    "severity": severity,
+                    "location": {
+                        "path": path,
+                        "lines": {"begin": line},
+                    },
+                }
+            )
+        if findings:
+            return findings
+
+    for path, line in _parse_locations(message, fallback_path):
         findings.append(
             {
                 "description": description,
@@ -334,6 +429,112 @@ def _findings_for_scenario(scenario: ScenarioResult, pipeline_file: str) -> list
             }
         )
     return findings
+
+
+def _failure_body_for_scenario(scenario: ScenarioResult, pipeline_file: str) -> str:
+    message = scenario.message or ""
+    if message.startswith("ASSERT FAILED:"):
+        from src.compliance.shell_render import (
+            _display_location,
+            parse_shell_violations,
+        )
+
+        lines: list[str] = []
+        for violation in parse_shell_violations(message):
+            location = _display_location(violation.location, pipeline_file) or "unknown"
+            line = f"{violation.job} @ {location}: {violation.message}"
+            if violation.inheritance:
+                line = f"{line} ({violation.inheritance})"
+            lines.append(line)
+        if lines:
+            return "\n".join(lines)
+    return redact_secrets(_description_for_scenario(scenario))
+
+
+def _scenario_classname(scenario: ScenarioResult) -> str:
+    return scenario.policy_id or scenario.feature
+
+
+def _scenario_name(scenario: ScenarioResult) -> str:
+    return scenario.title or scenario.name
+
+
+def _group_scenarios_by_feature(
+    scenarios: list[ScenarioResult],
+) -> dict[str, list[ScenarioResult]]:
+    grouped: dict[str, list[ScenarioResult]] = {}
+    for scenario in scenarios:
+        grouped.setdefault(scenario.feature, []).append(scenario)
+    return grouped
+
+
+def render_compliance_junit(
+    result: ComplianceResult,
+    pipeline_file: str,
+    *,
+    suite_name: str = "gitlab-compliance",
+) -> str:
+    """Render compliance scenarios as JUnit XML for CI test report artifacts."""
+    root = ET.Element(
+        "testsuites",
+        {
+            "name": suite_name,
+            "tests": str(result.scenarios),
+            "failures": str(result.failed),
+            "errors": "0",
+            "skipped": str(result.skipped),
+        },
+    )
+
+    for feature, scenarios in _group_scenarios_by_feature(
+        result.scenario_results
+    ).items():
+        suite = ET.SubElement(
+            root,
+            "testsuite",
+            {
+                "name": feature,
+                "tests": str(len(scenarios)),
+                "failures": str(sum(1 for s in scenarios if s.status == "failed")),
+                "errors": "0",
+                "skipped": str(sum(1 for s in scenarios if s.status == "skipped")),
+            },
+        )
+        for scenario in scenarios:
+            testcase = ET.SubElement(
+                suite,
+                "testcase",
+                {
+                    "classname": _scenario_classname(scenario),
+                    "name": _scenario_name(scenario),
+                    "time": "0",
+                },
+            )
+            if scenario.status == "failed":
+                failure = ET.SubElement(
+                    testcase,
+                    "failure",
+                    {
+                        "message": redact_secrets(_description_for_scenario(scenario))[
+                            :500
+                        ],
+                        "type": "failure",
+                    },
+                )
+                failure.text = _failure_body_for_scenario(scenario, pipeline_file)
+            elif scenario.status == "skipped":
+                ET.SubElement(
+                    testcase,
+                    "skipped",
+                    {
+                        "message": redact_secrets(
+                            scenario.message or "Filter did not match any entities."
+                        ),
+                    },
+                )
+
+    xml_body = ET.tostring(root, encoding="unicode")
+    return f'<?xml version="1.0" encoding="UTF-8"?>\n{xml_body}\n'
 
 
 def render_compliance_code_quality(
@@ -354,6 +555,8 @@ def render_compliance_report(
     pipeline_file: str,
     features_dir: str,
     output_format: str,
+    *,
+    suite_name: str = "gitlab-compliance",
 ) -> str | None:
     fmt = output_format.lower()
     if fmt == "markdown":
@@ -364,4 +567,6 @@ def render_compliance_report(
         return render_compliance_mr_comment(result, pipeline_file, features_dir)
     if fmt == "codequality":
         return render_compliance_code_quality(result, pipeline_file)
+    if fmt == "junit":
+        return render_compliance_junit(result, pipeline_file, suite_name=suite_name)
     return None

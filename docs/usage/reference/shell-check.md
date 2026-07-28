@@ -28,274 +28,11 @@ ShellCheck-inspired standards as BDD scenarios with `GLCI-SHELL-*` IDs:
 
 - Quoting, error handling, file operations, command substitution
 - Conditionals, pipelines, security, portability
-- GitLab CI pinning (package managers below, checksums, docker image tags),
-  CI hygiene, `!reference` resolution
+- GitLab CI pinning (package managers, checksums, docker image tags), CI hygiene,
+  `!reference` resolution
 
 Scripts are composed from `extends`, YAML anchors, and `!reference` before
 scenarios run. Hidden jobs (names starting with `.`) are included.
-
-## Supported package managers
-
-Shell pinning policies (`GLCI-SHELL-PIN-*`) and unit tests cover these install
-commands. Each package on a line must be version-pinned.
-
-| Manager | Commands matched | Pinned example | Policy |
-| --- | --- | --- | --- |
-| apk | `apk add` | `apk add curl=8.5.0-r0` | `GLCI-SHELL-PIN-004` |
-| apt / apt-get | `apt install`, `apt-get install` | `apt-get install curl=7.88.1-10` | `GLCI-SHELL-PIN-005` |
-| yum / dnf / microdnf | `yum install`, `dnf install`, `microdnf install` | `dnf install curl-7.76.1-23.el9` | `GLCI-SHELL-PIN-010` |
-| pip / pip3 | `pip install`, `pip3 install` | `pip3 install "requests==2.32.0"` | `GLCI-SHELL-PIN-003` |
-| npm / yarn | `npm install -g`, `yarn global add` | `npm install -g cowsay@1.0.0` | `GLCI-SHELL-PIN-006` |
-| go | `go install` | `go install example.com/cmd@v1.2.3` | `GLCI-SHELL-PIN-007` |
-
-Related (not OS package managers): `docker run` / `docker pull` / `docker create`
-must use an explicit tag or `sha256` digest (`GLCI-SHELL-PIN-009`).
-
-Not covered yet: `zypper`, `pacman`, and similar tools outside the table above.
-
-Gherkin scenarios, bad/good CI snippets, and policy IDs for each manager are in
-[Shell pinning examples](../../examples/shell-pinning.md).
-
-## Built-in Gherkin policies
-
-Packaged scenarios from `src/compliance/builtin_policies/shell/`. Every scenario
-starts from `Given I have any job with effective script defined` unless noted.
-
-### Quoting (`GLCI-SHELL-QUOTE`)
-
-```gherkin
-Scenario: Variables are quoted when expanded
-  # GLCI-SHELL-QUOTE-001
-  Given I have any job with effective script defined
-  When a variable is expanded within a command
-  Then the variable must be wrapped in double quotes
-
-Scenario: Variables used in paths are quoted
-  # GLCI-SHELL-QUOTE-002
-  Given I have any job with effective script defined
-  When variables are used as part of a path
-  Then all variables must be safely quoted
-
-Scenario: Command substitutions are quoted
-  # GLCI-SHELL-QUOTE-003
-  Given I have any job with effective script defined
-  When command substitution is used
-  Then the result must be quoted unless word splitting is intended
-
-Scenario: Arrays are expanded correctly
-  # GLCI-SHELL-QUOTE-004
-  Given I have any job with effective script defined
-  When an array is expanded
-  Then array "@" syntax must be used where appropriate
-```
-
-### Error handling (`GLCI-SHELL-ERR`)
-
-```gherkin
-Scenario: Multi-line scripts use strict mode
-  # GLCI-SHELL-ERR-001
-  Given I have any job with effective script defined
-  When the effective script has more than 1 line
-  Then the script must enable strict mode options
-
-Scenario: Commands return meaningful exit codes
-  # GLCI-SHELL-ERR-002
-  Given I have any job with effective script defined
-  Then failure must be handled explicitly
-
-Scenario: Functions propagate failures
-  # GLCI-SHELL-ERR-003
-  Given I have any job with effective script defined
-  Then functions must propagate failures
-```
-
-### File operations (`GLCI-SHELL-FILE`)
-
-```gherkin
-Scenario: File paths are quoted
-  # GLCI-SHELL-FILE-001
-  Given I have any job with effective script defined
-  Then file paths must be quoted
-
-Scenario: Temporary files are securely created
-  # GLCI-SHELL-FILE-002
-  Given I have any job with effective script defined
-  When temporary files are required
-  Then mktemp must be used for temporary files
-
-Scenario: Dangerous rm operations are protected
-  # GLCI-SHELL-FILE-003
-  Given I have any job with effective script defined
-  When rm is used recursively
-  Then path validation must be performed for recursive rm
-```
-
-### Command substitution (`GLCI-SHELL-SUB`)
-
-```gherkin
-Scenario: Legacy backticks are not used
-  # GLCI-SHELL-SUB-001
-  Given I have any job with effective script defined
-  Then command substitution must use dollar parentheses
-
-Scenario: Nested command substitution is readable
-  # GLCI-SHELL-SUB-002
-  Given I have any job with effective script defined
-  Then nested command substitution must use dollar parentheses
-```
-
-### Conditionals (`GLCI-SHELL-TEST`)
-
-```gherkin
-Scenario: Test operators are portable
-  # GLCI-SHELL-TEST-001
-  Given I have any job with effective script defined
-  Then POSIX compliant operators must be used
-
-Scenario: Variables are quoted in test statements
-  # GLCI-SHELL-TEST-002
-  Given I have any job with effective script defined
-  Then variables in test expressions must be quoted
-```
-
-### Pipelines (`GLCI-SHELL-PIPE`)
-
-```gherkin
-Scenario: Pipeline failures are detected
-  # GLCI-SHELL-PIPE-001
-  Given I have any job with effective script defined
-  When a pipeline is used
-  Then pipefail must be enabled
-
-Scenario: Exit codes are checked across pipelines
-  # GLCI-SHELL-PIPE-002
-  Given I have any job with effective script defined
-  When a pipeline is used
-  Then pipefail must be enabled
-```
-
-### Security (`GLCI-SHELL-SAFE`)
-
-```gherkin
-Scenario: Eval is not used
-  # GLCI-SHELL-SAFE-001
-  Given I have any job with effective script defined
-  Then eval must not be used
-
-Scenario: Untrusted input is not executed
-  # GLCI-SHELL-SAFE-002
-  Given I have any job with effective script defined
-  Then untrusted remote scripts must not be executed
-
-Scenario: User input is sanitised
-  # GLCI-SHELL-SAFE-003
-  Given I have any job with effective script defined
-  Then user supplied variables must be quoted or validated
-
-Scenario: Hardcoded secrets are not present
-  # GLCI-SHELL-SAFE-004
-  Given I have any job with effective script defined
-  Then hardcoded secrets must not be present
-
-Scenario: chmod 777 is not used
-  # GLCI-SHELL-SAFE-005
-  Given I have any job with effective script defined
-  Then chmod 777 must not be used
-```
-
-### Portability (`GLCI-SHELL-PORT`)
-
-```gherkin
-Scenario: Shebang is valid when present
-  # GLCI-SHELL-PORT-001
-  Given I have any job with effective script defined
-  Then shebang must be valid when present
-
-Scenario: Bash specific features are declared
-  # GLCI-SHELL-PORT-002
-  Given I have any job with effective script defined
-  Then bash specific features must declare bash
-
-Scenario: POSIX compatibility is maintained for sh
-  # GLCI-SHELL-PORT-003
-  Given I have any job with effective script defined
-  Then POSIX shebang scripts must not use bashisms
-```
-
-### CI conventions (`GLCI-SHELL-CI`)
-
-```gherkin
-Scenario: curl must use fail flag
-  # GLCI-SHELL-CI-001
-  Given I have any job with effective script defined
-  Then curl must use fail flag
-
-Scenario: Deprecated CI_BUILD variables must not be used
-  # GLCI-SHELL-CI-002
-  Given I have any job with effective script defined
-  Then deprecated CI_BUILD variables must not be used
-
-Scenario: CI variables should be quoted
-  # GLCI-SHELL-CI-003
-  Given I have any job with effective script defined
-  Then user supplied variables must be quoted or validated
-```
-
-### Script references (`GLCI-SHELL-REF`)
-
-```gherkin
-Scenario: Scripts must not contain unresolved references
-  # GLCI-SHELL-REF-001
-  Given I have any job with effective script defined
-  Then unresolved script references must not be present
-```
-
-### Dependency pinning (`GLCI-SHELL-PIN`)
-
-```gherkin
-Scenario: Script downloads must verify checksums
-  # GLCI-SHELL-PIN-001
-  Then script downloads must verify checksums
-
-Scenario: Scripts must not pipe remote downloads to a shell
-  # GLCI-SHELL-PIN-002
-  Then untrusted remote scripts must not be executed
-
-Scenario: pip install must pin package versions
-  # GLCI-SHELL-PIN-003
-  Then package installs of type "pip" must use pinned versions
-
-Scenario: apk add must pin package versions
-  # GLCI-SHELL-PIN-004
-  Then package installs of type "apk" must use pinned versions
-
-Scenario: apt-get install must pin package versions
-  # GLCI-SHELL-PIN-005
-  Then package installs of type "apt" must use pinned versions
-
-Scenario: npm global installs must pin package versions
-  # GLCI-SHELL-PIN-006
-  Then package installs of type "npm" must use pinned versions
-
-Scenario: go install must pin module versions
-  # GLCI-SHELL-PIN-007
-  Then package installs of type "go" must use pinned versions
-
-Scenario: git clone must verify commit or tag
-  # GLCI-SHELL-PIN-008
-  Then git clone must verify commit or tag
-
-Scenario: docker run and pull must pin container images
-  # GLCI-SHELL-PIN-009
-  Then docker commands must pin container images to a tag or sha256 digest
-
-Scenario: yum and dnf install must pin package versions
-  # GLCI-SHELL-PIN-010
-  Then package installs of type "yum" must use pinned versions
-```
-
-Bad/good CI examples for each package manager:
-[Shell pinning](../../examples/shell-pinning.md).
 
 ## Quick start
 
@@ -309,9 +46,102 @@ Markdown report:
 gitlab-compliance shell-check -p .gitlab-ci.yml --format markdown -o SHELL-CHECK.md
 ```
 
+JUnit report for GitLab CI test artifacts:
+
+```bash
+gitlab-compliance shell-check -p .gitlab-ci.yml --format junit -o SHELL-CHECK.xml
+```
+
+```yaml
+# .gitlab-ci.yml excerpt
+script:
+  - gitlab-compliance shell-check -p .gitlab-ci.yml --format junit -o SHELL-CHECK.xml
+artifacts:
+  reports:
+    junit: SHELL-CHECK.xml
+```
+
 Also available via `check --with-shell-check` (adds packaged `GLCI-SHELL-*`
 policies alongside your `-f` directory). `--with-builtin` does **not** include
 shell policies; add `--with-shell-check` explicitly when needed.
+
+See [Shell pinning examples](../../examples/shell-pinning.md) for per-manager
+Gherkin scenarios (`apk`, `apt`, `yum`/`dnf`, `pip`, `npm`, `go`, `docker`).
+
+## Include resolution and GitLab API
+
+`shell-check` uses the same include and API flags as [`check`](check.md):
+
+| Include type | Resolved locally | Fetched with token / HTTP |
+| --- | --- | --- |
+| `local:` | Yes (`--include-nested`, default on) | N/A |
+| `remote:` | No | Yes (`--resolve-external-includes`, default auto) |
+| `project:` | No | Yes (requires `--token` or `GITLAB_TOKEN`) |
+| `component:` | No | Not yet (reported as coverage gap) |
+| `template:` | No | Not yet (reported as coverage gap) |
+
+Flags:
+
+- `--include-nested` / `--no-include-nested` — walk nested **local** `include:` files (default: on)
+- `--max-include-depth` — limit include nesting depth
+- `--resolve-external-includes` / `--no-resolve-external-includes` — fetch `remote:` and `project:` YAML (default: **auto** — remote always, project when a token is available)
+- `--gitlab-url`, `--token`, `--project`, `--group` — GitLab API connection (same env fallbacks as `check`: `GITLAB_TOKEN`, `CI_JOB_TOKEN`, `CI_PROJECT_PATH`)
+- `--strict` — fail API-backed scenarios when credentials are missing (default: skip)
+
+Tokens are only sent on `remote:` HTTP fetches when the remote URL host matches
+`--gitlab-url` (or `CI_SERVER_URL` / `GITLAB_URL`). Arbitrary third-party remotes
+are fetched without authentication.
+
+Local includes are resolved on disk without a token. Nested `local:` includes
+inside fetched `remote:` / `project:` YAML are resolved relative to that origin
+(URL directory or same project/ref). When an include cannot be resolved,
+`shell-check` prints an **Include coverage gap** warning and lists the entry in
+markdown/HTML reports under **Coverage gaps**.
+
+```bash
+gitlab-compliance shell-check -p .gitlab-ci.yml \
+  --include-nested \
+  --resolve-external-includes \
+  --token "$GITLAB_TOKEN" \
+  --project "$CI_PROJECT_PATH"
+```
+
+GitLab CI example with external project includes:
+
+```yaml
+shell-check:
+  image: python:3.12
+  script:
+    - pip install gitlab-compliance
+    - gitlab-compliance shell-check -p .gitlab-ci.yml
+        --resolve-external-includes
+        --token "$GITLAB_TOKEN"
+        --format markdown -o SHELL-CHECK.md
+  artifacts:
+    paths:
+      - SHELL-CHECK.md
+```
+
+## Built-in Gherkin policies
+
+Packaged scenarios live under `src/compliance/builtin_policies/shell/`:
+
+| File | Focus |
+| --- | --- |
+| `shell-quoting.feature` | Variable and word splitting |
+| `shell-error-handling.feature` | `set -e`, exit codes, traps |
+| `shell-file-operations.feature` | Paths, redirects, temp files |
+| `shell-command-substitution.feature` | `` ` `` and `$()` usage |
+| `shell-conditionals.feature` | `if`/`test`/`[` patterns |
+| `shell-pipelines.feature` | Pipes and pipeline exit status |
+| `shell-security.feature` | Curl pipes, secrets, unsafe commands |
+| `shell-portability.feature` | Bashisms and POSIX portability |
+| `shell-ci-conventions.feature` | CI script hygiene |
+| `shell-references.feature` | `!reference` resolution |
+| `shell-pinning.feature` | Package manager and download pinning |
+
+Pinning scenarios (`GLCI-SHELL-PIN-*`) include per-manager Gherkin, bad/good CI
+snippets, and policy IDs in [Shell pinning examples](../../examples/shell-pinning.md).
 
 ## Custom policies
 
@@ -325,11 +155,6 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 See [Shell check examples](../../examples/shell-check.md).
 
 <!-- MANUAL DOCS:END -->
-
-
-
-
-
 
 
 
@@ -349,7 +174,7 @@ Usage: gitlab-compliance shell-check [OPTIONS]
   Path to the GitLab CI pipeline YAML file.
 
 * `output_format`:
-  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality'])
+  * Type: Choice(['console', 'markdown', 'html', 'mr-comment', 'codequality', 'junit'])
   * Default: `console`
   * Usage: `--format`
 
@@ -361,7 +186,7 @@ Usage: gitlab-compliance shell-check [OPTIONS]
   * Usage: `--output-file
 -o`
 
-  Write rendered report to this file (markdown, html, mr-comment).
+  Write rendered report to this file (markdown, html, mr-comment, junit).
 
 * `include_nested`:
   * Type: BOOL
@@ -376,6 +201,48 @@ Usage: gitlab-compliance shell-check [OPTIONS]
   * Usage: `--max-include-depth`
 
   Max local include nesting depth from the root file (omit for unlimited).
+
+* `resolve_external_includes`:
+  * Type: BOOL
+  * Default: `none`
+  * Usage: `--resolve-external-includes`
+
+  Fetch remote and project include YAML (default: auto — remote always, project when a token is available).
+
+* `gitlab_url`:
+  * Type: STRING
+  * Default: `none`
+  * Usage: `--gitlab-url`
+
+  GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).
+
+* `token`:
+  * Type: STRING
+  * Default: `none`
+  * Usage: `--token`
+
+  GitLab API token (default: GITLAB_TOKEN or CI_JOB_TOKEN).
+
+* `project`:
+  * Type: STRING
+  * Default: `none`
+  * Usage: `--project`
+
+  GitLab project path or ID for API-backed policy checks.
+
+* `group`:
+  * Type: STRING
+  * Default: `none`
+  * Usage: `--group`
+
+  GitLab group path or ID for API-backed policy checks.
+
+* `strict`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--strict`
+
+  Fail API-backed scenarios when connection info is missing (default: skip).
 
 * `features_dir`:
   * Type: STRING
@@ -407,16 +274,30 @@ Usage: gitlab-compliance shell-check [OPTIONS]
 
 Options:
   -p, --pipeline TEXT             Path to the GitLab CI pipeline YAML file.
-  --format [console|markdown|html|mr-comment|codequality]
+  --format [console|markdown|html|mr-comment|codequality|junit]
                                   Output format for the script validation
                                   report.
   -o, --output-file TEXT          Write rendered report to this file
-                                  (markdown, html, mr-comment).
+                                  (markdown, html, mr-comment, junit).
   --include-nested / --no-include-nested
                                   Resolve nested local include files into the
                                   compliance stash.
   --max-include-depth INTEGER     Max local include nesting depth from the
                                   root file (omit for unlimited).
+  --resolve-external-includes / --no-resolve-external-includes
+                                  Fetch remote and project include YAML
+                                  (default: auto — remote always, project when
+                                  a token is available).
+  --gitlab-url TEXT               GitLab instance URL (default: CI_SERVER_URL
+                                  or https://gitlab.com).
+  --token TEXT                    GitLab API token (default: GITLAB_TOKEN or
+                                  CI_JOB_TOKEN).
+  --project TEXT                  GitLab project path or ID for API-backed
+                                  policy checks.
+  --group TEXT                    GitLab group path or ID for API-backed
+                                  policy checks.
+  --strict                        Fail API-backed scenarios when connection
+                                  info is missing (default: skip).
   -f, --features TEXT             Policy directory to run instead of packaged
                                   shell standards. Defaults to packaged GLCI-
                                   SHELL policies.
