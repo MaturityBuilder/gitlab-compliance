@@ -175,6 +175,8 @@ class TestGitstringsYamlAndRender:
         assert "documents" in root
 
     def test_load_yaml_root_gitlab_reference_tag(self):
+        from src.modules.gitlab_reference import UnresolvedReference
+
         text = """job:
   script:
     - !reference [.base, script]
@@ -182,7 +184,9 @@ class TestGitstringsYamlAndRender:
   script: echo hi
 """
         root = _load_yaml_root(text)
-        assert root["job"]["script"] == [None]
+        assert len(root["job"]["script"]) == 1
+        assert isinstance(root["job"]["script"][0], UnresolvedReference)
+        assert root["job"]["script"][0].path == (".base", "script")
         assert root[".base"]["script"] == "echo hi"
 
     def test_load_pipeline_root_uses_full_ci_with_reference_tag(self, tmp_path):

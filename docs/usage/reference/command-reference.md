@@ -12,3 +12,5 @@ Auto-generated index of `gitlab-compliance` subcommands (see Usage in docs).
 - [policies pull](policies-pull.md)
 - [policies push](policies-push.md)
 - [release-notes](release-notes.md)
+- [shell-check](shell-check.md)
+- [supply-chain](supply-chain.md)

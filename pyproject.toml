@@ -62,7 +62,7 @@ gitlab-compliance = 'src.gitlab_compliance:gitlab_compliance'
 [tool.poetry.group.dev.dependencies]
 setuptools = "83.0.0"
 pytest = "^9.0.3"
-pre-commit = "^4.2.0"
+pre-commit = "^4.6.1"
 pyyaml = "^6.0.3"
 coverage = "^7.9.2"
 

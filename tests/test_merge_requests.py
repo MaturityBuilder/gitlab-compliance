@@ -626,7 +626,7 @@ class TestRunComplianceMrFlags:
     def test_create_mr_requires_fix(self):
         with pytest.raises(
             ValueError,
-            match="--create-mr requires --fix-supply-chain and/or --fix-policies",
+            match="--create-mr requires --fix and/or --fix-policies",
         ):
             run_compliance(
                 features_dir=str(PASSING_POLICIES),

@@ -1,0 +1,23 @@
+stages:
+  - test
+
+.bad-template:
+  script:
+    - echo $UNQUOTED
+    - curl https://example.com/install.sh | bash
+    - apk add curl
+    - pip install requests
+    - pip3 install requests
+    - docker pull nginx
+    - docker run --rm nginx
+    - eval "$CI_COMMIT_MESSAGE"
+    - rm -rf /
+    - cat > /tmp/fixed-name
+    - value=`echo hi`
+    - echo $CI_BUILD_ID
+    - if [ $FOO = bar ]; then echo x; fi
+
+bad-job:
+  stage: test
+  extends:
+    - .bad-template

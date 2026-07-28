@@ -61,13 +61,26 @@ def normalize_scenario_name(scenario_name: str) -> str:
     return re.sub(r"\s+--\s+@\d+(?:\.\d+)?(?:\s+.*)?$", "", scenario_name).strip()
 
 
-def iter_feature_files(features_dir: str, *, sort_names: bool = False) -> Iterator[str]:
+def iter_feature_files(
+    features_dir: str, *, sort_names: bool = False, recursive: bool = True
+) -> Iterator[str]:
     """Yield paths to .feature files under a policy directory."""
-    for root, _dirs, files in os.walk(features_dir):
-        names = sorted(files) if sort_names else files
-        for filename in names:
-            if filename.endswith(".feature"):
-                yield os.path.join(root, filename)
+    if recursive:
+        for root, _dirs, files in os.walk(features_dir):
+            names = sorted(files) if sort_names else files
+            for filename in names:
+                if filename.endswith(".feature"):
+                    yield os.path.join(root, filename)
+        return
+
+    names = (
+        sorted(os.listdir(features_dir))
+        if sort_names
+        else list(os.listdir(features_dir))
+    )
+    for filename in names:
+        if filename.endswith(".feature"):
+            yield os.path.join(features_dir, filename)
 
 
 def _slug(value: str) -> str:
@@ -257,6 +270,14 @@ def build_policy_catalog_from_dirs(features_dirs: list[str]) -> PolicyCatalog:
     return discover_policies(features_dirs).catalog
 
 
+@dataclass(frozen=True)
+class PolicyRoot:
+    """One policy directory and whether to walk nested subdirectories."""
+
+    path: str
+    recursive: bool = True
+
+
 @dataclass
 class PolicyDiscovery:
     """Result of a single pass over policy feature files."""
@@ -266,7 +287,7 @@ class PolicyDiscovery:
     api_requirements: ApiEnrichmentRequirements
 
 
-def discover_policies(features_dirs: list[str]) -> PolicyDiscovery:
+def discover_policies(policy_roots: list[PolicyRoot | str]) -> PolicyDiscovery:
     """Walk policy dirs once: catalog metadata, file list, and API markers."""
     from src.compliance.api_enrichment import (
         ApiEnrichmentRequirements,
@@ -276,12 +297,21 @@ def discover_policies(features_dirs: list[str]) -> PolicyDiscovery:
     catalog = PolicyCatalog()
     feature_files: list[tuple[str, str]] = []
     api_requirements = ApiEnrichmentRequirements()
+    seen_files: set[str] = set()
 
-    for features_dir in features_dirs:
+    for item in policy_roots:
+        root = item if isinstance(item, PolicyRoot) else PolicyRoot(item)
+        features_dir = root.path
         if not os.path.isdir(features_dir):
             raise FileNotFoundError(f"Features directory not found: {features_dir}")
 
-        for feature_file in iter_feature_files(features_dir, sort_names=True):
+        for feature_file in iter_feature_files(
+            features_dir, sort_names=True, recursive=root.recursive
+        ):
+            real_path = os.path.realpath(feature_file)
+            if real_path in seen_files:
+                continue
+            seen_files.add(real_path)
             with open(feature_file, encoding="utf-8") as handle:
                 text = handle.read()
             catalog.features.append(parse_feature_policies(feature_file, text=text))
