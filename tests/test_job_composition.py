@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.modules.common import EnvLoader, load_yml_documents
+from src.modules.common import load_yml_documents
 from src.modules.gitlab_reference import UnresolvedReference, resolve_reference_value
 from src.modules.job_composition import compose_job_scripts
 from src.modules.pipeline_data import collect_pipeline_data
