@@ -30,6 +30,7 @@ nav:
   - Overview: index.md
   - Installation:
     - installation/index.md
+    - Installing via Homebrew: installation/homebrew.md
     - Installing via pip: installation/pip.md
     - Installing via Docker: installation/docker.md
   - Usage:
