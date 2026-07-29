@@ -165,7 +165,7 @@ jobs:
           VERSION="${VERSION#v}"
           gh api \
             --method POST \
-            repos/MaturityBuilder/gitlab-compliance-homebrew/dispatches \
+            repos/MaturityBuilder/homebrew-gitlab-compliance/dispatches \
             -f event_type=gitlab-compliance-released \
             -f "client_payload[version]=${VERSION}"
           echo "Dispatched gitlab-compliance-released for PyPI version ${VERSION}"

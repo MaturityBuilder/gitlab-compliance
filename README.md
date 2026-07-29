@@ -47,7 +47,7 @@ for Gherkin examples and step reference.
 
 ```bash
 # Homebrew
-brew tap MaturityBuilder/gitlab-compliance-homebrew https://github.com/MaturityBuilder/gitlab-compliance-homebrew
+brew tap MaturityBuilder/gitlab-compliance
 brew install gitlab-compliance
 
 # Or pip
