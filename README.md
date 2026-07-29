@@ -46,6 +46,11 @@ for Gherkin examples and step reference.
 ## Quick start
 
 ```bash
+# Homebrew
+brew tap MaturityBuilder/gitlab-compliance
+brew install gitlab-compliance
+
+# Or pip
 pip install gitlab-compliance
 
 # Compliance: fail when policies are violated
