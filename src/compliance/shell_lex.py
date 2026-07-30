@@ -280,8 +280,9 @@ def _consume_dollar_construct(
         close = _find_matching_brace(line, start + 1, dialect=dialect)
         return min(close + 1, len(line))
 
-    # Special params $1 $@ $* $? etc. or $NAME
-    if nxt in "0-9" or nxt in "@*#?-!$":
+    # Positional ($1) and special ($@ $* $? …) parameters — one character.
+    # Note: ``"0-9"`` is NOT a digit range in Python (only chars 0, -, 9).
+    if nxt.isdigit() or nxt in "@*#?-!$":
         return start + 2
     match = _PARAM_NAME.match(line, start + 1)
     if match:
@@ -301,6 +302,8 @@ def quote_state_at(line: str, index: int, *, dialect: Dialect = "bash") -> Quote
     frame = _Frame()
     i = 0
     while i < len(line):
+        # Exact cursor hit — return current frame. Later branches must not
+        # re-test ``i == index`` (unreachable once this guard runs).
         if i == index:
             return _frame_state(frame)
 
@@ -313,7 +316,7 @@ def quote_state_at(line: str, index: int, *, dialect: Dialect = "bash") -> Quote
 
         if frame.in_ansi_c:
             if line[i] == "\\" and i + 1 < len(line):
-                if i == index or i + 1 == index:
+                if i + 1 == index:
                     return "single"
                 i += 2
                 continue
@@ -327,7 +330,7 @@ def quote_state_at(line: str, index: int, *, dialect: Dialect = "bash") -> Quote
         if frame.in_double or frame.in_locale_dq:
             if line[i] == "\\":
                 nxt = _skip_escape(line, i, frame)
-                if i <= index < nxt:
+                if i < index < nxt:
                     return "double"
                 i = nxt
                 continue
@@ -339,17 +342,12 @@ def quote_state_at(line: str, index: int, *, dialect: Dialect = "bash") -> Quote
             if line[i] == "$" and _dollar_is_special(frame):
                 # Enter nested constructs with independent quoting for bodies.
                 end = _consume_dollar_construct(line, i, frame, dialect)
-                if i == index:
-                    return "double"  # the `$` of the expansion is in double quotes
                 if i < index < end:
-                    # Index lies inside the construct body.
                     return _quote_state_inside_dollar(line, i, end, index, dialect)
                 i = end
                 continue
             if line[i] == "`":
                 end = _consume_backtick(line, i, dialect)
-                if i == index:
-                    return "double"
                 if i < index < end:
                     return _quote_state_in_span(line, i + 1, end - 1, index, dialect)
                 i = end
@@ -360,7 +358,7 @@ def quote_state_at(line: str, index: int, *, dialect: Dialect = "bash") -> Quote
         # Unquoted
         if line[i] == "\\":
             nxt = _skip_escape(line, i, frame)
-            if i <= index < nxt:
+            if i < index < nxt:
                 return "none"
             i = nxt
             continue
@@ -370,8 +368,6 @@ def quote_state_at(line: str, index: int, *, dialect: Dialect = "bash") -> Quote
             and i + 1 < len(line)
             and line[i + 1] == "'"
         ):
-            if i == index:
-                return "none"
             frame.in_ansi_c = True
             i += 2
             continue
@@ -381,8 +377,6 @@ def quote_state_at(line: str, index: int, *, dialect: Dialect = "bash") -> Quote
             and i + 1 < len(line)
             and line[i + 1] == '"'
         ):
-            if i == index:
-                return "none"
             frame.in_locale_dq = True
             i += 2
             continue
@@ -396,16 +390,12 @@ def quote_state_at(line: str, index: int, *, dialect: Dialect = "bash") -> Quote
             continue
         if line[i] == "`":
             end = _consume_backtick(line, i, dialect)
-            if i == index:
-                return "none"
             if i < index < end:
                 return _quote_state_in_span(line, i + 1, end - 1, index, dialect)
             i = end
             continue
         if line[i] == "$" and _dollar_is_special(frame):
             end = _consume_dollar_construct(line, i, frame, dialect)
-            if i == index:
-                return "none"
             if i < index < end:
                 return _quote_state_inside_dollar(line, i, end, index, dialect)
             i = end
@@ -418,8 +408,6 @@ def quote_state_at(line: str, index: int, *, dialect: Dialect = "bash") -> Quote
         ):
             close = _find_matching_paren(line, i + 1, dialect=dialect)
             end = min(close + 1, len(line))
-            if i == index:
-                return "none"
             if i < index < end:
                 return _quote_state_in_span(line, i + 2, close, index, dialect)
             i = end

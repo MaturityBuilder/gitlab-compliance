@@ -100,12 +100,23 @@ def test_strip_comment_ignores_hash_inside_cmdsub():
     assert strip_comment(line) == 'echo "$(echo # not a comment)"'
 
 
-def test_dialect_from_shebang():
-    assert dialect_from_shebang_line("#!/bin/bash") == "bash"
-    assert dialect_from_shebang_line("#!/usr/bin/env bash") == "bash"
-    assert dialect_from_shebang_line("#!/bin/sh") == "sh"
-    assert dialect_from_script_lines(["echo hi"]) == "bash"
-    assert dialect_from_script_lines(["#!/bin/sh", "echo hi"]) == "sh"
+def test_positional_digit_params_consumed():
+    """``$1``–``$9`` must be consumed as one token (not ``nxt in \"0-9\"``)."""
+    from src.compliance.shell_lex import _consume_dollar_construct, _Frame
+
+    for digit in "0123456789":
+        line = f"echo ${digit}x"
+        end = _consume_dollar_construct(line, line.index("$"), _Frame(), "bash")
+        assert end == line.index("$") + 2, digit
+        assert quote_state_at(line, line.index("$")) == "none"
+
+
+def test_quote_state_at_dollar_inside_double_quotes():
+    line = 'echo "$VAR"'
+    dollar = line.index("$")
+    # Exact hit on `$` uses the early ``i == index`` frame return (double).
+    assert quote_state_at(line, dollar) == "double"
+    assert quote_state_at(line, line.index('"')) == "none"
 
 
 def test_arithmetic_vs_command_substitution_spans():

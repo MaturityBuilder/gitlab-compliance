@@ -21,13 +21,9 @@ from src.compliance.stash import get_property
 _VAR_EXPANSION = re.compile(
     r"(?<!\\)\$(?:\{([A-Za-z_][A-Za-z0-9_]*)\}|([A-Za-z_][A-Za-z0-9_]*))"
 )
-# Back-compat alias used by older call sites / tests.
-_UNQUOTED_VAR = _VAR_EXPANSION
 _ARRAY_STAR = re.compile(r"\$\{?[A-Za-z_][A-Za-z0-9_]*\[\*\]\}?")
 _ARRAY_AT = re.compile(r"\$\{[A-Za-z_][A-Za-z0-9_]*\[@\]\}")
 _BACKTICKS = re.compile(r"`[^`]+`")
-# Legacy pattern retained for tests that import it; prefer iter_command_substitutions.
-_CMD_SUB = re.compile(r"\$\([^)]+\)")
 _PIPE = re.compile(r"[^|]\|[^|]")
 _CURL_WGET = re.compile(r"\b(curl|wget)\b", re.IGNORECASE)
 _CHECKSUM = re.compile(r"\b(sha256sum|shasum|openssl\s+dgst)\b", re.IGNORECASE)
