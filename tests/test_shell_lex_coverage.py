@@ -87,12 +87,9 @@ def test_scan_balanced_with_quotes_escapes_and_process_subst():
 def test_consume_backtick_and_embedded_cmdsub():
     line = "echo `echo $(date)` done"
     end = _consume_backtick(line, line.index("`"), "bash")
-    assert line[end - 1] != "`" or True
     assert end == line.rindex("`") + 1
 
-    # Escaped backtick inside.
-    escaped = r"echo \`inner\`"
-    # Starting at first real backtick if present; otherwise consume from start-like.
+    # Escaped backtick inside the command substitution.
     line2 = "echo `a\\`b` x"
     end2 = _consume_backtick(line2, line2.index("`"), "bash")
     assert end2 == line2.rindex("`") + 1
@@ -133,7 +130,6 @@ def test_quote_state_paths_ansi_backtick_escape_process():
     # ANSI-C escaped char reports single.
     ansi = "$'a\\nb'"
     assert quote_state_at(ansi, ansi.index("n")) == "single"
-    assert quote_state_at(ansi, ansi.index("'") + 1) == "single" or True
 
     # Backticks inside double quotes.
     line = 'echo "`date`"'
@@ -201,14 +197,10 @@ def test_iter_parameter_expansions_and_strip_comment_paths():
 
     # Comment stripping with escapes, ansi, locale, backticks, process subst.
     assert strip_comment(r"echo hi \# not comment # real") == r"echo hi \# not comment"
-    assert strip_comment("echo $'a#b' # c") == "echo $'a#b'" or strip_comment(
-        "echo $'a#b' # c"
-    ).startswith("echo")
-    assert "#" not in strip_comment('echo $"a#b" # c').split("#")[0] or True
+    assert strip_comment("echo $'a#b' # c") == "echo $'a#b'"
+    assert strip_comment('echo $"a#b" # c') == 'echo $"a#b"'
     assert strip_comment("echo `a#b` # c") == "echo `a#b`"
-    assert strip_comment("cat <(echo #inner) # outer").endswith("") or True
-    stripped = strip_comment("cat <(echo x) # outer")
-    assert stripped == "cat <(echo x)"
+    assert strip_comment("cat <(echo x) # outer") == "cat <(echo x)"
 
 
 def test_bashism_helpers():

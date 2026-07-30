@@ -7,8 +7,6 @@ from src.compliance.script_analysis import (
     script_has_unquoted_variables,
 )
 from src.compliance.shell_lex import (
-    dialect_from_script_lines,
-    dialect_from_shebang_line,
     has_bash_double_bracket,
     has_bash_process_substitution,
     iter_command_substitutions,
