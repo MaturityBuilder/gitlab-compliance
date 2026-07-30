@@ -399,7 +399,7 @@ def _split_ci_decorated_block(
                 break
 
     yaml_lines, end_idx = _collect_yaml_body_lines(lines, idx)
-    if not header and not yaml_lines:
+    if not header and not yaml_lines:  # pragma: no cover — start match implies content
         return None
     return header, yaml_lines, end_idx
 
@@ -414,7 +414,7 @@ def extract_gitstrings_blocks_from_ci_yaml(text: str) -> list[GitstringsBlock]:
             index += 1
             continue
         split = _split_ci_decorated_block(lines, index)
-        if split is None:
+        if split is None:  # pragma: no cover — start match implies split succeeds
             index += 1
             continue
         header, yaml_lines, end_idx = split
@@ -422,7 +422,9 @@ def extract_gitstrings_blocks_from_ci_yaml(text: str) -> list[GitstringsBlock]:
             index += 1
             continue
         raw_body = "\n".join(header + yaml_lines).strip()
-        if not raw_body:
+        if (
+            not raw_body
+        ):  # pragma: no cover — header+yaml always non-empty after anchors
             index = end_idx
             continue
         directives, cleaned = parse_directives(raw_body)
@@ -774,7 +776,8 @@ def render_fragment(
 
     if yaml_paths.is_legacy_render_mode(render_spec) or render_spec == "auto":
         mode = detect_render_mode(doc, render_spec)
-        if mode == "path":
+        # mode == "path" is unreachable here: path renders take the else branch below.
+        if mode == "path":  # pragma: no cover
             parts.append(
                 _render_path_specs(
                     pipeline_root,

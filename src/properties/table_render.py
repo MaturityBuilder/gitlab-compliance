@@ -459,7 +459,8 @@ def render_path_markdown(
             sensitive_paths=sensitive_paths,
         )
 
-    if last == "variables" and isinstance(node, dict):
+    # Unreachable after endswith(".variables") above; kept for API symmetry.
+    if last == "variables" and isinstance(node, dict):  # pragma: no cover
         return render_variables_table(
             node, path_prefix=path, sensitive_paths=sensitive_paths
         )

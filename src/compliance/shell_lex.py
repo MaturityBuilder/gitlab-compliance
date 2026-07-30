@@ -168,7 +168,7 @@ def _scan_balanced(
         if line[i] == "'":
             if dialect == "bash" and i > 0 and line[i - 1] == "$":
                 # Handled via $' — should not reach here for $'
-                pass
+                pass  # pragma: no cover
             frame.in_single = True
             i += 1
             continue
@@ -414,7 +414,7 @@ def quote_state_at(line: str, index: int, *, dialect: Dialect = "bash") -> Quote
             continue
         i += 1
 
-    return "none"
+    return "none"  # pragma: no cover — in-range indexes always hit i == index
 
 
 def _quote_state_inside_dollar(

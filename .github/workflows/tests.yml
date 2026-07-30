@@ -93,7 +93,7 @@ jobs:
           poetry run coverage erase
           poetry run coverage run -m behave
           poetry run pytest tests/ -q -n auto --cov=src --cov-append --cov-report=
-          poetry run coverage report -m --fail-under=95
+          poetry run coverage report -m --fail-under=99
 
   demos-offline:
     name: Validate offline demo tapes

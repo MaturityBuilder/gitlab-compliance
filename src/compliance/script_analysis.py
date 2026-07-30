@@ -1096,7 +1096,7 @@ def evidence_bashisms_without_bash(entity: dict) -> str | None:
     hit = _first_active_line(entity, _line_has_bashism)
     if hit and shebang:
         return f"{shebang}; {hit}"
-    return hit or shebang or None
+    return hit or shebang or None  # pragma: no cover — bashism True ⇒ hit+shebang set
 
 
 def evidence_posix_bashisms(entity: dict) -> str | None:
