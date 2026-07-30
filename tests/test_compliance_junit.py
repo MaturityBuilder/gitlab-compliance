@@ -88,6 +88,44 @@ class TestRenderComplianceJunit:
             result, "ci.yml", "policies", "junit", suite_name="shell-check"
         )
 
+    def test_failures_only_omits_passed_and_skipped(self):
+        result = _result(
+            _failed_shell_scenario(),
+            ScenarioResult(
+                feature="pass.feature",
+                name="Passing",
+                status="passed",
+                policy_id="TEST-PASS",
+            ),
+            ScenarioResult(
+                feature="skip.feature",
+                name="Skipped",
+                status="skipped",
+                message="No entities matched",
+                policy_id="TEST-SKIP",
+            ),
+        )
+        xml_text = render_compliance_junit(
+            result, "ci.yml", suite_name="shell-check", failures_only=True
+        )
+        root = ET.fromstring(xml_text)
+        assert root.attrib["tests"] == "1"
+        assert root.attrib["failures"] == "1"
+        assert root.attrib["skipped"] == "0"
+        assert len(root.findall(".//testcase")) == 1
+        assert root.find(".//skipped") is None
+
+        via_report = render_compliance_report(
+            result,
+            "ci.yml",
+            "policies",
+            "junit",
+            suite_name="shell-check",
+            failures_only=True,
+        )
+        assert via_report is not None
+        assert ET.fromstring(via_report).attrib["tests"] == "1"
+
 
 def test_compliance_markdown_includes_coverage_gaps_and_shell_table():
     from src.compliance.render import (

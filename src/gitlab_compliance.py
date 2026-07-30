@@ -1085,6 +1085,30 @@ def supply_chain(
         "Defaults to packaged GLCI-SHELL policies."
     ),
 )
+@click.option(
+    "--failures-only",
+    is_flag=True,
+    default=False,
+    help="Show only failed policies in the report (summary counts are kept).",
+)
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    default=False,
+    help="Include the offending script value that triggered each failure.",
+)
+@click.option(
+    "--policy",
+    "-P",
+    "policies",
+    multiple=True,
+    help=(
+        "Run only matching policies (repeatable or comma-separated). "
+        "Matches policy IDs or feature file stems; supports globs "
+        "(e.g. GLCI-SHELL-PIN-003, GLCI-SHELL-PIN*, shell-quoting)."
+    ),
+)
 def shell_check(
     pipeline_file,
     output_format,
@@ -1098,6 +1122,9 @@ def shell_check(
     group,
     strict,
     features_dir,
+    failures_only,
+    verbose,
+    policies,
 ):
     """
     Run packaged Gherkin shell standards for CI scripts (not the ShellCheck tool).
@@ -1126,6 +1153,9 @@ def shell_check(
             output_format=output_format,
             command_title="shell-check",
             with_builtin=False,
+            failures_only=failures_only,
+            verbose=verbose,
+            policies=policies,
         )
     except (ValueError, FileNotFoundError, OSError) as exc:
         print_error(str(exc))
@@ -1139,6 +1169,7 @@ def shell_check(
             pipeline_file=pipeline_file,
             features_dir=shell_features,
             output_format=output_format,
+            failures_only=failures_only,
         )
         if report is None:
             report = _gitlab_docs.render_compliance_report(
@@ -1147,6 +1178,7 @@ def shell_check(
                 features_dir=shell_features,
                 output_format=output_format,
                 suite_name="shell-check",
+                failures_only=failures_only,
             )
         target = _resolve_compliance_output(
             output_format, output_file, SHELL_CHECK_DEFAULT_OUTPUT_FILES
