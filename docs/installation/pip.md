@@ -9,6 +9,7 @@ It requires **Python 3.12**. Installation is standard:
 ```bash
 pip install --user gitlab-compliance
 gitlab-compliance --help
+gitlab-compliance --version
 ```
 
 Two CLI entry points are available:
@@ -25,6 +26,7 @@ From a clone of the repository:
 ```bash
 poetry install
 poetry run gitlab-compliance --help
+poetry run gitlab-compliance --version
 ```
 
 ### Virtual environment (recommended)

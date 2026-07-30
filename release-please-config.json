@@ -6,7 +6,10 @@
       "changelog-path": "CHANGELOG.md",
       "include-v-in-tag": true,
       "extra-files": [
-        "src/__init__.py"
+        {
+          "type": "generic",
+          "path": "src/__init__.py"
+        }
       ]
     }
   }

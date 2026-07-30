@@ -17,6 +17,7 @@ import src.properties.inputs as inputs
 import src.properties.jobs as jobs
 import src.properties.variables as variables
 import src.properties.workflows as workflows
+from src import __version__
 from src.compliance.metadata import build_policy_catalog
 from src.compliance.oci_registry import (
     DEFAULT_POLICY_DIR,
@@ -224,6 +225,7 @@ class _DualBrandCliGroup(click.Group):
 
 
 @click.group(cls=_DualBrandCliGroup)
+@click.version_option(__version__, prog_name="gitlab-compliance")
 def gitlab_compliance():
     """
     GitLab CI compliance and pipeline documentation.

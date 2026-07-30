@@ -14,6 +14,7 @@ Requires **Homebrew** and downloads **Python 3.12** (via Homebrew) if needed.
 brew tap MaturityBuilder/gitlab-compliance
 brew install gitlab-compliance
 gitlab-compliance --help
+gitlab-compliance --version
 ```
 
 Fully qualified install (same formula):
