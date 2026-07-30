@@ -70,8 +70,8 @@ gitlab-compliance shell-check -p .gitlab-ci.yml --failures-only -v
 Run specific policies by ID, glob, or feature-file stem:
 
 ```bash
-gitlab-compliance shell-check -p .gitlab-ci.yml -P GLCI-BUILTIN-SHELL-PIN-003
-gitlab-compliance shell-check -p .gitlab-ci.yml -P 'GLCI-BUILTIN-SHELL-PIN*,GLCI-BUILTIN-SHELL-QUOTE-001'
+gitlab-compliance shell-check -p .gitlab-ci.yml -P GLCI-BUILTIN-SHELL-PIN-03
+gitlab-compliance shell-check -p .gitlab-ci.yml -P 'GLCI-BUILTIN-SHELL-PIN*,GLCI-BUILTIN-SHELL-QUOTE-01'
 gitlab-compliance shell-check -p .gitlab-ci.yml -P shell-quoting
 ```
 

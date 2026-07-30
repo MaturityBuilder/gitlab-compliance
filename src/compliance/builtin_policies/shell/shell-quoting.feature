@@ -9,7 +9,7 @@ Feature: Safe variable expansion
 # METADATA
 # title: Variables are quoted when expanded
 # custom:
-#   id: GLCI-BUILTIN-SHELL-QUOTE-001
+#   id: GLCI-BUILTIN-SHELL-QUOTE-01
 #   severity: HIGH
   Scenario: Variables are quoted when expanded
     Given I have any job with effective script defined
@@ -19,7 +19,7 @@ Feature: Safe variable expansion
 # METADATA
 # title: Variables used in paths are quoted
 # custom:
-#   id: GLCI-BUILTIN-SHELL-QUOTE-002
+#   id: GLCI-BUILTIN-SHELL-QUOTE-02
 #   severity: HIGH
   Scenario: Variables used in paths are quoted
     Given I have any job with effective script defined
@@ -29,7 +29,7 @@ Feature: Safe variable expansion
 # METADATA
 # title: Command substitutions are quoted
 # custom:
-#   id: GLCI-BUILTIN-SHELL-QUOTE-003
+#   id: GLCI-BUILTIN-SHELL-QUOTE-03
 #   severity: HIGH
   Scenario: Command substitutions are quoted
     Given I have any job with effective script defined
@@ -39,7 +39,7 @@ Feature: Safe variable expansion
 # METADATA
 # title: Arrays are expanded correctly
 # custom:
-#   id: GLCI-BUILTIN-SHELL-QUOTE-004
+#   id: GLCI-BUILTIN-SHELL-QUOTE-04
 #   severity: MEDIUM
   Scenario: Arrays are expanded correctly
     Given I have any job with effective script defined

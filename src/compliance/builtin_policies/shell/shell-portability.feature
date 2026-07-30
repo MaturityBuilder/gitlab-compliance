@@ -9,7 +9,7 @@ Feature: Shell portability
 # METADATA
 # title: Shebang is valid when present
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PORT-001
+#   id: GLCI-BUILTIN-SHELL-PORT-01
 #   severity: MEDIUM
   Scenario: Shebang is valid when present
     Given I have any job with effective script defined
@@ -18,7 +18,7 @@ Feature: Shell portability
 # METADATA
 # title: Bash specific features are declared
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PORT-002
+#   id: GLCI-BUILTIN-SHELL-PORT-02
 #   severity: MEDIUM
   Scenario: Bash specific features are declared
     Given I have any job with effective script defined
@@ -27,7 +27,7 @@ Feature: Shell portability
 # METADATA
 # title: POSIX compatibility is maintained for sh
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PORT-003
+#   id: GLCI-BUILTIN-SHELL-PORT-03
 #   severity: MEDIUM
   Scenario: POSIX compatibility is maintained for sh
     Given I have any job with effective script defined

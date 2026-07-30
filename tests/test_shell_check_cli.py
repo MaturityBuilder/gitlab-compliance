@@ -123,7 +123,7 @@ def test_shell_check_detects_pinning_in_nested_includes(pipeline):
     )
     assert result.exit_code == 1, result.output
     assert (
-        "GLCI-BUILTIN-SHELL-PIN-005" in result.output
+        "GLCI-BUILTIN-SHELL-PIN-05" in result.output
         or "apt packages must be version-pinned" in result.output
     )
 

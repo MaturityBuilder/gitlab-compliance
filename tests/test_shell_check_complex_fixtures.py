@@ -111,11 +111,11 @@ def test_shell_check_policy_filter_runs_selected_ids_only():
         pipeline_file=str(BAD),
         with_shell_check=True,
         output_format="markdown",
-        policies=["GLCI-BUILTIN-SHELL-PIN-003", "GLCI-BUILTIN-SHELL-QUOTE-001"],
+        policies=["GLCI-BUILTIN-SHELL-PIN-03", "GLCI-BUILTIN-SHELL-QUOTE-01"],
     )
     assert result.scenarios == 2
     ids = {scenario.policy_id for scenario in result.scenario_results}
-    assert ids == {"GLCI-BUILTIN-SHELL-PIN-003", "GLCI-BUILTIN-SHELL-QUOTE-001"}
+    assert ids == {"GLCI-BUILTIN-SHELL-PIN-03", "GLCI-BUILTIN-SHELL-QUOTE-01"}
     assert result.failed == 2
 
 

@@ -4,7 +4,7 @@
 # title: Container images must be pinned
 # description: Job images must use sha256 digests instead of mutable tags.
 # custom:
-#   id: GLCI-BUILTIN-IMAGE-PINNING
+#   id: GLCI-BUILTIN-IMAGE
 #   severity: HIGH
 Feature: Container images must be pinned
 
@@ -12,7 +12,7 @@ Feature: Container images must be pinned
 # title: Job images must use sha256 digest
 # description: Immutable digest pinning is the default supply-chain control.
 # custom:
-#   id: GLCI-BUILTIN-IMAGE-PINNING-001
+#   id: GLCI-BUILTIN-IMAGE-01
 #   severity: HIGH
   Scenario: Job images must use sha256 digest
     Given I have container image from "job" defined
@@ -22,7 +22,7 @@ Feature: Container images must be pinned
 # title: Disallow latest image tags
 # description: "Prevents jobs from using mutable latest tags such as docker:latest."
 # custom:
-#   id: GLCI-BUILTIN-IMAGE-PINNING-002
+#   id: GLCI-BUILTIN-IMAGE-02
 #   severity: HIGH
   Scenario: Job images must not use the latest tag
     Given I have any job defined
@@ -33,7 +33,7 @@ Feature: Container images must be pinned
 # title: Recommend explicit image version or digest
 # description: Ensures every job image includes a version tag or sha256 digest.
 # custom:
-#   id: GLCI-BUILTIN-IMAGE-PINNING-003
+#   id: GLCI-BUILTIN-IMAGE-03
 #   severity: MEDIUM
   Scenario: Job images must include an explicit version or digest
     Given I have any job defined
@@ -44,7 +44,7 @@ Feature: Container images must be pinned
 # title: Container images must not lag behind registry latest
 # description: API-backed check against external registry tags.
 # custom:
-#   id: GLCI-BUILTIN-IMAGE-PINNING-004
+#   id: GLCI-BUILTIN-IMAGE-04
 #   severity: MEDIUM
   Scenario: Container images must not lag behind registry latest
     Given I have any container image with release metadata defined

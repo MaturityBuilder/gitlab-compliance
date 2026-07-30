@@ -23,17 +23,14 @@ SAMPLE_PIPELINE = (
 class TestPolicyFixRegistry:
     def test_supported_ids_cover_documented_remediations(self):
         ids = pf.supported_policy_ids()
-        assert "GLCI-BUILTIN-IMAGE-PINNING-001" in ids
-        assert "GLCI-BUILTIN-INCLUDE-VERSIONS-003" in ids
-        assert "GLCI-BUILTIN-INCLUDE-VERSIONS-001" not in ids
+        assert "GLCI-BUILTIN-IMAGE-01" in ids
+        assert "GLCI-BUILTIN-INCLUDE-03" in ids
+        assert "GLCI-BUILTIN-INCLUDE-01" not in ids
 
     def test_kind_lookup(self):
+        assert pf.remediation_kind_for_policy("GLCI-BUILTIN-IMAGE-01") == "image_digest"
         assert (
-            pf.remediation_kind_for_policy("GLCI-BUILTIN-IMAGE-PINNING-001")
-            == "image_digest"
-        )
-        assert (
-            pf.remediation_kind_for_policy("GLCI-BUILTIN-INCLUDE-VERSIONS-004")
+            pf.remediation_kind_for_policy("GLCI-BUILTIN-INCLUDE-04")
             == "include_latest"
         )
         assert pf.remediation_kind_for_policy("UNKNOWN") is None
@@ -130,7 +127,7 @@ class TestApplyPolicyRemediations:
                     feature="image-pinning.feature",
                     name="pin",
                     status="failed",
-                    policy_id="GLCI-BUILTIN-IMAGE-PINNING-001",
+                    policy_id="GLCI-BUILTIN-IMAGE-01",
                 )
             ],
             pipeline_file=str(SAMPLE_PIPELINE),
@@ -208,7 +205,7 @@ class TestApplyPolicyRemediations:
                     feature="include-versions.feature",
                     name="grace",
                     status="failed",
-                    policy_id="GLCI-BUILTIN-INCLUDE-VERSIONS-004",
+                    policy_id="GLCI-BUILTIN-INCLUDE-04",
                 )
             ],
             pipeline_file=str(SAMPLE_PIPELINE),
@@ -261,7 +258,7 @@ class TestApplyPolicyRemediations:
                     feature="include-versions.feature",
                     name="latest",
                     status="failed",
-                    policy_id="GLCI-BUILTIN-INCLUDE-VERSIONS-003",
+                    policy_id="GLCI-BUILTIN-INCLUDE-03",
                 )
             ],
             pipeline_file=str(SAMPLE_PIPELINE),

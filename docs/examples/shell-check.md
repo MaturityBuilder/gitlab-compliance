@@ -18,8 +18,8 @@ demo:
 gitlab-compliance shell-check -p docs/demos/fixtures/shell-check/bad.gitlab-ci.yml
 ```
 
-Findings include job name and rule IDs such as `GLCI-BUILTIN-SHELL-PIN-002` (remote
-pipe to shell) and `GLCI-BUILTIN-SHELL-QUOTE-001` (unquoted variables).
+Findings include job name and rule IDs such as `GLCI-BUILTIN-SHELL-PIN-02` (remote
+pipe to shell) and `GLCI-BUILTIN-SHELL-QUOTE-01` (unquoted variables).
 
 ## Good example
 
@@ -39,7 +39,7 @@ demo:
 # METADATA
 # title: AWS resources must be tagged
 # custom:
-#   id: GLCI-BUILTIN-SHELL-AWS-001
+#   id: GLCI-BUILTIN-SHELL-AWS-01
 #   severity: HIGH
 Feature: AWS CLI tagging
 

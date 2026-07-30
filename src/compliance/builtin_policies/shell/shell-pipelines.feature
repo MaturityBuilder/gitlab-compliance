@@ -9,7 +9,7 @@ Feature: Pipeline safety
 # METADATA
 # title: Pipeline failures are detected
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PIPE-001
+#   id: GLCI-BUILTIN-SHELL-PIPE-01
 #   severity: HIGH
   Scenario: Pipeline failures are detected
     Given I have any job with effective script defined
@@ -19,7 +19,7 @@ Feature: Pipeline safety
 # METADATA
 # title: Exit codes are checked across pipelines
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PIPE-002
+#   id: GLCI-BUILTIN-SHELL-PIPE-02
 #   severity: HIGH
   Scenario: Exit codes are checked across pipelines
     Given I have any job with effective script defined

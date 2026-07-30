@@ -9,7 +9,7 @@ Feature: Shell script security
 # METADATA
 # title: Eval is not used
 # custom:
-#   id: GLCI-BUILTIN-SHELL-SAFE-001
+#   id: GLCI-BUILTIN-SHELL-SAFE-01
 #   severity: HIGH
   Scenario: Eval is not used
     Given I have any job with effective script defined
@@ -18,7 +18,7 @@ Feature: Shell script security
 # METADATA
 # title: Untrusted input is not executed
 # custom:
-#   id: GLCI-BUILTIN-SHELL-SAFE-002
+#   id: GLCI-BUILTIN-SHELL-SAFE-02
 #   severity: HIGH
   Scenario: Untrusted input is not executed
     Given I have any job with effective script defined
@@ -27,7 +27,7 @@ Feature: Shell script security
 # METADATA
 # title: User input is sanitised
 # custom:
-#   id: GLCI-BUILTIN-SHELL-SAFE-003
+#   id: GLCI-BUILTIN-SHELL-SAFE-03
 #   severity: HIGH
   Scenario: User input is sanitised
     Given I have any job with effective script defined
@@ -36,7 +36,7 @@ Feature: Shell script security
 # METADATA
 # title: Hardcoded secrets are not present
 # custom:
-#   id: GLCI-BUILTIN-SHELL-SAFE-004
+#   id: GLCI-BUILTIN-SHELL-SAFE-04
 #   severity: HIGH
   Scenario: Hardcoded secrets are not present
     Given I have any job with effective script defined
@@ -45,7 +45,7 @@ Feature: Shell script security
 # METADATA
 # title: chmod 777 is not used
 # custom:
-#   id: GLCI-BUILTIN-SHELL-SAFE-005
+#   id: GLCI-BUILTIN-SHELL-SAFE-05
 #   severity: MEDIUM
   Scenario: chmod 777 is not used
     Given I have any job with effective script defined

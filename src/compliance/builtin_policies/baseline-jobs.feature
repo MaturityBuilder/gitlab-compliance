@@ -9,7 +9,7 @@ Feature: Baseline job controls
 # METADATA
 # title: Job images must not use the latest tag
 # custom:
-#   id: GLCI-BUILTIN-BASELINE-001
+#   id: GLCI-BUILTIN-BASELINE-01
 #   severity: HIGH
   Scenario: Job images must not use the latest tag
     Given I have any job defined
@@ -19,7 +19,7 @@ Feature: Baseline job controls
 # METADATA
 # title: Non-template jobs must define rules
 # custom:
-#   id: GLCI-BUILTIN-BASELINE-002
+#   id: GLCI-BUILTIN-BASELINE-02
 #   severity: HIGH
   Scenario: Non-template jobs must define rules
     Given I have any job defined

@@ -9,7 +9,7 @@ Feature: Safe file operations
 # METADATA
 # title: File paths are quoted
 # custom:
-#   id: GLCI-BUILTIN-SHELL-FILE-001
+#   id: GLCI-BUILTIN-SHELL-FILE-01
 #   severity: HIGH
   Scenario: File paths are quoted
     Given I have any job with effective script defined
@@ -18,7 +18,7 @@ Feature: Safe file operations
 # METADATA
 # title: Temporary files are securely created
 # custom:
-#   id: GLCI-BUILTIN-SHELL-FILE-002
+#   id: GLCI-BUILTIN-SHELL-FILE-02
 #   severity: HIGH
   Scenario: Temporary files are securely created
     Given I have any job with effective script defined
@@ -28,7 +28,7 @@ Feature: Safe file operations
 # METADATA
 # title: Dangerous rm operations are protected
 # custom:
-#   id: GLCI-BUILTIN-SHELL-FILE-003
+#   id: GLCI-BUILTIN-SHELL-FILE-03
 #   severity: HIGH
   Scenario: Dangerous rm operations are protected
     Given I have any job with effective script defined

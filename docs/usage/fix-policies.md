@@ -6,8 +6,8 @@ auto-fixable.
 
 For each allowlisted failure, only **entities that fail that policy's
 predicates** are rewritten (for example, unpinned job images for
-`GLCI-BUILTIN-IMAGE-PINNING-001`, or includes outside the adoption window for
-`GLCI-BUILTIN-INCLUDE-VERSIONS-004`). Other includes/images in the same pipeline are
+`GLCI-BUILTIN-IMAGE-01`, or includes outside the adoption window for
+`GLCI-BUILTIN-INCLUDE-04`). Other includes/images in the same pipeline are
 left alone.
 
 This is separate from
@@ -65,11 +65,11 @@ token patterns and secret environment values before logging or posting.
 
 | Policy ID | What it fixes |
 | --- | --- |
-| `GLCI-BUILTIN-INCLUDE-VERSIONS-003` | Bump include `ref:` / `@version` to latest semver |
-| `GLCI-BUILTIN-INCLUDE-VERSIONS-004` | Same (only includes past the 30-day adoption window) |
-| `GLCI-BUILTIN-INCLUDE-VERSIONS-005` | Same (only includes with lag over 90 days) |
-| `GLCI-BUILTIN-INCLUDE-VERSIONS-006` | Same (only includes outside the latest-N tags window) |
-| `GLCI-BUILTIN-IMAGE-PINNING-001` | Pin **job** images to `@sha256:<digest>` |
+| `GLCI-BUILTIN-INCLUDE-03` | Bump include `ref:` / `@version` to latest semver |
+| `GLCI-BUILTIN-INCLUDE-04` | Same (only includes past the 30-day adoption window) |
+| `GLCI-BUILTIN-INCLUDE-05` | Same (only includes with lag over 90 days) |
+| `GLCI-BUILTIN-INCLUDE-06` | Same (only includes outside the latest-N tags window) |
+| `GLCI-BUILTIN-IMAGE-01` | Pin **job** images to `@sha256:<digest>` |
 
 These IDs match the example policies under
 `examples/example-policies/security/`.
@@ -79,7 +79,7 @@ These IDs match the example policies under
 Anything outside the table above is **never** rewritten by `--fix-policies`,
 including:
 
-- Invalid branch/`latest` includes (`GLCI-BUILTIN-INCLUDE-VERSIONS-001` / `002`)
+- Invalid branch/`latest` includes (`GLCI-BUILTIN-INCLUDE-01` / `002`)
 - “Must not use `:latest`” / regex-only image rules without digest remediation
 - “Image lag behind registry latest” (needs a tag bump, not only a digest pin)
 - Service images (unless covered by a future allowlisted policy)

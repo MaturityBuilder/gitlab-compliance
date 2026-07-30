@@ -9,7 +9,7 @@ Feature: Command substitution
 # METADATA
 # title: Legacy backticks are not used
 # custom:
-#   id: GLCI-BUILTIN-SHELL-SUB-001
+#   id: GLCI-BUILTIN-SHELL-SUB-01
 #   severity: MEDIUM
   Scenario: Legacy backticks are not used
     Given I have any job with effective script defined
@@ -18,7 +18,7 @@ Feature: Command substitution
 # METADATA
 # title: Nested command substitution is readable
 # custom:
-#   id: GLCI-BUILTIN-SHELL-SUB-002
+#   id: GLCI-BUILTIN-SHELL-SUB-02
 #   severity: MEDIUM
   Scenario: Nested command substitution is readable
     Given I have any job with effective script defined

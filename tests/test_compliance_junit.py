@@ -17,7 +17,7 @@ def _failed_shell_scenario() -> ScenarioResult:
             "ASSERT FAILED: Job 'build' ci.yml:4: Unpinned apt package install; "
             "Job 'deploy' ci.yml:9: Unpinned apt package install via: extends:build"
         ),
-        policy_id="GLCI-BUILTIN-SHELL-PIN-005",
+        policy_id="GLCI-BUILTIN-SHELL-PIN-05",
         title="apt packages must be version-pinned",
     )
 

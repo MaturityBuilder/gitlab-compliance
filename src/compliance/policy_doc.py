@@ -11,6 +11,7 @@ from src.compliance.metadata import (
     PolicyCatalog,
     collect_policy_index,
 )
+from src.modules.common import render_markdown_table
 
 _GITHUB_BLOB_BASE = "https://github.com/MaturityBuilder/gitlab-compliance/blob/main/"
 _BUILTIN_PATH_MARKER = "src/compliance/builtin_policies/"
@@ -110,24 +111,53 @@ def _format_file_html(
     return f"<code>{rel_feature}</code>"
 
 
+def _display_features_dir(features_dir: str) -> str:
+    """Prefer a stable repo-relative path for catalog headers."""
+    abs_dir = os.path.abspath(features_dir)
+    cwd = os.path.abspath(os.getcwd())
+    try:
+        rel = os.path.relpath(abs_dir, cwd).replace("\\", "/")
+    except ValueError:
+        return features_dir
+    if not rel.startswith(".."):
+        return rel
+    return features_dir
+
+
+def _severity(annotation: PolicyAnnotation) -> str:
+    """Return severity from custom metadata, or empty string."""
+    if not annotation.custom:
+        return ""
+    value = annotation.custom.get("severity")
+    return str(value) if value is not None else ""
+
+
 def render_policy_catalog_markdown(catalog: PolicyCatalog, features_dir: str) -> str:
     lines = [
         "# GitLab CI Compliance Policy Catalog",
         "",
-        f"- **Policies directory:** `{features_dir}`",
+        f"- **Policies directory:** `{_display_features_dir(features_dir)}`",
         f"- **Generated:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
         "",
         "## Index",
         "",
     ]
 
-    for policy in collect_policy_index(catalog):
-        loc = _format_short_location_markdown(features_dir, policy)
+    index_rows = [
+        [
+            f"`{policy.policy_id}`",
+            policy.title,
+            policy.scope,
+            _format_short_location_markdown(features_dir, policy),
+        ]
+        for policy in collect_policy_index(catalog)
+    ]
+    if index_rows:
         lines.append(
-            f"- `{policy.policy_id}` — {policy.title} " f"({policy.scope}, {loc})"
+            render_markdown_table(["ID", "Title", "Scope", "Location"], index_rows)
         )
+        lines.append("")
 
-    lines.append("")
     for feature in catalog.features:
         file_ref = _format_file_markdown(
             features_dir, feature.annotation, feature.feature_file
@@ -152,25 +182,23 @@ def render_policy_catalog_markdown(catalog: PolicyCatalog, features_dir: str) ->
         if feature.scenarios:
             lines.append("### Scenarios")
             lines.append("")
-            for scenario in feature.scenarios:
-                lines.extend(
-                    [
-                        f"#### `{scenario.policy_id}` — {scenario.title}",
-                        "",
-                        f"- **Location:** {_format_location_markdown(features_dir, scenario)}",
-                    ]
+            scenario_rows = [
+                [
+                    f"`{scenario.policy_id}`",
+                    scenario.title,
+                    _severity(scenario),
+                    scenario.description or "",
+                    _format_location_markdown(features_dir, scenario),
+                ]
+                for scenario in feature.scenarios
+            ]
+            lines.append(
+                render_markdown_table(
+                    ["ID", "Title", "Severity", "Description", "Location"],
+                    scenario_rows,
                 )
-                if scenario.description:
-                    lines.append(f"- **Description:** {scenario.description}")
-                if scenario.custom:
-                    custom_bits = ", ".join(
-                        f"`{key}`: {value}"
-                        for key, value in scenario.custom.items()
-                        if key != "id"
-                    )
-                    if custom_bits:
-                        lines.append(f"- **Custom:** {custom_bits}")
-                lines.append("")
+            )
+            lines.append("")
 
     return "\n".join(lines).rstrip() + "\n"
 
@@ -192,24 +220,28 @@ def render_policy_catalog_html(catalog: PolicyCatalog, features_dir: str) -> str
         file_html = _format_file_html(
             features_dir, feature.annotation, feature.feature_file
         )
-        scenario_blocks = []
+        scenario_rows = []
         for scenario in feature.scenarios:
-            custom_html = ""
-            if scenario.custom:
-                items = "".join(
-                    f"<li><code>{html.escape(key)}</code>: {html.escape(str(value))}</li>"
-                    for key, value in scenario.custom.items()
-                    if key != "id"
-                )
-                if items:
-                    custom_html = f"<ul>{items}</ul>"
-            scenario_blocks.append(
-                "<section>"
-                f"<h4><code>{html.escape(scenario.policy_id)}</code> — {html.escape(scenario.title)}</h4>"
-                f"<p>{_format_location_html(features_dir, scenario)}</p>"
-                f"<p>{html.escape(scenario.description)}</p>"
-                f"{custom_html}"
-                "</section>"
+            scenario_rows.append(
+                "<tr>"
+                f"<td><code>{html.escape(scenario.policy_id)}</code></td>"
+                f"<td>{html.escape(scenario.title)}</td>"
+                f"<td>{html.escape(_severity(scenario))}</td>"
+                f"<td>{html.escape(scenario.description or '')}</td>"
+                f"<td>{_format_location_html(features_dir, scenario)}</td>"
+                "</tr>"
+            )
+        scenarios_html = ""
+        if scenario_rows:
+            scenarios_html = (
+                "<h3>Scenarios</h3>"
+                "<table>"
+                "<thead><tr>"
+                "<th>ID</th><th>Title</th><th>Severity</th>"
+                "<th>Description</th><th>Location</th>"
+                "</tr></thead>"
+                f"<tbody>{''.join(scenario_rows)}</tbody>"
+                "</table>"
             )
         detail_sections.append(
             "<section>"
@@ -221,7 +253,7 @@ def render_policy_catalog_html(catalog: PolicyCatalog, features_dir: str) -> str
                 if feature.annotation
                 else ""
             )
-            + "".join(scenario_blocks)
+            + scenarios_html
             + "</section>"
         )
 
@@ -241,7 +273,7 @@ def render_policy_catalog_html(catalog: PolicyCatalog, features_dir: str) -> str
 </head>
 <body>
   <h1>GitLab CI Compliance Policy Catalog</h1>
-  <p class="meta"><strong>Policies:</strong> {html.escape(features_dir)}<br>
+  <p class="meta"><strong>Policies:</strong> {html.escape(_display_features_dir(features_dir))}<br>
   <strong>Generated:</strong> {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
   <h2>Index</h2>
   <table>

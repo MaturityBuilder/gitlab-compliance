@@ -2,14 +2,14 @@
 # title: Service containers must be version-pinned
 # description: Service images such as docker:dind must include an explicit version.
 # custom:
-#   id: GLCI-BUILTIN-SERVICE-PINNING
+#   id: GLCI-BUILTIN-SERVICE
 #   severity: HIGH
 Feature: Service containers must be version-pinned
 
 # METADATA
 # title: docker:dind must include a version
 # custom:
-#   id: GLCI-BUILTIN-SERVICE-PINNING-001
+#   id: GLCI-BUILTIN-SERVICE-01
 #   severity: HIGH
   Scenario: docker:dind must include a version
     Given I have any job defined

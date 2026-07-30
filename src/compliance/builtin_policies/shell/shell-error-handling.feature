@@ -9,7 +9,7 @@ Feature: Error handling
 # METADATA
 # title: Scripts use strict mode
 # custom:
-#   id: GLCI-BUILTIN-SHELL-ERR-001
+#   id: GLCI-BUILTIN-SHELL-ERR-01
 #   severity: MEDIUM
   Scenario: Multi-line scripts use strict mode
     Given I have any job with effective script defined
@@ -19,7 +19,7 @@ Feature: Error handling
 # METADATA
 # title: Commands return meaningful exit codes
 # custom:
-#   id: GLCI-BUILTIN-SHELL-ERR-002
+#   id: GLCI-BUILTIN-SHELL-ERR-02
 #   severity: MEDIUM
   Scenario: Commands return meaningful exit codes
     Given I have any job with effective script defined
@@ -28,7 +28,7 @@ Feature: Error handling
 # METADATA
 # title: Functions propagate failures
 # custom:
-#   id: GLCI-BUILTIN-SHELL-ERR-003
+#   id: GLCI-BUILTIN-SHELL-ERR-03
 #   severity: MEDIUM
   Scenario: Functions propagate failures
     Given I have any job with effective script defined

@@ -2,14 +2,14 @@
 # title: Component input constraints
 # description: Advanced Scenario Outline for component inputs and conditional fields.
 # custom:
-#   id: GLCI-BUILTIN-COMPONENT-INPUTS
+#   id: GLCI-BUILTIN-COMPONENT
 #   severity: MEDIUM
 Feature: Component input constraints
 
 # METADATA
 # title: Component input mode constrains dependent fields
 # custom:
-#   id: GLCI-BUILTIN-COMPONENT-INPUTS-001
+#   id: GLCI-BUILTIN-COMPONENT-01
 #   severity: MEDIUM
   Scenario Outline: Component input mode constrains dependent fields
     Given I have include type "component" defined

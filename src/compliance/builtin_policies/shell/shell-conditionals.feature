@@ -9,7 +9,7 @@ Feature: Conditional expressions
 # METADATA
 # title: Test operators are portable
 # custom:
-#   id: GLCI-BUILTIN-SHELL-TEST-001
+#   id: GLCI-BUILTIN-SHELL-TEST-01
 #   severity: MEDIUM
   Scenario: Test operators are portable
     Given I have any job with effective script defined
@@ -18,7 +18,7 @@ Feature: Conditional expressions
 # METADATA
 # title: Variables are quoted in test statements
 # custom:
-#   id: GLCI-BUILTIN-SHELL-TEST-002
+#   id: GLCI-BUILTIN-SHELL-TEST-02
 #   severity: HIGH
   Scenario: Variables are quoted in test statements
     Given I have any job with effective script defined

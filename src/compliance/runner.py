@@ -111,7 +111,7 @@ def _selector_pattern(selector: str) -> str:
     """Convert a policy selector into an fnmatch pattern.
 
     Bare IDs without wildcards match exact or prefix (``GLCI-BUILTIN-SHELL-PIN`` matches
-    ``GLCI-BUILTIN-SHELL-PIN-003``). Explicit ``*`` / ``?`` use standard fnmatch rules.
+    ``GLCI-BUILTIN-SHELL-PIN-03``). Explicit ``*`` / ``?`` use standard fnmatch rules.
     """
     if any(char in selector for char in "*?["):
         return selector

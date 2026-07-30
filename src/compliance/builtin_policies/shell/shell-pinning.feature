@@ -9,7 +9,7 @@ Feature: CI script dependency pinning
 # METADATA
 # title: Downloads must verify checksums
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PIN-001
+#   id: GLCI-BUILTIN-SHELL-PIN-01
 #   severity: HIGH
   Scenario: Script downloads must verify checksums
     Given I have any job with effective script defined
@@ -18,7 +18,7 @@ Feature: CI script dependency pinning
 # METADATA
 # title: Disallow remote pipe to shell
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PIN-002
+#   id: GLCI-BUILTIN-SHELL-PIN-02
 #   severity: HIGH
   Scenario: Scripts must not pipe remote downloads to a shell
     Given I have any job with effective script defined
@@ -28,7 +28,7 @@ Feature: CI script dependency pinning
 # title: pip packages must be version-pinned
 # description: Applies to both pip and pip3 install commands in job scripts.
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PIN-003
+#   id: GLCI-BUILTIN-SHELL-PIN-03
 #   severity: MEDIUM
   Scenario: pip install must pin package versions
     Given I have any job with effective script defined
@@ -37,7 +37,7 @@ Feature: CI script dependency pinning
 # METADATA
 # title: apk packages must be version-pinned
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PIN-004
+#   id: GLCI-BUILTIN-SHELL-PIN-04
 #   severity: MEDIUM
   Scenario: apk add must pin package versions
     Given I have any job with effective script defined
@@ -46,7 +46,7 @@ Feature: CI script dependency pinning
 # METADATA
 # title: apt packages must be version-pinned
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PIN-005
+#   id: GLCI-BUILTIN-SHELL-PIN-05
 #   severity: MEDIUM
   Scenario: apt-get install must pin package versions
     Given I have any job with effective script defined
@@ -55,7 +55,7 @@ Feature: CI script dependency pinning
 # METADATA
 # title: npm global packages must be version-pinned
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PIN-006
+#   id: GLCI-BUILTIN-SHELL-PIN-06
 #   severity: MEDIUM
   Scenario: npm global installs must pin package versions
     Given I have any job with effective script defined
@@ -64,7 +64,7 @@ Feature: CI script dependency pinning
 # METADATA
 # title: go install must pin versions
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PIN-007
+#   id: GLCI-BUILTIN-SHELL-PIN-07
 #   severity: MEDIUM
   Scenario: go install must pin module versions
     Given I have any job with effective script defined
@@ -73,7 +73,7 @@ Feature: CI script dependency pinning
 # METADATA
 # title: git clone must verify revision
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PIN-008
+#   id: GLCI-BUILTIN-SHELL-PIN-08
 #   severity: MEDIUM
   Scenario: git clone must verify commit or tag
     Given I have any job with effective script defined
@@ -83,7 +83,7 @@ Feature: CI script dependency pinning
 # title: docker run and pull must pin images
 # description: Script docker commands must reference an explicit tag or sha256 digest.
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PIN-009
+#   id: GLCI-BUILTIN-SHELL-PIN-09
 #   severity: MEDIUM
   Scenario: docker run and pull must pin container images
     Given I have any job with effective script defined
@@ -93,7 +93,7 @@ Feature: CI script dependency pinning
 # title: yum/dnf packages must be version-pinned
 # description: Applies to yum, dnf, and microdnf install commands in job scripts.
 # custom:
-#   id: GLCI-BUILTIN-SHELL-PIN-010
+#   id: GLCI-BUILTIN-SHELL-PIN-10
 #   severity: MEDIUM
   Scenario: yum and dnf install must pin package versions
     Given I have any job with effective script defined

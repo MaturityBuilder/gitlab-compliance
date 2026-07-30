@@ -939,7 +939,7 @@ def supply_chain(
     Run packaged supply-chain pinning policies against GitLab CI YAML.
 
     Validates include, image, and service version pinning using bundled
-    GLCI-BUILTIN-IMAGE-PINNING, GLCI-BUILTIN-INCLUDE-VERSIONS, and related policies.
+    GLCI-BUILTIN-IMAGE, GLCI-BUILTIN-INCLUDE, and related policies.
     Pass --fix to auto-remediate YAML before checking.
     """
     from src.compliance.builtin_policies import BUILTIN_SUPPLY_CHAIN_POLICIES_DIR
@@ -1108,7 +1108,7 @@ def supply_chain(
     help=(
         "Run only matching policies (repeatable or comma-separated). "
         "Matches policy IDs or feature file stems; supports globs "
-        "(e.g. GLCI-BUILTIN-SHELL-PIN-003, GLCI-BUILTIN-SHELL-PIN*, shell-quoting)."
+        "(e.g. GLCI-BUILTIN-SHELL-PIN-03, GLCI-BUILTIN-SHELL-PIN*, shell-quoting)."
     ),
 )
 def shell_check(
