@@ -89,7 +89,8 @@ def _mask_dict_entry_value(
     segment = f"{path_prefix}.{key}" if path_prefix else key
     value_path = value_path_for_variable(path_prefix, key, entry)
     default_path = f"{segment}.default"
-    if (
+    # Unreachable with current .value path variants (segment match ⇒ value_path match).
+    if (  # pragma: no cover
         should_mask_value(segment, sensitive_paths)
         and not should_mask_value(value_path, sensitive_paths)
         and not (

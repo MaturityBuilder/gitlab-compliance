@@ -17,6 +17,8 @@ def _failed_result() -> ComplianceResult:
         title="Example",
         description="Example policy",
         severity="HIGH",
+        owasp_cicd="CICD-SEC-3, CICD-SEC-9",
+        iso27001="A.8.25, A.8.9",
     )
     return ComplianceResult(
         success=False,
@@ -38,6 +40,8 @@ class TestRenderComplianceFormats:
         )
         assert "GitLab CI Compliance Report" in text
         assert "FAIL" in text
+        assert "**OWASP CI/CD:** CICD-SEC-3, CICD-SEC-9" in text
+        assert "**ISO 27001:** A.8.25, A.8.9" in text
 
     def test_html_report_contains_title(self):
         html = render_compliance_html(
@@ -47,6 +51,9 @@ class TestRenderComplianceFormats:
         )
         assert "Compliance" in html
         assert "<html" in html.lower()
+        assert "OWASP CI/CD" in html
+        assert "CICD-SEC-3, CICD-SEC-9" in html
+        assert "A.8.25, A.8.9" in html
 
     def test_mr_comment_contains_details_block(self):
         comment = render_compliance_mr_comment(
@@ -56,6 +63,8 @@ class TestRenderComplianceFormats:
         )
         assert "<details>" in comment
         assert "Compliance failed" in comment
+        assert "OWASP CI/CD" in comment
+        assert "ISO 27001" in comment
 
     def test_render_compliance_report_dispatch(self):
         result = _failed_result()

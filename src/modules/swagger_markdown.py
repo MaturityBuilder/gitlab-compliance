@@ -7,7 +7,9 @@ import re
 import src.modules.common as common
 
 
-def _slug(value: str) -> str:
+def _slug(
+    value: str,
+) -> str:  # pragma: no cover — unused helper retained for API symmetry
     return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
 
 

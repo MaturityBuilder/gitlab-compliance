@@ -3,7 +3,7 @@
 Supply-chain controls for packages and downloads inside GitLab CI job scripts.
 Packaged as
 [`shell-pinning.feature`](https://github.com/MaturityBuilder/gitlab-compliance/blob/main/src/compliance/builtin_policies/shell/shell-pinning.feature)
-with IDs `GLCI-SHELL-PIN-001` … `GLCI-SHELL-PIN-010`.
+with IDs `GLCI-BUILTIN-SHELL-PIN-01` … `GLCI-BUILTIN-SHELL-PIN-10`.
 
 Run the full pack:
 
@@ -24,13 +24,13 @@ Each manager uses the shared step
 The Gherkin below matches the bundled policies. Bad/good snippets show what
 pass and fail.
 
-### apk (`GLCI-SHELL-PIN-004`)
+### apk (`GLCI-BUILTIN-SHELL-PIN-04`)
 
 ```gherkin
 # METADATA
 # title: apk packages must be version-pinned
 # custom:
-#   id: GLCI-SHELL-PIN-004
+#   id: GLCI-BUILTIN-SHELL-PIN-04
 #   severity: MEDIUM
 Scenario: apk add must pin package versions
   Given I have any job with effective script defined
@@ -55,13 +55,13 @@ demo:
     - apk add --virtual .build-deps gcc=13.2.1-r0 musl-dev=1.2.4-r0
 ```
 
-### apt / apt-get (`GLCI-SHELL-PIN-005`)
+### apt / apt-get (`GLCI-BUILTIN-SHELL-PIN-05`)
 
 ```gherkin
 # METADATA
 # title: apt packages must be version-pinned
 # custom:
-#   id: GLCI-SHELL-PIN-005
+#   id: GLCI-BUILTIN-SHELL-PIN-05
 #   severity: MEDIUM
 Scenario: apt-get install must pin package versions
   Given I have any job with effective script defined
@@ -86,14 +86,14 @@ demo:
     - apt install --no-install-recommends wget=1.21.3-1
 ```
 
-### yum / dnf / microdnf (`GLCI-SHELL-PIN-010`)
+### yum / dnf / microdnf (`GLCI-BUILTIN-SHELL-PIN-10`)
 
 ```gherkin
 # METADATA
 # title: yum/dnf packages must be version-pinned
 # description: Applies to yum, dnf, and microdnf install commands in job scripts.
 # custom:
-#   id: GLCI-SHELL-PIN-010
+#   id: GLCI-BUILTIN-SHELL-PIN-10
 #   severity: MEDIUM
 Scenario: yum and dnf install must pin package versions
   Given I have any job with effective script defined
@@ -121,14 +121,14 @@ demo:
     - dnf install --enablerepo=epel pkg-1.0.0
 ```
 
-### pip / pip3 (`GLCI-SHELL-PIN-003`)
+### pip / pip3 (`GLCI-BUILTIN-SHELL-PIN-03`)
 
 ```gherkin
 # METADATA
 # title: pip packages must be version-pinned
 # description: Applies to both pip and pip3 install commands in job scripts.
 # custom:
-#   id: GLCI-SHELL-PIN-003
+#   id: GLCI-BUILTIN-SHELL-PIN-03
 #   severity: MEDIUM
 Scenario: pip install must pin package versions
   Given I have any job with effective script defined
@@ -155,13 +155,13 @@ demo:
     - pip install --index-url https://pypi.org/simple "gitlab-compliance==2.1.1"
 ```
 
-### npm / yarn (`GLCI-SHELL-PIN-006`)
+### npm / yarn (`GLCI-BUILTIN-SHELL-PIN-06`)
 
 ```gherkin
 # METADATA
 # title: npm global packages must be version-pinned
 # custom:
-#   id: GLCI-SHELL-PIN-006
+#   id: GLCI-BUILTIN-SHELL-PIN-06
 #   severity: MEDIUM
 Scenario: npm global installs must pin package versions
   Given I have any job with effective script defined
@@ -188,13 +188,13 @@ demo:
     - yarn global add lodash@4.17.21
 ```
 
-### go (`GLCI-SHELL-PIN-007`)
+### go (`GLCI-BUILTIN-SHELL-PIN-07`)
 
 ```gherkin
 # METADATA
 # title: go install must pin versions
 # custom:
-#   id: GLCI-SHELL-PIN-007
+#   id: GLCI-BUILTIN-SHELL-PIN-07
 #   severity: MEDIUM
 Scenario: go install must pin module versions
   Given I have any job with effective script defined
@@ -234,7 +234,7 @@ Scenario: Scripts must not pipe remote downloads to a shell
   Then untrusted remote scripts must not be executed
 ```
 
-### git clone (`GLCI-SHELL-PIN-008`)
+### git clone (`GLCI-BUILTIN-SHELL-PIN-08`)
 
 ```gherkin
 Scenario: git clone must verify commit or tag
@@ -242,13 +242,13 @@ Scenario: git clone must verify commit or tag
   Then git clone must verify commit or tag
 ```
 
-### docker run / pull / create (`GLCI-SHELL-PIN-009`)
+### docker run / pull / create (`GLCI-BUILTIN-SHELL-PIN-09`)
 
 ```gherkin
 # METADATA
 # title: docker run and pull must pin images
 # custom:
-#   id: GLCI-SHELL-PIN-009
+#   id: GLCI-BUILTIN-SHELL-PIN-09
 #   severity: MEDIUM
 Scenario: docker run and pull must pin container images
   Given I have any job with effective script defined

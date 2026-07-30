@@ -1,4 +1,4 @@
-# Complex non-compliant pipeline: intentional GLCI-SHELL violations for negative testing.
+# Complex non-compliant pipeline: intentional GLCI-BUILTIN-SHELL violations for negative testing.
 stages:
   - prepare
   - build

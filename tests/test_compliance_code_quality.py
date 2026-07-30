@@ -65,8 +65,10 @@ class TestRenderComplianceCodeQuality:
                 name="Job images must not use the latest tag",
                 status="failed",
                 message="Entities where image must not match: build (examples/sample-files/.gitlab-ci.yml:12)",
-                policy_id="GLCI-IMAGE-PINNING-001",
+                policy_id="GLCI-BUILTIN-IMAGE-01",
                 severity="HIGH",
+                owasp_cicd="CICD-SEC-3, CICD-SEC-9",
+                iso27001="A.8.25, A.8.9",
             )
         )
         payload = json.loads(
@@ -76,10 +78,12 @@ class TestRenderComplianceCodeQuality:
         )
         assert len(payload) == 1
         finding = payload[0]
-        assert finding["check_name"] == "GLCI-IMAGE-PINNING-001"
+        assert finding["check_name"] == "GLCI-BUILTIN-IMAGE-01"
         assert finding["severity"] == "major"
         assert finding["location"]["path"] == "examples/sample-files/.gitlab-ci.yml"
         assert finding["location"]["lines"]["begin"] == 12
+        assert "OWASP CI/CD: CICD-SEC-3, CICD-SEC-9" in finding["description"]
+        assert "ISO 27001: A.8.25, A.8.9" in finding["description"]
         assert set(finding) >= {
             "description",
             "check_name",
@@ -159,7 +163,7 @@ class TestRenderComplianceCodeQuality:
                     "ASSERT FAILED: Job 'demo' ci/jobs.yml:12: Unquoted variable; "
                     "Job 'other' ci/jobs.yml:20: Unquoted variable"
                 ),
-                policy_id="GLCI-SHELL-QUOTE-001",
+                policy_id="GLCI-BUILTIN-SHELL-QUOTE-01",
                 severity="HIGH",
             )
         )
