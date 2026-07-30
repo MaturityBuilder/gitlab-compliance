@@ -8,6 +8,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   POETRY_NO_INTERACTION: "1"
   PYTHON_VERSION: "3.12"
@@ -16,7 +20,7 @@ permissions:
   contents: read
 
 jobs:
-  deps:
+  pre-commit:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -44,38 +48,19 @@ jobs:
         if: steps.poetry-cache.outputs.cache-hit != 'true'
         run: poetry install --no-interaction
 
-
-  pre-commit:
-    needs: deps
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - name: Cache pre-commit environments
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install Poetry
-        uses: snok/install-poetry@a783c322200f0519c7926aa6faa857c4e23e9263 # v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-
-      - name: Restore Poetry virtualenv
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('poetry.lock') }}
-          fail-on-cache-miss: true
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Run pre-commit
-        run:  poetry run pre-commit run --all-files
+        run: poetry run pre-commit run --all-files
 
   unit-test:
-    needs: deps
     runs-on: ubuntu-22.04
+    env:
+      COVERAGE_CORE: sysmon
 
     steps:
       - name: Checkout
@@ -92,28 +77,26 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
-      - name: Restore Poetry virtualenv
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: poetry-cache
         with:
           path: .venv
           key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('poetry.lock') }}
-          fail-on-cache-miss: true
+
+      - name: Install dependencies
+        if: steps.poetry-cache.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction
 
       - name: Run tests with coverage
         run: |
           poetry run coverage erase
           poetry run coverage run -m behave
-          poetry run coverage run -a -m pytest tests/ -v
-
-      - name: Coverage report
-        run: poetry run coverage report -m
-
-      - name: Check coverage threshold
-        run: poetry run coverage report --fail-under 95
+          poetry run pytest tests/ -q -n auto --cov=src --cov-append --cov-report=
+          poetry run coverage report -m --fail-under=95
 
   demos-offline:
     name: Validate offline demo tapes
-    needs: deps
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
