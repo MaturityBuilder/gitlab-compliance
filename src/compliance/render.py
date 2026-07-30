@@ -8,6 +8,7 @@ import json
 import os
 import re
 import xml.etree.ElementTree as ET  # nosec B405 - XML is generated, not parsed
+from dataclasses import replace
 from datetime import datetime, timezone
 
 from src.compliance.models import ComplianceResult, ScenarioResult
@@ -473,34 +474,43 @@ def render_compliance_junit(
     pipeline_file: str,
     *,
     suite_name: str = "gitlab-compliance",
+    failures_only: bool = False,
 ) -> str:
     """Render compliance scenarios as JUnit XML for CI test report artifacts."""
+    scenarios = list(result.scenario_results)
+    if failures_only:
+        scenarios = [s for s in scenarios if s.status == "failed"]
+
+    failed = sum(1 for s in scenarios if s.status == "failed")
+    skipped = sum(1 for s in scenarios if s.status == "skipped")
     root = ET.Element(
         "testsuites",
         {
             "name": suite_name,
-            "tests": str(result.scenarios),
-            "failures": str(result.failed),
+            "tests": str(len(scenarios)),
+            "failures": str(failed),
             "errors": "0",
-            "skipped": str(result.skipped),
+            "skipped": str(skipped),
         },
     )
 
-    for feature, scenarios in _group_scenarios_by_feature(
-        result.scenario_results
-    ).items():
+    for feature, feature_scenarios in _group_scenarios_by_feature(scenarios).items():
         suite = ET.SubElement(
             root,
             "testsuite",
             {
                 "name": feature,
-                "tests": str(len(scenarios)),
-                "failures": str(sum(1 for s in scenarios if s.status == "failed")),
+                "tests": str(len(feature_scenarios)),
+                "failures": str(
+                    sum(1 for s in feature_scenarios if s.status == "failed")
+                ),
                 "errors": "0",
-                "skipped": str(sum(1 for s in scenarios if s.status == "skipped")),
+                "skipped": str(
+                    sum(1 for s in feature_scenarios if s.status == "skipped")
+                ),
             },
         )
-        for scenario in scenarios:
+        for scenario in feature_scenarios:
             testcase = ET.SubElement(
                 suite,
                 "testcase",
@@ -557,6 +567,7 @@ def render_compliance_report(
     output_format: str,
     *,
     suite_name: str = "gitlab-compliance",
+    failures_only: bool = False,
 ) -> str | None:
     fmt = output_format.lower()
     if fmt == "markdown":
@@ -566,7 +577,22 @@ def render_compliance_report(
     if fmt == "mr-comment":
         return render_compliance_mr_comment(result, pipeline_file, features_dir)
     if fmt == "codequality":
+        if failures_only:
+            filtered = [s for s in result.scenario_results if s.status == "failed"]
+            result = replace(
+                result,
+                scenario_results=filtered,
+                scenarios=len(filtered),
+                passed=0,
+                failed=len(filtered),
+                skipped=0,
+            )
         return render_compliance_code_quality(result, pipeline_file)
     if fmt == "junit":
-        return render_compliance_junit(result, pipeline_file, suite_name=suite_name)
+        return render_compliance_junit(
+            result,
+            pipeline_file,
+            suite_name=suite_name,
+            failures_only=failures_only,
+        )
     return None

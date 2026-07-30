@@ -5,14 +5,25 @@ from __future__ import annotations
 import re
 import shlex
 
+from src.compliance.shell_lex import (
+    has_bash_brace_range,
+    has_bash_declare,
+    has_bash_double_bracket,
+    has_bash_process_substitution,
+    iter_command_substitutions,
+    iter_parameter_expansions,
+    quote_state_at,
+    strip_comment,
+)
 from src.compliance.stash import get_property
 
-_UNQUOTED_VAR = re.compile(
-    r"(?<![\"'\\])\$(?:\{([A-Za-z_][A-Za-z0-9_]*)\}|([A-Za-z_][A-Za-z0-9_]*))"
+# Match expandable $VAR / ${VAR}; quote safety is decided by _quote_state_at.
+_VAR_EXPANSION = re.compile(
+    r"(?<!\\)\$(?:\{([A-Za-z_][A-Za-z0-9_]*)\}|([A-Za-z_][A-Za-z0-9_]*))"
 )
 _ARRAY_STAR = re.compile(r"\$\{?[A-Za-z_][A-Za-z0-9_]*\[\*\]\}?")
+_ARRAY_AT = re.compile(r"\$\{[A-Za-z_][A-Za-z0-9_]*\[@\]\}")
 _BACKTICKS = re.compile(r"`[^`]+`")
-_CMD_SUB = re.compile(r"\$\([^)]+\)")
 _PIPE = re.compile(r"[^|]\|[^|]")
 _CURL_WGET = re.compile(r"\b(curl|wget)\b", re.IGNORECASE)
 _CHECKSUM = re.compile(r"\b(sha256sum|shasum|openssl\s+dgst)\b", re.IGNORECASE)
@@ -93,7 +104,6 @@ _CURL_FAIL = re.compile(
 _VALID_SHEBANG = re.compile(
     r"^#!\s*(/usr/bin/env\s+(bash|sh)|/bin/(bash|sh)|/usr/bin/(bash|sh))\b"
 )
-_BASHISM_DOUBLE_BRACKET = re.compile(r"\[\[")
 _FUNCTION_DEF = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(\)\s*\{")
 _MASK_FAILURE = re.compile(r"\|\|\s*true\b")
 _PIPEFAIL = re.compile(r"\bset\s+-o\s+pipefail\b")
@@ -145,16 +155,28 @@ def _joined_script(entity: dict, field: str = "effective_script") -> str:
 
 
 def _strip_comment(line: str) -> str:
-    in_single = False
-    in_double = False
-    for index, char in enumerate(line):
-        if char == "'" and not in_double:
-            in_single = not in_single
-        elif char == '"' and not in_single:
-            in_double = not in_double
-        elif char == "#" and not in_single and not in_double:
-            return line[:index].rstrip()
-    return line
+    return strip_comment(line, dialect="bash")
+
+
+def _quote_state_at(line: str, index: int) -> str:
+    """Return quote context at ``index``: ``none``, ``single``, or ``double``.
+
+    Uses a POSIX/bash-aware scanner so expansions inside nested ``$(...)``
+    (e.g. ``"$(curl "$HOSTNAME")"``) are judged in the nested quote context.
+    """
+    return quote_state_at(line, index, dialect="bash")
+
+
+def _line_has_unquoted_var_expansion(line: str) -> bool:
+    """Return True when ``line`` expands a variable outside double quotes."""
+    for span in iter_parameter_expansions(line, dialect="bash"):
+        if quote_state_at(line, span.start, dialect="bash") == "none":
+            return True
+    # Fallback for simple $VAR forms the parameter iterator might skip.
+    for match in _VAR_EXPANSION.finditer(line):
+        if quote_state_at(line, match.start(), dialect="bash") == "none":
+            return True
+    return False
 
 
 def _active_lines(entity: dict, field: str = "effective_script") -> list[str]:
@@ -175,52 +197,85 @@ def job_has_script_field(entity: dict, field: str) -> bool:
 
 
 def script_has_unquoted_variables(entity: dict) -> bool:
-    for line in _active_lines(entity):
-        for match in _UNQUOTED_VAR.finditer(line):
-            start = match.start()
-            # Allow $1 positional and special params already excluded by pattern.
-            prefix = line[:start]
-            if prefix.count('"') % 2 == 1:
-                continue
-            return True
-    return False
+    """Return True when any active script line has an unquoted ``$VAR`` expansion."""
+    return any(_line_has_unquoted_var_expansion(line) for line in _active_lines(entity))
+
+
+def _path_argument_span(line: str, cmd_start: int) -> int:
+    """Return end index of the path-command arguments, stopping at list operators.
+
+    Stops at unquoted ``&&``, ``||``, ``;``, or ``|`` so later commands on the
+    same line (``cd "$HOME" && echo $MSG``) are not treated as path arguments.
+    """
+    index = cmd_start
+    while index < len(line):
+        state = _quote_state_at(line, index)
+        if state != "none":
+            index += 1
+            continue
+        two = line[index : index + 2]
+        if two in {"&&", "||"}:
+            return index
+        if line[index] in {";", "|"}:
+            return index
+        index += 1
+    return len(line)
 
 
 def script_has_unquoted_path_variables(entity: dict) -> bool:
+    """Return True when path commands expand variables without double quotes."""
     for line in _active_lines(entity):
         cmd_match = _PATH_WITH_VAR.search(line)
         if not cmd_match:
             continue
-        segment = line[cmd_match.start() :]
-        if _UNQUOTED_VAR.search(segment) and '"' not in segment:
-            return True
+        span_end = _path_argument_span(line, cmd_match.start())
+        # Inspect each expansion in the path-command span only; later quotes on
+        # the same line (e.g. ``cd $HOME && echo "done"``) must not clear it.
+        for match in _VAR_EXPANSION.finditer(line, cmd_match.start(), span_end):
+            if _quote_state_at(line, match.start()) == "none":
+                return True
     return False
 
 
 def script_has_unquoted_command_substitution(entity: dict) -> bool:
+    """Return True when ``$(...)`` expands outside double quotes.
+
+    Nested substitutions inside an outer ``"$(...)"`` and literal ``'$(...)'``
+    strings are not treated as unquoted expansions. Only top-level
+    substitutions are considered for word-splitting risk. Bash process
+    substitutions (``<(...)`` / ``>(...)``) are excluded — they are not
+    command substitutions for GLCI-SHELL-QUOTE-003.
+    """
     for line in _active_lines(entity):
-        for match in _CMD_SUB.finditer(line):
-            start = match.start()
-            if start == 0 or line[start - 1] != '"':
+        for span in iter_command_substitutions(line, dialect="bash", nested=False):
+            lead = line[span.start]
+            if lead in {"`", "<", ">"}:
+                continue
+            if quote_state_at(line, span.start, dialect="bash") == "none":
                 return True
     return False
 
 
 def script_has_unsafe_array_expansion(entity: dict) -> bool:
-    text = _joined_script(entity)
-    if _ARRAY_STAR.search(text):
-        return True
-    # Detect ${arr[@]} without surrounding quotes.
-    for match in re.finditer(r"\$\{[A-Za-z_][A-Za-z0-9_]*\[@\]\}", text):
-        start = match.start()
-        end = match.end()
-        if start == 0 or text[start - 1] != '"' or end >= len(text) or text[end] != '"':
-            return True
+    """Return True when array expansions are unsafe on executed (non-comment) lines."""
+    for line in _active_lines(entity):
+        for match in _ARRAY_STAR.finditer(line):
+            # ``${arr[*]}`` is unsafe whenever it actually expands.
+            if quote_state_at(line, match.start(), dialect="bash") != "single":
+                return True
+        for match in _ARRAY_AT.finditer(line):
+            # ``${arr[@]}`` is safe only when expanded inside double quotes.
+            if quote_state_at(line, match.start(), dialect="bash") == "none":
+                return True
     return False
 
 
 def script_uses_backticks(entity: dict) -> bool:
-    return bool(_BACKTICKS.search(_joined_script(entity)))
+    for line in _active_lines(entity):
+        for span in iter_command_substitutions(line, dialect="bash"):
+            if line[span.start] == "`":
+                return True
+    return False
 
 
 def script_has_nested_backticks(entity: dict) -> bool:
@@ -269,11 +324,11 @@ def script_has_unquoted_test_variables(entity: dict) -> bool:
     for line in _active_lines(entity):
         for match in _TEST_BRACKET.finditer(line):
             expr = match.group(1)
-            for var_match in _UNQUOTED_VAR.finditer(expr):
-                prefix = expr[: var_match.start()]
-                if prefix.count('"') % 2 == 1:
-                    continue
-                return True
+            expr_offset = match.start(1)
+            for var_match in _VAR_EXPANSION.finditer(expr):
+                abs_start = expr_offset + var_match.start()
+                if _quote_state_at(line, abs_start) == "none":
+                    return True
     return False
 
 
@@ -305,8 +360,15 @@ def script_has_dangerous_rm(entity: dict) -> bool:
     if _RM_RF_ROOT.search(text):
         return True
     for line in _active_lines(entity):
-        if _RM_RF.search(line) and _UNQUOTED_VAR.search(line) and '"' not in line:
-            return True
+        cmd_match = _RM_RF.search(line)
+        if not cmd_match:
+            continue
+        span_end = _path_argument_span(line, cmd_match.start())
+        # Only inspect expansions in the rm arguments; later commands on the
+        # same line (``rm -rf "$DIR" && echo $MSG``) must not trip this check.
+        for match in _VAR_EXPANSION.finditer(line, cmd_match.start(), span_end):
+            if _quote_state_at(line, match.start()) == "none":
+                return True
     return False
 
 
@@ -753,9 +815,22 @@ def script_shebang_is_valid(entity: dict) -> bool:
     return bool(_VALID_SHEBANG.match(lines[0].strip()))
 
 
+def _line_has_bashism(line: str) -> bool:
+    """Return True when ``line`` uses a bash-only construct we flag for PORT."""
+    return bool(
+        has_bash_double_bracket(line)
+        or "source " in line
+        or has_bash_process_substitution(line, dialect="bash")
+        or has_bash_brace_range(line)
+        or has_bash_declare(line)
+    )
+
+
 def script_has_bashisms(entity: dict) -> bool:
     text = _joined_script(entity)
-    return bool(_BASHISM_DOUBLE_BRACKET.search(text) or "source " in text)
+    if has_bash_double_bracket(text) or "source " in text:
+        return True
+    return any(_line_has_bashism(line) for line in _active_lines(entity))
 
 
 def script_shebang_is_sh(entity: dict) -> bool:
@@ -779,7 +854,264 @@ def script_posix_shebang_with_bashisms(entity: dict) -> bool:
     return script_shebang_is_sh(entity) and script_has_bashisms(entity)
 
 
-def format_script_violation(entity: dict, message: str) -> str:
+def _first_active_line(entity: dict, line_predicate) -> str | None:
+    """Return the first active script line matching ``line_predicate``."""
+    for line in _active_lines(entity):
+        if line_predicate(line):
+            return line.strip()
+    return None
+
+
+def _clip_evidence(text: str, limit: int = 200) -> str:
+    snippet = " ".join(text.split())
+    if len(snippet) > limit:
+        return snippet[: limit - 3] + "..."
+    return snippet
+
+
+def evidence_unquoted_variables(entity: dict) -> str | None:
+    return _first_active_line(entity, _line_has_unquoted_var_expansion)
+
+
+def evidence_unquoted_path_variables(entity: dict) -> str | None:
+    for line in _active_lines(entity):
+        cmd_match = _PATH_WITH_VAR.search(line)
+        if not cmd_match:
+            continue
+        span_end = _path_argument_span(line, cmd_match.start())
+        for match in _VAR_EXPANSION.finditer(line, cmd_match.start(), span_end):
+            if _quote_state_at(line, match.start()) == "none":
+                return line.strip()
+    return None
+
+
+def evidence_unquoted_command_substitution(entity: dict) -> str | None:
+    """Return the first line with unquoted ``$(...)`` (same rules as the predicate)."""
+    for line in _active_lines(entity):
+        for span in iter_command_substitutions(line, dialect="bash", nested=False):
+            lead = line[span.start]
+            if lead in {"`", "<", ">"}:
+                continue
+            if quote_state_at(line, span.start, dialect="bash") == "none":
+                return line.strip()
+    return None
+
+
+def evidence_unsafe_array_expansion(entity: dict) -> str | None:
+    for line in _active_lines(entity):
+        for match in _ARRAY_STAR.finditer(line):
+            if _quote_state_at(line, match.start()) != "single":
+                return line.strip()
+        for match in _ARRAY_AT.finditer(line):
+            if _quote_state_at(line, match.start()) == "none":
+                return line.strip()
+    return None
+
+
+def evidence_nested_backticks(entity: dict) -> str | None:
+    text = _joined_script(entity)
+    match = re.search(r"`[^`]*`[^`]*`", text)
+    if not match:
+        return None
+    return match.group(0)
+
+
+def evidence_missing_strict_mode(entity: dict) -> str | None:
+    if script_enables_strict_mode(entity):
+        return None
+    lines = _active_lines(entity)
+    if not lines:
+        return None
+    return _clip_evidence("; ".join(lines[:3]))
+
+
+def evidence_masked_failure(entity: dict) -> str | None:
+    return _first_active_line(entity, lambda line: bool(_MASK_FAILURE.search(line)))
+
+
+def evidence_insecure_temp_files(entity: dict) -> str | None:
+    if _MKTEMP.search(_joined_script(entity)):
+        return None
+    return _first_active_line(
+        entity,
+        lambda line: bool(re.search(r">\s*/tmp/[A-Za-z0-9._-]+", line) or "$$" in line),
+    )
+
+
+def evidence_dangerous_rm(entity: dict) -> str | None:
+    if _RM_RF_ROOT.search(_joined_script(entity)):
+        return _first_active_line(entity, lambda line: bool(_RM_RF_ROOT.search(line)))
+    for line in _active_lines(entity):
+        cmd_match = _RM_RF.search(line)
+        if not cmd_match:
+            continue
+        span_end = _path_argument_span(line, cmd_match.start())
+        for match in _VAR_EXPANSION.finditer(line, cmd_match.start(), span_end):
+            if _quote_state_at(line, match.start()) == "none":
+                return line.strip()
+    return None
+
+
+def evidence_backticks(entity: dict) -> str | None:
+    return _first_active_line(entity, lambda line: bool(_BACKTICKS.search(line)))
+
+
+def evidence_bashism_in_posix_test(entity: dict) -> str | None:
+    return _first_active_line(
+        entity, lambda line: bool(re.search(r"\[\s+[^\]]*(==|-n\s+\$)", line))
+    )
+
+
+def evidence_unquoted_test_variables(entity: dict) -> str | None:
+    for line in _active_lines(entity):
+        for match in _TEST_BRACKET.finditer(line):
+            expr = match.group(1)
+            expr_offset = match.start(1)
+            for var_match in _VAR_EXPANSION.finditer(expr):
+                abs_start = expr_offset + var_match.start()
+                if _quote_state_at(line, abs_start) == "none":
+                    return line.strip()
+    return None
+
+
+def evidence_pipeline_without_pipefail(entity: dict) -> str | None:
+    if not script_has_pipeline(entity) or script_has_pipefail(entity):
+        return None
+    return _first_active_line(entity, lambda line: bool(_PIPE.search(line)))
+
+
+def evidence_eval(entity: dict) -> str | None:
+    return _first_active_line(entity, lambda line: bool(_EVAL.search(line)))
+
+
+def evidence_remote_pipe(entity: dict) -> str | None:
+    return _first_active_line(entity, lambda line: bool(_REMOTE_PIPE.search(line)))
+
+
+def evidence_hardcoded_secrets(entity: dict) -> str | None:
+    return _first_active_line(entity, lambda line: bool(_SECRET.search(line)))
+
+
+def evidence_download_without_checksum(entity: dict) -> str | None:
+    lines = _active_lines(entity)
+    for index, line in enumerate(lines):
+        if not _CURL_WGET.search(line):
+            continue
+        if _REMOTE_PIPE.search(line):
+            continue
+        window = "\n".join(lines[max(0, index - 3) : index + 4])
+        if not _CHECKSUM.search(window):
+            return line.strip()
+    return None
+
+
+def evidence_unpinned_manager(entity: dict, manager: str) -> str | None:
+    checkers = {
+        "apk": (_APK, _apk_line_is_pinned),
+        "pip": (_PIP, _pip_install_line_is_pinned),
+        "apt": (_APT, _apt_line_is_pinned),
+        "yum": (_YUM, _yum_line_is_pinned),
+        "npm": (_NPM_GLOBAL, _npm_line_is_pinned),
+    }
+    if manager == "go":
+        for line in _active_lines(entity):
+            if not _GO_INSTALL.search(line):
+                continue
+            if "@" not in line:
+                return line.strip()
+            at_ref = line.rsplit("@", 1)[-1].split()[0]
+            if not _at_version_is_pinned("@" + at_ref):
+                return line.strip()
+        return None
+    pair = checkers.get(manager)
+    if not pair:
+        return None
+    pattern, is_pinned = pair
+    for line in _active_lines(entity):
+        if pattern.search(line) and not is_pinned(line):
+            return line.strip()
+    return None
+
+
+def evidence_unpinned_docker(entity: dict) -> str | None:
+    for line in _active_lines(entity):
+        if not _DOCKER_CMD.search(line):
+            continue
+        for ref in _docker_image_refs_on_line(line):
+            if not _container_image_ref_is_pinned(ref):
+                return line.strip()
+    return None
+
+
+def evidence_unverified_git_clone(entity: dict) -> str | None:
+    lines = _active_lines(entity)
+    for index, line in enumerate(lines):
+        if not _GIT_CLONE.search(line):
+            continue
+        window = "\n".join(lines[index : index + 5])
+        if not re.search(r"\bgit\s+checkout\b|\bgit\s+reset\s+--hard\b", window):
+            return line.strip()
+    return None
+
+
+def evidence_curl_missing_fail(entity: dict) -> str | None:
+    return _first_active_line(
+        entity,
+        lambda line: bool(_CURL_CMD.search(line) and not _CURL_FAIL.search(line)),
+    )
+
+
+def evidence_deprecated_ci_build(entity: dict) -> str | None:
+    return _first_active_line(entity, lambda line: bool(_CI_BUILD.search(line)))
+
+
+def evidence_unresolved_references(entity: dict) -> str | None:
+    refs = get_property(entity, "unresolved_script_references")
+    if isinstance(refs, list) and refs:
+        return str(refs[0])
+    provenance = get_property(entity, "script_provenance")
+    if isinstance(provenance, list):
+        for item in provenance:
+            if isinstance(item, dict) and item.get("origin") == "unresolved_reference":
+                return str(
+                    item.get("via") or item.get("text") or "unresolved_reference"
+                )
+    return None
+
+
+def evidence_invalid_shebang(entity: dict) -> str | None:
+    lines = _script_lines(entity)
+    if not lines or not lines[0].startswith("#!"):
+        return None
+    if script_shebang_is_valid(entity):
+        return None
+    return lines[0].strip()
+
+
+def evidence_bashisms_without_bash(entity: dict) -> str | None:
+    if not script_bashisms_without_bash_shebang(entity):
+        return None
+    lines = _script_lines(entity)
+    shebang = lines[0].strip() if lines else ""
+    hit = _first_active_line(entity, _line_has_bashism)
+    if hit and shebang:
+        return f"{shebang}; {hit}"
+    return hit or shebang or None
+
+
+def evidence_posix_bashisms(entity: dict) -> str | None:
+    if not script_posix_shebang_with_bashisms(entity):
+        return None
+    return evidence_bashisms_without_bash(entity)
+
+
+def evidence_chmod_777(entity: dict) -> str | None:
+    return _first_active_line(entity, lambda line: bool(_CHMOD_777.search(line)))
+
+
+def format_script_violation(
+    entity: dict, message: str, *, found: str | None = None
+) -> str:
     name = entity.get("name", "<job>")
     source = entity.get("source_file", "")
     line = entity.get("line", 0)
@@ -788,4 +1120,7 @@ def format_script_violation(entity: dict, message: str) -> str:
     if isinstance(chain, list) and chain:
         via = " via: " + " → ".join(f"extends:{item}" for item in chain)
     location = f"{source}:{line}" if source else ""
-    return f"Job '{name}' {location}: {message}{via}".strip()
+    detail = message
+    if found:
+        detail = f"{message}; found: {_clip_evidence(found)}"
+    return f"Job '{name}' {location}: {detail}{via}".strip()

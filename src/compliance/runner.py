@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import contextlib
+import fnmatch
 import os
+import re
 import shutil
 import tempfile
 
@@ -19,6 +21,9 @@ from src.compliance.builtin_policies import (
 )
 from src.compliance.console import print_error, print_warning, render_compliance_console
 from src.compliance.metadata import (
+    PolicyAnnotation,
+    PolicyCatalog,
+    PolicyDiscovery,
     PolicyRoot,
     discover_policies,
     iter_feature_files,
@@ -85,6 +90,133 @@ def _assert_within_directory(root: str, candidate: str) -> None:
 
 def _collect_feature_files(features_dir: str) -> list[str]:
     return list(iter_feature_files(features_dir))
+
+
+def normalize_policy_selectors(
+    policies: tuple[str, ...] | list[str] | None,
+) -> list[str]:
+    """Split and normalize ``--policy`` values (comma-separated allowed)."""
+    if not policies:
+        return []
+    selectors: list[str] = []
+    for item in policies:
+        for part in str(item).split(","):
+            cleaned = part.strip()
+            if cleaned:
+                selectors.append(cleaned)
+    return selectors
+
+
+def _selector_pattern(selector: str) -> str:
+    """Convert a policy selector into an fnmatch pattern.
+
+    Bare IDs without wildcards match exact or prefix (``GLCI-SHELL-PIN`` matches
+    ``GLCI-SHELL-PIN-003``). Explicit ``*`` / ``?`` use standard fnmatch rules.
+    """
+    if any(char in selector for char in "*?["):
+        return selector
+    return f"{selector}*"
+
+
+def policy_id_matches(policy_id: str, selectors: list[str]) -> bool:
+    """Return whether ``policy_id`` matches any selector."""
+    if not selectors:
+        return True
+    if not policy_id:
+        return False
+    for selector in selectors:
+        pattern = _selector_pattern(selector)
+        if fnmatch.fnmatchcase(policy_id, pattern):
+            return True
+        if fnmatch.fnmatchcase(policy_id.upper(), pattern.upper()):
+            return True
+    return False
+
+
+def _feature_stem_matches(feature_file: str, selectors: list[str]) -> bool:
+    stem = os.path.splitext(os.path.basename(feature_file))[0]
+    for selector in selectors:
+        pattern = _selector_pattern(selector)
+        if fnmatch.fnmatchcase(stem, pattern) or fnmatch.fnmatchcase(
+            stem.lower(), pattern.lower()
+        ):
+            return True
+    return False
+
+
+def matching_policy_annotations(
+    catalog: PolicyCatalog, selectors: list[str]
+) -> list[PolicyAnnotation]:
+    """Return scenario annotations matching policy ID or feature-file selectors."""
+    if not selectors:
+        return [
+            scenario for feature in catalog.features for scenario in feature.scenarios
+        ]
+    matches: list[PolicyAnnotation] = []
+    seen: set[tuple[str, str]] = set()
+    for feature in catalog.features:
+        feature_selected = _feature_stem_matches(feature.feature_file, selectors)
+        for scenario in feature.scenarios:
+            selected = feature_selected or policy_id_matches(
+                scenario.policy_id, selectors
+            )
+            if not selected:
+                continue
+            key = (os.path.realpath(scenario.feature_file), scenario.scenario_name)
+            if key in seen:
+                continue
+            seen.add(key)
+            matches.append(scenario)
+    return matches
+
+
+def filter_discovery_by_policies(
+    discovery: PolicyDiscovery, selectors: list[str]
+) -> tuple[PolicyDiscovery, list[PolicyAnnotation]]:
+    """Restrict discovery to feature files that contain matching policies."""
+    selectors = normalize_policy_selectors(selectors)
+    if not selectors:
+        return discovery, matching_policy_annotations(discovery.catalog, [])
+
+    matches = matching_policy_annotations(discovery.catalog, selectors)
+    if not matches:
+        available = sorted(
+            {
+                scenario.policy_id
+                for feature in discovery.catalog.features
+                for scenario in feature.scenarios
+                if scenario.policy_id
+            }
+        )
+        preview = ", ".join(available[:12])
+        more = "" if len(available) <= 12 else f" (+{len(available) - 12} more)"
+        raise ValueError(
+            "No policies matched selectors: "
+            + ", ".join(selectors)
+            + (f". Available IDs include: {preview}{more}" if available else ".")
+        )
+
+    selected_files = {os.path.realpath(item.feature_file) for item in matches}
+    filtered_files = [
+        (source_dir, feature_file)
+        for source_dir, feature_file in discovery.feature_files
+        if os.path.realpath(feature_file) in selected_files
+    ]
+    filtered_catalog = PolicyCatalog(
+        features=[
+            feature
+            for feature in discovery.catalog.features
+            if os.path.realpath(feature.feature_file) in selected_files
+        ]
+    )
+    return (
+        PolicyDiscovery(
+            catalog=filtered_catalog,
+            feature_files=filtered_files,
+            api_requirements=discovery.api_requirements,
+        ),
+        matches,
+    )
 
 
 def _resolve_policy_directories(
@@ -308,6 +440,9 @@ def run_compliance(
     mr_target_branch: str | None = None,
     mr_comment_file: str | None = None,
     command_title: str = "check",
+    failures_only: bool = False,
+    verbose: bool = False,
+    policies: tuple[str, ...] | list[str] | None = None,
 ) -> ComplianceResult:
     if not (features_dir or with_builtin or with_shell_check or with_supply_chain):
         raise ValueError(
@@ -406,6 +541,12 @@ def run_compliance(
         with_supply_chain=with_supply_chain,
     )
     discovery = discover_policies(policy_roots)
+    policy_selectors = normalize_policy_selectors(policies)
+    selected_annotations: list[PolicyAnnotation] = []
+    if policy_selectors:
+        discovery, selected_annotations = filter_discovery_by_policies(
+            discovery, policy_selectors
+        )
     policy_catalog = discovery.catalog
     api_requirements = discovery.api_requirements
     workspace = _build_behave_workspace(
@@ -441,6 +582,15 @@ def run_compliance(
         ]
         if dry_run:
             argv.append("--dry-run")
+        if selected_annotations:
+            # Limit execution to selected scenario titles within filtered files.
+            name_pattern = "|".join(
+                re.escape(item.scenario_name)
+                for item in selected_annotations
+                if item.scenario_name
+            )
+            if name_pattern:
+                argv.extend(["--name", name_pattern])
 
         config = Configuration(argv)
         config.paths = [workspace]
@@ -463,6 +613,7 @@ def run_compliance(
                 else "false" if resolve_external_includes is False else "auto"
             ),
             "release_cache": release_cache,
+            "shell_check_verbose": "true" if verbose else "false",
         }
 
         runner = Runner(config)
@@ -474,6 +625,39 @@ def run_compliance(
             for feature in runner.features
             for scenario in _iter_feature_scenarios(feature)
         ]
+        if selected_annotations:
+            selected_names = {
+                normalize_scenario_name(item.scenario_name)
+                for item in selected_annotations
+                if item.scenario_name
+            }
+            selected_ids = {
+                item.policy_id for item in selected_annotations if item.policy_id
+            }
+
+            def _is_selected(scenario) -> bool:
+                name = normalize_scenario_name(scenario.name)
+                if name in selected_names:
+                    return True
+                annotation = policy_catalog.lookup_scenario(
+                    _feature_file_path(scenario.feature), scenario.name
+                )
+                return bool(annotation and annotation.policy_id in selected_ids)
+
+            all_scenarios = [s for s in all_scenarios if _is_selected(s)]
+            results = [
+                item
+                for item in results
+                if (item.policy_id and item.policy_id in selected_ids)
+                or normalize_scenario_name(item.name) in selected_names
+            ]
+            # Only count features that still have selected scenarios.
+            feature_count = len(
+                {
+                    os.path.realpath(getattr(s.feature, "filename", ""))
+                    for s in all_scenarios
+                }
+            )
         total = len(all_scenarios)
         passed_count = sum(
             1 for scenario in all_scenarios if scenario.status.name == "passed"
@@ -484,6 +668,9 @@ def run_compliance(
         skipped_count = sum(
             1 for scenario in all_scenarios if scenario.status.name == "skipped"
         )
+        # When filtering by policy, treat unmatched name-filter skips as absent.
+        if selected_annotations:
+            code = 1 if failed else 0
         return (
             code,
             results,
@@ -551,6 +738,7 @@ def run_compliance(
             pipeline_file=pipeline_file,
             features_dir=policies_source,
             command_title=command_title,
+            failures_only=failures_only,
         )
     else:
         logger.info(
