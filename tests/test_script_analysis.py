@@ -5,6 +5,8 @@ from __future__ import annotations
 from src.compliance.script_analysis import (
     _container_image_ref_is_pinned,
     _docker_image_refs_on_line,
+    evidence_bashisms_without_bash,
+    evidence_unquoted_command_substitution,
     job_has_effective_script,
     script_curl_missing_fail,
     script_downloads_without_checksum,
@@ -18,8 +20,11 @@ from src.compliance.script_analysis import (
     script_has_unpinned_apt,
     script_has_unpinned_docker_image,
     script_has_unpinned_pip,
+    script_has_unquoted_command_substitution,
+    script_has_unquoted_path_variables,
     script_has_unquoted_test_variables,
     script_has_unquoted_variables,
+    script_has_unsafe_array_expansion,
     script_shebang_is_valid,
     script_uses_backticks,
     script_uses_eval,
@@ -40,7 +45,123 @@ def _entity(lines):
 
 def test_unquoted_variables():
     assert script_has_unquoted_variables(_entity(["echo $FOO"]))
+    assert script_has_unquoted_variables(_entity(["echo ${FOO}"]))
     assert not script_has_unquoted_variables(_entity(['echo "$FOO"']))
+    assert not script_has_unquoted_variables(_entity(['echo "${FOO}"']))
+    # Single-quoted $ is literal (not expanded), so not an unquoted expansion.
+    assert not script_has_unquoted_variables(_entity(["echo '$FOO'"]))
+    # Escaped dollar is not an expansion.
+    assert not script_has_unquoted_variables(_entity([r"echo \$FOO"]))
+    # Quote-adjacent expansions must still fail: closing quote before next $.
+    assert script_has_unquoted_variables(_entity(['echo "$PREFIX"$SUFFIX']))
+    assert script_has_unquoted_variables(_entity(['echo "dir"/$FILE']))
+    assert script_has_unquoted_variables(_entity(['path="$BASE"/$NESTED/file']))
+    # Mixed: first quoted, second unquoted.
+    assert script_has_unquoted_variables(_entity(['echo "$OK" $BAD']))
+    # Comment text must not create findings.
+    assert not script_has_unquoted_variables(_entity(['echo "$FOO" # $BARE']))
+    # Nested quotes inside "$(...)" are independent (POSIX §2.2.3).
+    assert not script_has_unquoted_variables(
+        _entity(['check="$(curl "$HOSTNAME" | jq -r \'.message\')"'])
+    )
+
+
+def test_unquoted_path_variables():
+    assert script_has_unquoted_path_variables(_entity(["cd $HOME"]))
+    assert script_has_unquoted_path_variables(_entity(["rm -rf $DIR"]))
+    assert not script_has_unquoted_path_variables(_entity(['cd "$HOME"']))
+    assert not script_has_unquoted_path_variables(_entity(['rm -rf "$DIR"']))
+    # Later quotes on the same line must not clear an unquoted path var.
+    assert script_has_unquoted_path_variables(_entity(['cd $HOME && echo "done"']))
+    assert script_has_unquoted_path_variables(_entity(['rm -rf $DIR || echo "ok"']))
+    assert script_has_unquoted_path_variables(
+        _entity(['mkdir -p $OUT/dir && echo "created"'])
+    )
+    # Quoted path with later unquoted non-path text is fine for this rule.
+    assert not script_has_unquoted_path_variables(_entity(['cd "$HOME" && echo $MSG']))
+    # Quote-adjacent path expansions.
+    assert script_has_unquoted_path_variables(_entity(['cd "$BASE"/$NESTED']))
+
+
+def test_unquoted_command_substitution():
+    assert script_has_unquoted_command_substitution(_entity(["x=$(date)"]))
+    assert not script_has_unquoted_command_substitution(_entity(['x="$(date)"']))
+    # Nested substitution inside an outer quoted "$(...)" is still quoted.
+    assert not script_has_unquoted_command_substitution(
+        _entity(['echo "$(echo $(date))"'])
+    )
+    # Single-quoted $(...) is literal, not an expansion.
+    assert not script_has_unquoted_command_substitution(_entity(["echo '$(date)'"]))
+    # Substitution glued after a closing quote is unquoted.
+    assert script_has_unquoted_command_substitution(_entity(['echo "prefix"$(date)']))
+    assert script_has_unquoted_command_substitution(
+        _entity(['files=$(ls) && echo "$files"'])
+    )
+    # Process substitutions are not command substitutions for QUOTE-003.
+    assert not script_has_unquoted_command_substitution(_entity(["cat <(echo hi)"]))
+
+
+def test_evidence_unquoted_command_substitution_matches_predicate():
+    # Nested quotes inside $(...) — predicate and evidence must agree (pass).
+    nested = 'check="$(curl "$HOSTNAME" | jq -r \'.message\')"'
+    assert not script_has_unquoted_command_substitution(_entity([nested]))
+    assert evidence_unquoted_command_substitution(_entity([nested])) is None
+    # Unquoted outer $(...) with nested ) — legacy regex truncated; evidence
+    # must still surface the line when the predicate fails.
+    bad = "files=$(ls $(pwd)) && echo x"
+    assert script_has_unquoted_command_substitution(_entity([bad]))
+    assert evidence_unquoted_command_substitution(_entity([bad])) == bad
+    # Process subst alone must not appear as cmd-sub evidence.
+    assert evidence_unquoted_command_substitution(_entity(["cat <(echo hi)"])) is None
+
+
+def test_evidence_bashisms_includes_process_subst_and_declare():
+    proc = _entity(["#!/bin/sh", "cat <(echo hi)"])
+    found = evidence_bashisms_without_bash(proc)
+    assert found is not None
+    assert "cat <(echo hi)" in found
+    assert "#!/bin/sh" in found
+
+    decl = _entity(["#!/usr/bin/env sh", "declare -a items"])
+    found_decl = evidence_bashisms_without_bash(decl)
+    assert found_decl is not None
+    assert "declare -a items" in found_decl
+
+    brace = _entity(["#!/bin/sh", "echo {1..3}"])
+    found_brace = evidence_bashisms_without_bash(brace)
+    assert found_brace is not None
+    assert "echo {1..3}" in found_brace
+
+
+def test_unsafe_array_expansion():
+    assert script_has_unsafe_array_expansion(_entity(["echo ${arr[*]}"]))
+    assert script_has_unsafe_array_expansion(_entity(["echo ${arr[@]}"]))
+    assert not script_has_unsafe_array_expansion(_entity(['echo "${arr[@]}"']))
+    # Quoted * form is still treated as unsafe (IFS-joined).
+    assert script_has_unsafe_array_expansion(_entity(['echo "${arr[*]}"']))
+    # Comments mentioning array syntax must not fail the check.
+    assert not script_has_unsafe_array_expansion(
+        _entity(['echo "${arr[@]}"', "# avoid ${arr[*]}"])
+    )
+    assert not script_has_unsafe_array_expansion(
+        _entity(["# only a comment about ${arr[@]}"])
+    )
+    # Single-quoted array forms are literal.
+    assert not script_has_unsafe_array_expansion(_entity(["echo '${arr[@]}'"]))
+    # Array expansion inside a larger double-quoted string is safe for @.
+    assert not script_has_unsafe_array_expansion(
+        _entity(['printf "%s\\n" "args: ${arr[@]}"'])
+    )
+
+
+def test_dangerous_rm_respects_quote_context():
+    assert script_has_dangerous_rm(_entity(["rm -rf /"]))
+    assert script_has_dangerous_rm(_entity(["rm -rf $DIR"]))
+    assert not script_has_dangerous_rm(_entity(['rm -rf "$DIR"']))
+    # Later quotes must not hide an unquoted path expansion.
+    assert script_has_dangerous_rm(_entity(['rm -rf $DIR || echo "ok"']))
+    # Quoted rm path with later unquoted non-rm text is fine for this rule.
+    assert not script_has_dangerous_rm(_entity(['rm -rf "$DIR" && echo $MSG']))
 
 
 def test_remote_pipe_and_eval():

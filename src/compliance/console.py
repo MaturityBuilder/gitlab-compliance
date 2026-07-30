@@ -183,14 +183,16 @@ def _summary_table(result: ComplianceResult, *, narrow: bool) -> Table:
     return summary
 
 
-def _scenario_table(result: ComplianceResult, *, width: int) -> Table | None:
+def _scenario_table(
+    result: ComplianceResult, *, width: int, failures_only: bool = False
+) -> Table | None:
     if not result.scenario_results:
         return None
 
     narrow = width < 60
     medium = width < 100
     scenarios = Table(
-        title="Scenarios",
+        title="Scenarios" if not failures_only else "Failed scenarios",
         show_header=True,
         header_style="bold",
         expand=True,
@@ -204,7 +206,10 @@ def _scenario_table(result: ComplianceResult, *, width: int) -> Table | None:
     scenarios.add_column("Policy", overflow="fold")
     scenarios.add_column("Status", justify="center", no_wrap=True)
 
+    rows_added = 0
     for scenario in result.scenario_results:
+        if failures_only and scenario.status != "failed":
+            continue
         style = _STATUS_STYLES.get(scenario.status, "bold white")
         policy = scenario.title or scenario.name
         row: list[str | Text] = []
@@ -214,10 +219,15 @@ def _scenario_table(result: ComplianceResult, *, width: int) -> Table | None:
             row.append(scenario.feature)
         row.extend([policy, Text(scenario.status.upper(), style=style)])
         scenarios.add_row(*row)
+        rows_added += 1
+    if rows_added == 0:
+        return None
     return scenarios
 
 
-def _detail_panels(result: ComplianceResult) -> list[Panel]:
+def _detail_panels(
+    result: ComplianceResult, *, failures_only: bool = False
+) -> list[Panel]:
     blocks: list[Panel] = []
     failures = [
         scenario for scenario in result.scenario_results if scenario.status == "failed"
@@ -247,6 +257,9 @@ def _detail_panels(result: ComplianceResult) -> list[Panel]:
                 expand=True,
             )
         )
+
+    if failures_only:
+        return blocks
 
     skipped = [
         scenario for scenario in result.scenario_results if scenario.status == "skipped"
@@ -285,6 +298,7 @@ def render_compliance_console(
     *,
     command_title: str = "check",
     console: Console | None = None,
+    failures_only: bool = False,
 ) -> None:
     """Render a width-aware Rich compliance report."""
     out = console or get_console()
@@ -313,10 +327,10 @@ def render_compliance_console(
     )
     out.print(_summary_table(result, narrow=narrow))
 
-    for block in _detail_panels(result):
+    for block in _detail_panels(result, failures_only=failures_only):
         out.print(block)
 
-    scenarios = _scenario_table(result, width=width)
+    scenarios = _scenario_table(result, width=width, failures_only=failures_only)
     if scenarios is not None:
         out.print(scenarios)
 

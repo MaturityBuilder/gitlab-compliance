@@ -1,0 +1,108 @@
+# Complex non-compliant pipeline: intentional GLCI-SHELL violations for negative testing.
+stages:
+  - prepare
+  - build
+  - verify
+
+variables: &shared_vars
+  APP_NAME: shell-demo
+  CACHE_ROOT: /var/cache/app
+
+.bad_quoting: &bad_quoting
+  variables: *shared_vars
+  script:
+    - echo $UNQUOTED
+    - cd $HOME
+    - value=$(echo hi)
+    - echo ${arr[*]}
+    - echo $CI_COMMIT_SHA
+    - echo $CI_BUILD_ID
+    - if [ $FOO == bar ]; then echo x; fi
+    - check=$(curl $HOSTNAME | jq -r '.message')
+    - echo "$PREFIX"$SUFFIX
+
+.bad_pinning: &bad_pinning
+  script:
+    - apk add curl
+    - apt-get install wget
+    - yum install jq
+    - dnf install python3-requests
+    - microdnf install tar
+    - pip install requests
+    - pip3 install flask
+    - npm install -g cowsay
+    - yarn global add lodash
+    - go install example.com/cmd@latest
+    - docker pull nginx
+    - docker run --rm nginx
+    - curl https://example.com/file.tgz -o /tmp/file.tgz
+    - git clone https://example.com/repo.git
+
+.bad_security: &bad_security
+  script:
+    - eval "$CI_COMMIT_MESSAGE"
+    - curl https://example.com/install.sh | bash
+    - password="supersecret123"
+    - chmod 777 /tmp/workdir
+    - rm -rf /
+    - rm -rf $DIR
+    - cat > /tmp/fixed-name
+    - value=`echo hi`
+    - nested=`echo \`date\``
+
+.bad_error_handling: &bad_error_handling
+  script:
+    - echo "line one"
+    - false || true
+    - |
+      mask() {
+        false || true
+      }
+      mask
+    - echo a | grep -q a
+
+.bad_portability: &bad_portability
+  script:
+    - |
+      #!/bin/sh
+      [[ -n "$HOME" ]] && source ./env.sh
+
+.bad_shebang: &bad_shebang
+  script:
+    - |
+      #!/usr/bin/not-a-shell
+      echo "invalid shebang"
+
+.bad_reference: &bad_reference
+  script:
+    - !reference [.missing_helper, script]
+    - echo "after unresolved"
+
+prepare:quoting:
+  stage: prepare
+  <<: *bad_quoting
+
+prepare:pinning:
+  stage: prepare
+  <<: *bad_pinning
+
+build:security:
+  stage: build
+  extends: []
+  <<: *bad_security
+
+build:errors:
+  stage: build
+  <<: *bad_error_handling
+
+verify:portability:
+  stage: verify
+  <<: *bad_portability
+
+verify:shebang:
+  stage: verify
+  <<: *bad_shebang
+
+verify:references:
+  stage: verify
+  <<: *bad_reference

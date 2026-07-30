@@ -21,6 +21,9 @@ def test_shell_check_help():
     assert "--token" in result.output
     assert "--include-nested" in result.output
     assert "--resolve-external-includes" in result.output
+    assert "--failures-only" in result.output
+    assert "--verbose" in result.output
+    assert "--policy" in result.output
 
 
 def test_shell_check_fails_on_bad_pipeline():

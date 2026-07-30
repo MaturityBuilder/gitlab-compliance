@@ -34,10 +34,45 @@ ShellCheck-inspired standards as BDD scenarios with `GLCI-SHELL-*` IDs:
 Scripts are composed from `extends`, YAML anchors, and `!reference` before
 scenarios run. Hidden jobs (names starting with `.`) are included.
 
+### Quoting and expansions
+
+Variable and command-substitution checks use a POSIX-aligned scanner
+([Shell Command Language §2.2–2.3](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html)):
+characters inside `$(...)` are **not** affected by enclosing double quotes, so
+this is correctly treated as quoted:
+
+```bash
+check="$(curl "$HOSTNAME" | jq -r '.message')"
+```
+
+Bash CI scripts (no shebang, or `#!/bin/bash`) also recognize common bash forms
+from typical cheat sheets (`${foo:-default}`, `[[ ... ]]`, process substitution
+`<(...)`, `$'...'`). Under `#!/bin/sh`, those remain portability bashisms.
+
 ## Quick start
 
 ```bash
 gitlab-compliance shell-check -p .gitlab-ci.yml
+```
+
+Show only failures (keeps summary counts):
+
+```bash
+gitlab-compliance shell-check -p .gitlab-ci.yml --failures-only
+```
+
+Include the offending script value that triggered each failure:
+
+```bash
+gitlab-compliance shell-check -p .gitlab-ci.yml --failures-only -v
+```
+
+Run specific policies by ID, glob, or feature-file stem:
+
+```bash
+gitlab-compliance shell-check -p .gitlab-ci.yml -P GLCI-SHELL-PIN-003
+gitlab-compliance shell-check -p .gitlab-ci.yml -P 'GLCI-SHELL-PIN*,GLCI-SHELL-QUOTE-001'
+gitlab-compliance shell-check -p .gitlab-ci.yml -P shell-quoting
 ```
 
 Markdown report:
@@ -87,6 +122,9 @@ Flags:
 - `--resolve-external-includes` / `--no-resolve-external-includes` — fetch `remote:` and `project:` YAML (default: **auto** — remote always, project when a token is available)
 - `--gitlab-url`, `--token`, `--project`, `--group` — GitLab API connection (same env fallbacks as `check`: `GITLAB_TOKEN`, `CI_JOB_TOKEN`, `CI_PROJECT_PATH`)
 - `--strict` — fail API-backed scenarios when credentials are missing (default: skip)
+- `--failures-only` — show only failed policies (summary counts are kept; passed/skipped sections are omitted)
+- `--verbose` / `-v` — append the offending script value (`found: …`) to each failure message
+- `--policy` / `-P` — run only matching policies (repeatable or comma-separated; matches policy IDs or feature stems; supports globs such as `GLCI-SHELL-PIN*`)
 
 Tokens are only sent on `remote:` HTTP fetches when the remote URL host matches
 `--gitlab-url` (or `CI_SERVER_URL` / `GITLAB_URL`). Arbitrary third-party remotes

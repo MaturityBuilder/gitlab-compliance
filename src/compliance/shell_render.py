@@ -208,6 +208,8 @@ def render_shell_check_markdown(
     result: ComplianceResult,
     pipeline_file: str,
     features_dir: str,
+    *,
+    failures_only: bool = False,
 ) -> str:
     """Render a shell-check markdown report with structured findings."""
     grouped = _group_by_status(result)
@@ -282,7 +284,7 @@ def render_shell_check_markdown(
                 lines.append(f"- **Details:** {redact_secrets(scenario.message)}")
             lines.append("")
 
-    if grouped["skipped"]:
+    if not failures_only and grouped["skipped"]:
         lines.extend(
             [
                 f"## Skipped policies ({len(grouped['skipped'])})",
@@ -298,7 +300,7 @@ def render_shell_check_markdown(
             lines.append(f"- `{label}` — {title}: {reason}")
         lines.append("")
 
-    if grouped["passed"]:
+    if not failures_only and grouped["passed"]:
         lines.extend(
             [
                 f"## Passed policies ({len(grouped['passed'])})",
@@ -385,6 +387,8 @@ def render_shell_check_html(
     result: ComplianceResult,
     pipeline_file: str,
     features_dir: str,
+    *,
+    failures_only: bool = False,
 ) -> str:
     """Render a shell-check HTML report with structured findings."""
     grouped = _group_by_status(result)
@@ -395,18 +399,23 @@ def render_shell_check_html(
     failed_html = _render_policy_section_html(
         grouped["failed"], pipeline_file, status="failed"
     )
-    skipped_html = _render_policy_section_html(
-        grouped["skipped"], pipeline_file, status="skipped"
+    skipped_html = (
+        ""
+        if failures_only
+        else _render_policy_section_html(
+            grouped["skipped"], pipeline_file, status="skipped"
+        )
     )
 
     passed_rows = []
-    for scenario in grouped["passed"]:
-        passed_rows.append(
-            "<tr>"
-            f"<td><code>{html.escape(scenario.policy_id or scenario.feature)}</code></td>"
-            f"<td>{html.escape(scenario.title or scenario.name)}</td>"
-            "</tr>"
-        )
+    if not failures_only:
+        for scenario in grouped["passed"]:
+            passed_rows.append(
+                "<tr>"
+                f"<td><code>{html.escape(scenario.policy_id or scenario.feature)}</code></td>"
+                f"<td>{html.escape(scenario.title or scenario.name)}</td>"
+                "</tr>"
+            )
     passed_section = ""
     if passed_rows:
         passed_section = (
@@ -522,6 +531,8 @@ def render_shell_check_mr_comment(
     result: ComplianceResult,
     pipeline_file: str,
     features_dir: str,
+    *,
+    failures_only: bool = False,
 ) -> str:
     """Render a compact shell-check merge-request comment."""
     grouped = _group_by_status(result)
@@ -592,7 +603,7 @@ def render_shell_check_mr_comment(
                 )
             lines.extend(["", "</details>", ""])
 
-    if grouped["skipped"]:
+    if not failures_only and grouped["skipped"]:
         lines.append("#### Skipped policies")
         lines.append("")
         for scenario in grouped["skipped"]:
@@ -620,13 +631,21 @@ def render_shell_check_report(
     pipeline_file: str,
     features_dir: str,
     output_format: str,
+    *,
+    failures_only: bool = False,
 ) -> str | None:
     """Dispatch shell-check report rendering by format."""
     fmt = output_format.lower()
     if fmt == "markdown":
-        return render_shell_check_markdown(result, pipeline_file, features_dir)
+        return render_shell_check_markdown(
+            result, pipeline_file, features_dir, failures_only=failures_only
+        )
     if fmt == "html":
-        return render_shell_check_html(result, pipeline_file, features_dir)
+        return render_shell_check_html(
+            result, pipeline_file, features_dir, failures_only=failures_only
+        )
     if fmt == "mr-comment":
-        return render_shell_check_mr_comment(result, pipeline_file, features_dir)
+        return render_shell_check_mr_comment(
+            result, pipeline_file, features_dir, failures_only=failures_only
+        )
     return None
