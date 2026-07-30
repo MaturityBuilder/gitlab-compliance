@@ -4,6 +4,10 @@
 # custom:
 #   id: GLCI-BUILTIN-SHELL-TEST
 #   severity: MEDIUM
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.28
 Feature: Conditional expressions
 
 # METADATA
@@ -11,6 +15,10 @@ Feature: Conditional expressions
 # custom:
 #   id: GLCI-BUILTIN-SHELL-TEST-01
 #   severity: MEDIUM
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.28
   Scenario: Test operators are portable
     Given I have any job with effective script defined
     Then POSIX compliant operators must be used
@@ -20,6 +28,10 @@ Feature: Conditional expressions
 # custom:
 #   id: GLCI-BUILTIN-SHELL-TEST-02
 #   severity: HIGH
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.28
   Scenario: Variables are quoted in test statements
     Given I have any job with effective script defined
     Then variables in test expressions must be quoted

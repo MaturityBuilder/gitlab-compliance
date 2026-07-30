@@ -26,6 +26,7 @@ from src.compliance.metadata import (
     PolicyDiscovery,
     PolicyRoot,
     discover_policies,
+    format_custom_list,
     iter_feature_files,
     normalize_scenario_name,
 )
@@ -408,6 +409,8 @@ def _collect_scenario_results(runner: Runner, policy_catalog) -> list[ScenarioRe
                     title=annotation.title if annotation else scenario.name,
                     description=annotation.description if annotation else "",
                     severity=str(custom.get("severity", "")) if custom else "",
+                    owasp_cicd=format_custom_list(custom, "owasp_cicd"),
+                    iso27001=format_custom_list(custom, "iso27001"),
                 )
             )
     return results

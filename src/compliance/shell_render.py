@@ -271,6 +271,12 @@ def render_shell_check_markdown(
             if scenario.description:
                 lines.append(f"{scenario.description}")
                 lines.append("")
+            if scenario.owasp_cicd:
+                lines.append(f"- **OWASP CI/CD:** {scenario.owasp_cicd}")
+            if scenario.iso27001:
+                lines.append(f"- **ISO 27001:** {scenario.iso27001}")
+            if scenario.owasp_cicd or scenario.iso27001:
+                lines.append("")
 
             violations = parse_shell_violations(scenario.message)
             if violations and any(v.job or v.location for v in violations):
@@ -306,11 +312,13 @@ def render_shell_check_markdown(
                 f"## Passed policies ({len(grouped['passed'])})",
                 "",
                 render_markdown_table(
-                    ["Policy ID", "Title"],
+                    ["Policy ID", "Title", "OWASP CI/CD", "ISO 27001"],
                     [
                         [
                             scenario.policy_id or scenario.feature,
                             scenario.title or scenario.name,
+                            scenario.owasp_cicd or "",
+                            scenario.iso27001 or "",
                         ]
                         for scenario in grouped["passed"]
                     ],
@@ -374,10 +382,21 @@ def _render_policy_section_html(
             description = (
                 f"<p class='policy-desc'>{html.escape(scenario.description)}</p>"
             )
+        framework = ""
+        if scenario.owasp_cicd:
+            framework += (
+                f"<p><strong>OWASP CI/CD:</strong> "
+                f"{html.escape(scenario.owasp_cicd)}</p>"
+            )
+        if scenario.iso27001:
+            framework += (
+                f"<p><strong>ISO 27001:</strong> "
+                f"{html.escape(scenario.iso27001)}</p>"
+            )
         blocks.append(
             "<section class='policy'>"
             f"<h3><code>{label}</code> — {title}</h3>"
-            f"{description}{body}"
+            f"{description}{framework}{body}"
             "</section>"
         )
     return "".join(blocks)
@@ -414,6 +433,8 @@ def render_shell_check_html(
                 "<tr>"
                 f"<td><code>{html.escape(scenario.policy_id or scenario.feature)}</code></td>"
                 f"<td>{html.escape(scenario.title or scenario.name)}</td>"
+                f"<td>{html.escape(scenario.owasp_cicd or '—')}</td>"
+                f"<td>{html.escape(scenario.iso27001 or '—')}</td>"
                 "</tr>"
             )
     passed_section = ""
@@ -421,7 +442,8 @@ def render_shell_check_html(
         passed_section = (
             f"<h2>Passed policies ({len(grouped['passed'])})</h2>"
             "<table class='summary'>"
-            "<thead><tr><th>Policy ID</th><th>Title</th></tr></thead>"
+            "<thead><tr><th>Policy ID</th><th>Title</th>"
+            "<th>OWASP CI/CD</th><th>ISO 27001</th></tr></thead>"
             f"<tbody>{''.join(passed_rows)}</tbody></table>"
         )
 
@@ -585,6 +607,12 @@ def render_shell_check_mr_comment(
             )
             if scenario.description:
                 lines.extend([html.escape(scenario.description), ""])
+            if scenario.owasp_cicd:
+                lines.append(f"**OWASP CI/CD:** {html.escape(scenario.owasp_cicd)}")
+                lines.append("")
+            if scenario.iso27001:
+                lines.append(f"**ISO 27001:** {html.escape(scenario.iso27001)}")
+                lines.append("")
             violations = parse_shell_violations(scenario.message)
             if violations and any(v.job or v.location for v in violations):
                 lines.append(
@@ -612,7 +640,13 @@ def render_shell_check_mr_comment(
             )
             label = scenario.policy_id or scenario.feature
             title = scenario.title or scenario.name
-            lines.append(f"- `{label}` — {title}: {reason}")
+            framework_bits = []
+            if scenario.owasp_cicd:
+                framework_bits.append(f"OWASP CI/CD: {scenario.owasp_cicd}")
+            if scenario.iso27001:
+                framework_bits.append(f"ISO 27001: {scenario.iso27001}")
+            framework = f" [{'; '.join(framework_bits)}]" if framework_bits else ""
+            lines.append(f"- `{label}` — {title}{framework}: {reason}")
         lines.append("")
 
     if not result.success:

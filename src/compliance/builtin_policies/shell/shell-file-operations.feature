@@ -4,6 +4,10 @@
 # custom:
 #   id: GLCI-BUILTIN-SHELL-FILE
 #   severity: HIGH
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.28
 Feature: Safe file operations
 
 # METADATA
@@ -11,6 +15,10 @@ Feature: Safe file operations
 # custom:
 #   id: GLCI-BUILTIN-SHELL-FILE-01
 #   severity: HIGH
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.28
   Scenario: File paths are quoted
     Given I have any job with effective script defined
     Then file paths must be quoted
@@ -20,6 +28,10 @@ Feature: Safe file operations
 # custom:
 #   id: GLCI-BUILTIN-SHELL-FILE-02
 #   severity: HIGH
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.28
   Scenario: Temporary files are securely created
     Given I have any job with effective script defined
     When temporary files are required
@@ -30,6 +42,10 @@ Feature: Safe file operations
 # custom:
 #   id: GLCI-BUILTIN-SHELL-FILE-03
 #   severity: HIGH
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.28
   Scenario: Dangerous rm operations are protected
     Given I have any job with effective script defined
     When rm is used recursively

@@ -244,6 +244,12 @@ def _detail_panels(
             if scenario.description:
                 entry.append("\n")
                 entry.append(scenario.description, style="italic")
+            if scenario.owasp_cicd:
+                entry.append("\n")
+                entry.append(f"OWASP CI/CD: {scenario.owasp_cicd}", style="cyan")
+            if scenario.iso27001:
+                entry.append("\n")
+                entry.append(f"ISO 27001: {scenario.iso27001}", style="cyan")
             if scenario.message:
                 entry.append("\n")
                 entry.append(redact_secrets(scenario.message), style="dim")

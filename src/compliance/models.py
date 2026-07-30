@@ -15,6 +15,8 @@ class ScenarioResult:
     title: str = ""
     description: str = ""
     severity: str = ""
+    owasp_cicd: str = ""
+    iso27001: str = ""
 
 
 @dataclass

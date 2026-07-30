@@ -19,6 +19,8 @@ def _failed_shell_scenario() -> ScenarioResult:
         ),
         policy_id="GLCI-BUILTIN-SHELL-PIN-05",
         title="apt packages must be version-pinned",
+        owasp_cicd="CICD-SEC-3, CICD-SEC-9",
+        iso27001="A.8.25, A.8.9",
     )
 
 
@@ -48,6 +50,13 @@ class TestRenderComplianceJunit:
         assert root.attrib["failures"] == "1"
         failures = root.findall(".//failure")
         assert len(failures) == 1
+        props = {
+            prop.attrib["name"]: prop.attrib["value"]
+            for prop in root.findall(".//testcase/properties/property")
+        }
+        assert props["owasp_cicd"] == "CICD-SEC-3, CICD-SEC-9"
+        assert props["iso27001"] == "A.8.25, A.8.9"
+        assert "OWASP CI/CD" in (failures[0].text or "")
         assert "build @ ci.yml:4" in failures[0].text
 
     def test_skipped_scenario_produces_skipped_element(self):

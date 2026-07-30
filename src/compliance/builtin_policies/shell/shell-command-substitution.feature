@@ -4,6 +4,10 @@
 # custom:
 #   id: GLCI-BUILTIN-SHELL-SUB
 #   severity: MEDIUM
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.28
 Feature: Command substitution
 
 # METADATA
@@ -11,6 +15,10 @@ Feature: Command substitution
 # custom:
 #   id: GLCI-BUILTIN-SHELL-SUB-01
 #   severity: MEDIUM
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.28
   Scenario: Legacy backticks are not used
     Given I have any job with effective script defined
     Then command substitution must use dollar parentheses
@@ -20,6 +28,10 @@ Feature: Command substitution
 # custom:
 #   id: GLCI-BUILTIN-SHELL-SUB-02
 #   severity: MEDIUM
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.28
   Scenario: Nested command substitution is readable
     Given I have any job with effective script defined
     Then nested command substitution must use dollar parentheses

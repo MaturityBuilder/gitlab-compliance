@@ -4,6 +4,11 @@
 # custom:
 #   id: GLCI-BUILTIN-SHELL-REF
 #   severity: HIGH
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.9
+#     - A.8.25
 Feature: Script reference resolution
 
 # METADATA
@@ -11,6 +16,11 @@ Feature: Script reference resolution
 # custom:
 #   id: GLCI-BUILTIN-SHELL-REF-01
 #   severity: HIGH
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.9
+#     - A.8.25
   Scenario: Scripts must not contain unresolved references
     Given I have any job with effective script defined
     Then unresolved script references must not be present

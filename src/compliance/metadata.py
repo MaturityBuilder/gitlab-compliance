@@ -30,6 +30,18 @@ class PolicyAnnotation:
     custom: dict = field(default_factory=dict)
 
 
+def format_custom_list(custom: dict | None, key: str) -> str:
+    """Format a custom list/scalar metadata field as a comma-separated string."""
+    if not custom:
+        return ""
+    value = custom.get(key)
+    if value is None:
+        return ""
+    if isinstance(value, (list, tuple)):
+        return ", ".join(str(item) for item in value if item is not None and str(item))
+    return str(value)
+
+
 @dataclass
 class FeaturePolicies:
     feature_file: str

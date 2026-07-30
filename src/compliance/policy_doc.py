@@ -10,6 +10,7 @@ from src.compliance.metadata import (
     PolicyAnnotation,
     PolicyCatalog,
     collect_policy_index,
+    format_custom_list,
 )
 from src.modules.common import render_markdown_table
 
@@ -132,6 +133,11 @@ def _severity(annotation: PolicyAnnotation) -> str:
     return str(value) if value is not None else ""
 
 
+def _custom_list(annotation: PolicyAnnotation, key: str) -> str:
+    """Format a custom list field as a comma-separated string."""
+    return format_custom_list(annotation.custom, key)
+
+
 def render_policy_catalog_markdown(catalog: PolicyCatalog, features_dir: str) -> str:
     lines = [
         "# GitLab CI Compliance Policy Catalog",
@@ -148,13 +154,18 @@ def render_policy_catalog_markdown(catalog: PolicyCatalog, features_dir: str) ->
             f"`{policy.policy_id}`",
             policy.title,
             policy.scope,
+            _custom_list(policy, "owasp_cicd"),
+            _custom_list(policy, "iso27001"),
             _format_short_location_markdown(features_dir, policy),
         ]
         for policy in collect_policy_index(catalog)
     ]
     if index_rows:
         lines.append(
-            render_markdown_table(["ID", "Title", "Scope", "Location"], index_rows)
+            render_markdown_table(
+                ["ID", "Title", "Scope", "OWASP CI/CD", "ISO 27001", "Location"],
+                index_rows,
+            )
         )
         lines.append("")
 
@@ -173,6 +184,16 @@ def render_policy_catalog_markdown(catalog: PolicyCatalog, features_dir: str) ->
             lines.extend(
                 [
                     f"**Feature ID:** `{feature.annotation.policy_id}`",
+                ]
+            )
+            owasp = _custom_list(feature.annotation, "owasp_cicd")
+            iso = _custom_list(feature.annotation, "iso27001")
+            if owasp:
+                lines.append(f"**OWASP CI/CD:** {owasp}")
+            if iso:
+                lines.append(f"**ISO 27001:** {iso}")
+            lines.extend(
+                [
                     "",
                     feature.annotation.description
                     or "_No feature description provided._",
@@ -187,6 +208,8 @@ def render_policy_catalog_markdown(catalog: PolicyCatalog, features_dir: str) ->
                     f"`{scenario.policy_id}`",
                     scenario.title,
                     _severity(scenario),
+                    _custom_list(scenario, "owasp_cicd"),
+                    _custom_list(scenario, "iso27001"),
                     scenario.description or "",
                     _format_location_markdown(features_dir, scenario),
                 ]
@@ -194,7 +217,15 @@ def render_policy_catalog_markdown(catalog: PolicyCatalog, features_dir: str) ->
             ]
             lines.append(
                 render_markdown_table(
-                    ["ID", "Title", "Severity", "Description", "Location"],
+                    [
+                        "ID",
+                        "Title",
+                        "Severity",
+                        "OWASP CI/CD",
+                        "ISO 27001",
+                        "Description",
+                        "Location",
+                    ],
                     scenario_rows,
                 )
             )
@@ -211,6 +242,8 @@ def render_policy_catalog_html(catalog: PolicyCatalog, features_dir: str) -> str
             f"<td><code>{html.escape(policy.policy_id)}</code></td>"
             f"<td>{html.escape(policy.title)}</td>"
             f"<td>{html.escape(policy.scope)}</td>"
+            f"<td>{html.escape(_custom_list(policy, 'owasp_cicd'))}</td>"
+            f"<td>{html.escape(_custom_list(policy, 'iso27001'))}</td>"
             f"<td>{_format_location_html(features_dir, policy)}</td>"
             "</tr>"
         )
@@ -227,6 +260,8 @@ def render_policy_catalog_html(catalog: PolicyCatalog, features_dir: str) -> str
                 f"<td><code>{html.escape(scenario.policy_id)}</code></td>"
                 f"<td>{html.escape(scenario.title)}</td>"
                 f"<td>{html.escape(_severity(scenario))}</td>"
+                f"<td>{html.escape(_custom_list(scenario, 'owasp_cicd'))}</td>"
+                f"<td>{html.escape(_custom_list(scenario, 'iso27001'))}</td>"
                 f"<td>{html.escape(scenario.description or '')}</td>"
                 f"<td>{_format_location_html(features_dir, scenario)}</td>"
                 "</tr>"
@@ -238,21 +273,32 @@ def render_policy_catalog_html(catalog: PolicyCatalog, features_dir: str) -> str
                 "<table>"
                 "<thead><tr>"
                 "<th>ID</th><th>Title</th><th>Severity</th>"
+                "<th>OWASP CI/CD</th><th>ISO 27001</th>"
                 "<th>Description</th><th>Location</th>"
                 "</tr></thead>"
                 f"<tbody>{''.join(scenario_rows)}</tbody>"
                 "</table>"
             )
+        feature_meta = ""
+        if feature.annotation:
+            feature_meta = (
+                f"<p><strong>Feature ID:</strong> "
+                f"<code>{html.escape(feature.annotation.policy_id)}</code></p>"
+            )
+            owasp = _custom_list(feature.annotation, "owasp_cicd")
+            iso = _custom_list(feature.annotation, "iso27001")
+            if owasp:
+                feature_meta += (
+                    f"<p><strong>OWASP CI/CD:</strong> {html.escape(owasp)}</p>"
+                )
+            if iso:
+                feature_meta += f"<p><strong>ISO 27001:</strong> {html.escape(iso)}</p>"
+            feature_meta += f"<p>{html.escape(feature.annotation.description)}</p>"
         detail_sections.append(
             "<section>"
             f"<h2>{html.escape(feature.feature_name)}</h2>"
             f"<p><strong>File:</strong> {file_html}</p>"
-            + (
-                f"<p><strong>Feature ID:</strong> <code>{html.escape(feature.annotation.policy_id)}</code></p>"
-                f"<p>{html.escape(feature.annotation.description)}</p>"
-                if feature.annotation
-                else ""
-            )
+            + feature_meta
             + scenarios_html
             + "</section>"
         )
@@ -277,7 +323,7 @@ def render_policy_catalog_html(catalog: PolicyCatalog, features_dir: str) -> str
   <strong>Generated:</strong> {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
   <h2>Index</h2>
   <table>
-    <thead><tr><th>ID</th><th>Title</th><th>Scope</th><th>Location</th></tr></thead>
+    <thead><tr><th>ID</th><th>Title</th><th>Scope</th><th>OWASP CI/CD</th><th>ISO 27001</th><th>Location</th></tr></thead>
     <tbody>{''.join(index_rows)}</tbody>
   </table>
   {''.join(detail_sections)}

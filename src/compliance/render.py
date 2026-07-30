@@ -69,6 +69,28 @@ def _status_icon(status: str, for_mr: bool = False) -> str:
     }.get(status, status.upper())
 
 
+def _framework_markdown_lines(scenario: ScenarioResult) -> list[str]:
+    """Return markdown bullets for OWASP CI/CD and ISO 27001 mappings."""
+    lines: list[str] = []
+    if scenario.owasp_cicd:
+        lines.append(f"- **OWASP CI/CD:** {scenario.owasp_cicd}")
+    if scenario.iso27001:
+        lines.append(f"- **ISO 27001:** {scenario.iso27001}")
+    return lines
+
+
+def _framework_description_suffix(scenario: ScenarioResult) -> str:
+    """Append framework tags to Code Quality / compact descriptions."""
+    parts = []
+    if scenario.owasp_cicd:
+        parts.append(f"OWASP CI/CD: {scenario.owasp_cicd}")
+    if scenario.iso27001:
+        parts.append(f"ISO 27001: {scenario.iso27001}")
+    if not parts:
+        return ""
+    return " [" + "; ".join(parts) + "]"
+
+
 def _group_by_status(result: ComplianceResult) -> dict[str, list]:
     grouped: dict[str, list] = {"passed": [], "failed": [], "skipped": []}
     for scenario in result.scenario_results:
@@ -120,6 +142,7 @@ def render_compliance_markdown(
             lines.append(f"- **Status:** {_status_icon(scenario.status)}")
             if scenario.policy_id:
                 lines.append(f"- **Policy ID:** `{scenario.policy_id}`")
+            lines.extend(_framework_markdown_lines(scenario))
             if scenario.description:
                 lines.append(f"- **Description:** {scenario.description}")
             if scenario.message:
@@ -177,6 +200,12 @@ def render_compliance_mr_comment(
             )
             if scenario.description:
                 lines.extend([html.escape(scenario.description), ""])
+            if scenario.owasp_cicd:
+                lines.append(f"**OWASP CI/CD:** {html.escape(scenario.owasp_cicd)}")
+                lines.append("")
+            if scenario.iso27001:
+                lines.append(f"**ISO 27001:** {html.escape(scenario.iso27001)}")
+                lines.append("")
             structured = _shell_details_markdown(scenario.message, pipeline_file)
             if structured:
                 lines.extend([structured, ""])
@@ -205,7 +234,8 @@ def render_compliance_mr_comment(
             )
             label = scenario.policy_id or scenario.feature
             title = scenario.title or scenario.name
-            lines.append(f"- `{label}` — {title}: {reason}")
+            framework = _framework_description_suffix(scenario)
+            lines.append(f"- `{label}` — {title}{framework}: {reason}")
 
     coverage = _coverage_gaps_markdown(result.unresolved_includes)
     if coverage:
@@ -237,7 +267,7 @@ def render_compliance_html(
 
     def render_scenario_rows(scenarios: list) -> str:
         if not scenarios:
-            return "<tr><td colspan='4'>None</td></tr>"
+            return "<tr><td colspan='6'>None</td></tr>"
         rows = []
         for scenario in scenarios:
             detail = ""
@@ -245,12 +275,12 @@ def render_compliance_html(
                 structured = _shell_details_markdown(scenario.message, pipeline_file)
                 if structured:
                     detail = (
-                        f"<tr><td colspan='4'><pre>"
+                        f"<tr><td colspan='6'><pre>"
                         f"{html.escape(structured)}</pre></td></tr>"
                     )
                 else:
                     detail = (
-                        f"<tr><td colspan='4'><pre>"
+                        f"<tr><td colspan='6'><pre>"
                         f"{html.escape(redact_secrets(scenario.message))}</pre></td></tr>"
                     )
             rows.append(
@@ -258,6 +288,8 @@ def render_compliance_html(
                 f"<td><code>{html.escape(scenario.policy_id or '-')}</code></td>"
                 f"<td>{html.escape(scenario.feature)}</td>"
                 f"<td>{html.escape(scenario.title or scenario.name)}</td>"
+                f"<td>{html.escape(scenario.owasp_cicd or '—')}</td>"
+                f"<td>{html.escape(scenario.iso27001 or '—')}</td>"
                 f"<td class='{html.escape(scenario.status)}'>{_status_icon(scenario.status)}</td>"
                 "</tr>" + detail
             )
@@ -305,19 +337,19 @@ def render_compliance_html(
 
   <h2>Failed scenarios</h2>
   <table>
-    <thead><tr><th>ID</th><th>Feature</th><th>Policy</th><th>Status</th></tr></thead>
+    <thead><tr><th>ID</th><th>Feature</th><th>Policy</th><th>OWASP CI/CD</th><th>ISO 27001</th><th>Status</th></tr></thead>
     <tbody>{render_scenario_rows(grouped['failed'])}</tbody>
   </table>
 
   <h2>Skipped scenarios</h2>
   <table>
-    <thead><tr><th>ID</th><th>Feature</th><th>Policy</th><th>Status</th></tr></thead>
+    <thead><tr><th>ID</th><th>Feature</th><th>Policy</th><th>OWASP CI/CD</th><th>ISO 27001</th><th>Status</th></tr></thead>
     <tbody>{render_scenario_rows(grouped['skipped'])}</tbody>
   </table>
 
   <h2>Passed scenarios</h2>
   <table>
-    <thead><tr><th>ID</th><th>Feature</th><th>Policy</th><th>Status</th></tr></thead>
+    <thead><tr><th>ID</th><th>Feature</th><th>Policy</th><th>OWASP CI/CD</th><th>ISO 27001</th><th>Status</th></tr></thead>
     <tbody>{render_scenario_rows(grouped['passed'])}</tbody>
   </table>
 </body>
@@ -355,17 +387,18 @@ def _fingerprint(check_name: str, path: str, line: int, description: str) -> str
 
 
 def _description_for_scenario(scenario: ScenarioResult) -> str:
+    suffix = _framework_description_suffix(scenario)
     if scenario.message:
-        return scenario.message
+        return f"{scenario.message}{suffix}"
     if scenario.status == "skipped":
         return (
             scenario.description
             or f"Scenario skipped: {scenario.title or scenario.name}"
-        )
+        ) + suffix
     return (
         scenario.description
         or f"Compliance check failed: {scenario.title or scenario.name}"
-    )
+    ) + suffix
 
 
 def _parse_locations(message: str, fallback_path: str) -> list[tuple[str, int]]:
@@ -398,7 +431,10 @@ def _findings_for_scenario(scenario: ScenarioResult, pipeline_file: str) -> list
                 line = line or 1
             else:
                 path, line = fallback_path, 1
-            finding_description = violation.message or description
+            finding_description = (
+                f"{violation.message or description}"
+                f"{_framework_description_suffix(scenario)}"
+            )
             findings.append(
                 {
                     "description": finding_description,
@@ -520,6 +556,20 @@ def render_compliance_junit(
                     "time": "0",
                 },
             )
+            if scenario.owasp_cicd or scenario.iso27001:
+                properties = ET.SubElement(testcase, "properties")
+                if scenario.owasp_cicd:
+                    ET.SubElement(
+                        properties,
+                        "property",
+                        {"name": "owasp_cicd", "value": scenario.owasp_cicd},
+                    )
+                if scenario.iso27001:
+                    ET.SubElement(
+                        properties,
+                        "property",
+                        {"name": "iso27001", "value": scenario.iso27001},
+                    )
             if scenario.status == "failed":
                 failure = ET.SubElement(
                     testcase,
@@ -531,15 +581,19 @@ def render_compliance_junit(
                         "type": "failure",
                     },
                 )
-                failure.text = _failure_body_for_scenario(scenario, pipeline_file)
+                body = _failure_body_for_scenario(scenario, pipeline_file)
+                suffix = _framework_description_suffix(scenario)
+                failure.text = f"{body}{suffix}" if suffix else body
             elif scenario.status == "skipped":
+                skip_message = scenario.message or "Filter did not match any entities."
+                skip_message = (
+                    f"{skip_message}{_framework_description_suffix(scenario)}"
+                )
                 ET.SubElement(
                     testcase,
                     "skipped",
                     {
-                        "message": redact_secrets(
-                            scenario.message or "Filter did not match any entities."
-                        ),
+                        "message": redact_secrets(skip_message),
                     },
                 )
 

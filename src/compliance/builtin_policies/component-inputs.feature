@@ -4,6 +4,12 @@
 # custom:
 #   id: GLCI-BUILTIN-COMPONENT
 #   severity: MEDIUM
+#   owasp_cicd:
+#     - CICD-SEC-7
+#     - CICD-SEC-8
+#   iso27001:
+#     - A.8.9
+#     - A.8.25
 Feature: Component input constraints
 
 # METADATA
@@ -11,6 +17,12 @@ Feature: Component input constraints
 # custom:
 #   id: GLCI-BUILTIN-COMPONENT-01
 #   severity: MEDIUM
+#   owasp_cicd:
+#     - CICD-SEC-7
+#     - CICD-SEC-8
+#   iso27001:
+#     - A.8.9
+#     - A.8.25
   Scenario Outline: Component input mode constrains dependent fields
     Given I have include type "component" defined
     When the entity input <input> equals <value>

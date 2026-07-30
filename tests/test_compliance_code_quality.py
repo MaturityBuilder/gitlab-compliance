@@ -67,6 +67,8 @@ class TestRenderComplianceCodeQuality:
                 message="Entities where image must not match: build (examples/sample-files/.gitlab-ci.yml:12)",
                 policy_id="GLCI-BUILTIN-IMAGE-01",
                 severity="HIGH",
+                owasp_cicd="CICD-SEC-3, CICD-SEC-9",
+                iso27001="A.8.25, A.8.9",
             )
         )
         payload = json.loads(
@@ -80,6 +82,8 @@ class TestRenderComplianceCodeQuality:
         assert finding["severity"] == "major"
         assert finding["location"]["path"] == "examples/sample-files/.gitlab-ci.yml"
         assert finding["location"]["lines"]["begin"] == 12
+        assert "OWASP CI/CD: CICD-SEC-3, CICD-SEC-9" in finding["description"]
+        assert "ISO 27001: A.8.25, A.8.9" in finding["description"]
         assert set(finding) >= {
             "description",
             "check_name",
