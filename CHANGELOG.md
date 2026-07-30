@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.4.0...v2.5.0) (2026-07-30)
+
+
+### Features
+
+* Add version argument feature ([#106](https://github.com/MaturityBuilder/gitlab-compliance/issues/106)) ([884b486](https://github.com/MaturityBuilder/gitlab-compliance/commit/884b48696ee6414833ced27611132d63822b034e))
+
 ## [2.4.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.3.0...v2.4.0) (2026-07-29)
 
 
