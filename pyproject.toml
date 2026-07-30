@@ -1,6 +1,6 @@
 [project]
 name = "gitlab-compliance"
-version = "2.5.0"
+version = "2.6.0"
 dynamic = [ "readme" ]
 license = "Apache-2.0"
 requires-python = ">=3.12"
