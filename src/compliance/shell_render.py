@@ -68,7 +68,7 @@ def _display_location(location: str, pipeline_file: str) -> str:
 
 def _display_policies_dir(features_dir: str) -> str:
     if os.path.abspath(features_dir) == os.path.abspath(BUILTIN_SHELL_POLICIES_DIR):
-        return "Packaged GLCI-SHELL policies"
+        return "Packaged GLCI-BUILTIN-SHELL policies"
     return features_dir
 
 
@@ -221,7 +221,7 @@ def render_shell_check_markdown(
         "",
         (
             "> Validates `before_script`, `script`, and `after_script` using "
-            "packaged GLCI-SHELL policies. This is **not** the external "
+            "packaged GLCI-BUILTIN-SHELL policies. This is **not** the external "
             "ShellCheck binary."
         ),
         "",
@@ -498,7 +498,7 @@ def render_shell_check_html(
   <div class="banner {overall_class}">{overall_label}</div>
   <p class="note">
     Validates <code>before_script</code>, <code>script</code>, and
-    <code>after_script</code> using packaged GLCI-SHELL policies.
+    <code>after_script</code> using packaged GLCI-BUILTIN-SHELL policies.
     This is <strong>not</strong> the external ShellCheck binary.
   </p>
   <p class="meta">
@@ -548,7 +548,7 @@ def render_shell_check_mr_comment(
         overall,
         "",
         (
-            "> Validates CI scripts with packaged GLCI-SHELL policies. "
+            "> Validates CI scripts with packaged GLCI-BUILTIN-SHELL policies. "
             "This is **not** the ShellCheck binary."
         ),
         "",

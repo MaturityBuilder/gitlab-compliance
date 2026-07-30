@@ -244,7 +244,7 @@ def script_has_unquoted_command_substitution(entity: dict) -> bool:
     strings are not treated as unquoted expansions. Only top-level
     substitutions are considered for word-splitting risk. Bash process
     substitutions (``<(...)`` / ``>(...)``) are excluded — they are not
-    command substitutions for GLCI-SHELL-QUOTE-003.
+    command substitutions for GLCI-BUILTIN-SHELL-QUOTE-003.
     """
     for line in _active_lines(entity):
         for span in iter_command_substitutions(line, dialect="bash", nested=False):

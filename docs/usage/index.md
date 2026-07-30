@@ -60,14 +60,14 @@ gitlab-compliance check -p .gitlab-ci.yml --with-builtin
 ```
 
 Bundled policies include plain scenarios (job images, include pinning),
-**shell script standards** (`GLCI-SHELL-*` under `builtin_policies/shell/`), and
+**shell script standards** (`GLCI-BUILTIN-SHELL-*` under `builtin_policies/shell/`), and
 **advanced Scenario Outline** matrices (variable allowlists, component input
 constraints). See [Advanced scenarios](../bdd-reference/advanced-scenarios.md)
 and [`shell-check`](reference/shell-check.md).
 
 ### `--with-shell-check` {#with-shell-check}
 
-Also run packaged **shell script standards** (`GLCI-SHELL-*`) for
+Also run packaged **shell script standards** (`GLCI-BUILTIN-SHELL-*`) for
 `before_script`, `script`, and `after_script`. Your `-f` directory is
 **optional** when this flag is set; omit `-f` to run only the packaged shell
 policies.

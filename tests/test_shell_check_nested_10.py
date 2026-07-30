@@ -16,9 +16,23 @@ EXPECTED_LOCAL_PATHS = {"layers/layer-01.yml"} | {
 }
 
 EXPECTED_FAMILIES = (
-    "GLCI-SHELL-QUOTE",
-    "GLCI-SHELL-PIN",
+    "GLCI-BUILTIN-SHELL-QUOTE",
+    "GLCI-BUILTIN-SHELL-PIN",
 )
+
+# Themed jobs emitted by generate.py (one per hop).
+THEMED_JOBS = {
+    "tflint",
+    "terraform_plan",
+    "docker_scan",
+    "hadolint",
+    "kube_linter",
+    "ansible_lint",
+    "checkov_scan",
+    "gitleaks",
+    "semgrep_sast",
+    "container_build",
+}
 
 
 def _job_names(data: dict) -> set[str]:
@@ -36,9 +50,12 @@ def test_happy_resolves_leaf_through_10_hops():
     jobs = _job_names(data)
     assert "root_job" in jobs
     assert "nested_leaf_happy" in jobs
+    assert THEMED_JOBS <= jobs
     assert EXPECTED_LOCAL_PATHS <= _local_include_paths(data)
     by_name = {job["name"]: job for job in data["jobs"]}
     assert by_name["nested_leaf_happy"]["source_file"].endswith("layer-10.yml")
+    assert by_name["tflint"]["source_file"].endswith("layer-01.yml")
+    assert by_name["container_build"]["source_file"].endswith("layer-10.yml")
 
 
 def test_sad_resolves_leaf_through_10_hops():
@@ -46,6 +63,7 @@ def test_sad_resolves_leaf_through_10_hops():
     jobs = _job_names(data)
     assert "root_job" in jobs
     assert "nested_leaf_sad" in jobs
+    assert THEMED_JOBS <= jobs
     assert EXPECTED_LOCAL_PATHS <= _local_include_paths(data)
     by_name = {job["name"]: job for job in data["jobs"]}
     assert by_name["nested_leaf_sad"]["source_file"].endswith("layer-10.yml")
@@ -62,6 +80,8 @@ def test_depth_cap_excludes_leaf():
     jobs = _job_names(data)
     assert "root_job" in jobs
     assert "nested_leaf_happy" not in jobs
+    assert "container_build" not in jobs
+    assert "tflint" in jobs
     unresolved = data.get("unresolved_includes", [])
     assert any(item.get("reason") == "depth_exceeded" for item in unresolved)
 

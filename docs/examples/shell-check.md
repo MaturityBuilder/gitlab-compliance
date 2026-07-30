@@ -2,7 +2,7 @@
 
 Validate `before_script`, `script`, and `after_script` blocks with packaged
 Gherkin policies. This is **not** the ShellCheck binary — standards are
-executable BDD scenarios with `GLCI-SHELL-*` control IDs.
+executable BDD scenarios with `GLCI-BUILTIN-SHELL-*` control IDs.
 
 ## Bad example
 
@@ -18,8 +18,8 @@ demo:
 gitlab-compliance shell-check -p docs/demos/fixtures/shell-check/bad.gitlab-ci.yml
 ```
 
-Findings include job name and rule IDs such as `GLCI-SHELL-PIN-002` (remote
-pipe to shell) and `GLCI-SHELL-QUOTE-001` (unquoted variables).
+Findings include job name and rule IDs such as `GLCI-BUILTIN-SHELL-PIN-002` (remote
+pipe to shell) and `GLCI-BUILTIN-SHELL-QUOTE-001` (unquoted variables).
 
 ## Good example
 
@@ -39,7 +39,7 @@ demo:
 # METADATA
 # title: AWS resources must be tagged
 # custom:
-#   id: GLCI-SHELL-AWS-001
+#   id: GLCI-BUILTIN-SHELL-AWS-001
 #   severity: HIGH
 Feature: AWS CLI tagging
 
@@ -57,14 +57,14 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml
 
 ## Package manager pinning Gherkin
 
-Bundled `GLCI-SHELL-PIN-*` scenarios cover `apk`, `apt`/`apt-get`,
+Bundled `GLCI-BUILTIN-SHELL-PIN-*` scenarios cover `apk`, `apt`/`apt-get`,
 `yum`/`dnf`/`microdnf`, `pip`/`pip3`, `npm`/`yarn`, and `go`. See
 [Shell pinning](shell-pinning.md) for the Gherkin, bad/good CI snippets, and
 policy IDs for each manager.
 
 ## Built-in Gherkin catalog
 
-All packaged `GLCI-SHELL-*` scenarios (quoting, error handling, file ops,
+All packaged `GLCI-BUILTIN-SHELL-*` scenarios (quoting, error handling, file ops,
 pipelines, security, portability, CI conventions, references, and pinning) are
 listed with their Gherkin steps in the
 [`shell-check` reference](../usage/reference/shell-check.md#built-in-gherkin-policies).

@@ -42,7 +42,9 @@ def test_shell_check_passes_on_good_pipeline():
         ["shell-check", "-p", str(FIXTURES / "good-pipeline.yml")],
     )
     assert result.exit_code == 0, result.output
-    assert "not the ShellCheck" in result.output or "GLCI-SHELL" in result.output
+    assert (
+        "not the ShellCheck" in result.output or "GLCI-BUILTIN-SHELL" in result.output
+    )
 
 
 def test_shell_check_markdown_report(tmp_path):
@@ -64,7 +66,7 @@ def test_shell_check_markdown_report(tmp_path):
     assert out.exists()
     text = out.read_text(encoding="utf-8")
     assert "Shell Check Report" in text
-    assert "GLCI-SHELL" in text or "FAIL" in text
+    assert "GLCI-BUILTIN-SHELL" in text or "FAIL" in text
     assert "Job" in text and "Location" in text and "Inheritance" in text
 
 
@@ -121,7 +123,7 @@ def test_shell_check_detects_pinning_in_nested_includes(pipeline):
     )
     assert result.exit_code == 1, result.output
     assert (
-        "GLCI-SHELL-PIN-005" in result.output
+        "GLCI-BUILTIN-SHELL-PIN-005" in result.output
         or "apt packages must be version-pinned" in result.output
     )
 

@@ -2,14 +2,14 @@
 # title: Command substitution standards
 # description: Prefer modern dollar-parentheses substitution over backticks.
 # custom:
-#   id: GLCI-SHELL-SUB
+#   id: GLCI-BUILTIN-SHELL-SUB
 #   severity: MEDIUM
 Feature: Command substitution
 
 # METADATA
 # title: Legacy backticks are not used
 # custom:
-#   id: GLCI-SHELL-SUB-001
+#   id: GLCI-BUILTIN-SHELL-SUB-001
 #   severity: MEDIUM
   Scenario: Legacy backticks are not used
     Given I have any job with effective script defined
@@ -18,7 +18,7 @@ Feature: Command substitution
 # METADATA
 # title: Nested command substitution is readable
 # custom:
-#   id: GLCI-SHELL-SUB-002
+#   id: GLCI-BUILTIN-SHELL-SUB-002
 #   severity: MEDIUM
   Scenario: Nested command substitution is readable
     Given I have any job with effective script defined

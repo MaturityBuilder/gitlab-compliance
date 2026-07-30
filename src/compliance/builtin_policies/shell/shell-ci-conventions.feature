@@ -2,14 +2,14 @@
 # title: GitLab CI script conventions
 # description: CI-specific hygiene for curl and deprecated variables.
 # custom:
-#   id: GLCI-SHELL-CI
+#   id: GLCI-BUILTIN-SHELL-CI
 #   severity: MEDIUM
 Feature: GitLab CI script conventions
 
 # METADATA
 # title: curl uses fail flag
 # custom:
-#   id: GLCI-SHELL-CI-001
+#   id: GLCI-BUILTIN-SHELL-CI-001
 #   severity: MEDIUM
   Scenario: curl must use fail flag
     Given I have any job with effective script defined
@@ -18,7 +18,7 @@ Feature: GitLab CI script conventions
 # METADATA
 # title: Deprecated CI_BUILD variables are not used
 # custom:
-#   id: GLCI-SHELL-CI-002
+#   id: GLCI-BUILTIN-SHELL-CI-002
 #   severity: MEDIUM
   Scenario: Deprecated CI_BUILD variables must not be used
     Given I have any job with effective script defined
@@ -27,7 +27,7 @@ Feature: GitLab CI script conventions
 # METADATA
 # title: CI variables should be quoted
 # custom:
-#   id: GLCI-SHELL-CI-003
+#   id: GLCI-BUILTIN-SHELL-CI-003
 #   severity: MEDIUM
   Scenario: CI variables should be quoted
     Given I have any job with effective script defined

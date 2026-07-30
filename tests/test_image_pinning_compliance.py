@@ -56,7 +56,7 @@ digest-job:
             (
                 "# METADATA\n"
                 "# custom:\n"
-                "#   id: GLCI-IMAGE-PINNING-003\n"
+                "#   id: GLCI-BUILTIN-IMAGE-PINNING-003\n"
                 "Feature: Explicit image version\n\n"
                 "  Scenario: Job images must include an explicit version or digest\n"
                 "    Given I have any job defined\n"
@@ -91,7 +91,7 @@ tag-job:
             (
                 "# METADATA\n"
                 "# custom:\n"
-                "#   id: GLCI-IMAGE-PINNING-001\n"
+                "#   id: GLCI-BUILTIN-IMAGE-PINNING-001\n"
                 "Feature: Digest pinning\n\n"
                 "  Scenario: Job images must use sha256 digest\n"
                 '    Given I have container image from "job" defined\n'

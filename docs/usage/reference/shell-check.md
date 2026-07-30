@@ -2,7 +2,7 @@
 
 Run packaged Gherkin shell standards for CI scripts (not the ShellCheck tool).
 
-    Validates before_script/script/after_script using builtin GLCI-SHELL-* policies.
+    Validates before_script/script/after_script using builtin GLCI-BUILTIN-SHELL-* policies.
     Does not install, detect, or invoke the external ShellCheck binary.
 
 <!-- MANUAL DOCS:START -->
@@ -24,7 +24,7 @@ Regenerate with `bash scripts/record-demos.sh offline` (see
 ## What it checks
 
 Packaged policies under `src/compliance/builtin_policies/shell/` express
-ShellCheck-inspired standards as BDD scenarios with `GLCI-SHELL-*` IDs:
+ShellCheck-inspired standards as BDD scenarios with `GLCI-BUILTIN-SHELL-*` IDs:
 
 - Quoting, error handling, file operations, command substitution
 - Conditionals, pipelines, security, portability
@@ -70,8 +70,8 @@ gitlab-compliance shell-check -p .gitlab-ci.yml --failures-only -v
 Run specific policies by ID, glob, or feature-file stem:
 
 ```bash
-gitlab-compliance shell-check -p .gitlab-ci.yml -P GLCI-SHELL-PIN-003
-gitlab-compliance shell-check -p .gitlab-ci.yml -P 'GLCI-SHELL-PIN*,GLCI-SHELL-QUOTE-001'
+gitlab-compliance shell-check -p .gitlab-ci.yml -P GLCI-BUILTIN-SHELL-PIN-003
+gitlab-compliance shell-check -p .gitlab-ci.yml -P 'GLCI-BUILTIN-SHELL-PIN*,GLCI-BUILTIN-SHELL-QUOTE-001'
 gitlab-compliance shell-check -p .gitlab-ci.yml -P shell-quoting
 ```
 
@@ -96,7 +96,7 @@ artifacts:
     junit: SHELL-CHECK.xml
 ```
 
-Also available via `check --with-shell-check` (adds packaged `GLCI-SHELL-*`
+Also available via `check --with-shell-check` (adds packaged `GLCI-BUILTIN-SHELL-*`
 policies alongside your `-f` directory). `--with-builtin` does **not** include
 shell policies; add `--with-shell-check` explicitly when needed.
 
@@ -124,7 +124,7 @@ Flags:
 - `--strict` — fail API-backed scenarios when credentials are missing (default: skip)
 - `--failures-only` — show only failed policies (summary counts are kept; passed/skipped sections are omitted)
 - `--verbose` / `-v` — append the offending script value (`found: …`) to each failure message
-- `--policy` / `-P` — run only matching policies (repeatable or comma-separated; matches policy IDs or feature stems; supports globs such as `GLCI-SHELL-PIN*`)
+- `--policy` / `-P` — run only matching policies (repeatable or comma-separated; matches policy IDs or feature stems; supports globs such as `GLCI-BUILTIN-SHELL-PIN*`)
 
 Tokens are only sent on `remote:` HTTP fetches when the remote URL host matches
 `--gitlab-url` (or `CI_SERVER_URL` / `GITLAB_URL`). Arbitrary third-party remotes
@@ -178,7 +178,7 @@ Packaged scenarios live under `src/compliance/builtin_policies/shell/`:
 | `shell-references.feature` | `!reference` resolution |
 | `shell-pinning.feature` | Package manager and download pinning |
 
-Pinning scenarios (`GLCI-SHELL-PIN-*`) include per-manager Gherkin, bad/good CI
+Pinning scenarios (`GLCI-BUILTIN-SHELL-PIN-*`) include per-manager Gherkin, bad/good CI
 snippets, and policy IDs in [Shell pinning examples](../../examples/shell-pinning.md).
 
 ## Custom policies
@@ -288,7 +288,7 @@ Usage: gitlab-compliance shell-check [OPTIONS]
   * Usage: `--features
 -f`
 
-  Policy directory to run instead of packaged shell standards. Defaults to packaged GLCI-SHELL policies.
+  Policy directory to run instead of packaged shell standards. Defaults to packaged GLCI-BUILTIN-SHELL policies.
 
 * `help`:
   * Type: BOOL
@@ -306,7 +306,7 @@ Usage: gitlab-compliance shell-check [OPTIONS]
   Run packaged Gherkin shell standards for CI scripts (not the ShellCheck
   tool).
 
-  Validates before_script/script/after_script using builtin GLCI-SHELL-*
+  Validates before_script/script/after_script using builtin GLCI-BUILTIN-SHELL-*
   policies. Does not install, detect, or invoke the external ShellCheck
   binary.
 

@@ -10,7 +10,7 @@ cataloging and templating policy documentation.
 # title: Disallow latest image tags
 # description: Prevents jobs from using mutable latest tags.
 # custom:
-#   id: GLCI-IMAGE-PINNING-001
+#   id: GLCI-BUILTIN-IMAGE-PINNING-001
 #   severity: HIGH
   Scenario: Job images must not use the latest tag
     Given I have any job defined
@@ -45,6 +45,6 @@ policy IDs and titles when metadata is present.
 ## ID generation
 
 If `custom.id` is omitted, IDs are derived from the feature title and scenario
-name (for example `GLCI-IMAGE-PINNING-001`).
+name (for example `GLCI-BUILTIN-IMAGE-PINNING-001`).
 
 See [Examples](../examples/index.md) for annotated policy packs.

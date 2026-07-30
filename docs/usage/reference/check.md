@@ -242,7 +242,7 @@ gitlab-compliance check -p .gitlab-ci.yml --with-builtin
 
 #### `--with-shell-check` {#with-shell-check}
 
-Also run packaged `GLCI-SHELL-*` script standards for `before_script`,
+Also run packaged `GLCI-BUILTIN-SHELL-*` script standards for `before_script`,
 `script`, and `after_script`. Use this when you want shell checks without
 enabling the other bundled YAML baseline rules. Omit `-f` to run only the
 packaged shell policies.
@@ -484,7 +484,7 @@ Usage: gitlab-compliance check [OPTIONS]
   * Default: `false`
   * Usage: `--with-shell-check`
 
-  Also run packaged GLCI-SHELL script standards for before_script, script, and after_script.
+  Also run packaged GLCI-BUILTIN-SHELL script standards for before_script, script, and after_script.
 
 * `with_supply_chain`:
   * Type: BOOL
@@ -569,7 +569,7 @@ Options:
                                   with --post-mr-comment.
   --with-builtin                  Also run bundled baseline policies shipped
                                   with gitlab-compliance.
-  --with-shell-check              Also run packaged GLCI-SHELL script
+  --with-shell-check              Also run packaged GLCI-BUILTIN-SHELL script
                                   standards for before_script, script, and
                                   after_script.
   --with-supply-chain             Also run packaged supply-chain pinning

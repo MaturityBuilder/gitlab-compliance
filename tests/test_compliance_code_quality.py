@@ -65,7 +65,7 @@ class TestRenderComplianceCodeQuality:
                 name="Job images must not use the latest tag",
                 status="failed",
                 message="Entities where image must not match: build (examples/sample-files/.gitlab-ci.yml:12)",
-                policy_id="GLCI-IMAGE-PINNING-001",
+                policy_id="GLCI-BUILTIN-IMAGE-PINNING-001",
                 severity="HIGH",
             )
         )
@@ -76,7 +76,7 @@ class TestRenderComplianceCodeQuality:
         )
         assert len(payload) == 1
         finding = payload[0]
-        assert finding["check_name"] == "GLCI-IMAGE-PINNING-001"
+        assert finding["check_name"] == "GLCI-BUILTIN-IMAGE-PINNING-001"
         assert finding["severity"] == "major"
         assert finding["location"]["path"] == "examples/sample-files/.gitlab-ci.yml"
         assert finding["location"]["lines"]["begin"] == 12
@@ -159,7 +159,7 @@ class TestRenderComplianceCodeQuality:
                     "ASSERT FAILED: Job 'demo' ci/jobs.yml:12: Unquoted variable; "
                     "Job 'other' ci/jobs.yml:20: Unquoted variable"
                 ),
-                policy_id="GLCI-SHELL-QUOTE-001",
+                policy_id="GLCI-BUILTIN-SHELL-QUOTE-001",
                 severity="HIGH",
             )
         )

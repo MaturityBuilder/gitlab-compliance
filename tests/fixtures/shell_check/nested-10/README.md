@@ -10,8 +10,9 @@ Template fixtures for happy/sad shell-check runs through a linear
 | 0 | `{happy,sad}/.gitlab-ci.yml` |
 | 1–10 | `{happy,sad}/layers/layer-01.yml` … `layer-10.yml` |
 
-The leaf job (`nested_leaf_happy` / `nested_leaf_sad`) is defined only in
-`layer-10.yml`. Mid layers only include the next hop.
+Each hop defines a themed CI job (tflint, terraform plan, docker scan, …).
+The nested leaf job (`nested_leaf_happy` / `nested_leaf_sad`) is only in
+`layer-10.yml`. Mid layers also include the next hop.
 
 ## Regenerate
 

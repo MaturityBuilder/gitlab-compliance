@@ -53,10 +53,10 @@ SUPPORTED_REMEDIATIONS: tuple[PolicyRemediation, ...] = (
     PolicyRemediation(
         policy_ids=frozenset(
             {
-                "GLCI-INCLUDE-VERSIONS-003",
-                "GLCI-INCLUDE-VERSIONS-004",
-                "GLCI-INCLUDE-VERSIONS-005",
-                "GLCI-INCLUDE-VERSIONS-006",
+                "GLCI-BUILTIN-INCLUDE-VERSIONS-003",
+                "GLCI-BUILTIN-INCLUDE-VERSIONS-004",
+                "GLCI-BUILTIN-INCLUDE-VERSIONS-005",
+                "GLCI-BUILTIN-INCLUDE-VERSIONS-006",
             }
         ),
         title="Bump includes to latest semver release",
@@ -68,10 +68,10 @@ SUPPORTED_REMEDIATIONS: tuple[PolicyRemediation, ...] = (
         kind="include_latest",
     ),
     PolicyRemediation(
-        policy_ids=frozenset({"GLCI-IMAGE-PINNING-001"}),
+        policy_ids=frozenset({"GLCI-BUILTIN-IMAGE-PINNING-001"}),
         title="Pin job container images to sha256 digests",
         description=(
-            "When a job image is not digest-pinned (GLCI-IMAGE-PINNING-001), rewrite "
+            "When a job image is not digest-pinned (GLCI-BUILTIN-IMAGE-PINNING-001), rewrite "
             "that image reference to `@sha256:<digest>` for the currently resolved tag. "
             "Service images are not rewritten unless they also fail an allowlisted policy."
         ),
@@ -87,15 +87,19 @@ _POLICY_ID_TO_KIND: dict[str, str] = {
 
 # Predicates mirror the example policy Then steps (days/tag windows included).
 _INCLUDE_FAIL_PREDICATES: dict[str, Callable[[dict], bool]] = {
-    "GLCI-INCLUDE-VERSIONS-003": include_has_newer_release,
-    "GLCI-INCLUDE-VERSIONS-004": lambda e: include_newer_release_older_than_days(e, 30),
-    "GLCI-INCLUDE-VERSIONS-005": lambda e: include_release_lag_exceeds_days(e, 90),
-    "GLCI-INCLUDE-VERSIONS-006": lambda e: include_not_within_latest_tags(e, 3),
+    "GLCI-BUILTIN-INCLUDE-VERSIONS-003": include_has_newer_release,
+    "GLCI-BUILTIN-INCLUDE-VERSIONS-004": lambda e: include_newer_release_older_than_days(
+        e, 30
+    ),
+    "GLCI-BUILTIN-INCLUDE-VERSIONS-005": lambda e: include_release_lag_exceeds_days(
+        e, 90
+    ),
+    "GLCI-BUILTIN-INCLUDE-VERSIONS-006": lambda e: include_not_within_latest_tags(e, 3),
 }
 
-# GLCI-IMAGE-PINNING-001 example policy scopes to job images only.
+# GLCI-BUILTIN-IMAGE-PINNING-001 example policy scopes to job images only.
 _IMAGE_FAIL_PREDICATES: dict[str, Callable[[dict], bool]] = {
-    "GLCI-IMAGE-PINNING-001": lambda e: (
+    "GLCI-BUILTIN-IMAGE-PINNING-001": lambda e: (
         str(e.get("image_source", "")) == "job" and not container_image_uses_sha256(e)
     ),
 }

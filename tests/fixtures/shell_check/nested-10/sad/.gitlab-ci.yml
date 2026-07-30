@@ -2,6 +2,10 @@
 # Depth 0 root: includes hop 1, defines a small root job.
 stages:
   - prepare
+  - lint
+  - plan
+  - build
+  - security
   - verify
 
 variables:

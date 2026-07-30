@@ -6,6 +6,11 @@
 #   severity: MEDIUM
 Feature: Pipeline variable allowlist
 
+# METADATA
+# title: Pipeline variables must match allowed patterns
+# custom:
+#   id: GLCI-BUILTIN-VARIABLES-001
+#   severity: MEDIUM
   Scenario Outline: Pipeline variables must match allowed patterns
     Given I have any variable defined
     When its key is <name>

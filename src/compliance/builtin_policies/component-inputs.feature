@@ -6,6 +6,11 @@
 #   severity: MEDIUM
 Feature: Component input constraints
 
+# METADATA
+# title: Component input mode constrains dependent fields
+# custom:
+#   id: GLCI-BUILTIN-COMPONENT-INPUTS-001
+#   severity: MEDIUM
   Scenario Outline: Component input mode constrains dependent fields
     Given I have include type "component" defined
     When the entity input <input> equals <value>
