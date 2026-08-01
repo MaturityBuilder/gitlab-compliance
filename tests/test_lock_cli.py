@@ -257,3 +257,102 @@ def test_lock_generate_missing_pipeline_exits_2(tmp_path):
         ],
     )
     assert result.exit_code == 2
+
+
+def test_lock_update_and_fingerprint_missing_paths(tmp_path):
+    runner = CliRunner()
+    missing = str(tmp_path / "missing.yml")
+    update = runner.invoke(
+        gitlab_compliance,
+        ["lock", "update", "-p", missing, "-l", str(tmp_path / "x.lock")],
+    )
+    assert update.exit_code == 2
+
+    fingerprint = runner.invoke(
+        gitlab_compliance,
+        ["lock", "fingerprint", "-p", missing],
+    )
+    assert fingerprint.exit_code == 2
+
+    from_lock = runner.invoke(
+        gitlab_compliance,
+        [
+            "lock",
+            "fingerprint",
+            "--from-lock",
+            "-l",
+            str(tmp_path / "missing.lock"),
+        ],
+    )
+    assert from_lock.exit_code == 2
+
+
+def test_lock_verify_missing_pipeline_with_existing_lock(tmp_path):
+    pipeline = _pipeline(tmp_path)
+    lock_file = tmp_path / ".gitlab-ci.lock"
+    runner = CliRunner()
+    runner.invoke(
+        gitlab_compliance,
+        [
+            "lock",
+            "generate",
+            "-p",
+            str(pipeline),
+            "-l",
+            str(lock_file),
+            "--no-resolve-external-includes",
+            "--quiet",
+        ],
+    )
+    result = runner.invoke(
+        gitlab_compliance,
+        [
+            "lock",
+            "verify",
+            "-p",
+            str(tmp_path / "gone.yml"),
+            "-l",
+            str(lock_file),
+            "--no-resolve-external-includes",
+        ],
+    )
+    assert result.exit_code == 2
+
+
+def test_lock_generate_and_update_generic_errors(tmp_path):
+    from unittest.mock import patch
+
+    pipeline = _pipeline(tmp_path)
+    runner = CliRunner()
+
+    with patch(
+        "src.gitlab_compliance.build_lockfile",
+        side_effect=RuntimeError("boom"),
+    ):
+        generate = runner.invoke(
+            gitlab_compliance,
+            [
+                "lock",
+                "generate",
+                "-p",
+                str(pipeline),
+                "-l",
+                str(tmp_path / "a.lock"),
+                "--no-resolve-external-includes",
+            ],
+        )
+        update = runner.invoke(
+            gitlab_compliance,
+            [
+                "lock",
+                "update",
+                "-p",
+                str(pipeline),
+                "-l",
+                str(tmp_path / "b.lock"),
+                "--no-resolve-external-includes",
+            ],
+        )
+    assert generate.exit_code == 2
+    assert update.exit_code == 2
+    assert "boom" in generate.output

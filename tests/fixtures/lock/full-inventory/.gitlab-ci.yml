@@ -1,0 +1,57 @@
+include:
+  - local: includes/local-jobs.yml
+  - project: platform/ci-templates
+    ref: 1.2.3
+    file: security/scan.yml
+  - component: https://gitlab.com/org/pipeline-component@2.0.0
+  - template: Auto-DevOps.gitlab-ci.yml
+  - remote: https://example.com/ci/remote-2.1.0.yml
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - when: never
+
+variables:
+  APP_ENV: test
+  LOCK_FIXTURE: "true"
+
+stages:
+  - build
+  - deploy
+
+.build-template:
+  stage: build
+  image: alpine:3.19
+  script:
+    - echo template
+
+build:
+  stage: build
+  extends:
+    - .build-template
+  image: alpine:3.19@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  services:
+    - name: postgres:16
+    - docker:24.0.5-dind
+  needs:
+    - job: .build-template
+      optional: true
+  variables:
+    BUILD_FLAG: "1"
+  rules:
+    - if: $CI_COMMIT_TAG
+  before_script:
+    - echo prepare
+  script:
+    - echo build
+  after_script:
+    - echo cleanup
+
+deploy:
+  stage: deploy
+  trigger:
+    project: org/downstream
+    branch: main
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
