@@ -209,7 +209,24 @@ def test_inventory_include_remote_project_template_and_unresolved(tmp_path):
         str(pipeline),
         unresolved_locations=set(),
     )
-    assert remote["resolved"] is True
+    assert remote["resolved"] is False
+
+    remote_hashed = _inventory_include(
+        {
+            "include_type": "remote",
+            "project": "https://example.com/a.yml",
+            "version": "1.0.0",
+            "source_file": str(pipeline),
+            "line": 3,
+        },
+        str(pipeline),
+        unresolved_locations=set(),
+        content_hashes={
+            "remote:https://example.com/a.yml:1.0.0:": "sha256:" + ("ab" * 32)
+        },
+    )
+    assert remote_hashed["resolved"] is True
+    assert remote_hashed["contentHash"]
 
     project = _inventory_include(
         {
@@ -223,7 +240,7 @@ def test_inventory_include_remote_project_template_and_unresolved(tmp_path):
         str(pipeline),
         unresolved_locations=set(),
     )
-    assert project["resolved"] is True
+    assert project["resolved"] is False
 
     unresolved_project = _inventory_include(
         {
@@ -375,9 +392,9 @@ def test_build_inventory_enrich_without_token_skips_include_metadata():
         )
     assert not include_enrich.called
     assert image_enrich.called
-    # Service image has no declared digest; enrich fills resolvedDigest.
+    # Service image has no declared digest; enrich fills advisory resolvedDigest.
     postgres = next(item for item in inventory["images"] if "postgres" in item["image"])
-    assert postgres["digest"].startswith("sha256:")
+    assert not postgres["digest"]
     assert postgres["resolvedDigest"].startswith("sha256:")
 
 
@@ -454,11 +471,10 @@ def test_verify_rejects_corrupt_top_level_fingerprint(tmp_path):
     lockfile["fingerprint"] = "sha256:deadbeef"
     path = tmp_path / ".gitlab-ci.lock"
     write_lockfile(lockfile, path)
-    result = verify_lockfile(
-        str(MINIMAL), path, resolve_external_includes=False, enrich=False
-    )
-    assert result["matches"] is False
-    assert result["lockIntact"] is False
+    with pytest.raises(LockfileError, match="does not match its inventory"):
+        verify_lockfile(
+            str(MINIMAL), path, resolve_external_includes=False, enrich=False
+        )
 
 
 def test_fingerprint_is_portable_across_directories(tmp_path):
@@ -510,3 +526,165 @@ def test_dumps_lockfile_trailing_newline():
 def test_build_inventory_missing_pipeline():
     with pytest.raises(FileNotFoundError):
         build_inventory("/tmp/does-not-exist-lock.yml")
+
+
+def test_online_fingerprint_stable_across_runs(tmp_path):
+    """Fetched include jobs must use stable source labels, not temp basenames."""
+    from src.compliance.include_fetch import FetchedInclude
+    from src.compliance.lockfile import compute_fingerprint
+
+    pipeline = tmp_path / ".gitlab-ci.yml"
+    pipeline.write_text(
+        "include:\n  - remote: https://example.com/ci.yml\n" "job:\n  script: [echo]\n",
+        encoding="utf-8",
+    )
+    yaml_body = "remote-job:\n  script: [echo remote]\n"
+    fetched = FetchedInclude(
+        config_label="https://example.com/ci.yml",
+        yaml_text=yaml_body,
+    )
+    fingerprints = []
+    for _ in range(3):
+        with (
+            patch(
+                "src.modules.pipeline_data.fetch_include_content",
+                return_value=fetched,
+            ),
+            patch(
+                "src.compliance.include_fetch.fetch_include_content",
+                return_value=fetched,
+            ),
+        ):
+            lockfile = build_lockfile(
+                str(pipeline),
+                resolve_external_includes=True,
+                resolve_templates=False,
+                enrich=False,
+            )
+        fingerprints.append(lockfile["fingerprint"])
+        remote_job = next(
+            job
+            for job in lockfile["inventory"]["pipeline"]["jobs"]
+            if job["name"] == "remote-job"
+        )
+        assert remote_job["sourceFile"] == "https://example.com/ci.yml"
+        remote = next(
+            item
+            for item in lockfile["inventory"]["includes"]
+            if item["type"] == "remote"
+        )
+        assert remote["resolved"] is True
+        assert remote["contentHash"]
+    assert len(set(fingerprints)) == 1
+    assert fingerprints[0] == compute_fingerprint(lockfile["inventory"])
+
+
+def test_enrich_resolved_digest_does_not_change_fingerprint(tmp_path):
+    pipeline = tmp_path / ".gitlab-ci.yml"
+    pipeline.write_text(
+        "job:\n  image: alpine:3.19\n  script: [echo]\n",
+        encoding="utf-8",
+    )
+
+    def _enrich(items, **kwargs):
+        return [
+            {
+                **item,
+                "latest_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            }
+            for item in items
+        ]
+
+    with patch(
+        "src.compliance.image_versions.enrich_container_images_with_releases",
+        side_effect=_enrich,
+    ):
+        enriched = build_lockfile(
+            str(pipeline),
+            resolve_external_includes=False,
+            enrich=True,
+        )
+    plain = build_lockfile(
+        str(pipeline),
+        resolve_external_includes=False,
+        enrich=False,
+    )
+    assert enriched["fingerprint"] == plain["fingerprint"]
+    image = enriched["inventory"]["images"][0]
+    assert not image["digest"]
+    assert image["resolvedDigest"].startswith("sha256:")
+
+
+def test_no_resolve_templates_skips_template_content_hash(tmp_path):
+    from src.compliance.include_fetch import FetchedInclude
+
+    pipeline = tmp_path / ".gitlab-ci.yml"
+    pipeline.write_text(
+        "include:\n  - template: Auto-DevOps.gitlab-ci.yml\n"
+        "job:\n  script: [echo]\n",
+        encoding="utf-8",
+    )
+    fetched = FetchedInclude(
+        config_label="template:Auto-DevOps.gitlab-ci.yml",
+        yaml_text="t:\n  script: [x]\n",
+    )
+
+    def _unexpected_template_fetch(*args, **kwargs):
+        include = args[0] if args else kwargs.get("parsed") or {}
+        if include.get("include_type") == "template":
+            raise AssertionError("template fetch should be skipped")
+        return fetched
+
+    with (
+        patch(
+            "src.modules.pipeline_data.fetch_include_content",
+            side_effect=_unexpected_template_fetch,
+        ),
+        patch(
+            "src.compliance.include_fetch.fetch_include_content",
+            side_effect=_unexpected_template_fetch,
+        ),
+    ):
+        inventory = build_inventory(
+            str(pipeline),
+            resolve_external_includes=True,
+            resolve_templates=False,
+            enrich=False,
+        )
+    template = next(
+        item for item in inventory["includes"] if item["type"] == "template"
+    )
+    assert template["resolved"] is False
+    assert not template.get("contentHash")
+
+
+def test_policy_tree_hash_skips_symlinks(tmp_path):
+    from src.compliance.lockfile import _hash_path_tree
+
+    policies = tmp_path / "policies"
+    policies.mkdir()
+    real = policies / "ok.feature"
+    real.write_text("Feature: ok\n", encoding="utf-8")
+    outside = tmp_path / "secret.txt"
+    outside.write_text("SECRET\n", encoding="utf-8")
+    link = policies / "linked.feature"
+    link.symlink_to(outside)
+    digest = _hash_path_tree(policies)
+    alone = tmp_path / "alone"
+    alone.mkdir()
+    (alone / "ok.feature").write_text("Feature: ok\n", encoding="utf-8")
+    assert digest == _hash_path_tree(alone)
+
+    file_link = tmp_path / "file-link.feature"
+    file_link.symlink_to(outside)
+    assert _hash_path_tree(file_link) is None
+
+
+def test_fingerprint_payload_tolerates_non_dict_images():
+    from src.compliance.lockfile import compute_fingerprint
+
+    inventory = {
+        "images": ["not-a-dict", {"digest": "sha256:aa", "resolvedDigest": "x"}]
+    }
+    assert compute_fingerprint(inventory).startswith("sha256:")
+    assert compute_fingerprint({"images": []}).startswith("sha256:")

@@ -68,9 +68,35 @@ def _canonical_json(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
+# Advisory fields stored for humans / UX but excluded from the fingerprint so
+# network enrich (image digests) cannot cause false drift across environments.
+_FINGERPRINT_OMIT_IMAGE_KEYS = frozenset({"resolvedDigest"})
+
+
+def _fingerprint_payload(inventory: dict[str, Any]) -> dict[str, Any]:
+    """Return an inventory copy safe to hash (no advisory-only fields)."""
+    payload = dict(inventory)
+    images = payload.get("images")
+    if not images:
+        return payload
+    cleaned_images = []
+    for image in images:
+        if not isinstance(image, dict):
+            cleaned_images.append(image)
+            continue
+        cleaned = {
+            key: value
+            for key, value in image.items()
+            if key not in _FINGERPRINT_OMIT_IMAGE_KEYS
+        }
+        cleaned_images.append(cleaned)
+    payload["images"] = cleaned_images
+    return payload
+
+
 def compute_fingerprint(inventory: dict[str, Any]) -> str:
     """Return a stable fingerprint for an inventory payload."""
-    return _sha256_text(_canonical_json(inventory))
+    return _sha256_text(_canonical_json(_fingerprint_payload(inventory)))
 
 
 def _hash_path_tree(root: str | Path) -> str | None:
@@ -79,11 +105,13 @@ def _hash_path_tree(root: str | Path) -> str | None:
     if not base.exists():
         return None
     if base.is_file():
+        if base.is_symlink():
+            return None
         return _sha256_file(base)
 
     parts: list[str] = []
     for path in sorted(base.rglob("*")):
-        if not path.is_file():
+        if path.is_symlink() or not path.is_file():
             continue
         if path.name.startswith(".") or "__pycache__" in path.parts:
             continue
@@ -133,6 +161,9 @@ def _portable_path(path: str | Path | None, pipeline_file: str) -> str:
     if not path:
         return ""
     raw = str(path)
+    # Fetched include provenance uses stable remote/project/template labels.
+    if "://" in raw or raw.startswith(("project:", "template:", "remote:")):
+        return raw
     root = _pipeline_root(pipeline_file)
     try:
         return Path(raw).resolve().relative_to(root).as_posix()
@@ -172,32 +203,36 @@ def _include_location_key(include_type: str, source_file: str, line: int) -> str
     return f"{include_type}|{source_file}|{line}"
 
 
-def _fetch_upstream_content_hashes(
+def _content_hashes_from_cache(
     raw_includes: list[dict],
     *,
     gitlab_url: str | None,
     token: str | None,
+    cache: Any,
+    allow_template: bool,
 ) -> dict[str, str]:
-    """Fetch upstream include YAML and return identity → content hash."""
+    """Hash upstream include YAML, reusing the collect-time fetch cache."""
     from src.compliance.include_fetch import (
         FetchedInclude,
-        IncludeFetchCache,
         default_gitlab_url,
         fetch_include_content,
     )
 
-    cache = IncludeFetchCache()
     hashes: dict[str, str] = {}
     for include in raw_includes:
         include_type = str(include.get("include_type", ""))
         if include_type == "local":
+            continue
+        if include_type == "component":
+            continue
+        if include_type == "template" and not allow_template:
             continue
         result = fetch_include_content(
             include,
             gitlab_url=default_gitlab_url(gitlab_url),
             token=token,
             cache=cache,
-            allow_template=True,
+            allow_template=allow_template,
         )
         if isinstance(result, FetchedInclude) and result.yaml_text:
             hashes[_include_identity(include)] = _sha256_text(result.yaml_text)
@@ -238,18 +273,11 @@ def _inventory_include(
             entry["path"] = _portable_path(local_path, pipeline_file)
         return entry
 
-    location = _include_location_key(include_type, source_file, line)
+    # Upstream includes are only RESOLVED when we have a content hash of the body.
     upstream_hash = (content_hashes or {}).get(identity)
     if upstream_hash:
         entry["resolved"] = True
         entry["contentHash"] = upstream_hash
-        return entry
-
-    if location in unresolved_locations or include_type in {"component", "template"}:
-        return entry
-
-    # Declared remote/project without fetched body — pin by identity/ref only.
-    entry["resolved"] = include_type in {"remote", "project"}
     return entry
 
 
@@ -258,7 +286,7 @@ def _inventory_image(image: dict, pipeline_file: str) -> dict[str, Any]:
     parsed = parse_container_image_ref(image_ref)
     declared = _normalize_digest(parsed.get("digest") or image.get("digest") or "")
     resolved = _normalize_digest(image.get("latest_digest") or "")
-    digest = declared or resolved
+    # Fingerprint uses declared digests only; resolvedDigest is advisory UX.
     return {
         "source": image.get("image_source", ""),
         "parentJob": image.get("parent_job", ""),
@@ -266,7 +294,7 @@ def _inventory_image(image: dict, pipeline_file: str) -> dict[str, Any]:
         "registry": parsed.get("registry") or image.get("registry", ""),
         "repository": parsed.get("repository") or image.get("repository", ""),
         "tag": parsed.get("tag") or image.get("version", ""),
-        "digest": digest,
+        "digest": declared,
         "resolvedDigest": resolved or declared,
         "sourceFile": _portable_path(image.get("source_file", ""), pipeline_file),
         "line": image.get("line", 0),
@@ -386,10 +414,16 @@ def build_inventory(
     if not os.path.exists(pipeline_file):
         raise FileNotFoundError(f"Pipeline file not found: {pipeline_file}")
 
+    from src.compliance.include_fetch import IncludeFetchCache
+
     # Offline mode: --no-resolve-external-includes also skips template fetches.
     effective_resolve_templates = (
         False if resolve_external_includes is False else resolve_templates
     )
+
+    # Share one fetch cache between collect + content hashing so a successful
+    # merge cannot be followed by a failed re-fetch that drops the body hash.
+    fetch_cache = IncludeFetchCache()
 
     pipeline_data = collect_pipeline_data(
         config_file=pipeline_file,
@@ -402,6 +436,7 @@ def build_inventory(
         resolve_templates=effective_resolve_templates,
         gitlab_url=gitlab_url,
         token=token,
+        _fetch_cache=fetch_cache,
     )
 
     raw_includes = list(pipeline_data.get("includes") or [])
@@ -412,17 +447,19 @@ def build_inventory(
     # resolution is explicitly disabled (offline inventory).
     content_hashes: dict[str, str] = {}
     if resolve_external_includes is not False:
-        content_hashes = _fetch_upstream_content_hashes(
+        content_hashes = _content_hashes_from_cache(
             raw_includes,
             gitlab_url=gitlab_url,
             token=token,
+            cache=fetch_cache,
+            allow_template=effective_resolve_templates,
         )
 
     if enrich:
         from src.compliance.image_versions import enrich_container_images_with_releases
         from src.compliance.release_cache import ReleaseMetadataCache
 
-        cache = ReleaseMetadataCache()
+        release_cache = ReleaseMetadataCache()
         if token:
             from src.compliance.include_versions import enrich_includes_with_releases
 
@@ -430,14 +467,15 @@ def build_inventory(
                 raw_includes,
                 gitlab_url=gitlab_url,
                 token=token,
-                cache=cache,
+                cache=release_cache,
             )
         # Docker Hub digests work without a token; GitLab Container Registry needs one.
+        # Resolved digests are advisory (not fingerprinted).
         raw_images = enrich_container_images_with_releases(
             raw_images,
             gitlab_url=gitlab_url,
             token=token,
-            cache=cache,
+            cache=release_cache,
         )
 
     unresolved_locations = {
@@ -475,12 +513,12 @@ def build_inventory(
 
     unresolved_entries = []
     for item in unresolved:
+        # Omit host-specific fetch detail from the fingerprinted inventory.
         unresolved_entries.append(
             {
                 "type": item.get("include_type") or "",
                 "reference": item.get("reference", ""),
                 "reason": item.get("reason") or "unresolved",
-                "detail": item.get("detail", ""),
                 "sourceFile": _portable_path(
                     item.get("source_file", ""), pipeline_file
                 ),
@@ -610,13 +648,14 @@ def verify_lockfile(
     actual = str(current.get("fingerprint", ""))
     inventory_fp = compute_fingerprint(existing.get("inventory") or {})
     # Reject corrupt locks where the stored fingerprint disagrees with inventory.
-    lock_intact = expected == inventory_fp
-    matches = lock_intact and actual == expected
+    if expected != inventory_fp:
+        raise LockfileError("Lock file fingerprint does not match its inventory.")
+    matches = actual == expected
     return {
         "matches": matches,
         "expectedFingerprint": expected,
         "actualFingerprint": actual,
-        "lockIntact": lock_intact,
+        "lockIntact": True,
         "lockFile": str(lock_file),
         "pipelineFile": pipeline_file,
         "current": current,

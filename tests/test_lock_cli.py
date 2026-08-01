@@ -401,3 +401,19 @@ def test_lock_fingerprint_rejects_corrupt_lock(tmp_path):
     )
     assert result.exit_code == 2
     assert "does not match" in result.output.lower()
+
+    verify = runner.invoke(
+        gitlab_compliance,
+        [
+            "lock",
+            "verify",
+            "-p",
+            str(pipeline),
+            "-l",
+            str(lock_file),
+            "--no-resolve-external-includes",
+            "--no-enrich",
+        ],
+    )
+    assert verify.exit_code == 2
+    assert "does not match" in verify.output.lower()

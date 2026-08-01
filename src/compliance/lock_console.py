@@ -52,7 +52,9 @@ def _inventory_health(inventory: dict[str, Any]) -> dict[str, Any]:
     inventoried_includes = resolved_includes + declared_external
     # Avoid double-counting resolved components (rare).
     inventoried_includes = min(inventoried_includes, len(includes))
-    pinned_images = sum(1 for item in images if item.get("digest"))
+    pinned_images = sum(
+        1 for item in images if item.get("digest") or item.get("resolvedDigest")
+    )
     include_total = len(includes)
     image_total = len(images)
 
@@ -253,7 +255,7 @@ def _images_table(inventory: dict[str, Any], *, verbose: bool) -> Table | None:
 
     limit = len(images) if verbose else min(8, len(images))
     for item in images[:limit]:
-        pinned = bool(item.get("digest"))
+        pinned = bool(item.get("digest") or item.get("resolvedDigest"))
         pin = (
             Text("DIGEST", style="bold green")
             if pinned

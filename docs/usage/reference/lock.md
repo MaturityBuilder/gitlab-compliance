@@ -107,16 +107,27 @@ By default `lock generate` / `update` / `verify`:
   token; GitLab Container Registry when `--token` / `GITLAB_TOKEN` is set)
 - Resolves include **release metadata** when a GitLab token is available
 
+Only **declared** digests (image refs already pinned with `@sha256:…` in YAML)
+and include content hashes affect the fingerprint. Registry-resolved digests
+are stored as advisory `resolvedDigest` fields for the report UX and do not
+change the fingerprint across online/offline environments.
+
 CI components are still inventory-declared (identity/ref) but cannot be merged
 from the GitLab API the same way.
 
-For a fully offline inventory (no network):
+### Untrusted pipelines
+
+Default lock commands fetch whatever `include:remote` / nested remotes the
+YAML names. For merge requests from untrusted sources, prefer offline mode:
 
 ```bash
 gitlab-compliance lock generate -p .gitlab-ci.yml \
   --no-resolve-external-includes \
   --no-enrich
 ```
+
+For a fully offline inventory (no network) on trusted pipelines, use the same
+flags.
 
 <!-- MANUAL DOCS:END -->
 

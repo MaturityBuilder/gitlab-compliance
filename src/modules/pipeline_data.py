@@ -767,8 +767,13 @@ def collect_pipeline_data(
 
     skip_jobs = exclude_sections and "jobs" in exclude_sections
 
+    # Stable label for lock inventories / reports. Fetched YAML is parsed from a
+    # temp file, but provenance must use the remote/project/template identity —
+    # never the ephemeral temp path (that would make fingerprints non-reproducible).
+    source_ref = _source_label or config_file
+
     data: dict[str, Any] = {
-        "config_file": _source_label or config_file,
+        "config_file": source_ref,
         "inputs": [],
         "variables": [],
         "includes": [],
@@ -799,7 +804,7 @@ def collect_pipeline_data(
                     _parse_variable_entry(
                         key,
                         value,
-                        source_file=config_file,
+                        source_file=source_ref,
                         line=line_index["variables"].get(key, 0),
                     )
                 )
@@ -814,7 +819,7 @@ def collect_pipeline_data(
                     else 0
                 )
                 parsed = _parse_include_entry(
-                    entry, source_file=config_file, line=include_line
+                    entry, source_file=source_ref, line=include_line
                 )
                 if parsed:
                     data["includes"].append(parsed)
@@ -864,14 +869,14 @@ def collect_pipeline_data(
                         job_registry,
                         job_name=key,
                         config=value,
-                        source_file=config_file,
+                        source_file=source_ref,
                         line=job_line,
                     )
                 data["jobs"].append(
                     _parse_job(
                         key,
                         value,
-                        source_file=config_file,
+                        source_file=source_ref,
                         line=job_line,
                         include_scripts=include_scripts,
                     )
