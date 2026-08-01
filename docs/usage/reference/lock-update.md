@@ -1,6 +1,6 @@
 # lock update
 
-Refresh `.gitlab-ci.lock` (alias for generate).
+Refresh `.gitlab-ci.lock` with a modern inventory report.
 
 ## Usage
 
@@ -75,6 +75,29 @@ Usage: gitlab-compliance lock update [OPTIONS]
 
   Resolve include release metadata and image digests via APIs (requires --token). Offline inventory is the default.
 
+* `verbose`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--verbose
+-v`
+
+  Show full inventory tables (no row truncation).
+
+* `quiet`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--quiet
+-q`
+
+  Minimal output (fingerprint only) for scripts and CI.
+
+* `as_json`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--json`
+
+  Emit a machine-readable JSON report instead of the Rich UI.
+
 * `help`:
   * Type: BOOL
   * Default: `false`
@@ -88,7 +111,7 @@ Usage: gitlab-compliance lock update [OPTIONS]
 ```
 Usage: gitlab-compliance lock update [OPTIONS]
 
-  Refresh `.gitlab-ci.lock` (alias for generate).
+  Refresh `.gitlab-ci.lock` with a modern inventory report.
 
 Options:
   -p, --pipeline TEXT             Path to the GitLab CI pipeline YAML file.
@@ -114,5 +137,11 @@ Options:
   --enrich / --no-enrich          Resolve include release metadata and image
                                   digests via APIs (requires --token). Offline
                                   inventory is the default.
+  -v, --verbose                   Show full inventory tables (no row
+                                  truncation).
+  -q, --quiet                     Minimal output (fingerprint only) for
+                                  scripts and CI.
+  --json                          Emit a machine-readable JSON report instead
+                                  of the Rich UI.
   --help                          Show this message and exit.
 ```

@@ -75,6 +75,29 @@ Usage: gitlab-compliance lock fingerprint [OPTIONS]
 
   Resolve include release metadata and image digests via APIs (requires --token). Offline inventory is the default.
 
+* `verbose`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--verbose
+-v`
+
+  Show full inventory tables (no row truncation).
+
+* `quiet`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--quiet
+-q`
+
+  Minimal output (fingerprint only) for scripts and CI.
+
+* `as_json`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--json`
+
+  Emit a machine-readable JSON report instead of the Rich UI.
+
 * `dotenv_file`:
   * Type: STRING
   * Default: `none`
@@ -128,6 +151,12 @@ Options:
   --enrich / --no-enrich          Resolve include release metadata and image
                                   digests via APIs (requires --token). Offline
                                   inventory is the default.
+  -v, --verbose                   Show full inventory tables (no row
+                                  truncation).
+  -q, --quiet                     Minimal output (fingerprint only) for
+                                  scripts and CI.
+  --json                          Emit a machine-readable JSON report instead
+                                  of the Rich UI.
   --dotenv TEXT                   Write a GitLab dotenv report with
                                   GITLAB_COMPLIANCE_LOCK_FINGERPRINT (for
                                   cache keys / child-pipeline rules).

@@ -19,6 +19,12 @@ import src.properties.jobs as jobs
 import src.properties.variables as variables
 import src.properties.workflows as workflows
 from src import __version__
+from src.compliance.lock_console import (
+    render_fingerprint_line,
+    render_lock_error,
+    render_lock_report,
+    run_with_progress,
+)
 from src.compliance.lockfile import (
     DEFAULT_LOCK_FILE,
     FINGERPRINT_ENV_KEY,
@@ -26,7 +32,6 @@ from src.compliance.lockfile import (
     build_lockfile,
     dotenv_fingerprint,
     load_lockfile,
-    summarize_inventory,
     verify_lockfile,
     write_lockfile,
 )
@@ -1498,10 +1503,44 @@ def _add_lock_options(command):
                 "(requires --token). Offline inventory is the default."
             ),
         ),
+        click.option(
+            "--verbose",
+            "-v",
+            is_flag=True,
+            default=False,
+            help="Show full inventory tables (no row truncation).",
+        ),
+        click.option(
+            "--quiet",
+            "-q",
+            is_flag=True,
+            default=False,
+            help="Minimal output (fingerprint only) for scripts and CI.",
+        ),
+        click.option(
+            "--json",
+            "as_json",
+            is_flag=True,
+            default=False,
+            help="Emit a machine-readable JSON report instead of the Rich UI.",
+        ),
     ]
     for option in reversed(options):
         command = option(command)
     return command
+
+
+def _ensure_lock_enrich_token(enrich, token):
+    if (
+        enrich
+        and not token
+        and not (os.getenv("GITLAB_TOKEN") or os.getenv("CI_JOB_TOKEN"))
+    ):
+        render_lock_error(
+            "--enrich requires a GitLab token",
+            hint="Pass --token or set GITLAB_TOKEN / CI_JOB_TOKEN.",
+        )
+        raise SystemExit(2)
 
 
 @lock.command("generate")
@@ -1516,47 +1555,46 @@ def lock_generate(
     gitlab_url,
     token,
     enrich,
+    verbose,
+    quiet,
+    as_json,
 ):
     """Create or overwrite `.gitlab-ci.lock` from the current pipeline inventory."""
-    from src.compliance.console import print_error, print_success
-
-    if (
-        enrich
-        and not token
-        and not (os.getenv("GITLAB_TOKEN") or os.getenv("CI_JOB_TOKEN"))
-    ):
-        print_error("--enrich requires a GitLab token")
-        raise SystemExit(2)
+    _ensure_lock_enrich_token(enrich, token)
 
     try:
-        lockfile = build_lockfile(
-            pipeline_file,
-            **_lock_common_kwargs(
-                include_nested,
-                max_include_depth,
-                resolve_external_includes,
-                gitlab_url,
-                token,
-                features_dir,
-                enrich,
+        lockfile = run_with_progress(
+            "Scanning pipeline inventory…",
+            lambda: build_lockfile(
+                pipeline_file,
+                **_lock_common_kwargs(
+                    include_nested,
+                    max_include_depth,
+                    resolve_external_includes,
+                    gitlab_url,
+                    token,
+                    features_dir,
+                    enrich,
+                ),
             ),
+            quiet=quiet or as_json,
         )
-        path = write_lockfile(lockfile, lock_file)
+        write_lockfile(lockfile, lock_file)
     except FileNotFoundError as exc:
-        print_error(str(exc))
+        render_lock_error(str(exc))
         raise SystemExit(2) from exc
     except Exception as exc:  # pragma: no cover - unexpected IO/parse errors
-        print_error(str(exc))
+        render_lock_error(str(exc))
         raise SystemExit(2) from exc
 
-    counts = summarize_inventory(lockfile["inventory"])
-    print_success(
-        f"Wrote {path}\n"
-        f"Fingerprint: {lockfile['fingerprint']}\n"
-        f"Jobs: {counts['jobs']}  Includes: {counts['includes']}  "
-        f"Images: {counts['images']}  External steps: {counts['externalSteps']}  "
-        f"Unresolved: {counts['unresolved']}",
-        title="Lock generated",
+    render_lock_report(
+        command="generate",
+        lockfile=lockfile,
+        pipeline_file=pipeline_file,
+        lock_file=lock_file,
+        verbose=verbose,
+        quiet=quiet,
+        as_json=as_json,
     )
     raise SystemExit(0)
 
@@ -1573,10 +1611,48 @@ def lock_update(
     gitlab_url,
     token,
     enrich,
+    verbose,
+    quiet,
+    as_json,
 ):
-    """Refresh `.gitlab-ci.lock` (alias for generate)."""
-    ctx = click.get_current_context()
-    ctx.forward(lock_generate)
+    """Refresh `.gitlab-ci.lock` with a modern inventory report."""
+    _ensure_lock_enrich_token(enrich, token)
+
+    try:
+        lockfile = run_with_progress(
+            "Refreshing pipeline inventory…",
+            lambda: build_lockfile(
+                pipeline_file,
+                **_lock_common_kwargs(
+                    include_nested,
+                    max_include_depth,
+                    resolve_external_includes,
+                    gitlab_url,
+                    token,
+                    features_dir,
+                    enrich,
+                ),
+            ),
+            quiet=quiet or as_json,
+        )
+        write_lockfile(lockfile, lock_file)
+    except FileNotFoundError as exc:
+        render_lock_error(str(exc))
+        raise SystemExit(2) from exc
+    except Exception as exc:  # pragma: no cover
+        render_lock_error(str(exc))
+        raise SystemExit(2) from exc
+
+    render_lock_report(
+        command="update",
+        lockfile=lockfile,
+        pipeline_file=pipeline_file,
+        lock_file=lock_file,
+        verbose=verbose,
+        quiet=quiet,
+        as_json=as_json,
+    )
+    raise SystemExit(0)
 
 
 @lock.command("verify")
@@ -1591,49 +1667,51 @@ def lock_verify(
     gitlab_url,
     token,
     enrich,
+    verbose,
+    quiet,
+    as_json,
 ):
     """Fail when the current inventory fingerprint differs from the lock file."""
-    from src.compliance.console import print_error, print_success
+    _ensure_lock_enrich_token(enrich, token)
 
     try:
-        result = verify_lockfile(
-            pipeline_file,
-            lock_file,
-            **_lock_common_kwargs(
-                include_nested,
-                max_include_depth,
-                resolve_external_includes,
-                gitlab_url,
-                token,
-                features_dir,
-                enrich,
+        result = run_with_progress(
+            "Verifying lock fingerprint…",
+            lambda: verify_lockfile(
+                pipeline_file,
+                lock_file,
+                **_lock_common_kwargs(
+                    include_nested,
+                    max_include_depth,
+                    resolve_external_includes,
+                    gitlab_url,
+                    token,
+                    features_dir,
+                    enrich,
+                ),
             ),
+            quiet=quiet or as_json,
         )
     except LockfileError as exc:
-        print_error(str(exc))
+        render_lock_error(str(exc))
         raise SystemExit(2) from exc
     except FileNotFoundError as exc:
-        print_error(str(exc))
+        render_lock_error(str(exc))
         raise SystemExit(2) from exc
 
-    if result["matches"]:
-        print_success(
-            f"Lock matches current inventory.\n"
-            f"Fingerprint: {result['actualFingerprint']}",
-            title="Lock verified",
-        )
-        raise SystemExit(0)
-
-    print_error(
-        "Pipeline inventory does not match the lock file.\n"
-        f"Expected: {result['expectedFingerprint']}\n"
-        f"Actual:   {result['actualFingerprint']}\n"
-        f"Run `gitlab-compliance lock update -p {pipeline_file} -l {lock_file}` "
-        "and commit the refreshed lock.",
-        title="Lock drift",
-        hint="Commit an updated `.gitlab-ci.lock` or investigate unexpected CI changes.",
+    render_lock_report(
+        command="verify",
+        lockfile=result["current"],
+        pipeline_file=pipeline_file,
+        lock_file=lock_file,
+        matches=result["matches"],
+        expected_fingerprint=result["expectedFingerprint"],
+        actual_fingerprint=result["actualFingerprint"],
+        verbose=verbose,
+        quiet=quiet,
+        as_json=as_json,
     )
-    raise SystemExit(1)
+    raise SystemExit(0 if result["matches"] else 1)
 
 
 @lock.command("fingerprint")
@@ -1664,38 +1742,52 @@ def lock_fingerprint(
     gitlab_url,
     token,
     enrich,
+    verbose,
+    quiet,
+    as_json,
     dotenv_file,
     from_lock,
 ):
     """Print the inventory fingerprint (for CI skip / cache keys)."""
-    from src.compliance.console import print_error
+    _ensure_lock_enrich_token(enrich, token)
 
     try:
         if from_lock:
             lockfile = load_lockfile(lock_file)
             fingerprint = str(lockfile.get("fingerprint", ""))
         else:
-            lockfile = build_lockfile(
-                pipeline_file,
-                **_lock_common_kwargs(
-                    include_nested,
-                    max_include_depth,
-                    resolve_external_includes,
-                    gitlab_url,
-                    token,
-                    features_dir,
-                    enrich,
+            fingerprint = run_with_progress(
+                "Computing inventory fingerprint…",
+                lambda: str(
+                    build_lockfile(
+                        pipeline_file,
+                        **_lock_common_kwargs(
+                            include_nested,
+                            max_include_depth,
+                            resolve_external_includes,
+                            gitlab_url,
+                            token,
+                            features_dir,
+                            enrich,
+                        ),
+                    ).get("fingerprint", "")
                 ),
+                quiet=quiet or as_json,
             )
-            fingerprint = str(lockfile.get("fingerprint", ""))
     except (LockfileError, FileNotFoundError) as exc:
-        print_error(str(exc))
+        render_lock_error(str(exc))
         raise SystemExit(2) from exc
 
-    click.echo(fingerprint)
     if dotenv_file:
         Path(dotenv_file).write_text(dotenv_fingerprint(fingerprint), encoding="utf-8")
-        logger.info(f"Wrote dotenv fingerprint to {dotenv_file}")
+
+    # Fingerprint defaults to quiet/script-friendly unless Rich UI requested.
+    render_fingerprint_line(
+        fingerprint,
+        dotenv_file=dotenv_file,
+        quiet=quiet or not verbose,
+        as_json=as_json,
+    )
     raise SystemExit(0)
 
 

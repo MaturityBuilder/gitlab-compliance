@@ -31,6 +31,15 @@ def test_lock_help_lists_subcommands():
     assert "inventory" in result.output.lower()
 
 
+def test_lock_generate_help_includes_modern_flags():
+    runner = CliRunner()
+    result = runner.invoke(gitlab_compliance, ["lock", "generate", "--help"])
+    assert result.exit_code == 0
+    assert "--verbose" in result.output
+    assert "--quiet" in result.output
+    assert "--json" in result.output
+
+
 def test_lock_generate_verify_fingerprint_roundtrip(tmp_path):
     pipeline = _pipeline(tmp_path)
     lock_file = tmp_path / ".gitlab-ci.lock"
@@ -50,6 +59,7 @@ def test_lock_generate_verify_fingerprint_roundtrip(tmp_path):
     )
     assert generate.exit_code == 0, generate.output
     assert lock_file.is_file()
+    assert "Inventory locked" in generate.output or "Coverage" in generate.output
     payload = json.loads(lock_file.read_text(encoding="utf-8"))
     assert payload["fingerprint"].startswith("sha256:")
     assert "inventory" in payload
@@ -67,6 +77,7 @@ def test_lock_generate_verify_fingerprint_roundtrip(tmp_path):
         ],
     )
     assert verify.exit_code == 0, verify.output
+    assert "verified" in verify.output.lower() or "Coverage" in verify.output
 
     fingerprint = runner.invoke(
         gitlab_compliance,
@@ -76,10 +87,50 @@ def test_lock_generate_verify_fingerprint_roundtrip(tmp_path):
             "-p",
             str(pipeline),
             "--no-resolve-external-includes",
+            "--quiet",
         ],
     )
     assert fingerprint.exit_code == 0
     assert fingerprint.output.strip() == payload["fingerprint"]
+
+
+def test_lock_generate_json_and_quiet(tmp_path):
+    pipeline = _pipeline(tmp_path)
+    lock_file = tmp_path / ".gitlab-ci.lock"
+    runner = CliRunner()
+    json_result = runner.invoke(
+        gitlab_compliance,
+        [
+            "lock",
+            "generate",
+            "-p",
+            str(pipeline),
+            "-l",
+            str(lock_file),
+            "--no-resolve-external-includes",
+            "--json",
+        ],
+    )
+    assert json_result.exit_code == 0, json_result.output
+    payload = json.loads(json_result.output)
+    assert payload["command"] == "generate"
+    assert payload["fingerprint"].startswith("sha256:")
+
+    quiet = runner.invoke(
+        gitlab_compliance,
+        [
+            "lock",
+            "verify",
+            "-p",
+            str(pipeline),
+            "-l",
+            str(lock_file),
+            "--no-resolve-external-includes",
+            "--quiet",
+        ],
+    )
+    assert quiet.exit_code == 0
+    assert quiet.output.strip().startswith("sha256:")
 
 
 def test_lock_verify_detects_drift(tmp_path):
@@ -115,7 +166,11 @@ def test_lock_verify_detects_drift(tmp_path):
         ],
     )
     assert result.exit_code == 1
-    assert "does not match" in result.output.lower() or "Lock drift" in result.output
+    assert (
+        "drift" in result.output.lower()
+        or "does not match" in result.output.lower()
+        or "Next steps" in result.output
+    )
 
 
 def test_lock_fingerprint_dotenv_and_from_lock(tmp_path):

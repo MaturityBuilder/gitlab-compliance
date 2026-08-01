@@ -25,7 +25,7 @@ that answers: "has anything gitlab-compliance cares about changed?"
 ## Commands
 
 ```bash
-# Create or refresh the lock
+# Create or refresh the lock (Rich inventory report by default)
 gitlab-compliance lock generate -p .gitlab-ci.yml -l .gitlab-ci.lock
 gitlab-compliance lock update -p .gitlab-ci.yml
 
@@ -36,6 +36,24 @@ gitlab-compliance lock verify -p .gitlab-ci.yml
 gitlab-compliance lock fingerprint -p .gitlab-ci.yml
 gitlab-compliance lock fingerprint --from-lock --dotenv lock.env
 ```
+
+### Modern terminal UX
+
+Interactive runs show a Plumber-style report:
+
+- Progress spinner while scanning
+- Health / coverage banner (resolved includes + digest-pinned images)
+- Metric cards for jobs, includes, images, external steps
+- Inventory tables and external-step tree
+- Drift panel + next-step guidance on verify failures
+
+Scripting flags:
+
+| Flag | Purpose |
+| ---- | ------- |
+| `--quiet` / `-q` | Fingerprint-only output |
+| `--json` | Machine-readable report |
+| `--verbose` / `-v` | Full tables (no truncation) |
 
 Include your policy directory in the inventory hash so policy edits also bump
 the fingerprint:
@@ -87,6 +105,7 @@ you want registry-backed pins recorded.
 <!-- MANUAL DOCS:END -->
 
 
+
 ## Usage
 
 ```
@@ -119,6 +138,6 @@ Options:
 Commands:
   fingerprint  Print the inventory fingerprint (for CI skip / cache keys).
   generate     Create or overwrite `.gitlab-ci.lock` from the current...
-  update       Refresh `.gitlab-ci.lock` (alias for generate).
+  update       Refresh `.gitlab-ci.lock` with a modern inventory report.
   verify       Fail when the current inventory fingerprint differs from...
 ```
