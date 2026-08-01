@@ -13,6 +13,9 @@ omitted.
 | `CI_SERVER_URL`     | GitLab instance URL               | `--gitlab-url` |
 | `GITLAB_GROUP_PATH` | Group-scoped API scenarios        | `--group`      |
 
+`lock fingerprint --dotenv` writes `GITLAB_COMPLIANCE_LOCK_FINGERPRINT` (not
+read as input — emitted for GitLab dotenv artifacts / cache keys).
+
 A token alone is enough for **include release checks** against projects
 referenced in `include:` entries. Project and group settings still require
 `--project` or `--group`.

@@ -24,6 +24,35 @@ Copy policies first:
 cp -r examples/example-policies/security/ policies/security/
 ```
 
+## Skip when the pipeline inventory is unchanged
+
+Generate and commit a `.gitlab-ci.lock` inventory, then only run compliance when
+that inventory (or your policies) change:
+
+```bash
+gitlab-compliance lock generate -p .gitlab-ci.yml -f policies/security/
+```
+
+```yaml
+compliance:
+  image: python:3.12
+  stage: test
+  script:
+    - pip install gitlab-compliance
+    - gitlab-compliance lock verify -p .gitlab-ci.yml -f policies/security/
+    - gitlab-compliance check -f policies/security/ -p .gitlab-ci.yml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - .gitlab-ci.yml
+        - .gitlab-ci.lock
+        - "**/*gitlab-ci*.yml"
+        - policies/security/**/*
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+```
+
+See [`lock`](../usage/reference/lock.md) for fingerprint / dotenv patterns.
+
 ## Include shared compliance jobs
 
 Reuse hidden job templates from
