@@ -7,6 +7,7 @@ Author: Charlie Smith
 import os
 import shutil
 from datetime import datetime
+from pathlib import Path
 
 import click
 
@@ -18,6 +19,17 @@ import src.properties.jobs as jobs
 import src.properties.variables as variables
 import src.properties.workflows as workflows
 from src import __version__
+from src.compliance.lockfile import (
+    DEFAULT_LOCK_FILE,
+    FINGERPRINT_ENV_KEY,
+    LockfileError,
+    build_lockfile,
+    dotenv_fingerprint,
+    load_lockfile,
+    summarize_inventory,
+    verify_lockfile,
+    write_lockfile,
+)
 from src.compliance.metadata import build_policy_catalog
 from src.compliance.oci_registry import (
     DEFAULT_POLICY_DIR,
@@ -70,6 +82,11 @@ __all__ = [
     "gitlab_compliance",
     "gitlab_docs",
     "is_oci_reference",
+    "lock",
+    "lock_fingerprint",
+    "lock_generate",
+    "lock_update",
+    "lock_verify",
     "policies",
     "policies_doc",
     "policies_pull",
@@ -1379,6 +1396,309 @@ def document_gitstrings(
         logger.info("No gitstrings output files were updated.")
 
 
+def _lock_common_kwargs(
+    include_nested,
+    max_include_depth,
+    resolve_external_includes,
+    gitlab_url,
+    token,
+    features_dir,
+    enrich,
+):
+    return {
+        "include_nested": include_nested,
+        "max_include_depth": max_include_depth,
+        "resolve_external_includes": resolve_external_includes,
+        "gitlab_url": gitlab_url,
+        "token": token,
+        "features_dir": features_dir,
+        "enrich": enrich,
+    }
+
+
+@click.group()
+def lock():
+    """Build and verify a `.gitlab-ci.lock` inventory of pipeline dependencies.
+
+    The lockfile records includes, images, services, external steps, and
+    pipeline structure so CI can skip gitlab-compliance jobs when nothing
+    inventory-relevant has changed (fingerprint or ``rules:changes``).
+    """
+    pass
+
+
+def _add_lock_options(command):
+    """Shared options for lock generate/update/verify/fingerprint."""
+    options = [
+        click.option(
+            "--pipeline",
+            "-p",
+            "pipeline_file",
+            required=False,
+            default=".gitlab-ci.yml",
+            show_default=True,
+            help="Path to the GitLab CI pipeline YAML file.",
+        ),
+        click.option(
+            "--lock-file",
+            "-l",
+            "lock_file",
+            required=False,
+            default=DEFAULT_LOCK_FILE,
+            show_default=True,
+            help="Path to the `.gitlab-ci.lock` inventory file.",
+        ),
+        click.option(
+            "--include-nested/--no-include-nested",
+            default=True,
+            help="Resolve nested local include files into the inventory.",
+        ),
+        click.option(
+            "--max-include-depth",
+            "max_include_depth",
+            type=int,
+            default=None,
+            help="Max local include nesting depth from the root file (omit for unlimited).",
+        ),
+        click.option(
+            "--resolve-external-includes/--no-resolve-external-includes",
+            "resolve_external_includes",
+            default=None,
+            help=(
+                "Fetch remote and project include YAML (default: auto — remote always, "
+                "project when a token is available)."
+            ),
+        ),
+        click.option(
+            "--features",
+            "-f",
+            "features_dir",
+            required=False,
+            default=None,
+            help=(
+                "Optional policy directory to include in the inventory hash. "
+                "When set, policy changes update the lock fingerprint."
+            ),
+        ),
+        click.option(
+            "--gitlab-url",
+            default=None,
+            help="GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).",
+        ),
+        click.option(
+            "--token",
+            default=None,
+            help="GitLab API token (default: GITLAB_TOKEN or CI_JOB_TOKEN).",
+        ),
+        click.option(
+            "--enrich/--no-enrich",
+            default=False,
+            help=(
+                "Resolve include release metadata and image digests via APIs "
+                "(requires --token). Offline inventory is the default."
+            ),
+        ),
+    ]
+    for option in reversed(options):
+        command = option(command)
+    return command
+
+
+@lock.command("generate")
+@_add_lock_options
+def lock_generate(
+    pipeline_file,
+    lock_file,
+    include_nested,
+    max_include_depth,
+    resolve_external_includes,
+    features_dir,
+    gitlab_url,
+    token,
+    enrich,
+):
+    """Create or overwrite `.gitlab-ci.lock` from the current pipeline inventory."""
+    from src.compliance.console import print_error, print_success
+
+    if (
+        enrich
+        and not token
+        and not (os.getenv("GITLAB_TOKEN") or os.getenv("CI_JOB_TOKEN"))
+    ):
+        print_error("--enrich requires a GitLab token")
+        raise SystemExit(2)
+
+    try:
+        lockfile = build_lockfile(
+            pipeline_file,
+            **_lock_common_kwargs(
+                include_nested,
+                max_include_depth,
+                resolve_external_includes,
+                gitlab_url,
+                token,
+                features_dir,
+                enrich,
+            ),
+        )
+        path = write_lockfile(lockfile, lock_file)
+    except FileNotFoundError as exc:
+        print_error(str(exc))
+        raise SystemExit(2) from exc
+    except Exception as exc:  # pragma: no cover - unexpected IO/parse errors
+        print_error(str(exc))
+        raise SystemExit(2) from exc
+
+    counts = summarize_inventory(lockfile["inventory"])
+    print_success(
+        f"Wrote {path}\n"
+        f"Fingerprint: {lockfile['fingerprint']}\n"
+        f"Jobs: {counts['jobs']}  Includes: {counts['includes']}  "
+        f"Images: {counts['images']}  External steps: {counts['externalSteps']}  "
+        f"Unresolved: {counts['unresolved']}",
+        title="Lock generated",
+    )
+    raise SystemExit(0)
+
+
+@lock.command("update")
+@_add_lock_options
+def lock_update(
+    pipeline_file,
+    lock_file,
+    include_nested,
+    max_include_depth,
+    resolve_external_includes,
+    features_dir,
+    gitlab_url,
+    token,
+    enrich,
+):
+    """Refresh `.gitlab-ci.lock` (alias for generate)."""
+    ctx = click.get_current_context()
+    ctx.forward(lock_generate)
+
+
+@lock.command("verify")
+@_add_lock_options
+def lock_verify(
+    pipeline_file,
+    lock_file,
+    include_nested,
+    max_include_depth,
+    resolve_external_includes,
+    features_dir,
+    gitlab_url,
+    token,
+    enrich,
+):
+    """Fail when the current inventory fingerprint differs from the lock file."""
+    from src.compliance.console import print_error, print_success
+
+    try:
+        result = verify_lockfile(
+            pipeline_file,
+            lock_file,
+            **_lock_common_kwargs(
+                include_nested,
+                max_include_depth,
+                resolve_external_includes,
+                gitlab_url,
+                token,
+                features_dir,
+                enrich,
+            ),
+        )
+    except LockfileError as exc:
+        print_error(str(exc))
+        raise SystemExit(2) from exc
+    except FileNotFoundError as exc:
+        print_error(str(exc))
+        raise SystemExit(2) from exc
+
+    if result["matches"]:
+        print_success(
+            f"Lock matches current inventory.\n"
+            f"Fingerprint: {result['actualFingerprint']}",
+            title="Lock verified",
+        )
+        raise SystemExit(0)
+
+    print_error(
+        "Pipeline inventory does not match the lock file.\n"
+        f"Expected: {result['expectedFingerprint']}\n"
+        f"Actual:   {result['actualFingerprint']}\n"
+        f"Run `gitlab-compliance lock update -p {pipeline_file} -l {lock_file}` "
+        "and commit the refreshed lock.",
+        title="Lock drift",
+        hint="Commit an updated `.gitlab-ci.lock` or investigate unexpected CI changes.",
+    )
+    raise SystemExit(1)
+
+
+@lock.command("fingerprint")
+@_add_lock_options
+@click.option(
+    "--dotenv",
+    "dotenv_file",
+    required=False,
+    default=None,
+    help=(
+        f"Write a GitLab dotenv report with {FINGERPRINT_ENV_KEY} "
+        "(for cache keys / child-pipeline rules)."
+    ),
+)
+@click.option(
+    "--from-lock/--from-pipeline",
+    "from_lock",
+    default=False,
+    help="Read fingerprint from the lock file instead of recomputing from YAML.",
+)
+def lock_fingerprint(
+    pipeline_file,
+    lock_file,
+    include_nested,
+    max_include_depth,
+    resolve_external_includes,
+    features_dir,
+    gitlab_url,
+    token,
+    enrich,
+    dotenv_file,
+    from_lock,
+):
+    """Print the inventory fingerprint (for CI skip / cache keys)."""
+    from src.compliance.console import print_error
+
+    try:
+        if from_lock:
+            lockfile = load_lockfile(lock_file)
+            fingerprint = str(lockfile.get("fingerprint", ""))
+        else:
+            lockfile = build_lockfile(
+                pipeline_file,
+                **_lock_common_kwargs(
+                    include_nested,
+                    max_include_depth,
+                    resolve_external_includes,
+                    gitlab_url,
+                    token,
+                    features_dir,
+                    enrich,
+                ),
+            )
+            fingerprint = str(lockfile.get("fingerprint", ""))
+    except (LockfileError, FileNotFoundError) as exc:
+        print_error(str(exc))
+        raise SystemExit(2) from exc
+
+    click.echo(fingerprint)
+    if dotenv_file:
+        Path(dotenv_file).write_text(dotenv_fingerprint(fingerprint), encoding="utf-8")
+        logger.info(f"Wrote dotenv fingerprint to {dotenv_file}")
+    raise SystemExit(0)
+
+
 gitlab_compliance.add_command(get_attributes)
 gitlab_compliance.add_command(dumps)
 gitlab_compliance.add_command(generate)
@@ -1386,6 +1706,7 @@ gitlab_compliance.add_command(generate_html)
 gitlab_compliance.add_command(check)
 gitlab_compliance.add_command(shell_check)
 gitlab_compliance.add_command(supply_chain)
+gitlab_compliance.add_command(lock)
 gitlab_compliance.add_command(policies)
 gitlab_compliance.add_command(document)
 gitlab_compliance.add_command(release_notes)

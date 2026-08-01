@@ -18,6 +18,7 @@ Standard commands are in `Makefile`, `pyproject.toml` (`[tool.poetry.scripts]`),
 - Run the CLI: `poetry run gitlab-compliance --help`
 - Generate docs: `poetry run gitlab-compliance generate -i <ci.yml> -o <out.md>`
 - Compliance check: `poetry run gitlab-compliance check -f <policy-dir> -p <ci.yml>`
+- Lock inventory: `poetry run gitlab-compliance lock generate -p <ci.yml>`
 - Unit tests: `poetry run pytest tests/ -q`
 - BDD tests: `poetry run behave`
 - Lint: `poetry run pre-commit run --all-files`

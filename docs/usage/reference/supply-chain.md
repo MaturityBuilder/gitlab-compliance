@@ -39,6 +39,8 @@ See [Image pinning](../../examples/image-pinning.md) and
 
 
 
+
+
 ## Usage
 
 ```
@@ -176,9 +178,9 @@ Usage: gitlab-compliance supply-chain [OPTIONS]
 
   Run packaged supply-chain pinning policies against GitLab CI YAML.
 
-  Validates include, image, and service version pinning using bundled
-  GLCI-BUILTIN-IMAGE, GLCI-BUILTIN-INCLUDE, and related policies. Pass
-  --fix to auto-remediate YAML before checking.
+  Validates include, image, and service version pinning using bundled GLCI-
+  BUILTIN-IMAGE, GLCI-BUILTIN-INCLUDE, and related policies. Pass --fix to
+  auto-remediate YAML before checking.
 
 Options:
   -p, --pipeline TEXT             Path to the GitLab CI pipeline YAML file.
