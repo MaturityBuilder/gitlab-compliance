@@ -7,37 +7,28 @@ modes.
 
 from __future__ import annotations
 
-import json
 from typing import Any, Callable, TypeVar
 
 from rich import box
 from rich.columns import Columns
-from rich.console import Console, Group, RenderableType
+from rich.console import Console, Group
 from rich.panel import Panel
-from rich.progress import (
-    BarColumn,
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-    TimeElapsedColumn,
-)
+from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 from rich.rule import Rule
 from rich.table import Table
 from rich.text import Text
 from rich.tree import Tree
 
-from src.compliance.console import get_console
+from src.compliance.console import get_console, print_error
+from src.compliance.include_resolution import REASON_MESSAGES
 from src.compliance.lockfile import summarize_inventory
-from src.compliance.secret_redact import redact_secrets
 
 T = TypeVar("T")
-
-_SHORT_FP = 16
 
 
 def _short_fingerprint(fingerprint: str) -> str:
     value = fingerprint.removeprefix("sha256:")
-    if len(value) <= _SHORT_FP:
+    if len(value) <= 20:
         return fingerprint
     return f"sha256:{value[:12]}…{value[-8:]}"
 
@@ -68,14 +59,12 @@ def _inventory_health(inventory: dict[str, Any]) -> dict[str, Any]:
     include_coverage = (
         100.0 if include_total == 0 else (inventoried_includes / include_total) * 100.0
     )
-    # Successful parse of the pipeline is a strong baseline for lock UX.
-    score = 55.0 + (include_coverage * 0.35)
+    score = 60.0 + (include_coverage * 0.40)
     if image_total:
         pin_rate = (pinned_images / image_total) * 100.0
         score += pin_rate * 0.10
     else:
-        pin_rate = 100.0
-        score += 10.0
+        pin_rate = 0.0
 
     fetch_gaps = [
         item
@@ -309,7 +298,8 @@ def _unresolved_panel(inventory: dict[str, Any]) -> Panel | None:
         entry.append(str(item.get("type") or "include"), style="yellow")
         entry.append("  ")
         entry.append(str(item.get("reference") or "-"))
-        reason = item.get("reason") or "unresolved"
+        reason_code = str(item.get("reason") or "unresolved")
+        reason = REASON_MESSAGES.get(reason_code, reason_code)
         entry.append(f"  ·  {reason}", style="dim")
         lines.append(entry)
     if len(unresolved) > 10:
@@ -394,17 +384,12 @@ def run_with_progress(
     with Progress(
         SpinnerColumn(style="cyan"),
         TextColumn("[bold]{task.description}[/bold]"),
-        BarColumn(bar_width=24, complete_style="cyan", finished_style="green"),
         TimeElapsedColumn(),
         console=out,
         transient=True,
     ) as progress:
-        task_id = progress.add_task(label, total=None)
-        try:
-            result = work()
-        finally:
-            progress.update(task_id, completed=1)
-        return result
+        progress.add_task(label, total=None)
+        return work()
 
 
 def render_lock_report(
@@ -537,8 +522,6 @@ def render_fingerprint_line(
         return
     if quiet or not out.is_terminal:
         out.print(fingerprint)
-        if dotenv_file:
-            out.print(f"# wrote {dotenv_file}", style="dim")
         return
 
     body = Text()
@@ -568,45 +551,4 @@ def render_lock_error(
     console: Console | None = None,
 ) -> None:
     """Render a lock-specific error panel with optional hint."""
-    from src.compliance.console import print_error
-
-    print_error(redact_secrets(message), hint=hint, title="Lock error", console=console)
-
-
-def dumps_report_json(payload: dict[str, Any]) -> str:
-    """Serialize a lock report payload for tests."""
-    return json.dumps(payload, indent=2, sort_keys=True)
-
-
-def collect_report_renderables(
-    *,
-    command: str,
-    lockfile: dict[str, Any],
-    pipeline_file: str,
-    lock_file: str,
-    matches: bool | None = None,
-    verbose: bool = False,
-) -> list[RenderableType]:
-    """Return key renderables (used by tests without printing)."""
-    inventory = lockfile.get("inventory") or {}
-    health = _inventory_health(inventory)
-    counts = summarize_inventory(inventory)
-    items: list[RenderableType] = [
-        _header_panel(
-            title=command,
-            outcome="Inventory locked",
-            outcome_style="bold green",
-            pipeline_file=pipeline_file,
-            lock_file=lock_file,
-            fingerprint=str(lockfile.get("fingerprint", "")),
-        ),
-        _counts_columns(counts, health),
-        _health_banner(health),
-    ]
-    includes = _includes_table(inventory, verbose=verbose)
-    if includes:
-        items.append(includes)
-    images = _images_table(inventory, verbose=verbose)
-    if images:
-        items.append(images)
-    return items
+    print_error(message, hint=hint, title="Lock error", console=console)

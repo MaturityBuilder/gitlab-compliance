@@ -14,7 +14,6 @@ from src.compliance.lock_console import (
     _next_steps,
     _short_fingerprint,
     _unresolved_panel,
-    dumps_report_json,
     render_fingerprint_line,
     render_lock_error,
     render_lock_report,
@@ -31,7 +30,7 @@ def test_short_fingerprint_short_value():
 
 
 def test_inventory_health_letter_grades_and_fetch_gaps():
-    # 55 + 35 + 10 = 100 → A
+    # 60 + 40 = 100 → A
     assert (
         _inventory_health(
             {
@@ -44,8 +43,7 @@ def test_inventory_health_letter_grades_and_fetch_gaps():
         == "A"
     )
 
-    # 55 + 35*0.8 + 10 ≈ 93 still A; lower include coverage for B:
-    # inventoried 2/3 ≈ 66.7% → 55 + 23.3 + 0 pin = 78.3 → B
+    # inventoried 2/3 ≈ 66.7% → 60 + 26.7 + 0 pin = 86.7 → B
     assert (
         _inventory_health(
             {
@@ -62,7 +60,7 @@ def test_inventory_health_letter_grades_and_fetch_gaps():
         == "B"
     )
 
-    # Unresolved project only, no images → 55 + 0 + 10 = 65 → C
+    # Unresolved project only, no images → 60 + 0 = 60 → C
     assert (
         _inventory_health(
             {
@@ -75,7 +73,7 @@ def test_inventory_health_letter_grades_and_fetch_gaps():
         == "C"
     )
 
-    # 55 + 0 pin - 8 fetch gap = 47 → D
+    # 60 + 0 pin - 8 fetch gap = 52 → D
     assert (
         _inventory_health(
             {
@@ -88,7 +86,7 @@ def test_inventory_health_letter_grades_and_fetch_gaps():
         == "D"
     )
 
-    # 55 + 0 - 30 = 25 → E
+    # 60 - 30 = 30 → E
     assert (
         _inventory_health(
             {
@@ -248,17 +246,24 @@ def test_render_fingerprint_json_and_error():
         quiet=True,
         console=quiet,
     )
-    text = quiet.file.getvalue()
-    assert "sha256:abc" in text
-    assert "lock.env" in text
+    assert quiet.file.getvalue().strip() == "sha256:abc"
 
     err = _console()
     render_lock_error("boom", hint="try again", console=err)
     assert "boom" in err.file.getvalue()
 
 
-def test_run_with_progress_terminal_and_dumps_json():
+def test_run_with_progress_terminal():
     console = _console()
     assert run_with_progress("scan", lambda: 7, console=console, quiet=False) == 7
-    payload = dumps_report_json({"ok": True})
-    assert '"ok": true' in payload
+
+
+def test_quiet_fingerprint_is_single_line_even_with_dotenv_path():
+    quiet = Console(file=StringIO(), force_terminal=False)
+    render_fingerprint_line(
+        "sha256:abc",
+        dotenv_file="lock.env",
+        quiet=True,
+        console=quiet,
+    )
+    assert quiet.file.getvalue().strip() == "sha256:abc"

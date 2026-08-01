@@ -319,7 +319,7 @@ def test_lock_verify_missing_pipeline_with_existing_lock(tmp_path):
     assert result.exit_code == 2
 
 
-def test_lock_generate_and_update_generic_errors(tmp_path):
+def test_lock_generate_and_update_os_errors(tmp_path):
     from unittest.mock import patch
 
     pipeline = _pipeline(tmp_path)
@@ -327,7 +327,7 @@ def test_lock_generate_and_update_generic_errors(tmp_path):
 
     with patch(
         "src.gitlab_compliance.build_lockfile",
-        side_effect=RuntimeError("boom"),
+        side_effect=OSError("boom"),
     ):
         generate = runner.invoke(
             gitlab_compliance,
@@ -356,3 +356,33 @@ def test_lock_generate_and_update_generic_errors(tmp_path):
     assert generate.exit_code == 2
     assert update.exit_code == 2
     assert "boom" in generate.output
+
+
+def test_lock_fingerprint_rejects_corrupt_lock(tmp_path):
+    import json
+
+    pipeline = _pipeline(tmp_path)
+    lock_file = tmp_path / ".gitlab-ci.lock"
+    runner = CliRunner()
+    runner.invoke(
+        gitlab_compliance,
+        [
+            "lock",
+            "generate",
+            "-p",
+            str(pipeline),
+            "-l",
+            str(lock_file),
+            "--no-resolve-external-includes",
+            "--quiet",
+        ],
+    )
+    payload = json.loads(lock_file.read_text(encoding="utf-8"))
+    payload["fingerprint"] = "sha256:deadbeef"
+    lock_file.write_text(json.dumps(payload), encoding="utf-8")
+    result = runner.invoke(
+        gitlab_compliance,
+        ["lock", "fingerprint", "--from-lock", "-l", str(lock_file)],
+    )
+    assert result.exit_code == 2
+    assert "does not match" in result.output.lower()

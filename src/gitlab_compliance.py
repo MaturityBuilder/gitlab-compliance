@@ -19,6 +19,7 @@ import src.properties.jobs as jobs
 import src.properties.variables as variables
 import src.properties.workflows as workflows
 from src import __version__
+from src.compliance.api_config import resolve_token
 from src.compliance.lock_console import (
     render_fingerprint_line,
     render_lock_error,
@@ -1530,17 +1531,71 @@ def _add_lock_options(command):
     return command
 
 
+def _resolve_lock_token(token):
+    return token or resolve_token()
+
+
 def _ensure_lock_enrich_token(enrich, token):
-    if (
-        enrich
-        and not token
-        and not (os.getenv("GITLAB_TOKEN") or os.getenv("CI_JOB_TOKEN"))
-    ):
+    if enrich and not token:
         render_lock_error(
             "--enrich requires a GitLab token",
             hint="Pass --token or set GITLAB_TOKEN / CI_JOB_TOKEN.",
         )
         raise SystemExit(2)
+
+
+def _run_lock_write(
+    *,
+    command: str,
+    progress_label: str,
+    pipeline_file,
+    lock_file,
+    include_nested,
+    max_include_depth,
+    resolve_external_includes,
+    features_dir,
+    gitlab_url,
+    token,
+    enrich,
+    verbose,
+    quiet,
+    as_json,
+):
+    resolved_token = _resolve_lock_token(token)
+    _ensure_lock_enrich_token(enrich, resolved_token)
+
+    try:
+        lockfile = run_with_progress(
+            progress_label,
+            lambda: build_lockfile(
+                pipeline_file,
+                **_lock_common_kwargs(
+                    include_nested,
+                    max_include_depth,
+                    resolve_external_includes,
+                    gitlab_url,
+                    resolved_token,
+                    features_dir,
+                    enrich,
+                ),
+            ),
+            quiet=quiet or as_json,
+        )
+        write_lockfile(lockfile, lock_file)
+    except (FileNotFoundError, OSError, LockfileError, ValueError) as exc:
+        render_lock_error(str(exc))
+        raise SystemExit(2) from exc
+
+    render_lock_report(
+        command=command,
+        lockfile=lockfile,
+        pipeline_file=pipeline_file,
+        lock_file=lock_file,
+        verbose=verbose,
+        quiet=quiet,
+        as_json=as_json,
+    )
+    raise SystemExit(0)
 
 
 @lock.command("generate")
@@ -1560,43 +1615,22 @@ def lock_generate(
     as_json,
 ):
     """Create or overwrite `.gitlab-ci.lock` from the current pipeline inventory."""
-    _ensure_lock_enrich_token(enrich, token)
-
-    try:
-        lockfile = run_with_progress(
-            "Scanning pipeline inventory…",
-            lambda: build_lockfile(
-                pipeline_file,
-                **_lock_common_kwargs(
-                    include_nested,
-                    max_include_depth,
-                    resolve_external_includes,
-                    gitlab_url,
-                    token,
-                    features_dir,
-                    enrich,
-                ),
-            ),
-            quiet=quiet or as_json,
-        )
-        write_lockfile(lockfile, lock_file)
-    except FileNotFoundError as exc:
-        render_lock_error(str(exc))
-        raise SystemExit(2) from exc
-    except Exception as exc:  # pragma: no cover - unexpected IO/parse errors
-        render_lock_error(str(exc))
-        raise SystemExit(2) from exc
-
-    render_lock_report(
+    _run_lock_write(
         command="generate",
-        lockfile=lockfile,
+        progress_label="Scanning pipeline inventory…",
         pipeline_file=pipeline_file,
         lock_file=lock_file,
+        include_nested=include_nested,
+        max_include_depth=max_include_depth,
+        resolve_external_includes=resolve_external_includes,
+        features_dir=features_dir,
+        gitlab_url=gitlab_url,
+        token=token,
+        enrich=enrich,
         verbose=verbose,
         quiet=quiet,
         as_json=as_json,
     )
-    raise SystemExit(0)
 
 
 @lock.command("update")
@@ -1616,43 +1650,22 @@ def lock_update(
     as_json,
 ):
     """Refresh `.gitlab-ci.lock` with a modern inventory report."""
-    _ensure_lock_enrich_token(enrich, token)
-
-    try:
-        lockfile = run_with_progress(
-            "Refreshing pipeline inventory…",
-            lambda: build_lockfile(
-                pipeline_file,
-                **_lock_common_kwargs(
-                    include_nested,
-                    max_include_depth,
-                    resolve_external_includes,
-                    gitlab_url,
-                    token,
-                    features_dir,
-                    enrich,
-                ),
-            ),
-            quiet=quiet or as_json,
-        )
-        write_lockfile(lockfile, lock_file)
-    except FileNotFoundError as exc:
-        render_lock_error(str(exc))
-        raise SystemExit(2) from exc
-    except Exception as exc:  # pragma: no cover
-        render_lock_error(str(exc))
-        raise SystemExit(2) from exc
-
-    render_lock_report(
+    _run_lock_write(
         command="update",
-        lockfile=lockfile,
+        progress_label="Refreshing pipeline inventory…",
         pipeline_file=pipeline_file,
         lock_file=lock_file,
+        include_nested=include_nested,
+        max_include_depth=max_include_depth,
+        resolve_external_includes=resolve_external_includes,
+        features_dir=features_dir,
+        gitlab_url=gitlab_url,
+        token=token,
+        enrich=enrich,
         verbose=verbose,
         quiet=quiet,
         as_json=as_json,
     )
-    raise SystemExit(0)
 
 
 @lock.command("verify")
@@ -1672,7 +1685,8 @@ def lock_verify(
     as_json,
 ):
     """Fail when the current inventory fingerprint differs from the lock file."""
-    _ensure_lock_enrich_token(enrich, token)
+    resolved_token = _resolve_lock_token(token)
+    _ensure_lock_enrich_token(enrich, resolved_token)
 
     try:
         result = run_with_progress(
@@ -1685,17 +1699,14 @@ def lock_verify(
                     max_include_depth,
                     resolve_external_includes,
                     gitlab_url,
-                    token,
+                    resolved_token,
                     features_dir,
                     enrich,
                 ),
             ),
             quiet=quiet or as_json,
         )
-    except LockfileError as exc:
-        render_lock_error(str(exc))
-        raise SystemExit(2) from exc
-    except FileNotFoundError as exc:
+    except (LockfileError, FileNotFoundError, OSError) as exc:
         render_lock_error(str(exc))
         raise SystemExit(2) from exc
 
@@ -1749,12 +1760,22 @@ def lock_fingerprint(
     from_lock,
 ):
     """Print the inventory fingerprint (for CI skip / cache keys)."""
-    _ensure_lock_enrich_token(enrich, token)
+    resolved_token = _resolve_lock_token(token)
+    _ensure_lock_enrich_token(enrich, resolved_token)
 
     try:
         if from_lock:
             lockfile = load_lockfile(lock_file)
-            fingerprint = str(lockfile.get("fingerprint", ""))
+            inventory = lockfile.get("inventory") or {}
+            from src.compliance.lockfile import compute_fingerprint
+
+            inventory_fp = compute_fingerprint(inventory)
+            stored = str(lockfile.get("fingerprint", ""))
+            if stored and stored != inventory_fp:
+                raise LockfileError(
+                    "Lock file fingerprint does not match its inventory."
+                )
+            fingerprint = stored or inventory_fp
         else:
             fingerprint = run_with_progress(
                 "Computing inventory fingerprint…",
@@ -1766,7 +1787,7 @@ def lock_fingerprint(
                             max_include_depth,
                             resolve_external_includes,
                             gitlab_url,
-                            token,
+                            resolved_token,
                             features_dir,
                             enrich,
                         ),
@@ -1774,14 +1795,17 @@ def lock_fingerprint(
                 ),
                 quiet=quiet or as_json,
             )
-    except (LockfileError, FileNotFoundError) as exc:
-        render_lock_error(str(exc))
+    except (LockfileError, FileNotFoundError, OSError) as exc:
+        hint = None
+        if "does not match its inventory" in str(exc):
+            hint = "Run `gitlab-compliance lock update` and commit a fresh lock."
+        render_lock_error(str(exc), hint=hint)
         raise SystemExit(2) from exc
 
     if dotenv_file:
         Path(dotenv_file).write_text(dotenv_fingerprint(fingerprint), encoding="utf-8")
+        logger.info(f"Wrote dotenv fingerprint to {dotenv_file}")
 
-    # Fingerprint defaults to quiet/script-friendly unless Rich UI requested.
     render_fingerprint_line(
         fingerprint,
         dotenv_file=dotenv_file,

@@ -18,6 +18,9 @@ from typing import Any
 from src import __version__
 from src.compliance.image_versions import parse_container_image_ref
 from src.modules.constants import DEFAULT_LOCK_FILE
+from src.modules.pipeline_data import (
+    _resolve_local_include_path as resolve_contained_local_include,
+)
 from src.modules.pipeline_data import collect_pipeline_data
 
 LOCKFILE_VERSION = 1
@@ -121,21 +124,47 @@ def _include_identity(include: dict) -> str:
     return f"{include_type}:{project}:{version}:{file_name}"
 
 
+def _pipeline_root(pipeline_file: str) -> Path:
+    return Path(pipeline_file).resolve().parent
+
+
+def _portable_path(path: str | Path | None, pipeline_file: str) -> str:
+    """Return a repo-portable path relative to the pipeline file directory."""
+    if not path:
+        return ""
+    raw = str(path)
+    root = _pipeline_root(pipeline_file)
+    try:
+        return Path(raw).resolve().relative_to(root).as_posix()
+    except ValueError:
+        # Keep user-facing relative inputs as-is; drop absolute foreign paths.
+        return Path(raw).as_posix() if not Path(raw).is_absolute() else Path(raw).name
+
+
+def _normalize_digest(value: Any) -> str:
+    digest = str(value or "").strip()
+    if not digest:
+        return ""
+    if digest.startswith("sha256:"):
+        return digest
+    return f"sha256:{digest}"
+
+
 def _resolve_local_include_path(include: dict, pipeline_file: str) -> Path | None:
-    """Best-effort path for a local include relative to its declaring file."""
+    """Resolve a local include with the same containment rules as pipeline parsing."""
     if include.get("include_type") != "local":
         return None
     declared = str(include.get("project", "")).strip()
     if not declared:
         return None
-    source = include.get("source_file") or pipeline_file
-    base_dir = Path(source).resolve().parent
-    candidate = (base_dir / declared).resolve()
-    if candidate.is_file():
-        return candidate
-    root_candidate = (Path(pipeline_file).resolve().parent / declared).resolve()
-    if root_candidate.is_file():
-        return root_candidate
+    source = str(include.get("source_file") or pipeline_file)
+    resolved = resolve_contained_local_include(source, declared)
+    if resolved and Path(resolved).is_file():
+        return Path(resolved)
+    if source != pipeline_file:
+        resolved = resolve_contained_local_include(pipeline_file, declared)
+        if resolved and Path(resolved).is_file():
+            return Path(resolved)
     return None
 
 
@@ -159,40 +188,37 @@ def _inventory_include(
         "project": include.get("project", ""),
         "ref": include.get("version", ""),
         "file": include.get("file", ""),
-        "sourceFile": source_file,
+        "sourceFile": _portable_path(source_file, pipeline_file),
         "line": line,
         "resolved": False,
         "contentHash": None,
     }
 
     if include_type == "local":
+        location = _include_location_key(include_type, source_file, line)
+        if location in unresolved_locations:
+            return entry
         local_path = _resolve_local_include_path(include, pipeline_file)
         if local_path is not None:
             entry["resolved"] = True
             entry["contentHash"] = _sha256_file(local_path)
-            entry["path"] = str(local_path)
+            entry["path"] = _portable_path(local_path, pipeline_file)
         return entry
 
     location = _include_location_key(include_type, source_file, line)
     if location in unresolved_locations or include_type in {"component", "template"}:
-        entry["resolved"] = False
         return entry
 
-    # Remote/project may have been merged into the stash. Identity + ref is the
-    # offline inventory pin; content hashes require fetched bodies.
+    # Remote/project may be merged; identity + ref is the offline inventory pin.
     entry["resolved"] = include_type in {"remote", "project"}
     return entry
 
 
-def _inventory_image(image: dict) -> dict[str, Any]:
+def _inventory_image(image: dict, pipeline_file: str) -> dict[str, Any]:
     image_ref = str(image.get("image") or image.get("project") or "")
     parsed = parse_container_image_ref(image_ref)
-    digest = parsed.get("digest") or image.get("digest") or ""
-    if digest and not str(digest).startswith("sha256:"):
-        digest = f"sha256:{digest}"
-    latest_digest = image.get("latest_digest") or ""
-    if latest_digest and not str(latest_digest).startswith("sha256:"):
-        latest_digest = f"sha256:{latest_digest}"
+    digest = _normalize_digest(parsed.get("digest") or image.get("digest") or "")
+    latest_digest = _normalize_digest(image.get("latest_digest") or "")
     return {
         "source": image.get("image_source", ""),
         "parentJob": image.get("parent_job", ""),
@@ -201,14 +227,16 @@ def _inventory_image(image: dict) -> dict[str, Any]:
         "repository": parsed.get("repository") or image.get("repository", ""),
         "tag": parsed.get("tag") or image.get("version", ""),
         "digest": digest,
-        "resolvedDigest": latest_digest or (digest or None),
-        "sourceFile": image.get("source_file", ""),
+        "resolvedDigest": latest_digest or digest,
+        "sourceFile": _portable_path(image.get("source_file", ""), pipeline_file),
         "line": image.get("line", 0),
     }
 
 
 def _inventory_external_steps(
-    includes: list[dict], jobs: list[dict]
+    includes: list[dict],
+    jobs: list[dict],
+    pipeline_file: str,
 ) -> list[dict[str, Any]]:
     """External steps: components, templates, and trigger jobs."""
     steps: list[dict[str, Any]] = []
@@ -223,7 +251,9 @@ def _inventory_external_steps(
                 "id": _include_identity(include),
                 "project": include.get("project", ""),
                 "ref": include.get("version", ""),
-                "sourceFile": include.get("source_file", ""),
+                "sourceFile": _portable_path(
+                    include.get("source_file", ""), pipeline_file
+                ),
                 "line": include.get("line", 0),
             }
         )
@@ -240,7 +270,7 @@ def _inventory_external_steps(
                 "job": job.get("name", ""),
                 "trigger": trigger,
                 "stage": values.get("stage", ""),
-                "sourceFile": job.get("source_file", ""),
+                "sourceFile": _portable_path(job.get("source_file", ""), pipeline_file),
                 "line": job.get("line", 0),
             }
         )
@@ -263,7 +293,7 @@ def _pipeline_inventory(
                 "stage": values.get("stage", ""),
                 "isTemplate": bool(job.get("is_template")),
                 "signature": _sha256_text(_canonical_json(values)),
-                "sourceFile": job.get("source_file", ""),
+                "sourceFile": _portable_path(job.get("source_file", ""), pipeline_file),
                 "line": job.get("line", 0),
             }
         )
@@ -283,7 +313,8 @@ def _pipeline_inventory(
             stages.append(stage)
 
     return {
-        "rootFile": os.path.normpath(pipeline_file),
+        "rootFile": _portable_path(pipeline_file, pipeline_file)
+        or Path(pipeline_file).name,
         "rootContentHash": _sha256_file(pipeline_file),
         "stages": stages,
         "jobs": job_entries,
@@ -360,7 +391,7 @@ def build_inventory(
     ]
     includes.sort(key=lambda item: item.get("id", ""))
 
-    images = [_inventory_image(image) for image in raw_images]
+    images = [_inventory_image(image, pipeline_file) for image in raw_images]
     images.sort(
         key=lambda item: (
             item.get("source", ""),
@@ -370,7 +401,7 @@ def build_inventory(
     )
 
     external_steps = _inventory_external_steps(
-        raw_includes, pipeline_data.get("jobs") or []
+        raw_includes, pipeline_data.get("jobs") or [], pipeline_file
     )
 
     unresolved_entries = []
@@ -381,7 +412,9 @@ def build_inventory(
                 "reference": item.get("reference", ""),
                 "reason": item.get("reason") or "unresolved",
                 "detail": item.get("detail", ""),
-                "sourceFile": item.get("source_file", ""),
+                "sourceFile": _portable_path(
+                    item.get("source_file", ""), pipeline_file
+                ),
                 "line": item.get("line", 0),
             }
         )
@@ -405,7 +438,7 @@ def build_inventory(
     if features_dir:
         policy_hash = _hash_path_tree(features_dir)
         inventory["policies"] = {
-            "path": os.path.normpath(features_dir),
+            "path": Path(features_dir).name,
             "contentHash": policy_hash,
         }
 
@@ -439,7 +472,8 @@ def build_lockfile(
         "lockfileVersion": LOCKFILE_VERSION,
         "generator": LOCK_GENERATOR,
         "generatorVersion": __version__,
-        "pipelineFile": os.path.normpath(pipeline_file),
+        "pipelineFile": _portable_path(pipeline_file, pipeline_file)
+        or Path(pipeline_file).name,
         "generatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "fingerprint": fingerprint,
         "inventory": inventory,
@@ -501,13 +535,15 @@ def verify_lockfile(
     )
     expected = str(existing.get("fingerprint", ""))
     actual = str(current.get("fingerprint", ""))
-    # Also accept inventory recompute from stored inventory when present.
-    stored_inventory_fp = compute_fingerprint(existing.get("inventory") or {})
-    matches = actual == expected or actual == stored_inventory_fp
+    inventory_fp = compute_fingerprint(existing.get("inventory") or {})
+    # Reject corrupt locks where the stored fingerprint disagrees with inventory.
+    lock_intact = expected == inventory_fp
+    matches = lock_intact and actual == expected
     return {
         "matches": matches,
         "expectedFingerprint": expected,
         "actualFingerprint": actual,
+        "lockIntact": lock_intact,
         "lockFile": str(lock_file),
         "pipelineFile": pipeline_file,
         "current": current,

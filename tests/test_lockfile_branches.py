@@ -15,6 +15,8 @@ from src.compliance.lockfile import (
     _inventory_image,
     _inventory_include,
     _job_attribute_map,
+    _normalize_digest,
+    _portable_path,
     _resolve_local_include_path,
     _sha256_file,
     build_inventory,
@@ -33,6 +35,25 @@ POLICIES = FIXTURES / "policies"
 
 def test_sha256_file_missing_returns_none(tmp_path):
     assert _sha256_file(tmp_path / "missing.txt") is None
+
+
+def test_portable_path_and_normalize_digest(tmp_path):
+    pipeline = tmp_path / ".gitlab-ci.yml"
+    pipeline.write_text("job:\n  script: [x]\n", encoding="utf-8")
+    assert _portable_path("", str(pipeline)) == ""
+    assert _portable_path(pipeline, str(pipeline)) == ".gitlab-ci.yml"
+    # Absolute path outside pipeline root → basename only.
+    outside = Path("/tmp/foreign-lock-path.yml")
+    assert _portable_path(outside, str(pipeline)) == "foreign-lock-path.yml"
+    # Relative path that cannot resolve under root stays relative-ish.
+    assert _portable_path("nested/file.yml", str(pipeline)) in {
+        "nested/file.yml",
+        "file.yml",
+    }
+
+    assert _normalize_digest("") == ""
+    assert _normalize_digest("sha256:abc") == "sha256:abc"
+    assert _normalize_digest("abc") == "sha256:abc"
 
 
 def test_hash_path_tree_missing_file_and_empty_dir(tmp_path):
@@ -85,6 +106,8 @@ def test_resolve_local_include_path_branches(tmp_path):
     nested_dir.mkdir()
     target = tmp_path / "shared.yml"
     target.write_text("x:\n  script: [y]\n", encoding="utf-8")
+    nested_local = nested_dir / "child.yml"
+    nested_local.write_text("x:\n  script: [y]\n", encoding="utf-8")
 
     assert _resolve_local_include_path({"include_type": "project"}, str(root)) is None
     assert (
@@ -94,26 +117,52 @@ def test_resolve_local_include_path_branches(tmp_path):
         is None
     )
 
-    # source_file in nested dir; path relative to pipeline root.
-    found = _resolve_local_include_path(
+    # Contained relative to declaring nested file.
+    found_nested = _resolve_local_include_path(
         {
             "include_type": "local",
-            "project": "shared.yml",
-            "source_file": str(nested_dir / "child.yml"),
+            "project": "child.yml",
+            "source_file": str(nested_local),
         },
         str(root),
     )
-    assert found == target.resolve()
+    assert found_nested == nested_local.resolve()
+
+    # Fallback to pipeline-root containment.
+    found_root = _resolve_local_include_path(
+        {
+            "include_type": "local",
+            "project": "shared.yml",
+            "source_file": str(nested_local),
+        },
+        str(root),
+    )
+    assert found_root == target.resolve()
+
+    # Path escape rejected.
+    outside = tmp_path.parent / "outside-lock-secret.env"
+    assert (
+        _resolve_local_include_path(
+            {
+                "include_type": "local",
+                "project": "../outside-lock-secret.env",
+                "source_file": str(root),
+            },
+            str(root),
+        )
+        is None
+    )
 
     missing = _resolve_local_include_path(
         {
             "include_type": "local",
             "project": "absent.yml",
-            "source_file": str(nested_dir / "child.yml"),
+            "source_file": str(nested_local),
         },
         str(root),
     )
     assert missing is None
+    del outside
 
 
 def test_inventory_include_remote_project_template_and_unresolved(tmp_path):
@@ -212,10 +261,12 @@ def test_inventory_image_digest_normalization():
             "image_source": "job",
             "parent_job": "build",
             "latest_digest": "deadbeef",
-        }
+        },
+        ".gitlab-ci.yml",
     )
     assert with_prefix["digest"] == "sha256:abc"
     assert with_prefix["resolvedDigest"] == "sha256:deadbeef"
+    assert isinstance(with_prefix["resolvedDigest"], str)
 
     from_fields = _inventory_image(
         {
@@ -226,7 +277,8 @@ def test_inventory_image_digest_normalization():
             "registry": "registry-1.docker.io",
             "repository": "library/python",
             "version": "3.12",
-        }
+        },
+        ".gitlab-ci.yml",
     )
     assert from_fields["image"] == "python:3.12"
     assert from_fields["digest"] == "sha256:feedface"
@@ -268,7 +320,7 @@ def test_inventory_external_steps_template_and_trigger():
             "line": 10,
         },
     ]
-    steps = _inventory_external_steps(includes, jobs)
+    steps = _inventory_external_steps(includes, jobs, ".gitlab-ci.yml")
     kinds = {step["kind"] for step in steps}
     assert kinds == {"component", "template", "trigger"}
 
@@ -305,14 +357,47 @@ def test_load_lockfile_rejects_non_object(tmp_path):
         load_lockfile(path)
 
 
-def test_verify_accepts_inventory_recomputed_fingerprint(tmp_path):
+def test_verify_rejects_corrupt_top_level_fingerprint(tmp_path):
     lockfile = build_lockfile(str(MINIMAL), resolve_external_includes=False)
-    # Corrupt top-level fingerprint but keep inventory accurate.
     lockfile["fingerprint"] = "sha256:deadbeef"
     path = tmp_path / ".gitlab-ci.lock"
     write_lockfile(lockfile, path)
     result = verify_lockfile(str(MINIMAL), path, resolve_external_includes=False)
-    assert result["matches"] is True
+    assert result["matches"] is False
+    assert result["lockIntact"] is False
+
+
+def test_fingerprint_is_portable_across_directories(tmp_path):
+    import shutil
+
+    src = FIXTURES / "full-inventory"
+    fps = []
+    for name in ("a", "b"):
+        dest = tmp_path / name
+        shutil.copytree(src, dest)
+        fps.append(
+            build_lockfile(
+                str(dest / ".gitlab-ci.yml"), resolve_external_includes=False
+            )["fingerprint"]
+        )
+    assert fps[0] == fps[1]
+
+
+def test_path_rejected_local_include_is_not_hashed(tmp_path):
+    secret = tmp_path / "secret.env"
+    secret.write_text("TOKEN=1\n", encoding="utf-8")
+    nested = tmp_path / "ci"
+    nested.mkdir()
+    pipeline = nested / ".gitlab-ci.yml"
+    pipeline.write_text(
+        "include:\n  - local: ../secret.env\njob:\n  script: [echo]\n",
+        encoding="utf-8",
+    )
+    inventory = build_inventory(str(pipeline), resolve_external_includes=False)
+    local = next(item for item in inventory["includes"] if item["type"] == "local")
+    assert local["resolved"] is False
+    assert not local.get("contentHash")
+    assert not str(local.get("path") or "").startswith("/")
 
 
 def test_dumps_lockfile_trailing_newline():

@@ -9,7 +9,6 @@ from rich.console import Console
 from src.compliance.lock_console import (
     _inventory_health,
     _short_fingerprint,
-    collect_report_renderables,
     render_fingerprint_line,
     render_lock_report,
     run_with_progress,
@@ -148,12 +147,15 @@ def test_render_fingerprint_and_progress():
     assert run_with_progress("work", lambda: 42, quiet=True) == 42
 
 
-def test_collect_report_renderables():
-    items = collect_report_renderables(
+def test_render_lock_report_verbose_json_includes_inventory():
+    console = Console(file=StringIO(), force_terminal=False, width=80)
+    render_lock_report(
         command="generate",
         lockfile=_sample_lockfile(),
         pipeline_file=".gitlab-ci.yml",
         lock_file=".gitlab-ci.lock",
         verbose=True,
+        as_json=True,
+        console=console,
     )
-    assert len(items) >= 3
+    assert '"inventory"' in console.file.getvalue()
