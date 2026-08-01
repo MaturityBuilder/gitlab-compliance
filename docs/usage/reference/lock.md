@@ -96,15 +96,29 @@ inventory:
 
 The dotenv key is `GITLAB_COMPLIANCE_LOCK_FINGERPRINT`.
 
-## Offline by default
+## Upstream includes and image digests
 
-`lock generate` works without a GitLab token. Pass `--enrich` (with a token) to
-resolve include release metadata and container digests into the inventory when
-you want registry-backed pins recorded.
+By default `lock generate` / `update` / `verify`:
+
+- Walks the **full upstream include closure** (`remote:`, `project:`, and
+  GitLab `template:` includes when reachable)
+- Records a **content hash** for each fetched include YAML
+- Attempts **image digests** for job/service images (Docker Hub without a
+  token; GitLab Container Registry when `--token` / `GITLAB_TOKEN` is set)
+- Resolves include **release metadata** when a GitLab token is available
+
+CI components are still inventory-declared (identity/ref) but cannot be merged
+from the GitLab API the same way.
+
+For a fully offline inventory (no network):
+
+```bash
+gitlab-compliance lock generate -p .gitlab-ci.yml \
+  --no-resolve-external-includes \
+  --no-enrich
+```
 
 <!-- MANUAL DOCS:END -->
-
-
 
 ## Usage
 

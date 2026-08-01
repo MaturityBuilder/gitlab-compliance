@@ -172,11 +172,44 @@ def _include_location_key(include_type: str, source_file: str, line: int) -> str
     return f"{include_type}|{source_file}|{line}"
 
 
+def _fetch_upstream_content_hashes(
+    raw_includes: list[dict],
+    *,
+    gitlab_url: str | None,
+    token: str | None,
+) -> dict[str, str]:
+    """Fetch upstream include YAML and return identity → content hash."""
+    from src.compliance.include_fetch import (
+        FetchedInclude,
+        IncludeFetchCache,
+        default_gitlab_url,
+        fetch_include_content,
+    )
+
+    cache = IncludeFetchCache()
+    hashes: dict[str, str] = {}
+    for include in raw_includes:
+        include_type = str(include.get("include_type", ""))
+        if include_type == "local":
+            continue
+        result = fetch_include_content(
+            include,
+            gitlab_url=default_gitlab_url(gitlab_url),
+            token=token,
+            cache=cache,
+            allow_template=True,
+        )
+        if isinstance(result, FetchedInclude) and result.yaml_text:
+            hashes[_include_identity(include)] = _sha256_text(result.yaml_text)
+    return hashes
+
+
 def _inventory_include(
     include: dict,
     pipeline_file: str,
     *,
     unresolved_locations: set[str],
+    content_hashes: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     include_type = str(include.get("include_type", ""))
     identity = _include_identity(include)
@@ -206,10 +239,16 @@ def _inventory_include(
         return entry
 
     location = _include_location_key(include_type, source_file, line)
+    upstream_hash = (content_hashes or {}).get(identity)
+    if upstream_hash:
+        entry["resolved"] = True
+        entry["contentHash"] = upstream_hash
+        return entry
+
     if location in unresolved_locations or include_type in {"component", "template"}:
         return entry
 
-    # Remote/project may be merged; identity + ref is the offline inventory pin.
+    # Declared remote/project without fetched body — pin by identity/ref only.
     entry["resolved"] = include_type in {"remote", "project"}
     return entry
 
@@ -217,8 +256,9 @@ def _inventory_include(
 def _inventory_image(image: dict, pipeline_file: str) -> dict[str, Any]:
     image_ref = str(image.get("image") or image.get("project") or "")
     parsed = parse_container_image_ref(image_ref)
-    digest = _normalize_digest(parsed.get("digest") or image.get("digest") or "")
-    latest_digest = _normalize_digest(image.get("latest_digest") or "")
+    declared = _normalize_digest(parsed.get("digest") or image.get("digest") or "")
+    resolved = _normalize_digest(image.get("latest_digest") or "")
+    digest = declared or resolved
     return {
         "source": image.get("image_source", ""),
         "parentJob": image.get("parent_job", ""),
@@ -227,7 +267,7 @@ def _inventory_image(image: dict, pipeline_file: str) -> dict[str, Any]:
         "repository": parsed.get("repository") or image.get("repository", ""),
         "tag": parsed.get("tag") or image.get("version", ""),
         "digest": digest,
-        "resolvedDigest": latest_digest or digest,
+        "resolvedDigest": resolved or declared,
         "sourceFile": _portable_path(image.get("source_file", ""), pipeline_file),
         "line": image.get("line", 0),
     }
@@ -329,15 +369,27 @@ def build_inventory(
     *,
     include_nested: bool = True,
     max_include_depth: int | None = None,
-    resolve_external_includes: bool | None = None,
+    resolve_external_includes: bool | None = True,
+    resolve_templates: bool = True,
     gitlab_url: str | None = None,
     token: str | None = None,
     features_dir: str | None = None,
-    enrich: bool = False,
+    enrich: bool = True,
 ) -> dict[str, Any]:
-    """Build a lock inventory from pipeline YAML (offline by default)."""
+    """Build a lock inventory, resolving upstream includes and image digests.
+
+    By default this walks the full include closure (remote/project/template when
+    reachable), hashes fetched include YAML, and attempts registry digests for
+    job/service images. Pass ``enrich=False`` / disable external resolution for
+    an offline-only inventory.
+    """
     if not os.path.exists(pipeline_file):
         raise FileNotFoundError(f"Pipeline file not found: {pipeline_file}")
+
+    # Offline mode: --no-resolve-external-includes also skips template fetches.
+    effective_resolve_templates = (
+        False if resolve_external_includes is False else resolve_templates
+    )
 
     pipeline_data = collect_pipeline_data(
         config_file=pipeline_file,
@@ -347,6 +399,7 @@ def build_inventory(
         include_scripts=True,
         resolve_job_composition=True,
         resolve_external_includes=resolve_external_includes,
+        resolve_templates=effective_resolve_templates,
         gitlab_url=gitlab_url,
         token=token,
     )
@@ -355,18 +408,31 @@ def build_inventory(
     raw_images = list(pipeline_data.get("container_images") or [])
     unresolved = list(pipeline_data.get("unresolved_includes") or [])
 
-    if enrich and token:
-        from src.compliance.image_versions import enrich_container_images_with_releases
-        from src.compliance.include_versions import enrich_includes_with_releases
-        from src.compliance.release_cache import ReleaseMetadataCache
-
-        cache = ReleaseMetadataCache()
-        raw_includes = enrich_includes_with_releases(
+    # Upstream YAML hashes track the include closure. Skip when external
+    # resolution is explicitly disabled (offline inventory).
+    content_hashes: dict[str, str] = {}
+    if resolve_external_includes is not False:
+        content_hashes = _fetch_upstream_content_hashes(
             raw_includes,
             gitlab_url=gitlab_url,
             token=token,
-            cache=cache,
         )
+
+    if enrich:
+        from src.compliance.image_versions import enrich_container_images_with_releases
+        from src.compliance.release_cache import ReleaseMetadataCache
+
+        cache = ReleaseMetadataCache()
+        if token:
+            from src.compliance.include_versions import enrich_includes_with_releases
+
+            raw_includes = enrich_includes_with_releases(
+                raw_includes,
+                gitlab_url=gitlab_url,
+                token=token,
+                cache=cache,
+            )
+        # Docker Hub digests work without a token; GitLab Container Registry needs one.
         raw_images = enrich_container_images_with_releases(
             raw_images,
             gitlab_url=gitlab_url,
@@ -385,7 +451,10 @@ def build_inventory(
 
     includes = [
         _inventory_include(
-            include, pipeline_file, unresolved_locations=unresolved_locations
+            include,
+            pipeline_file,
+            unresolved_locations=unresolved_locations,
+            content_hashes=content_hashes,
         )
         for include in raw_includes
     ]
@@ -450,11 +519,12 @@ def build_lockfile(
     *,
     include_nested: bool = True,
     max_include_depth: int | None = None,
-    resolve_external_includes: bool | None = None,
+    resolve_external_includes: bool | None = True,
+    resolve_templates: bool = True,
     gitlab_url: str | None = None,
     token: str | None = None,
     features_dir: str | None = None,
-    enrich: bool = False,
+    enrich: bool = True,
 ) -> dict[str, Any]:
     """Build a complete lockfile document with fingerprint."""
     inventory = build_inventory(
@@ -462,6 +532,7 @@ def build_lockfile(
         include_nested=include_nested,
         max_include_depth=max_include_depth,
         resolve_external_includes=resolve_external_includes,
+        resolve_templates=resolve_templates,
         gitlab_url=gitlab_url,
         token=token,
         features_dir=features_dir,
@@ -512,11 +583,12 @@ def verify_lockfile(
     *,
     include_nested: bool = True,
     max_include_depth: int | None = None,
-    resolve_external_includes: bool | None = None,
+    resolve_external_includes: bool | None = True,
+    resolve_templates: bool = True,
     gitlab_url: str | None = None,
     token: str | None = None,
     features_dir: str | None = None,
-    enrich: bool = False,
+    enrich: bool = True,
 ) -> dict[str, Any]:
     """Compare current inventory fingerprint to a committed lockfile.
 
@@ -528,6 +600,7 @@ def verify_lockfile(
         include_nested=include_nested,
         max_include_depth=max_include_depth,
         resolve_external_includes=resolve_external_includes,
+        resolve_templates=resolve_templates,
         gitlab_url=gitlab_url,
         token=token,
         features_dir=features_dir,

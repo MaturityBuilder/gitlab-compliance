@@ -59,7 +59,9 @@ def _write_pipeline(tmp_path: Path) -> Path:
 
 def test_build_inventory_includes_images_services_and_external_steps(tmp_path):
     pipeline = _write_pipeline(tmp_path)
-    inventory = build_inventory(str(pipeline), resolve_external_includes=False)
+    inventory = build_inventory(
+        str(pipeline), resolve_external_includes=False, enrich=False
+    )
 
     assert inventory["pipeline"]["rootContentHash"].startswith("sha256:")
     assert any(job["name"] == "build" for job in inventory["pipeline"]["jobs"])
@@ -88,8 +90,10 @@ def test_build_inventory_includes_images_services_and_external_steps(tmp_path):
 
 def test_build_lockfile_fingerprint_stable(tmp_path):
     pipeline = _write_pipeline(tmp_path)
-    first = build_lockfile(str(pipeline), resolve_external_includes=False)
-    second = build_lockfile(str(pipeline), resolve_external_includes=False)
+    first = build_lockfile(str(pipeline), resolve_external_includes=False, enrich=False)
+    second = build_lockfile(
+        str(pipeline), resolve_external_includes=False, enrich=False
+    )
     assert first["fingerprint"] == second["fingerprint"]
     assert first["fingerprint"] == compute_fingerprint(first["inventory"])
     assert first["lockfileVersion"] == 1
@@ -99,14 +103,20 @@ def test_build_lockfile_fingerprint_stable(tmp_path):
 def test_write_and_verify_lockfile(tmp_path):
     pipeline = _write_pipeline(tmp_path)
     lock_path = tmp_path / DEFAULT_LOCK_FILE
-    lockfile = build_lockfile(str(pipeline), resolve_external_includes=False)
+    lockfile = build_lockfile(
+        str(pipeline), resolve_external_includes=False, enrich=False
+    )
     write_lockfile(lockfile, lock_path)
 
-    result = verify_lockfile(str(pipeline), lock_path, resolve_external_includes=False)
+    result = verify_lockfile(
+        str(pipeline), lock_path, resolve_external_includes=False, enrich=False
+    )
     assert result["matches"] is True
 
     pipeline.write_text(pipeline.read_text(encoding="utf-8") + "\n# drift\n")
-    drifted = verify_lockfile(str(pipeline), lock_path, resolve_external_includes=False)
+    drifted = verify_lockfile(
+        str(pipeline), lock_path, resolve_external_includes=False, enrich=False
+    )
     assert drifted["matches"] is False
 
 
@@ -121,12 +131,14 @@ def test_policy_directory_changes_fingerprint(tmp_path):
         str(pipeline),
         features_dir=str(policies),
         resolve_external_includes=False,
+        enrich=False,
     )
     feature.write_text("Feature: changed\n", encoding="utf-8")
     updated = build_lockfile(
         str(pipeline),
         features_dir=str(policies),
         resolve_external_includes=False,
+        enrich=False,
     )
     assert locked["fingerprint"] != updated["fingerprint"]
     assert locked["inventory"]["policies"]["contentHash"].startswith("sha256:")

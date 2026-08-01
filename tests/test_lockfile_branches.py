@@ -350,6 +350,96 @@ def test_build_inventory_enrich_branch_mocked():
     assert any(item["kind"] == "trigger" for item in inventory["externalSteps"])
 
 
+def test_build_inventory_enrich_without_token_skips_include_metadata():
+    with (
+        patch(
+            "src.compliance.include_versions.enrich_includes_with_releases",
+            side_effect=lambda items, **kwargs: items,
+        ) as include_enrich,
+        patch(
+            "src.compliance.image_versions.enrich_container_images_with_releases",
+            side_effect=lambda items, **kwargs: [
+                {
+                    **item,
+                    "latest_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                }
+                for item in items
+            ],
+        ) as image_enrich,
+    ):
+        inventory = build_inventory(
+            str(FULL),
+            resolve_external_includes=False,
+            enrich=True,
+            token=None,
+        )
+    assert not include_enrich.called
+    assert image_enrich.called
+    # Service image has no declared digest; enrich fills resolvedDigest.
+    postgres = next(item for item in inventory["images"] if "postgres" in item["image"])
+    assert postgres["digest"].startswith("sha256:")
+    assert postgres["resolvedDigest"].startswith("sha256:")
+
+
+def test_upstream_include_content_hash_from_fetch():
+    from src.compliance.include_fetch import FetchedInclude
+
+    yaml_body = "remote-job:\n  script: [echo remote]\n"
+    with (
+        patch(
+            "src.modules.pipeline_data.fetch_include_content",
+            return_value=FetchedInclude(
+                config_label="https://example.com/ci.yml",
+                yaml_text=yaml_body,
+            ),
+        ),
+        patch(
+            "src.compliance.include_fetch.fetch_include_content",
+            return_value=FetchedInclude(
+                config_label="https://example.com/ci.yml",
+                yaml_text=yaml_body,
+            ),
+        ),
+    ):
+        inventory = build_inventory(
+            str(FULL),
+            resolve_external_includes=True,
+            resolve_templates=False,
+            enrich=False,
+            token=None,
+        )
+    remote = next(item for item in inventory["includes"] if item["type"] == "remote")
+    assert remote["resolved"] is True
+    assert remote["contentHash"] and remote["contentHash"].startswith("sha256:")
+
+
+def test_resolve_templates_disabled_when_externals_disabled():
+    captured: dict = {}
+
+    def _fake_collect(**kwargs):
+        captured.update(kwargs)
+        return {
+            "includes": [],
+            "container_images": [],
+            "unresolved_includes": [],
+            "jobs": [],
+            "variables": [],
+            "workflow_rules": [],
+        }
+
+    with patch(
+        "src.compliance.lockfile.collect_pipeline_data",
+        side_effect=_fake_collect,
+    ):
+        build_inventory(
+            str(FULL),
+            resolve_external_includes=False,
+            resolve_templates=True,
+            enrich=False,
+        )
+    assert captured["resolve_templates"] is False
+
+
 def test_load_lockfile_rejects_non_object(tmp_path):
     path = tmp_path / "list.lock"
     path.write_text(json.dumps([1, 2, 3]), encoding="utf-8")
@@ -358,11 +448,15 @@ def test_load_lockfile_rejects_non_object(tmp_path):
 
 
 def test_verify_rejects_corrupt_top_level_fingerprint(tmp_path):
-    lockfile = build_lockfile(str(MINIMAL), resolve_external_includes=False)
+    lockfile = build_lockfile(
+        str(MINIMAL), resolve_external_includes=False, enrich=False
+    )
     lockfile["fingerprint"] = "sha256:deadbeef"
     path = tmp_path / ".gitlab-ci.lock"
     write_lockfile(lockfile, path)
-    result = verify_lockfile(str(MINIMAL), path, resolve_external_includes=False)
+    result = verify_lockfile(
+        str(MINIMAL), path, resolve_external_includes=False, enrich=False
+    )
     assert result["matches"] is False
     assert result["lockIntact"] is False
 
@@ -377,7 +471,9 @@ def test_fingerprint_is_portable_across_directories(tmp_path):
         shutil.copytree(src, dest)
         fps.append(
             build_lockfile(
-                str(dest / ".gitlab-ci.yml"), resolve_external_includes=False
+                str(dest / ".gitlab-ci.yml"),
+                resolve_external_includes=False,
+                enrich=False,
             )["fingerprint"]
         )
     assert fps[0] == fps[1]
@@ -393,7 +489,9 @@ def test_path_rejected_local_include_is_not_hashed(tmp_path):
         "include:\n  - local: ../secret.env\njob:\n  script: [echo]\n",
         encoding="utf-8",
     )
-    inventory = build_inventory(str(pipeline), resolve_external_includes=False)
+    inventory = build_inventory(
+        str(pipeline), resolve_external_includes=False, enrich=False
+    )
     local = next(item for item in inventory["includes"] if item["type"] == "local")
     assert local["resolved"] is False
     assert not local.get("contentHash")
@@ -401,7 +499,9 @@ def test_path_rejected_local_include_is_not_hashed(tmp_path):
 
 
 def test_dumps_lockfile_trailing_newline():
-    lockfile = build_lockfile(str(MINIMAL), resolve_external_includes=False)
+    lockfile = build_lockfile(
+        str(MINIMAL), resolve_external_includes=False, enrich=False
+    )
     text = dumps_lockfile(lockfile)
     assert text.endswith("\n")
     assert json.loads(text)["lockfileVersion"] == 1

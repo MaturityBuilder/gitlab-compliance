@@ -55,6 +55,7 @@ def test_lock_generate_verify_fingerprint_roundtrip(tmp_path):
             "-l",
             str(lock_file),
             "--no-resolve-external-includes",
+            "--no-enrich",
         ],
     )
     assert generate.exit_code == 0, generate.output
@@ -74,6 +75,7 @@ def test_lock_generate_verify_fingerprint_roundtrip(tmp_path):
             "-l",
             str(lock_file),
             "--no-resolve-external-includes",
+            "--no-enrich",
         ],
     )
     assert verify.exit_code == 0, verify.output
@@ -87,6 +89,7 @@ def test_lock_generate_verify_fingerprint_roundtrip(tmp_path):
             "-p",
             str(pipeline),
             "--no-resolve-external-includes",
+            "--no-enrich",
             "--quiet",
         ],
     )
@@ -108,6 +111,7 @@ def test_lock_generate_json_and_quiet(tmp_path):
             "-l",
             str(lock_file),
             "--no-resolve-external-includes",
+            "--no-enrich",
             "--json",
         ],
     )
@@ -126,6 +130,7 @@ def test_lock_generate_json_and_quiet(tmp_path):
             "-l",
             str(lock_file),
             "--no-resolve-external-includes",
+            "--no-enrich",
             "--quiet",
         ],
     )
@@ -147,6 +152,7 @@ def test_lock_verify_detects_drift(tmp_path):
             "-l",
             str(lock_file),
             "--no-resolve-external-includes",
+            "--no-enrich",
         ],
     )
     pipeline.write_text(
@@ -163,6 +169,7 @@ def test_lock_verify_detects_drift(tmp_path):
             "-l",
             str(lock_file),
             "--no-resolve-external-includes",
+            "--no-enrich",
         ],
     )
     assert result.exit_code == 1
@@ -188,6 +195,7 @@ def test_lock_fingerprint_dotenv_and_from_lock(tmp_path):
             "-l",
             str(lock_file),
             "--no-resolve-external-includes",
+            "--no-enrich",
         ],
     )
     result = runner.invoke(
@@ -220,6 +228,7 @@ def test_lock_update_rewrites_file(tmp_path):
             "-l",
             str(lock_file),
             "--no-resolve-external-includes",
+            "--no-enrich",
         ],
     )
     original = lock_file.read_text(encoding="utf-8")
@@ -237,6 +246,7 @@ def test_lock_update_rewrites_file(tmp_path):
             "-l",
             str(lock_file),
             "--no-resolve-external-includes",
+            "--no-enrich",
         ],
     )
     assert update.exit_code == 0, update.output
@@ -301,6 +311,7 @@ def test_lock_verify_missing_pipeline_with_existing_lock(tmp_path):
             "-l",
             str(lock_file),
             "--no-resolve-external-includes",
+            "--no-enrich",
             "--quiet",
         ],
     )
@@ -314,6 +325,7 @@ def test_lock_verify_missing_pipeline_with_existing_lock(tmp_path):
             "-l",
             str(lock_file),
             "--no-resolve-external-includes",
+            "--no-enrich",
         ],
     )
     assert result.exit_code == 2
@@ -339,6 +351,7 @@ def test_lock_generate_and_update_os_errors(tmp_path):
                 "-l",
                 str(tmp_path / "a.lock"),
                 "--no-resolve-external-includes",
+                "--no-enrich",
             ],
         )
         update = runner.invoke(
@@ -351,6 +364,7 @@ def test_lock_generate_and_update_os_errors(tmp_path):
                 "-l",
                 str(tmp_path / "b.lock"),
                 "--no-resolve-external-includes",
+                "--no-enrich",
             ],
         )
     assert generate.exit_code == 2
@@ -374,6 +388,7 @@ def test_lock_fingerprint_rejects_corrupt_lock(tmp_path):
             "-l",
             str(lock_file),
             "--no-resolve-external-includes",
+            "--no-enrich",
             "--quiet",
         ],
     )

@@ -1406,6 +1406,7 @@ def _lock_common_kwargs(
     include_nested,
     max_include_depth,
     resolve_external_includes,
+    resolve_templates,
     gitlab_url,
     token,
     features_dir,
@@ -1415,6 +1416,7 @@ def _lock_common_kwargs(
         "include_nested": include_nested,
         "max_include_depth": max_include_depth,
         "resolve_external_includes": resolve_external_includes,
+        "resolve_templates": resolve_templates,
         "gitlab_url": gitlab_url,
         "token": token,
         "features_dir": features_dir,
@@ -1469,10 +1471,19 @@ def _add_lock_options(command):
         click.option(
             "--resolve-external-includes/--no-resolve-external-includes",
             "resolve_external_includes",
-            default=None,
+            default=True,
             help=(
-                "Fetch remote and project include YAML (default: auto — remote always, "
-                "project when a token is available)."
+                "Fetch the full upstream include closure (remote/project YAML; "
+                "templates follow --resolve-templates). Default: enabled."
+            ),
+        ),
+        click.option(
+            "--resolve-templates/--no-resolve-templates",
+            "resolve_templates",
+            default=True,
+            help=(
+                "Fetch GitLab CI template includes into the inventory closure. "
+                "Ignored when --no-resolve-external-includes is set."
             ),
         ),
         click.option(
@@ -1498,10 +1509,11 @@ def _add_lock_options(command):
         ),
         click.option(
             "--enrich/--no-enrich",
-            default=False,
+            default=True,
             help=(
-                "Resolve include release metadata and image digests via APIs "
-                "(requires --token). Offline inventory is the default."
+                "Attempt image digest resolution (Docker Hub without a token; "
+                "GitLab Container Registry with --token) and include release "
+                "metadata when a token is available. Use --no-enrich for offline."
             ),
         ),
         click.option(
@@ -1535,15 +1547,6 @@ def _resolve_lock_token(token):
     return token or resolve_token()
 
 
-def _ensure_lock_enrich_token(enrich, token):
-    if enrich and not token:
-        render_lock_error(
-            "--enrich requires a GitLab token",
-            hint="Pass --token or set GITLAB_TOKEN / CI_JOB_TOKEN.",
-        )
-        raise SystemExit(2)
-
-
 def _run_lock_write(
     *,
     command: str,
@@ -1553,6 +1556,7 @@ def _run_lock_write(
     include_nested,
     max_include_depth,
     resolve_external_includes,
+    resolve_templates,
     features_dir,
     gitlab_url,
     token,
@@ -1562,7 +1566,6 @@ def _run_lock_write(
     as_json,
 ):
     resolved_token = _resolve_lock_token(token)
-    _ensure_lock_enrich_token(enrich, resolved_token)
 
     try:
         lockfile = run_with_progress(
@@ -1573,6 +1576,7 @@ def _run_lock_write(
                     include_nested,
                     max_include_depth,
                     resolve_external_includes,
+                    resolve_templates,
                     gitlab_url,
                     resolved_token,
                     features_dir,
@@ -1606,6 +1610,7 @@ def lock_generate(
     include_nested,
     max_include_depth,
     resolve_external_includes,
+    resolve_templates,
     features_dir,
     gitlab_url,
     token,
@@ -1623,6 +1628,7 @@ def lock_generate(
         include_nested=include_nested,
         max_include_depth=max_include_depth,
         resolve_external_includes=resolve_external_includes,
+        resolve_templates=resolve_templates,
         features_dir=features_dir,
         gitlab_url=gitlab_url,
         token=token,
@@ -1641,6 +1647,7 @@ def lock_update(
     include_nested,
     max_include_depth,
     resolve_external_includes,
+    resolve_templates,
     features_dir,
     gitlab_url,
     token,
@@ -1658,6 +1665,7 @@ def lock_update(
         include_nested=include_nested,
         max_include_depth=max_include_depth,
         resolve_external_includes=resolve_external_includes,
+        resolve_templates=resolve_templates,
         features_dir=features_dir,
         gitlab_url=gitlab_url,
         token=token,
@@ -1676,6 +1684,7 @@ def lock_verify(
     include_nested,
     max_include_depth,
     resolve_external_includes,
+    resolve_templates,
     features_dir,
     gitlab_url,
     token,
@@ -1686,7 +1695,6 @@ def lock_verify(
 ):
     """Fail when the current inventory fingerprint differs from the lock file."""
     resolved_token = _resolve_lock_token(token)
-    _ensure_lock_enrich_token(enrich, resolved_token)
 
     try:
         result = run_with_progress(
@@ -1698,6 +1706,7 @@ def lock_verify(
                     include_nested,
                     max_include_depth,
                     resolve_external_includes,
+                    resolve_templates,
                     gitlab_url,
                     resolved_token,
                     features_dir,
@@ -1749,6 +1758,7 @@ def lock_fingerprint(
     include_nested,
     max_include_depth,
     resolve_external_includes,
+    resolve_templates,
     features_dir,
     gitlab_url,
     token,
@@ -1761,7 +1771,6 @@ def lock_fingerprint(
 ):
     """Print the inventory fingerprint (for CI skip / cache keys)."""
     resolved_token = _resolve_lock_token(token)
-    _ensure_lock_enrich_token(enrich, resolved_token)
 
     try:
         if from_lock:
@@ -1786,6 +1795,7 @@ def lock_fingerprint(
                             include_nested,
                             max_include_depth,
                             resolve_external_includes,
+                            resolve_templates,
                             gitlab_url,
                             resolved_token,
                             features_dir,

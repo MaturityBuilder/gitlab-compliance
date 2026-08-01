@@ -41,10 +41,17 @@ Usage: gitlab-compliance lock generate [OPTIONS]
 
 * `resolve_external_includes`:
   * Type: BOOL
-  * Default: `none`
+  * Default: `true`
   * Usage: `--resolve-external-includes`
 
-  Fetch remote and project include YAML (default: auto — remote always, project when a token is available).
+  Fetch the full upstream include closure (remote/project YAML; templates follow --resolve-templates). Default: enabled.
+
+* `resolve_templates`:
+  * Type: BOOL
+  * Default: `true`
+  * Usage: `--resolve-templates`
+
+  Fetch GitLab CI template includes into the inventory closure. Ignored when --no-resolve-external-includes is set.
 
 * `features_dir`:
   * Type: STRING
@@ -70,10 +77,10 @@ Usage: gitlab-compliance lock generate [OPTIONS]
 
 * `enrich`:
   * Type: BOOL
-  * Default: `false`
+  * Default: `true`
   * Usage: `--enrich`
 
-  Resolve include release metadata and image digests via APIs (requires --token). Offline inventory is the default.
+  Attempt image digest resolution (Docker Hub without a token; GitLab Container Registry with --token) and include release metadata when a token is available. Use --no-enrich for offline.
 
 * `verbose`:
   * Type: BOOL
@@ -124,9 +131,13 @@ Options:
   --max-include-depth INTEGER     Max local include nesting depth from the
                                   root file (omit for unlimited).
   --resolve-external-includes / --no-resolve-external-includes
-                                  Fetch remote and project include YAML
-                                  (default: auto — remote always, project when
-                                  a token is available).
+                                  Fetch the full upstream include closure
+                                  (remote/project YAML; templates follow
+                                  --resolve-templates). Default: enabled.
+  --resolve-templates / --no-resolve-templates
+                                  Fetch GitLab CI template includes into the
+                                  inventory closure. Ignored when --no-
+                                  resolve-external-includes is set.
   -f, --features TEXT             Optional policy directory to include in the
                                   inventory hash. When set, policy changes
                                   update the lock fingerprint.
@@ -134,9 +145,11 @@ Options:
                                   or https://gitlab.com).
   --token TEXT                    GitLab API token (default: GITLAB_TOKEN or
                                   CI_JOB_TOKEN).
-  --enrich / --no-enrich          Resolve include release metadata and image
-                                  digests via APIs (requires --token). Offline
-                                  inventory is the default.
+  --enrich / --no-enrich          Attempt image digest resolution (Docker Hub
+                                  without a token; GitLab Container Registry
+                                  with --token) and include release metadata
+                                  when a token is available. Use --no-enrich
+                                  for offline.
   -v, --verbose                   Show full inventory tables (no row
                                   truncation).
   -q, --quiet                     Minimal output (fingerprint only) for

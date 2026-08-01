@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
@@ -29,7 +30,9 @@ def runner() -> CliRunner:
 
 class TestLockFixtureInventory:
     def test_full_inventory_fixture_shapes_lock(self):
-        lockfile = build_lockfile(str(FULL), resolve_external_includes=False)
+        lockfile = build_lockfile(
+            str(FULL), resolve_external_includes=False, enrich=False
+        )
         inventory = lockfile["inventory"]
         types = {item["type"] for item in inventory["includes"]}
         assert {"local", "project", "component", "template", "remote"} <= types
@@ -40,18 +43,21 @@ class TestLockFixtureInventory:
         assert inventory["pipeline"]["workflowRuleCount"] >= 1
 
     def test_policies_fixture_changes_fingerprint(self):
-        without = build_lockfile(str(MINIMAL), resolve_external_includes=False)
+        without = build_lockfile(
+            str(MINIMAL), resolve_external_includes=False, enrich=False
+        )
         with_policies = build_lockfile(
             str(MINIMAL),
             resolve_external_includes=False,
+            enrich=False,
             features_dir=str(POLICIES),
         )
         assert without["fingerprint"] != with_policies["fingerprint"]
 
     def test_broken_local_include_is_inventoried(self):
-        inventory = build_lockfile(str(BROKEN), resolve_external_includes=False)[
-            "inventory"
-        ]
+        inventory = build_lockfile(
+            str(BROKEN), resolve_external_includes=False, enrich=False
+        )["inventory"]
         locals_ = [i for i in inventory["includes"] if i["type"] == "local"]
         assert locals_
         assert locals_[0]["resolved"] is False
@@ -82,6 +88,7 @@ class TestLockCliIntegration:
                 "-f",
                 str(POLICIES),
                 "--no-resolve-external-includes",
+                "--no-enrich",
                 "--verbose",
             ],
         )
@@ -101,6 +108,7 @@ class TestLockCliIntegration:
                 "-f",
                 str(POLICIES),
                 "--no-resolve-external-includes",
+                "--no-enrich",
                 "--json",
             ],
         )
@@ -126,6 +134,7 @@ class TestLockCliIntegration:
                 "-f",
                 str(POLICIES),
                 "--no-resolve-external-includes",
+                "--no-enrich",
             ],
         )
         assert drifted.exit_code == 1
@@ -143,6 +152,7 @@ class TestLockCliIntegration:
                 "-f",
                 str(POLICIES),
                 "--no-resolve-external-includes",
+                "--no-enrich",
                 "--quiet",
             ],
         )
@@ -153,7 +163,7 @@ class TestLockCliIntegration:
         lock_path = tmp_path / ".gitlab-ci.lock"
         dotenv = tmp_path / "lock.env"
         write_lockfile(
-            build_lockfile(str(MINIMAL), resolve_external_includes=False),
+            build_lockfile(str(MINIMAL), resolve_external_includes=False, enrich=False),
             lock_path,
         )
         result = runner.invoke(
@@ -176,25 +186,34 @@ class TestLockCliIntegration:
             encoding="utf-8"
         )
 
-    def test_enrich_without_token_exits_2(self, runner):
-        result = runner.invoke(
-            gitlab_compliance,
-            [
-                "lock",
-                "generate",
-                "-p",
-                str(MINIMAL),
-                "--enrich",
-                "--no-resolve-external-includes",
-            ],
-            env={
-                **os.environ,
-                "GITLAB_TOKEN": "",
-                "CI_JOB_TOKEN": "",
-            },
-        )
-        assert result.exit_code == 2
-        assert "token" in result.output.lower()
+    def test_enrich_without_token_still_runs(self, runner, tmp_path):
+        """Image digest enrichment does not require a GitLab token."""
+        lock_path = tmp_path / ".gitlab-ci.lock"
+        with patch(
+            "src.compliance.image_versions.enrich_container_images_with_releases",
+            side_effect=lambda items, **kwargs: items,
+        ):
+            result = runner.invoke(
+                gitlab_compliance,
+                [
+                    "lock",
+                    "generate",
+                    "-p",
+                    str(MINIMAL),
+                    "-l",
+                    str(lock_path),
+                    "--enrich",
+                    "--no-resolve-external-includes",
+                    "--quiet",
+                ],
+                env={
+                    **os.environ,
+                    "GITLAB_TOKEN": "",
+                    "CI_JOB_TOKEN": "",
+                },
+            )
+        assert result.exit_code == 0, result.output
+        assert lock_path.is_file()
 
     def test_verify_missing_lock_exits_2(self, runner, tmp_path):
         result = runner.invoke(
@@ -207,6 +226,7 @@ class TestLockCliIntegration:
                 "-l",
                 str(tmp_path / "missing.lock"),
                 "--no-resolve-external-includes",
+                "--no-enrich",
             ],
         )
         assert result.exit_code == 2
@@ -220,6 +240,7 @@ class TestLockCliIntegration:
                 "-p",
                 str(MINIMAL),
                 "--no-resolve-external-includes",
+                "--no-enrich",
                 "--json",
             ],
         )
@@ -243,6 +264,7 @@ class TestLockSubprocessIntegration:
                 "-l",
                 str(lock_path),
                 "--no-resolve-external-includes",
+                "--no-enrich",
                 "--json",
             ],
             cwd=str(REPO_ROOT),
@@ -267,6 +289,7 @@ class TestLockSubprocessIntegration:
                 "-l",
                 str(lock_path),
                 "--no-resolve-external-includes",
+                "--no-enrich",
                 "--quiet",
             ],
             cwd=str(REPO_ROOT),
@@ -279,8 +302,12 @@ class TestLockSubprocessIntegration:
 
     def test_api_verify_matches_cli_fingerprint(self, tmp_path):
         lock_path = tmp_path / ".gitlab-ci.lock"
-        lockfile = build_lockfile(str(FULL), resolve_external_includes=False)
+        lockfile = build_lockfile(
+            str(FULL), resolve_external_includes=False, enrich=False
+        )
         write_lockfile(lockfile, lock_path)
-        result = verify_lockfile(str(FULL), lock_path, resolve_external_includes=False)
+        result = verify_lockfile(
+            str(FULL), lock_path, resolve_external_includes=False, enrich=False
+        )
         assert result["matches"] is True
         assert result["actualFingerprint"] == lockfile["fingerprint"]
