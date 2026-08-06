@@ -4,16 +4,28 @@
 # title: Container images must be pinned
 # description: Job images must use sha256 digests instead of mutable tags.
 # custom:
-#   id: GLCI-IMAGE-PINNING
+#   id: GLCI-BUILTIN-IMAGE
 #   severity: HIGH
+#   owasp_cicd:
+#     - CICD-SEC-3
+#     - CICD-SEC-9
+#   iso27001:
+#     - A.8.25
+#     - A.8.9
 Feature: Container images must be pinned
 
 # METADATA
 # title: Job images must use sha256 digest
 # description: Immutable digest pinning is the default supply-chain control.
 # custom:
-#   id: GLCI-IMAGE-PINNING-001
+#   id: GLCI-BUILTIN-IMAGE-01
 #   severity: HIGH
+#   owasp_cicd:
+#     - CICD-SEC-3
+#     - CICD-SEC-9
+#   iso27001:
+#     - A.8.25
+#     - A.8.9
   Scenario: Job images must use sha256 digest
     Given I have container image from "job" defined
     Then it must use sha256 digest
@@ -22,8 +34,14 @@ Feature: Container images must be pinned
 # title: Disallow latest image tags
 # description: "Prevents jobs from using mutable latest tags such as docker:latest."
 # custom:
-#   id: GLCI-IMAGE-PINNING-002
+#   id: GLCI-BUILTIN-IMAGE-02
 #   severity: HIGH
+#   owasp_cicd:
+#     - CICD-SEC-3
+#     - CICD-SEC-9
+#   iso27001:
+#     - A.8.25
+#     - A.8.9
   Scenario: Job images must not use the latest tag
     Given I have any job defined
     When it has image
@@ -33,8 +51,14 @@ Feature: Container images must be pinned
 # title: Recommend explicit image version or digest
 # description: Ensures every job image includes a version tag or sha256 digest.
 # custom:
-#   id: GLCI-IMAGE-PINNING-003
+#   id: GLCI-BUILTIN-IMAGE-03
 #   severity: MEDIUM
+#   owasp_cicd:
+#     - CICD-SEC-3
+#     - CICD-SEC-9
+#   iso27001:
+#     - A.8.25
+#     - A.8.9
   Scenario: Job images must include an explicit version or digest
     Given I have any job defined
     When it has image
@@ -44,8 +68,15 @@ Feature: Container images must be pinned
 # title: Container images must not lag behind registry latest
 # description: API-backed check against external registry tags.
 # custom:
-#   id: GLCI-IMAGE-PINNING-004
+#   id: GLCI-BUILTIN-IMAGE-04
 #   severity: MEDIUM
+#   owasp_cicd:
+#     - CICD-SEC-3
+#     - CICD-SEC-9
+#   iso27001:
+#     - A.8.25
+#     - A.8.8
+#     - A.8.9
   Scenario: Container images must not lag behind registry latest
     Given I have any container image with release metadata defined
     Then a newer image release must not be available

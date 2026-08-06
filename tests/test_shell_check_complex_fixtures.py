@@ -15,17 +15,17 @@ GOOD = FIXTURES / "complex-good-pipeline.yml"
 BAD = FIXTURES / "complex-bad-pipeline.yml"
 
 EXPECTED_FAMILIES = (
-    "GLCI-SHELL-QUOTE",
-    "GLCI-SHELL-ERR",
-    "GLCI-SHELL-FILE",
-    "GLCI-SHELL-PIPE",
-    "GLCI-SHELL-SAFE",
-    "GLCI-SHELL-PIN",
-    "GLCI-SHELL-PORT",
-    "GLCI-SHELL-SUB",
-    "GLCI-SHELL-CI",
-    "GLCI-SHELL-TEST",
-    "GLCI-SHELL-REF",
+    "GLCI-BUILTIN-SHELL-QUOTE",
+    "GLCI-BUILTIN-SHELL-ERR",
+    "GLCI-BUILTIN-SHELL-FILE",
+    "GLCI-BUILTIN-SHELL-PIPE",
+    "GLCI-BUILTIN-SHELL-SAFE",
+    "GLCI-BUILTIN-SHELL-PIN",
+    "GLCI-BUILTIN-SHELL-PORT",
+    "GLCI-BUILTIN-SHELL-SUB",
+    "GLCI-BUILTIN-SHELL-CI",
+    "GLCI-BUILTIN-SHELL-TEST",
+    "GLCI-BUILTIN-SHELL-REF",
 )
 
 
@@ -111,11 +111,11 @@ def test_shell_check_policy_filter_runs_selected_ids_only():
         pipeline_file=str(BAD),
         with_shell_check=True,
         output_format="markdown",
-        policies=["GLCI-SHELL-PIN-003", "GLCI-SHELL-QUOTE-001"],
+        policies=["GLCI-BUILTIN-SHELL-PIN-03", "GLCI-BUILTIN-SHELL-QUOTE-01"],
     )
     assert result.scenarios == 2
     ids = {scenario.policy_id for scenario in result.scenario_results}
-    assert ids == {"GLCI-SHELL-PIN-003", "GLCI-SHELL-QUOTE-001"}
+    assert ids == {"GLCI-BUILTIN-SHELL-PIN-03", "GLCI-BUILTIN-SHELL-QUOTE-01"}
     assert result.failed == 2
 
 
@@ -125,11 +125,11 @@ def test_shell_check_policy_glob_and_feature_stem():
         pipeline_file=str(BAD),
         with_shell_check=True,
         output_format="markdown",
-        policies=["GLCI-SHELL-PIN*"],
+        policies=["GLCI-BUILTIN-SHELL-PIN*"],
     )
     assert pin_result.scenarios == 10
     assert all(
-        (scenario.policy_id or "").startswith("GLCI-SHELL-PIN")
+        (scenario.policy_id or "").startswith("GLCI-BUILTIN-SHELL-PIN")
         for scenario in pin_result.scenario_results
     )
 
@@ -143,7 +143,7 @@ def test_shell_check_policy_glob_and_feature_stem():
     assert quote_result.scenarios == 4
     assert quote_result.failed == 0
     assert all(
-        (scenario.policy_id or "").startswith("GLCI-SHELL-QUOTE")
+        (scenario.policy_id or "").startswith("GLCI-BUILTIN-SHELL-QUOTE")
         for scenario in quote_result.scenario_results
     )
 

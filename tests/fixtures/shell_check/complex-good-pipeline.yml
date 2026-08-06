@@ -1,4 +1,4 @@
-# Complex compliant pipeline: anchors, extends, hidden jobs, all GLCI-SHELL pass patterns.
+# Complex compliant pipeline: anchors, extends, hidden jobs, all GLCI-BUILTIN-SHELL pass patterns.
 stages:
   - prepare
   - build

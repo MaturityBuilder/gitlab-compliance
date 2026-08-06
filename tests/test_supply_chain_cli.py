@@ -84,8 +84,8 @@ def test_supply_chain_runs_packaged_policies():
         ["supply-chain", "-p", str(SAMPLE_PIPELINE)],
     )
     assert result.exit_code in {0, 1}
-    assert "GLCI-IMAGE-PINNING" in result.output
-    assert "GLCI-INCLUDE-VERSIONS" in result.output
+    assert "GLCI-BUILTIN-IMAGE" in result.output
+    assert "GLCI-BUILTIN-INCLUDE" in result.output
     assert "gitlab-compliance supply-chain" in result.output
 
 
@@ -141,8 +141,8 @@ def test_check_with_supply_chain_only():
         ["check", "--with-supply-chain", "-p", str(SAMPLE_PIPELINE)],
     )
     assert result.exit_code in {0, 1}
-    assert "GLCI-IMAGE-PINNING" in result.output
-    assert "GLCI-INCLUDE-VERSIONS" in result.output
+    assert "GLCI-BUILTIN-IMAGE" in result.output
+    assert "GLCI-BUILTIN-INCLUDE" in result.output
 
 
 def test_builtin_supply_chain_dir_contains_pinning_policies():

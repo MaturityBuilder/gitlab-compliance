@@ -28,6 +28,7 @@ theme:
 
 nav:
   - Overview: index.md
+  - Builtin Policies: builtin-policies.md
   - Installation:
     - installation/index.md
     - Installing via Homebrew: installation/homebrew.md

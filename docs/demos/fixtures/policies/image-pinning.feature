@@ -2,7 +2,7 @@
 # title: Container images must be pinned
 # description: Job images must use sha256 digests instead of mutable tags.
 # custom:
-#   id: GLCI-IMAGE-PINNING
+#   id: GLCI-BUILTIN-IMAGE
 #   severity: HIGH
 Feature: Container images must be pinned
 
@@ -10,7 +10,7 @@ Feature: Container images must be pinned
 # title: Job images must use sha256 digest
 # description: Immutable digest pinning for demo policies.
 # custom:
-#   id: GLCI-IMAGE-PINNING-001
+#   id: GLCI-BUILTIN-IMAGE-01
 #   severity: HIGH
   Scenario: Job images must use sha256 digest
     Given I have container image from "job" defined
@@ -20,7 +20,7 @@ Feature: Container images must be pinned
 # title: Disallow latest image tags
 # description: Prevents jobs from using mutable latest tags.
 # custom:
-#   id: GLCI-IMAGE-PINNING-002
+#   id: GLCI-BUILTIN-IMAGE-02
 #   severity: HIGH
   Scenario: Job images must not use the latest tag
     Given I have any job defined

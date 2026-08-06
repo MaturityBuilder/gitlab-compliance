@@ -620,7 +620,7 @@ class TestResolvePolicyDirectories:
         shell_ids = [
             s.policy_id
             for s in result.scenario_results
-            if s.policy_id.startswith("GLCI-SHELL")
+            if s.policy_id.startswith("GLCI-BUILTIN-SHELL")
         ]
         assert shell_ids
         assert len(shell_ids) == len(set(shell_ids))
@@ -809,9 +809,12 @@ class TestWithShellCheckPolicies:
             with_shell_check=True,
         )
         policy_ids = {s.policy_id for s in result.scenario_results if s.policy_id}
-        assert any(pid.startswith("GLCI-SHELL") for pid in policy_ids)
-        assert any(pid == "GLCI-SHELL-PIN-003" for pid in policy_ids)
-        assert not any(pid.startswith("GLCI-BUILTIN") for pid in policy_ids)
+        assert any(pid.startswith("GLCI-BUILTIN-SHELL") for pid in policy_ids)
+        assert any(pid == "GLCI-BUILTIN-SHELL-PIN-03" for pid in policy_ids)
+        # shell-check must not pull top-level builtin or supply-chain packs
+        assert not any(pid.startswith("GLCI-BUILTIN-BASELINE") for pid in policy_ids)
+        assert not any(pid.startswith("GLCI-BUILTIN-IMAGE") for pid in policy_ids)
+        assert not any(pid.startswith("GLCI-BUILTIN-INCLUDE") for pid in policy_ids)
 
     def test_with_shell_check_only_without_features_dir(self):
         good_pipeline = (
@@ -823,7 +826,7 @@ class TestWithShellCheckPolicies:
             with_shell_check=True,
         )
         policy_ids = {s.policy_id for s in result.scenario_results if s.policy_id}
-        assert any(pid.startswith("GLCI-SHELL") for pid in policy_ids)
+        assert any(pid.startswith("GLCI-BUILTIN-SHELL") for pid in policy_ids)
         assert result.success is True
 
     def test_without_policy_sources_raises(self):
@@ -842,5 +845,5 @@ class TestWithSupplyChainPolicies:
             with_supply_chain=True,
         )
         policy_ids = {s.policy_id for s in result.scenario_results if s.policy_id}
-        assert any(pid.startswith("GLCI-IMAGE-PINNING") for pid in policy_ids)
-        assert any(pid.startswith("GLCI-INCLUDE-VERSIONS") for pid in policy_ids)
+        assert any(pid.startswith("GLCI-BUILTIN-IMAGE") for pid in policy_ids)
+        assert any(pid.startswith("GLCI-BUILTIN-INCLUDE") for pid in policy_ids)

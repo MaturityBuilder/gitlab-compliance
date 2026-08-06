@@ -2,15 +2,25 @@
 # title: Script reference resolution
 # description: Detect unresolved GitLab !reference tags in script blocks.
 # custom:
-#   id: GLCI-SHELL-REF
+#   id: GLCI-BUILTIN-SHELL-REF
 #   severity: HIGH
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.9
+#     - A.8.25
 Feature: Script reference resolution
 
 # METADATA
 # title: No unresolved script references
 # custom:
-#   id: GLCI-SHELL-REF-001
+#   id: GLCI-BUILTIN-SHELL-REF-01
 #   severity: HIGH
+#   owasp_cicd:
+#     - CICD-SEC-7
+#   iso27001:
+#     - A.8.9
+#     - A.8.25
   Scenario: Scripts must not contain unresolved references
     Given I have any job with effective script defined
     Then unresolved script references must not be present

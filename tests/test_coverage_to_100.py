@@ -609,11 +609,13 @@ class TestFinalCoverageLines:
                 )
             ]
         )
-        assert "- **Custom:**" in render_policy_catalog(
-            catalog, str(tmp_path), "markdown"
-        )
+        md = render_policy_catalog(catalog, str(tmp_path), "markdown")
+        assert "| Severity " in md
+        assert "high" in md
+        assert "`GLCI-META-001`" in md
         html = render_policy_catalog(catalog, str(tmp_path), "html")
-        assert "severity" in html
+        assert "high" in html
+        assert "Severity" in html
 
         bare = PolicyCatalog(
             features=[

@@ -244,7 +244,7 @@ def script_has_unquoted_command_substitution(entity: dict) -> bool:
     strings are not treated as unquoted expansions. Only top-level
     substitutions are considered for word-splitting risk. Bash process
     substitutions (``<(...)`` / ``>(...)``) are excluded — they are not
-    command substitutions for GLCI-SHELL-QUOTE-003.
+    command substitutions for GLCI-BUILTIN-SHELL-QUOTE-03.
     """
     for line in _active_lines(entity):
         for span in iter_command_substitutions(line, dialect="bash", nested=False):
@@ -1096,7 +1096,7 @@ def evidence_bashisms_without_bash(entity: dict) -> str | None:
     hit = _first_active_line(entity, _line_has_bashism)
     if hit and shebang:
         return f"{shebang}; {hit}"
-    return hit or shebang or None
+    return hit or shebang or None  # pragma: no cover — bashism True ⇒ hit+shebang set
 
 
 def evidence_posix_bashisms(entity: dict) -> str | None:

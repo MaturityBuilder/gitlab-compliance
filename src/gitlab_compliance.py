@@ -17,6 +17,7 @@ import src.properties.inputs as inputs
 import src.properties.jobs as jobs
 import src.properties.variables as variables
 import src.properties.workflows as workflows
+from src import __version__
 from src.compliance.metadata import build_policy_catalog
 from src.compliance.oci_registry import (
     DEFAULT_POLICY_DIR,
@@ -224,6 +225,7 @@ class _DualBrandCliGroup(click.Group):
 
 
 @click.group(cls=_DualBrandCliGroup)
+@click.version_option(__version__, prog_name="gitlab-compliance")
 def gitlab_compliance():
     """
     GitLab CI compliance and pipeline documentation.
@@ -667,7 +669,7 @@ def _resolve_policies_dir(
     is_flag=True,
     default=False,
     help=(
-        "Also run packaged GLCI-SHELL script standards for before_script, "
+        "Also run packaged GLCI-BUILTIN-SHELL script standards for before_script, "
         "script, and after_script."
     ),
 )
@@ -937,7 +939,7 @@ def supply_chain(
     Run packaged supply-chain pinning policies against GitLab CI YAML.
 
     Validates include, image, and service version pinning using bundled
-    GLCI-IMAGE-PINNING, GLCI-INCLUDE-VERSIONS, and related policies.
+    GLCI-BUILTIN-IMAGE, GLCI-BUILTIN-INCLUDE, and related policies.
     Pass --fix to auto-remediate YAML before checking.
     """
     from src.compliance.builtin_policies import BUILTIN_SUPPLY_CHAIN_POLICIES_DIR
@@ -1082,7 +1084,7 @@ def supply_chain(
     default=None,
     help=(
         "Policy directory to run instead of packaged shell standards. "
-        "Defaults to packaged GLCI-SHELL policies."
+        "Defaults to packaged GLCI-BUILTIN-SHELL policies."
     ),
 )
 @click.option(
@@ -1106,7 +1108,7 @@ def supply_chain(
     help=(
         "Run only matching policies (repeatable or comma-separated). "
         "Matches policy IDs or feature file stems; supports globs "
-        "(e.g. GLCI-SHELL-PIN-003, GLCI-SHELL-PIN*, shell-quoting)."
+        "(e.g. GLCI-BUILTIN-SHELL-PIN-03, GLCI-BUILTIN-SHELL-PIN*, shell-quoting)."
     ),
 )
 def shell_check(
@@ -1129,7 +1131,7 @@ def shell_check(
     """
     Run packaged Gherkin shell standards for CI scripts (not the ShellCheck tool).
 
-    Validates before_script/script/after_script using builtin GLCI-SHELL-* policies.
+    Validates before_script/script/after_script using builtin GLCI-BUILTIN-SHELL-* policies.
     Does not install, detect, or invoke the external ShellCheck binary.
     """
     from src.compliance.builtin_policies import BUILTIN_SHELL_POLICIES_DIR
@@ -1202,7 +1204,7 @@ def shell_check(
             print_error(
                 f"Shell-check failed for `{pipeline_file}`",
                 title="Complete",
-                hint="Review GLCI-SHELL findings, then re-run after fixes.",
+                hint="Review GLCI-BUILTIN-SHELL findings, then re-run after fixes.",
             )
     raise SystemExit(result.exit_code)
 

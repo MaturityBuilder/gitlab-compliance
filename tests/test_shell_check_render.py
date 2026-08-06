@@ -31,7 +31,7 @@ def _failed_scenario() -> ScenarioResult:
             f"{FIXTURES / 'bad-pipeline.yml'}:17: curl without --fail/-f "
             "via: extends:.bad-template"
         ),
-        policy_id="GLCI-SHELL-CI-001",
+        policy_id="GLCI-BUILTIN-SHELL-CI-01",
         title="curl uses fail flag",
         description="curl must use --fail or -f",
     )
@@ -171,7 +171,7 @@ class TestRenderShellCheckReport:
                     name="Skipped",
                     status="skipped",
                     message="",
-                    policy_id="GLCI-SHELL-SKIP",
+                    policy_id="GLCI-BUILTIN-SHELL-SKIP",
                     title="Skipped policy",
                 ),
             ],
@@ -192,7 +192,7 @@ class TestRenderShellCheckReport:
         text = render_shell_check_report(result, PIPELINE, POLICIES, "mr-comment")
         assert "Coverage gaps" in text
         assert "Skipped policies" in text
-        assert "GLCI-SHELL-SKIP" in text
+        assert "GLCI-BUILTIN-SHELL-SKIP" in text
 
 
 class TestShellRenderHelpers:

@@ -3,7 +3,7 @@
 Run packaged supply-chain pinning policies against GitLab CI YAML.
 
     Validates include, image, and service version pinning using bundled
-    GLCI-IMAGE-PINNING, GLCI-INCLUDE-VERSIONS, and related policies.
+    GLCI-BUILTIN-IMAGE, GLCI-BUILTIN-INCLUDE, and related policies.
     Pass --fix to auto-remediate YAML before checking.
 
 <!-- MANUAL DOCS:START -->
@@ -12,8 +12,8 @@ Run packaged supply-chain pinning policies against GitLab CI YAML.
 
 Bundled policies cover:
 
-- **Include pinning** (`GLCI-INCLUDE-VERSIONS`)
-- **Container image pinning** (`GLCI-IMAGE-PINNING`)
+- **Include pinning** (`GLCI-BUILTIN-INCLUDE`)
+- **Container image pinning** (`GLCI-BUILTIN-IMAGE`)
 - **Service container pinning** (for example `docker:dind` version tags)
 
 ## Run
@@ -176,9 +176,9 @@ Usage: gitlab-compliance supply-chain [OPTIONS]
 
   Run packaged supply-chain pinning policies against GitLab CI YAML.
 
-  Validates include, image, and service version pinning using bundled GLCI-
-  IMAGE-PINNING, GLCI-INCLUDE-VERSIONS, and related policies. Pass --fix to
-  auto-remediate YAML before checking.
+  Validates include, image, and service version pinning using bundled
+  GLCI-BUILTIN-IMAGE, GLCI-BUILTIN-INCLUDE, and related policies. Pass
+  --fix to auto-remediate YAML before checking.
 
 Options:
   -p, --pipeline TEXT             Path to the GitLab CI pipeline YAML file.
