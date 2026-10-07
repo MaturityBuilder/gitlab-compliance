@@ -16,6 +16,7 @@ from src.compliance.api_enrichment import ApiEnrichmentRequirements
 from src.compliance.builtin_policies import BUILTIN_POLICIES_DIR
 from src.compliance.include_fetch import (
     ExternalIncludeContext,
+    FetchedInclude,
     IncludeFetchCache,
     IncludeFetchFailure,
 )
@@ -550,6 +551,99 @@ class TestPipelineDataUncovered:
             _external_context=None,
         )
         assert unresolved[0].reason == "unsupported_type"
+
+    def test_process_parsed_include_resolves_template_when_enabled(self, tmp_path):
+        cfg = tmp_path / "ci.yml"
+        cfg.write_text("job:\n  script: echo\n", encoding="utf-8")
+        data = {"includes": [], "jobs": [], "variables": [], "workflow_rules": []}
+        unresolved = []
+        with patch(
+            "src.modules.pipeline_data.fetch_include_content",
+            return_value=FetchedInclude(
+                config_label="template:Auto-DevOps.gitlab-ci.yml",
+                yaml_text="template-job:\n  script: [echo]\n",
+            ),
+        ):
+            _process_parsed_include(
+                {
+                    "include_type": "template",
+                    "project": "Auto-DevOps.gitlab-ci.yml",
+                    "version": "n/a",
+                    "valid_version": False,
+                    "file": "",
+                    "variables": {},
+                    "rules": [],
+                    "source_file": "",
+                    "line": 1,
+                },
+                config_file=str(cfg),
+                data=data,
+                can_recurse=True,
+                include_nested=True,
+                detailed=True,
+                max_include_depth=None,
+                exclude_sections=None,
+                exclude_attributes=None,
+                group_by=None,
+                include_scripts=False,
+                resolve_job_composition=False,
+                resolve_external_includes=True,
+                resolve_templates=True,
+                gitlab_url=None,
+                token=None,
+                _depth=0,
+                _visited=set(),
+                _job_registry={},
+                _fetch_cache=IncludeFetchCache(),
+                _unresolved=unresolved,
+                _external_context=None,
+            )
+        assert not unresolved
+        assert any(job["name"] == "template-job" for job in data["jobs"])
+
+    def test_process_parsed_include_template_fetch_failure(self, tmp_path):
+        cfg = tmp_path / "ci.yml"
+        cfg.write_text("job:\n  script: echo\n", encoding="utf-8")
+        unresolved = []
+        with patch(
+            "src.modules.pipeline_data.fetch_include_content",
+            return_value=IncludeFetchFailure(reason="fetch_failed", detail="404"),
+        ):
+            _process_parsed_include(
+                {
+                    "include_type": "template",
+                    "project": "Missing.gitlab-ci.yml",
+                    "version": "n/a",
+                    "valid_version": False,
+                    "file": "",
+                    "variables": {},
+                    "rules": [],
+                    "source_file": "",
+                    "line": 1,
+                },
+                config_file=str(cfg),
+                data={"includes": [], "jobs": []},
+                can_recurse=True,
+                include_nested=True,
+                detailed=True,
+                max_include_depth=None,
+                exclude_sections=None,
+                exclude_attributes=None,
+                group_by=None,
+                include_scripts=False,
+                resolve_job_composition=False,
+                resolve_external_includes=True,
+                resolve_templates=True,
+                gitlab_url=None,
+                token=None,
+                _depth=0,
+                _visited=set(),
+                _job_registry={},
+                _fetch_cache=IncludeFetchCache(),
+                _unresolved=unresolved,
+                _external_context=None,
+            )
+        assert unresolved[0].reason == "fetch_failed"
 
 
 class TestGitlabComplianceUncoveredCli:

@@ -353,6 +353,7 @@ def _collect_from_fetched_yaml(
     include_scripts: bool,
     resolve_job_composition: bool,
     resolve_external_includes: bool | None,
+    resolve_templates: bool = False,
     gitlab_url: str | None,
     token: str | None,
     _depth: int,
@@ -403,6 +404,7 @@ def _collect_from_fetched_yaml(
             include_scripts=include_scripts,
             resolve_job_composition=resolve_job_composition,
             resolve_external_includes=resolve_external_includes,
+            resolve_templates=resolve_templates,
             gitlab_url=gitlab_url,
             token=token,
             _depth=_depth,
@@ -435,6 +437,7 @@ def _process_local_include(
     include_scripts: bool,
     resolve_job_composition: bool,
     resolve_external_includes: bool | None,
+    resolve_templates: bool = False,
     gitlab_url: str | None,
     token: str | None,
     _depth: int,
@@ -488,6 +491,7 @@ def _process_local_include(
             include_scripts=include_scripts,
             resolve_job_composition=resolve_job_composition,
             resolve_external_includes=resolve_external_includes,
+            resolve_templates=resolve_templates,
             gitlab_url=gitlab_url,
             token=token,
             _depth=_depth + 1,
@@ -524,6 +528,7 @@ def _process_local_include(
         include_scripts=include_scripts,
         resolve_job_composition=resolve_job_composition,
         resolve_external_includes=resolve_external_includes,
+        resolve_templates=resolve_templates,
         gitlab_url=gitlab_url,
         token=token,
         _depth=_depth + 1,
@@ -551,6 +556,7 @@ def _process_parsed_include(
     include_scripts: bool,
     resolve_job_composition: bool,
     resolve_external_includes: bool | None,
+    resolve_templates: bool = False,
     gitlab_url: str | None,
     token: str | None,
     _depth: int,
@@ -580,6 +586,7 @@ def _process_parsed_include(
             include_scripts=include_scripts,
             resolve_job_composition=resolve_job_composition,
             resolve_external_includes=resolve_external_includes,
+            resolve_templates=resolve_templates,
             gitlab_url=gitlab_url,
             token=token,
             _depth=_depth,
@@ -591,8 +598,52 @@ def _process_parsed_include(
         )
         return
 
-    if include_type in {"component", "template"}:
+    if include_type == "component":
         record_unresolved(_unresolved, parsed, reason="unsupported_type")
+        return
+
+    if include_type == "template":
+        if not resolve_templates:
+            record_unresolved(_unresolved, parsed, reason="unsupported_type")
+            return
+        fetched = fetch_include_content(
+            parsed,
+            gitlab_url=default_gitlab_url(gitlab_url),
+            token=token,
+            cache=_fetch_cache,
+            allow_template=True,
+        )
+        if isinstance(fetched, IncludeFetchFailure):
+            record_unresolved(
+                _unresolved,
+                parsed,
+                reason=fetched.reason,
+                detail=fetched.detail,
+            )
+            return
+        nested = _collect_from_fetched_yaml(
+            yaml_text=fetched.yaml_text,
+            config_label=fetched.config_label,
+            detailed=detailed,
+            include_nested=include_nested,
+            max_include_depth=max_include_depth,
+            exclude_sections=exclude_sections,
+            exclude_attributes=exclude_attributes,
+            group_by=group_by,
+            include_scripts=include_scripts,
+            resolve_job_composition=resolve_job_composition,
+            resolve_external_includes=resolve_external_includes,
+            resolve_templates=resolve_templates,
+            gitlab_url=gitlab_url,
+            token=token,
+            _depth=_depth + 1,
+            _visited=_visited,
+            _job_registry=_job_registry,
+            _fetch_cache=_fetch_cache,
+            _unresolved=_unresolved,
+            _external_context=context_for_fetched(parsed, fetched),
+        )
+        _merge_nested_pipeline_data(data, nested)
         return
 
     if not _should_resolve_external(
@@ -636,6 +687,7 @@ def _process_parsed_include(
         include_scripts=include_scripts,
         resolve_job_composition=resolve_job_composition,
         resolve_external_includes=resolve_external_includes,
+        resolve_templates=resolve_templates,
         gitlab_url=gitlab_url,
         token=token,
         _depth=_depth + 1,
@@ -660,6 +712,7 @@ def collect_pipeline_data(
     include_scripts: bool = False,
     resolve_job_composition: bool = False,
     resolve_external_includes: bool | None = None,
+    resolve_templates: bool = False,
     gitlab_url: str | None = None,
     token: str | None = None,
     _depth: int = 0,
@@ -714,8 +767,13 @@ def collect_pipeline_data(
 
     skip_jobs = exclude_sections and "jobs" in exclude_sections
 
+    # Stable label for lock inventories / reports. Fetched YAML is parsed from a
+    # temp file, but provenance must use the remote/project/template identity —
+    # never the ephemeral temp path (that would make fingerprints non-reproducible).
+    source_ref = _source_label or config_file
+
     data: dict[str, Any] = {
-        "config_file": _source_label or config_file,
+        "config_file": source_ref,
         "inputs": [],
         "variables": [],
         "includes": [],
@@ -746,7 +804,7 @@ def collect_pipeline_data(
                     _parse_variable_entry(
                         key,
                         value,
-                        source_file=config_file,
+                        source_file=source_ref,
                         line=line_index["variables"].get(key, 0),
                     )
                 )
@@ -761,7 +819,7 @@ def collect_pipeline_data(
                     else 0
                 )
                 parsed = _parse_include_entry(
-                    entry, source_file=config_file, line=include_line
+                    entry, source_file=source_ref, line=include_line
                 )
                 if parsed:
                     data["includes"].append(parsed)
@@ -779,6 +837,7 @@ def collect_pipeline_data(
                         include_scripts=include_scripts,
                         resolve_job_composition=resolve_job_composition,
                         resolve_external_includes=resolve_external_includes,
+                        resolve_templates=resolve_templates,
                         gitlab_url=gitlab_url,
                         token=token,
                         _depth=_depth,
@@ -810,14 +869,14 @@ def collect_pipeline_data(
                         job_registry,
                         job_name=key,
                         config=value,
-                        source_file=config_file,
+                        source_file=source_ref,
                         line=job_line,
                     )
                 data["jobs"].append(
                     _parse_job(
                         key,
                         value,
-                        source_file=config_file,
+                        source_file=source_ref,
                         line=job_line,
                         include_scripts=include_scripts,
                     )

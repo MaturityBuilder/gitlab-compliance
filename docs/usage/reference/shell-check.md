@@ -196,6 +196,9 @@ See [Shell check examples](../../examples/shell-check.md).
 
 
 
+
+
+
 ## Usage
 
 ```
@@ -290,6 +293,29 @@ Usage: gitlab-compliance shell-check [OPTIONS]
 
   Policy directory to run instead of packaged shell standards. Defaults to packaged GLCI-BUILTIN-SHELL policies.
 
+* `failures_only`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--failures-only`
+
+  Show only failed policies in the report (summary counts are kept).
+
+* `verbose`:
+  * Type: BOOL
+  * Default: `false`
+  * Usage: `--verbose
+-v`
+
+  Include the offending script value that triggered each failure.
+
+* `policies`:
+  * Type: STRING
+  * Default: `sentinel.unset`
+  * Usage: `--policy
+-P`
+
+  Run only matching policies (repeatable or comma-separated). Matches policy IDs or feature file stems; supports globs (e.g. GLCI-BUILTIN-SHELL-PIN-03, GLCI-BUILTIN-SHELL-PIN*, shell-quoting).
+
 * `help`:
   * Type: BOOL
   * Default: `false`
@@ -306,9 +332,9 @@ Usage: gitlab-compliance shell-check [OPTIONS]
   Run packaged Gherkin shell standards for CI scripts (not the ShellCheck
   tool).
 
-  Validates before_script/script/after_script using builtin GLCI-BUILTIN-SHELL-*
-  policies. Does not install, detect, or invoke the external ShellCheck
-  binary.
+  Validates before_script/script/after_script using builtin GLCI-BUILTIN-
+  SHELL-* policies. Does not install, detect, or invoke the external
+  ShellCheck binary.
 
 Options:
   -p, --pipeline TEXT             Path to the GitLab CI pipeline YAML file.
@@ -338,6 +364,15 @@ Options:
                                   info is missing (default: skip).
   -f, --features TEXT             Policy directory to run instead of packaged
                                   shell standards. Defaults to packaged GLCI-
-                                  SHELL policies.
+                                  BUILTIN-SHELL policies.
+  --failures-only                 Show only failed policies in the report
+                                  (summary counts are kept).
+  -v, --verbose                   Include the offending script value that
+                                  triggered each failure.
+  -P, --policy TEXT               Run only matching policies (repeatable or
+                                  comma-separated). Matches policy IDs or
+                                  feature file stems; supports globs (e.g.
+                                  GLCI-BUILTIN-SHELL-PIN-03, GLCI-BUILTIN-
+                                  SHELL-PIN*, shell-quoting).
   --help                          Show this message and exit.
 ```

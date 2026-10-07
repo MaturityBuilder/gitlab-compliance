@@ -18,6 +18,7 @@ class TestDualCliEntryPoints:
         assert "deprecated" not in result.output.lower()
         assert "check" in result.output.lower()
         assert "policies" in result.output.lower()
+        assert "lock" in result.output.lower()
         assert "--version" in result.output
 
     def test_gitlab_compliance_help_shows_deprecation_notice(self):
