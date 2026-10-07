@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.6.1](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.6.0...v2.6.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **ci:** repair Tests venv cache and replace archived SBOM action ([#114](https://github.com/MaturityBuilder/gitlab-compliance/issues/114)) ([193600b](https://github.com/MaturityBuilder/gitlab-compliance/commit/193600b00631301bc2a46265c89ab651d4a30b64))
+
+
+### Dependencies
+
+* **deps:** bump python-gitlab and markdownlint-cli2 ([#116](https://github.com/MaturityBuilder/gitlab-compliance/issues/116)) ([d1f2402](https://github.com/MaturityBuilder/gitlab-compliance/commit/d1f2402eb1ca838ef059adaa2153fecf711e36b8))
+
 ## [2.6.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.5.0...v2.6.0) (2026-10-07)
 
 
