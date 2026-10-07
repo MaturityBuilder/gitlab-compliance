@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.6.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.5.0...v2.6.0) (2026-10-07)
+
+
+### Features
+
+* enhance version handling and improve testing and cataloging ([#108](https://github.com/MaturityBuilder/gitlab-compliance/issues/108)) ([1225268](https://github.com/MaturityBuilder/gitlab-compliance/commit/122526872bdcbab6d080a45c031e315cacf5ba80))
+
+
+### Bug Fixes
+
+* **deps:** resolve urllib3, soupsieve, and virtualenv CVEs ([#113](https://github.com/MaturityBuilder/gitlab-compliance/issues/113)) ([ddc8bc7](https://github.com/MaturityBuilder/gitlab-compliance/commit/ddc8bc78b43f1950ce8da0be5ef2d614708db21b))
+
 ## [2.5.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.4.0...v2.5.0) (2026-07-30)
 
 
