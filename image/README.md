@@ -18,8 +18,10 @@ docker run --rm maturitybuilder/gitlab-compliance:local --help
 
 ## Pins to update
 
-Dependabot's docker ecosystem only bumps `Dockerfile` `FROM` lines. This image
-build no longer uses a Dockerfile. Refresh these pins instead:
+[`.github/dependabot.yml`](../.github/dependabot.yml) covers pip, GitHub Actions,
+and pre-commit only. There is no Dependabot `docker` ecosystem here — this image
+build no longer uses a Dockerfile, and Dependabot cannot bump melange/apko tool
+digests or Wolfi APK locks. Refresh these pins manually:
 
 1. `MELANGE_IMAGE` and `APKO_IMAGE` digests in `scripts/build-image.sh`
 2. `image/apko.lock.json` (run `bash scripts/build-image.sh` after index changes)
