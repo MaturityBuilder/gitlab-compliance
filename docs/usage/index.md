@@ -140,6 +140,7 @@ COMPLIANCE-REPORT.md
 | Command               | Description                                                       |
 | --------------------- | ----------------------------------------------------------------- |
 | `check`               | Run Gherkin compliance policies against pipeline YAML             |
+| `sbom`                | Write a CycloneDX SBOM of images, includes, and script packages   |
 | `shell-check`         | Run packaged Gherkin shell standards for CI scripts (not ShellCheck) |
 | `generate`            | Build Markdown or HTML documentation from pipeline YAML           |
 | `get-attributes`      | Export selected job attributes as a table                         |

@@ -29,6 +29,11 @@ def index_yaml_text(text: str) -> dict:
     includes: list[int] = []
     variables: dict[str, int] = {}
     workflow_rules: list[int] = []
+    globals_index = {
+        "image_line": 0,
+        "default_image_line": 0,
+        "default_services_line": 0,
+    }
 
     for document in compose_all(StringIO(text), Loader=EnvLoader):
         if not isinstance(document, MappingNode):
@@ -44,6 +49,18 @@ def index_yaml_text(text: str) -> dict:
             if key == "variables" and isinstance(value_node, MappingNode):
                 for variable_key, _variable_value in value_node.value:
                     variables[variable_key.value] = _line_number(variable_key)
+                continue
+
+            if key == "image":
+                globals_index["image_line"] = _line_number(key_node)
+                continue
+
+            if key == "default" and isinstance(value_node, MappingNode):
+                for sub_key, _sub_value in value_node.value:
+                    if sub_key.value == "image":
+                        globals_index["default_image_line"] = _line_number(sub_key)
+                    elif sub_key.value == "services":
+                        globals_index["default_services_line"] = _line_number(sub_key)
                 continue
 
             if key == "workflow":
@@ -69,6 +86,7 @@ def index_yaml_text(text: str) -> dict:
         "includes": includes,
         "variables": variables,
         "workflow_rules": workflow_rules,
+        "globals": globals_index,
     }
 
 

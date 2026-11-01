@@ -38,6 +38,7 @@ nav:
     - Overview: usage/index.md
     - Compliance:
       - Check: usage/reference/check.md
+      - Pipeline SBOM: usage/reference/sbom.md
       - Auto-fix policies: usage/fix-policies.md
       - Policies:
           - Overview: usage/reference/policies.md

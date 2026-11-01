@@ -81,6 +81,7 @@ __all__ = [
     "render_compliance_report",
     "resolve_features_dir",
     "run_compliance",
+    "sbom",
     "shell_check",
     "supply_chain",
 ]
@@ -1521,6 +1522,142 @@ def document_gitstrings(
         logger.info("No gitstrings output files were updated.")
 
 
+@click.command("sbom")
+@click.option(
+    "--pipeline",
+    "-p",
+    "pipeline_file",
+    required=False,
+    default=".gitlab-ci.yml",
+    help="Path to the GitLab CI pipeline YAML file.",
+)
+@click.option(
+    "--output-file",
+    "-o",
+    "output_file",
+    required=False,
+    default=None,
+    help="Write the CycloneDX JSON to this file (default: stdout).",
+)
+@click.option(
+    "--include-nested/--no-include-nested",
+    default=True,
+    help="Resolve nested local include files into the inventory.",
+)
+@click.option(
+    "--max-include-depth",
+    "max_include_depth",
+    type=int,
+    default=None,
+    help="Max local include nesting depth from the root file (omit for unlimited).",
+)
+@click.option(
+    "--resolve-external-includes/--no-resolve-external-includes",
+    "resolve_external_includes",
+    default=None,
+    help=(
+        "Fetch remote and project include YAML (default: auto — remote always, "
+        "project when a token is available)."
+    ),
+)
+@click.option(
+    "--resolve-generated/--no-resolve-generated",
+    "resolve_generated",
+    default=True,
+    help=(
+        "Load dynamically generated child pipeline YAML from trigger.include "
+        "artifact paths when the file exists on disk (default: on)."
+    ),
+)
+@click.option(
+    "--generated-config",
+    "generated_configs",
+    multiple=True,
+    help=(
+        "Extra generated CI YAML path to merge (repeatable). Use when the artifact "
+        "is written somewhere other than the declared trigger.include path."
+    ),
+)
+@click.option(
+    "--gitlab-url",
+    default=None,
+    help="GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).",
+)
+@click.option(
+    "--token",
+    default=None,
+    help="GitLab API token (default: GITLAB_TOKEN or CI_JOB_TOKEN).",
+)
+@click.option(
+    "--project",
+    default=None,
+    help="GitLab project path recorded on the SBOM metadata.",
+)
+@click.option(
+    "--resolve/--no-resolve",
+    default=False,
+    help=(
+        "Resolve the digest, commit SHA, or file hash of each pin as written. "
+        "Does not upgrade versions and does not modify the pipeline file."
+    ),
+)
+def sbom(
+    pipeline_file,
+    output_file,
+    include_nested,
+    max_include_depth,
+    resolve_external_includes,
+    resolve_generated,
+    generated_configs,
+    gitlab_url,
+    token,
+    project,
+    resolve,
+):
+    """
+    Write a CycloneDX SBOM for images, includes, and script packages.
+
+    The manifest records the versions declared in GitLab CI YAML. Pass --resolve
+    to add the digest, commit SHA, or file hash of that same pin. This command
+    does not modify the pipeline file.
+    """
+    import yaml
+
+    from src.compliance.sbom_cyclonedx import build_cyclonedx_sbom
+
+    resolved_token = token or os.getenv("GITLAB_TOKEN") or os.getenv("CI_JOB_TOKEN")
+    try:
+        document = build_cyclonedx_sbom(
+            pipeline_file,
+            include_nested=include_nested,
+            max_include_depth=max_include_depth,
+            resolve_external_includes=resolve_external_includes,
+            resolve_generated=resolve_generated,
+            generated_configs=generated_configs,
+            gitlab_url=gitlab_url,
+            token=resolved_token,
+            project=project,
+            resolve=resolve,
+        )
+    except FileNotFoundError as exc:
+        click.echo(str(exc), err=True)
+        raise SystemExit(2) from exc
+    except (OSError, ValueError, yaml.YAMLError) as exc:
+        click.echo(str(exc), err=True)
+        raise SystemExit(2) from exc
+
+    if output_file:
+        try:
+            with open(output_file, "w", encoding="utf-8") as handle:
+                handle.write(document)
+        except OSError as exc:
+            click.echo(str(exc), err=True)
+            raise SystemExit(2) from exc
+    else:
+        click.echo(document, nl=False)
+    raise SystemExit(0)
+
+
 gitlab_compliance.add_command(get_attributes)
 gitlab_compliance.add_command(dumps)
 gitlab_compliance.add_command(generate)
@@ -1528,6 +1665,7 @@ gitlab_compliance.add_command(generate_html)
 gitlab_compliance.add_command(check)
 gitlab_compliance.add_command(shell_check)
 gitlab_compliance.add_command(supply_chain)
+gitlab_compliance.add_command(sbom)
 gitlab_compliance.add_command(policies)
 gitlab_compliance.add_command(document)
 gitlab_compliance.add_command(release_notes)

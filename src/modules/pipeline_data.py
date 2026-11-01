@@ -161,54 +161,241 @@ def _parse_include_entry(
     return None
 
 
-def _collect_container_images(jobs: list[dict]) -> list[dict]:
-    images: list[dict] = []
-    index = 0
-    for job in jobs:
-        job_name = job.get("name", "")
-        source_file = job.get("source_file", "")
-        job_line = job.get("line", 0)
-        values = {}
-        for attribute in job.get("attributes", []):
-            values[attribute["key"]] = attribute["value"]
+def _empty_image_defaults() -> dict[str, Any]:
+    return {
+        "image": "",
+        "image_source_file": "",
+        "image_line": 0,
+        "services": None,
+        "services_defined": False,
+        "services_source_file": "",
+        "services_line": 0,
+    }
 
-        image_ref = _parse_image_reference(values.get("image"))
+
+def _job_attribute_map(job: dict) -> dict[str, Any]:
+    values: dict[str, Any] = {}
+    for attribute in job.get("attributes", []):
+        key = attribute.get("key")
+        if key:
+            values[str(key)] = attribute.get("value")
+    return values
+
+
+def _extends_parent_names(values: dict[str, Any]) -> list[str]:
+    raw = values.get("extends")
+    if isinstance(raw, str) and raw:
+        return [raw]
+    if isinstance(raw, list):
+        return [str(item) for item in raw if isinstance(item, str) and item]
+    return []
+
+
+def _service_items(services: Any) -> list[Any]:
+    if services is None or services == "" or services == []:
+        return []
+    if isinstance(services, list):
+        return list(services)
+    return [services]
+
+
+def _defaults_from_document(
+    document: dict,
+    defaults: dict[str, Any],
+    source_file: str,
+    line_index: dict | None,
+) -> dict[str, Any]:
+    """Fold one YAML document's global image keywords into *defaults*."""
+    result = dict(defaults)
+    globals_index = (line_index or {}).get("globals") or {}
+    top_level = _parse_image_reference(document.get("image"))
+    if top_level:
+        result["image"] = top_level
+        result["image_source_file"] = source_file
+        result["image_line"] = int(globals_index.get("image_line") or 0)
+
+    default_block = document.get("default")
+    if not isinstance(default_block, dict):
+        return result
+
+    default_image = _parse_image_reference(default_block.get("image"))
+    if default_image:
+        result["image"] = default_image
+        result["image_source_file"] = source_file
+        result["image_line"] = int(globals_index.get("default_image_line") or 0)
+    if "services" in default_block:
+        result["services"] = default_block.get("services")
+        result["services_defined"] = True
+        result["services_source_file"] = source_file
+        result["services_line"] = int(globals_index.get("default_services_line") or 0)
+    return result
+
+
+def _overlay_image_defaults(
+    base: dict[str, Any] | None, overlay: dict[str, Any] | None
+) -> dict[str, Any]:
+    """Return *base* updated with set image and services values from *overlay*."""
+    result = dict(base or _empty_image_defaults())
+    if not overlay:
+        return result
+    if overlay.get("image"):
+        result["image"] = overlay["image"]
+        result["image_source_file"] = overlay.get("image_source_file", "")
+        result["image_line"] = int(overlay.get("image_line") or 0)
+    if overlay.get("services_defined"):
+        result["services"] = overlay.get("services")
+        result["services_defined"] = True
+        result["services_source_file"] = overlay.get("services_source_file", "")
+        result["services_line"] = int(overlay.get("services_line") or 0)
+    return result
+
+
+def _jobs_by_name(jobs: list[dict]) -> dict[str, dict]:
+    named: dict[str, dict] = {}
+    for job in jobs:
+        name = str(job.get("name") or "")
+        if name:
+            named[name] = job
+    return named
+
+
+def _job_defining_keyword(
+    job: dict,
+    jobs_by_name: dict[str, dict],
+    keyword: str,
+    seen: set[str] | None = None,
+) -> dict | None:
+    """Return the job whose own config sets *keyword*, walking ``extends``."""
+    if seen is None:
+        seen = set()
+    name = str(job.get("name") or "")
+    if name in seen:
+        return None
+    if name:
+        seen.add(name)
+    values = _job_attribute_map(job)
+    if keyword == "image" and _parse_image_reference(values.get("image")):
+        return job
+    if keyword == "services" and "services" in values:
+        return job
+    for parent_name in reversed(_extends_parent_names(values)):
+        parent = jobs_by_name.get(parent_name)
+        if not parent:
+            continue
+        found = _job_defining_keyword(parent, jobs_by_name, keyword, seen)
+        if found:
+            return found
+    return None
+
+
+def _image_row(
+    *,
+    image_ref: str,
+    image_source: str,
+    parent_job: str,
+    source_file: str,
+    line: int,
+) -> dict:
+    return {
+        "include_type": "container_image",
+        "image_source": image_source,
+        "parent_job": parent_job,
+        "project": image_ref,
+        "image": image_ref,
+        "version": "",
+        "valid_version": False,
+        "source_file": source_file,
+        "line": line,
+    }
+
+
+def _collect_container_images(
+    jobs: list[dict], defaults: dict[str, Any] | None = None
+) -> list[dict]:
+    """Effective runtime images for concrete jobs, including extends and default."""
+    images: list[dict] = []
+    jobs_by_name = _jobs_by_name(jobs)
+    pipeline_defaults = defaults or _empty_image_defaults()
+
+    for job in jobs:
+        job_name = str(job.get("name") or "")
+        if not job_name or job_name.startswith("."):
+            continue
+        values = _job_attribute_map(job)
+
+        image_ref = ""
+        image_source = ""
+        source_file = str(job.get("source_file") or "")
+        line = int(job.get("line") or 0)
+        own_image = (
+            _parse_image_reference(values.get("image")) if "image" in values else ""
+        )
+        if own_image:
+            image_ref = own_image
+            image_source = "job"
+        else:
+            defining = _job_defining_keyword(job, jobs_by_name, "image", set())
+            if defining and defining is not job:
+                inherited = _parse_image_reference(
+                    _job_attribute_map(defining).get("image")
+                )
+                if inherited:
+                    image_ref = inherited
+                    image_source = "extends"
+                    source_file = str(defining.get("source_file") or "")
+                    line = int(defining.get("line") or 0)
+        if not image_ref and pipeline_defaults.get("image"):
+            image_ref = str(pipeline_defaults["image"])
+            image_source = "default"
+            source_file = str(pipeline_defaults.get("image_source_file") or "")
+            line = int(pipeline_defaults.get("image_line") or 0)
         if image_ref:
-            index += 1
             images.append(
-                {
-                    "include_type": "container_image",
-                    "image_source": "job",
-                    "parent_job": job_name,
-                    "project": image_ref,
-                    "image": image_ref,
-                    "version": "",
-                    "valid_version": False,
-                    "source_file": source_file,
-                    "line": job_line,
-                }
+                _image_row(
+                    image_ref=image_ref,
+                    image_source=image_source,
+                    parent_job=job_name,
+                    source_file=source_file,
+                    line=line,
+                )
             )
 
-        services = values.get("services", [])
-        if isinstance(services, list):
-            for service in services:
-                service_ref = _parse_service_image(service)
-                if not service_ref:
-                    continue
-                index += 1
-                images.append(
-                    {
-                        "include_type": "container_image",
-                        "image_source": "service",
-                        "parent_job": job_name,
-                        "project": service_ref,
-                        "image": service_ref,
-                        "version": "",
-                        "valid_version": False,
-                        "source_file": source_file,
-                        "line": job_line,
-                    }
+        if "services" in values:
+            service_values = values.get("services")
+            service_source = "service"
+            service_file = str(job.get("source_file") or "")
+            service_line = int(job.get("line") or 0)
+        else:
+            defining = _job_defining_keyword(job, jobs_by_name, "services", set())
+            if defining and defining is not job:
+                service_values = _job_attribute_map(defining).get("services")
+                service_source = "extends"
+                service_file = str(defining.get("source_file") or "")
+                service_line = int(defining.get("line") or 0)
+            elif pipeline_defaults.get("services_defined"):
+                service_values = pipeline_defaults.get("services")
+                service_source = "default"
+                service_file = str(pipeline_defaults.get("services_source_file") or "")
+                service_line = int(pipeline_defaults.get("services_line") or 0)
+            else:
+                service_values = None
+                service_source = ""
+                service_file = ""
+                service_line = 0
+
+        for service in _service_items(service_values):
+            service_ref = _parse_service_image(service)
+            if not service_ref:
+                continue
+            images.append(
+                _image_row(
+                    image_ref=service_ref,
+                    image_source=service_source or "service",
+                    parent_job=job_name,
+                    source_file=service_file,
+                    line=service_line,
                 )
+            )
     return images
 
 
@@ -340,6 +527,10 @@ def _merge_nested_pipeline_data(target: dict[str, Any], nested: dict[str, Any]) 
     )
     target.setdefault("dynamic_child_pipelines", []).extend(
         nested.get("dynamic_child_pipelines", [])
+    )
+    target["nested_defaults"] = _overlay_image_defaults(
+        target.get("nested_defaults"),
+        nested.get("document_defaults"),
     )
 
 
@@ -1169,6 +1360,8 @@ def collect_pipeline_data(
             "workflow_rules": [],
             "jobs": [],
             "container_images": [],
+            "script_packages": [],
+            "document_defaults": _empty_image_defaults(),
             "dynamic_child_pipelines": [],
             "job_registry": job_registry,
             "unresolved_includes": [item.to_dict() for item in unresolved],
@@ -1190,7 +1383,13 @@ def collect_pipeline_data(
 
         line_index = index_yaml_text(yaml_text)
     except Exception:
-        line_index = {"jobs": {}, "includes": [], "variables": {}, "workflow_rules": []}
+        line_index = {
+            "jobs": {},
+            "includes": [],
+            "variables": {},
+            "workflow_rules": [],
+            "globals": {},
+        }
 
     skip_jobs = exclude_sections and "jobs" in exclude_sections
 
@@ -1202,9 +1401,17 @@ def collect_pipeline_data(
         "workflow_rules": [],
         "jobs": [],
         "container_images": [],
+        "script_packages": [],
         "dynamic_child_pipelines": [],
         "unresolved_includes": [],
     }
+
+    local_defaults = _empty_image_defaults()
+    for document in documents:
+        if isinstance(document, dict):
+            local_defaults = _defaults_from_document(
+                document, local_defaults, config_file, line_index
+            )
 
     can_recurse = include_nested and (
         max_include_depth is None or _depth < max_include_depth
@@ -1362,10 +1569,16 @@ def collect_pipeline_data(
             _external_context=_external_context,
         )
 
+    effective_defaults = _overlay_image_defaults(
+        data.get("nested_defaults"), local_defaults
+    )
+    data["document_defaults"] = effective_defaults
     if not skip_jobs and not (
         exclude_sections and "container_images" in exclude_sections
     ):
-        data["container_images"] = _collect_container_images(data["jobs"])
+        data["container_images"] = _collect_container_images(
+            data["jobs"], effective_defaults
+        )
     data["line_index"] = line_index
     data["job_registry"] = job_registry
     data["unresolved_includes"] = [item.to_dict() for item in unresolved]
@@ -1398,6 +1611,14 @@ def collect_pipeline_data(
             composed_jobs.append(enriched)
         data["jobs"] = composed_jobs
         data["merged_jobs"] = composed_jobs
+        from src.compliance.script_analysis import extract_script_packages
+
+        packages: list[dict] = []
+        for job in composed_jobs:
+            if str(job.get("name") or "").startswith("."):
+                continue
+            packages.extend(extract_script_packages(job))
+        data["script_packages"] = packages
 
     return apply_output_filters(
         data,
