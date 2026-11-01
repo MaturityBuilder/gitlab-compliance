@@ -322,6 +322,12 @@ def include_reference_label(parsed: dict[str, Any]) -> str:
         return f"{parsed.get('project', '')}@{parsed.get('version', '')}"
     if include_type == "template":
         return str(parsed.get("project", ""))
+    if include_type == "artifact":
+        artifact = parsed.get("artifact") or parsed.get("project", "")
+        generator = parsed.get("generator_job") or ""
+        if generator:
+            return f"{artifact} (from job {generator})"
+        return str(artifact)
     return str(parsed.get("project", ""))
 
 

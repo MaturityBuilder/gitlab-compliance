@@ -92,6 +92,36 @@ gitlab-compliance check -f policies/ -p .gitlab-ci.yml --max-include-depth 2
 
 Also available on `generate` and `document gitstrings`.
 
+#### `--resolve-generated` / `--no-resolve-generated` {#resolve-generated}
+
+**Default:** on.
+
+When enabled, jobs that use `trigger.include` with an `artifact:` entry load that
+YAML into the compliance stash **if the file already exists on disk**. Generator
+scripts are never executed. Missing artifacts are reported as coverage gaps
+(`generated_at_runtime`) instead of failing the parent parse.
+
+```bash
+# After a generator job has written generated-config.yml:
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml
+
+# Parent-only review (skip dynamic children):
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml --no-resolve-generated
+```
+
+Also available on `shell-check`, `supply-chain`, and `generate`. See
+[Dynamic child pipelines](../../examples/dynamic-child-pipelines.md).
+
+#### `--generated-config` {#generated-config}
+
+**Repeatable.** Merge an extra generated CI YAML path when the on-disk file is
+not at the path declared in `trigger.include`.
+
+```bash
+gitlab-compliance check -f policies/ -p .gitlab-ci.yml \
+  --generated-config /tmp/rendered-child.yml
+```
+
 ### API checks
 
 #### `--strict` {#strict}
