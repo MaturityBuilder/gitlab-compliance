@@ -15,6 +15,15 @@ reports
 trunk/
 __pycache__/
 reports/
+# Melange / apko local build artifacts (signing keys are ephemeral)
+melange.rsa
+melange.rsa.pub
+melange-cache/
+packages/
+gitlab-compliance-image.tar
+image/.melange-vars.yaml
+sbom-*.spdx.json
+
 # .venv/
 # .pytest_cache/
 # .cache/

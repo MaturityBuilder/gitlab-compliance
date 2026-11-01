@@ -2,16 +2,18 @@
 
 ![gitlab-compliance](../assets/logo-light.png){ width="280" }
 
-A pre-built Docker image on Python Alpine Linux, published by
-[MaturityBuilder](https://github.com/MaturityBuilder/gitlab-compliance).
+A pre-built, distroless Wolfi image (Python 3.14, nonroot), published by
+[MaturityBuilder](https://github.com/MaturityBuilder/gitlab-compliance). The
+image is assembled with [melange](https://github.com/chainguard-dev/melange) and
+[apko](https://github.com/chainguard-dev/apko) from locked Poetry dependencies.
 
 `gitlab-compliance` is published on [Docker
-Hub](https://hub.docker.com/_/gitlab-compliance/) as the `gitlab-compliance`
-package.
+Hub](https://hub.docker.com/r/maturitybuilder/gitlab-compliance/) as
+`maturitybuilder/gitlab-compliance`.
 
 ```bash
-docker run -it -v $PWD:/src -w /src -e GITLAB_TOKEN=$GITLAB_TOKEN -e
-maturitybuilder/gitlab-compliance check -f example-policies --include-nested
+docker run -it -v $PWD:/src -w /src -e GITLAB_TOKEN=$GITLAB_TOKEN \
+maturitybuilder/gitlab-compliance check -f example-policies --include-nested \
 --project <my gitlab project path>
 ```
 
