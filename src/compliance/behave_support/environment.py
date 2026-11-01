@@ -37,6 +37,10 @@ def before_scenario(context, scenario):
     if not context.compliance_entities:
         depth_raw = context.config.userdata.get("max_include_depth", "")
         max_include_depth = int(depth_raw) if str(depth_raw).strip() else None
+        generated_raw = context.config.userdata.get("generated_configs", "") or ""
+        generated_configs = tuple(
+            part.strip() for part in str(generated_raw).split(",") if part.strip()
+        )
         context.compliance_entities = load_pipeline_entities(
             pipeline_file=pipeline,
             include_nested=context.config.userdata.get("include_nested", "true")
@@ -54,6 +58,9 @@ def before_scenario(context, scenario):
             resolve_external_includes=_resolve_external_flag(
                 context.config.userdata.get("resolve_external_includes", "auto")
             ),
+            resolve_generated=context.config.userdata.get("resolve_generated", "true")
+            == "true",
+            generated_configs=generated_configs or None,
             cache=getattr(context, "release_cache", None),
         )
 

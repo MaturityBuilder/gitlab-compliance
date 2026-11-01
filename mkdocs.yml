@@ -74,6 +74,7 @@ nav:
       - Fragment Pinning: examples/fragment-pinning.md
       - Include Versions: examples/include-versions.md
       - Service Pinning: examples/service-pinning.md
+      - Dynamic Child Pipelines: examples/dynamic-child-pipelines.md
       - Execution Policy: examples/execution-policy.md
       - Template Extends: examples/template-extends.md
       - API Hardening: examples/api-hardening.md

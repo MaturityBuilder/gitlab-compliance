@@ -338,6 +338,466 @@ def _merge_nested_pipeline_data(target: dict[str, Any], nested: dict[str, Any]) 
     target.setdefault("unresolved_includes", []).extend(
         nested.get("unresolved_includes", [])
     )
+    target.setdefault("dynamic_child_pipelines", []).extend(
+        nested.get("dynamic_child_pipelines", [])
+    )
+
+
+def _job_trigger_value(job: dict[str, Any]) -> Any:
+    for attribute in job.get("attributes", []):
+        if attribute.get("key") == "trigger":
+            return attribute.get("value")
+    return None
+
+
+def _parse_trigger_include_entry(
+    entry: Any, source_file: str = "", line: int = 0
+) -> dict | None:
+    """Parse a ``trigger.include`` entry, including ``artifact`` generated YAML."""
+    include = _normalize_include(entry)
+    if not isinstance(include, dict):
+        return None
+    if "artifact" in include:
+        artifact = str(include.get("artifact") or "").strip()
+        if not artifact:
+            return None
+        return {
+            "include_type": "artifact",
+            "project": artifact,
+            "artifact": artifact,
+            "generator_job": str(include.get("job") or ""),
+            "version": "n/a",
+            "valid_version": True,
+            "file": "",
+            "variables": {},
+            "rules": [],
+            "source_file": source_file,
+            "line": line,
+        }
+    return _parse_include_entry(entry, source_file=source_file, line=line)
+
+
+def _path_inside_base(base_dir: str, candidate: str) -> bool:
+    try:
+        return os.path.commonpath([base_dir, candidate]) == base_dir
+    except ValueError:
+        return False
+
+
+def _resolve_generated_artifact_path(
+    config_file: str, artifact_path: str
+) -> tuple[str | None, str]:
+    """Resolve a generated artifact path relative to the pipeline dir, then cwd.
+
+    Returns ``(resolved_path_or_none, reason)`` where reason is empty on success,
+    ``path_rejected`` when the candidate escapes the base, or ``not_found``.
+    """
+    relative = str(artifact_path).lstrip("/")
+    pipeline_dir = os.path.realpath(os.path.dirname(os.path.abspath(config_file)))
+    cwd = os.path.realpath(os.getcwd())
+
+    pipeline_candidate = os.path.realpath(
+        os.path.normpath(os.path.join(pipeline_dir, relative))
+    )
+    if _path_inside_base(pipeline_dir, pipeline_candidate):
+        if os.path.exists(pipeline_candidate):
+            return pipeline_candidate, ""
+    else:
+        return None, "path_rejected"
+
+    cwd_candidate = os.path.realpath(os.path.normpath(os.path.join(cwd, relative)))
+    if _path_inside_base(cwd, cwd_candidate):
+        if os.path.exists(cwd_candidate):
+            return cwd_candidate, ""
+    elif relative and not _path_inside_base(pipeline_dir, cwd_candidate):
+        # cwd candidate escaped cwd; only reject when it also escapes pipeline dir
+        if not _path_inside_base(pipeline_dir, cwd_candidate):
+            return None, "path_rejected"
+
+    return None, "not_found"
+
+
+def _dynamic_child_record(
+    *,
+    trigger_job: str,
+    generator_job: str,
+    artifact: str,
+    resolved: bool,
+    source_file: str,
+    line: int,
+    include_type: str = "artifact",
+) -> dict[str, Any]:
+    return {
+        "trigger_job": trigger_job,
+        "generator_job": generator_job,
+        "artifact": artifact,
+        "resolved": resolved,
+        "include_type": include_type,
+        "source_file": source_file,
+        "line": line,
+    }
+
+
+def _merge_generated_jobs(
+    target: dict[str, Any],
+    nested: dict[str, Any],
+    *,
+    parent_job: str,
+    artifact: str,
+) -> None:
+    for job in nested.get("jobs", []):
+        tagged = dict(job)
+        tagged["dynamic_parent_job"] = parent_job
+        tagged["generated_artifact"] = artifact
+        target["jobs"].append(tagged)
+    target["includes"].extend(nested.get("includes", []))
+    target["variables"].extend(nested.get("variables", []))
+    target.setdefault("dynamic_child_pipelines", []).extend(
+        nested.get("dynamic_child_pipelines", [])
+    )
+
+
+def _collect_kwargs_for_nested(
+    *,
+    detailed: bool,
+    include_nested: bool,
+    max_include_depth: int | None,
+    exclude_sections: set[str] | None,
+    exclude_attributes: set[str] | None,
+    group_by: str | None,
+    include_scripts: bool,
+    resolve_job_composition: bool,
+    resolve_external_includes: bool | None,
+    resolve_generated: bool,
+    generated_configs: tuple[str, ...] | list[str] | None,
+    gitlab_url: str | None,
+    token: str | None,
+) -> dict[str, Any]:
+    return {
+        "detailed": detailed,
+        "include_nested": include_nested,
+        "max_include_depth": max_include_depth,
+        "exclude_sections": exclude_sections,
+        "exclude_attributes": exclude_attributes,
+        "group_by": group_by,
+        "include_scripts": include_scripts,
+        "resolve_job_composition": resolve_job_composition,
+        "resolve_external_includes": resolve_external_includes,
+        "resolve_generated": resolve_generated,
+        "generated_configs": generated_configs,
+        "gitlab_url": gitlab_url,
+        "token": token,
+    }
+
+
+def _process_artifact_trigger_include(
+    parsed: dict[str, Any],
+    *,
+    trigger_job: str,
+    config_file: str,
+    data: dict[str, Any],
+    can_recurse: bool,
+    include_nested: bool,
+    collect_kwargs: dict[str, Any],
+    _depth: int,
+    _visited: set[str],
+    _job_registry: dict[str, dict],
+    _fetch_cache: IncludeFetchCache,
+    _unresolved: list[UnresolvedInclude],
+    _external_context: ExternalIncludeContext | None,
+) -> None:
+    artifact = str(parsed.get("artifact") or parsed.get("project") or "")
+    generator_job = str(parsed.get("generator_job") or "")
+    source_file = str(parsed.get("source_file") or config_file)
+    line = int(parsed.get("line") or 0)
+
+    if not can_recurse:
+        reason = "include_nested_disabled" if not include_nested else "depth_exceeded"
+        record_unresolved(_unresolved, parsed, reason=reason)
+        data.setdefault("dynamic_child_pipelines", []).append(
+            _dynamic_child_record(
+                trigger_job=trigger_job,
+                generator_job=generator_job,
+                artifact=artifact,
+                resolved=False,
+                source_file=source_file,
+                line=line,
+            )
+        )
+        return
+
+    resolved_path, fail_reason = _resolve_generated_artifact_path(config_file, artifact)
+    if not resolved_path:
+        gap_reason = (
+            "path_rejected"
+            if fail_reason == "path_rejected"
+            else "generated_at_runtime"
+        )
+        record_unresolved(
+            _unresolved,
+            parsed,
+            reason=gap_reason,
+            detail=(
+                f"trigger job {trigger_job} expects artifact {artifact}"
+                if gap_reason == "generated_at_runtime"
+                else ""
+            ),
+        )
+        data.setdefault("dynamic_child_pipelines", []).append(
+            _dynamic_child_record(
+                trigger_job=trigger_job,
+                generator_job=generator_job,
+                artifact=artifact,
+                resolved=False,
+                source_file=source_file,
+                line=line,
+            )
+        )
+        return
+
+    nested = collect_pipeline_data(
+        resolved_path,
+        **collect_kwargs,
+        _depth=_depth + 1,
+        _visited=_visited,
+        _job_registry=_job_registry,
+        _fetch_cache=_fetch_cache,
+        _unresolved=_unresolved,
+        _external_context=_external_context,
+    )
+    _merge_generated_jobs(
+        data,
+        nested,
+        parent_job=trigger_job,
+        artifact=artifact,
+    )
+    data.setdefault("dynamic_child_pipelines", []).append(
+        _dynamic_child_record(
+            trigger_job=trigger_job,
+            generator_job=generator_job,
+            artifact=artifact,
+            resolved=True,
+            source_file=source_file,
+            line=line,
+        )
+    )
+
+
+def _process_trigger_includes_for_jobs(
+    jobs: list[dict[str, Any]],
+    *,
+    config_file: str,
+    data: dict[str, Any],
+    can_recurse: bool,
+    include_nested: bool,
+    detailed: bool,
+    max_include_depth: int | None,
+    exclude_sections: set[str] | None,
+    exclude_attributes: set[str] | None,
+    group_by: str | None,
+    include_scripts: bool,
+    resolve_job_composition: bool,
+    resolve_external_includes: bool | None,
+    resolve_generated: bool,
+    generated_configs: tuple[str, ...] | list[str] | None,
+    gitlab_url: str | None,
+    token: str | None,
+    _depth: int,
+    _visited: set[str],
+    _job_registry: dict[str, dict],
+    _fetch_cache: IncludeFetchCache,
+    _unresolved: list[UnresolvedInclude],
+    _external_context: ExternalIncludeContext | None,
+) -> None:
+    if not resolve_generated:
+        return
+
+    collect_kwargs = _collect_kwargs_for_nested(
+        detailed=detailed,
+        include_nested=include_nested,
+        max_include_depth=max_include_depth,
+        exclude_sections=exclude_sections,
+        exclude_attributes=exclude_attributes,
+        group_by=group_by,
+        include_scripts=include_scripts,
+        resolve_job_composition=resolve_job_composition,
+        resolve_external_includes=resolve_external_includes,
+        resolve_generated=resolve_generated,
+        generated_configs=None,
+        gitlab_url=gitlab_url,
+        token=token,
+    )
+
+    for job in list(jobs):
+        trigger = _job_trigger_value(job)
+        if not isinstance(trigger, dict) or "include" not in trigger:
+            continue
+        trigger_job = str(job.get("name") or "")
+        job_line = int(job.get("line") or 0)
+        for entry in _iter_include_entries(trigger["include"]):
+            parsed = _parse_trigger_include_entry(
+                entry,
+                source_file=str(job.get("source_file") or config_file),
+                line=job_line,
+            )
+            if not parsed:
+                continue
+            if parsed.get("include_type") == "artifact":
+                _process_artifact_trigger_include(
+                    parsed,
+                    trigger_job=trigger_job,
+                    config_file=config_file,
+                    data=data,
+                    can_recurse=can_recurse,
+                    include_nested=include_nested,
+                    collect_kwargs=collect_kwargs,
+                    _depth=_depth,
+                    _visited=_visited,
+                    _job_registry=_job_registry,
+                    _fetch_cache=_fetch_cache,
+                    _unresolved=_unresolved,
+                    _external_context=_external_context,
+                )
+                continue
+
+            # Static child pipeline includes (local/project/remote/…)
+            data["includes"].append(parsed)
+            local_resolved = False
+            if parsed.get("include_type") == "local":
+                local_resolved = bool(
+                    _resolve_local_include_path(config_file, str(parsed.get("project")))
+                )
+            _process_parsed_include(
+                parsed,
+                config_file=config_file,
+                data=data,
+                can_recurse=can_recurse,
+                include_nested=include_nested,
+                detailed=detailed,
+                max_include_depth=max_include_depth,
+                exclude_sections=exclude_sections,
+                exclude_attributes=exclude_attributes,
+                group_by=group_by,
+                include_scripts=include_scripts,
+                resolve_job_composition=resolve_job_composition,
+                resolve_external_includes=resolve_external_includes,
+                resolve_generated=resolve_generated,
+                generated_configs=None,
+                gitlab_url=gitlab_url,
+                token=token,
+                _depth=_depth,
+                _visited=_visited,
+                _job_registry=_job_registry,
+                _fetch_cache=_fetch_cache,
+                _unresolved=_unresolved,
+                _external_context=_external_context,
+            )
+            data.setdefault("dynamic_child_pipelines", []).append(
+                _dynamic_child_record(
+                    trigger_job=trigger_job,
+                    generator_job="",
+                    artifact=str(parsed.get("project") or parsed.get("file") or ""),
+                    resolved=local_resolved and can_recurse and include_nested,
+                    source_file=str(parsed.get("source_file") or config_file),
+                    line=job_line,
+                    include_type=str(parsed.get("include_type") or ""),
+                )
+            )
+
+
+def _process_explicit_generated_configs(
+    generated_configs: tuple[str, ...] | list[str] | None,
+    *,
+    config_file: str,
+    data: dict[str, Any],
+    collect_kwargs: dict[str, Any],
+    _depth: int,
+    _visited: set[str],
+    _job_registry: dict[str, dict],
+    _fetch_cache: IncludeFetchCache,
+    _unresolved: list[UnresolvedInclude],
+    _external_context: ExternalIncludeContext | None,
+) -> None:
+    if not generated_configs:
+        return
+    pipeline_dir = os.path.realpath(os.path.dirname(os.path.abspath(config_file)))
+    for raw_path in generated_configs:
+        path = str(raw_path).strip()
+        if not path:
+            continue
+        parsed = {
+            "include_type": "artifact",
+            "project": path,
+            "artifact": path,
+            "generator_job": "",
+            "source_file": config_file,
+            "line": 0,
+        }
+        if os.path.isabs(path):
+            candidate = os.path.realpath(path)
+        else:
+            candidate = os.path.realpath(
+                os.path.normpath(os.path.join(pipeline_dir, path.lstrip("/")))
+            )
+            if not _path_inside_base(pipeline_dir, candidate):
+                record_unresolved(_unresolved, parsed, reason="path_rejected")
+                data.setdefault("dynamic_child_pipelines", []).append(
+                    _dynamic_child_record(
+                        trigger_job="",
+                        generator_job="",
+                        artifact=path,
+                        resolved=False,
+                        source_file=config_file,
+                        line=0,
+                    )
+                )
+                continue
+        if not os.path.exists(candidate):
+            record_unresolved(
+                _unresolved,
+                parsed,
+                reason="generated_at_runtime",
+                detail=f"explicit --generated-config {path}",
+            )
+            data.setdefault("dynamic_child_pipelines", []).append(
+                _dynamic_child_record(
+                    trigger_job="",
+                    generator_job="",
+                    artifact=path,
+                    resolved=False,
+                    source_file=config_file,
+                    line=0,
+                )
+            )
+            continue
+        if candidate in _visited:
+            continue
+        nested = collect_pipeline_data(
+            candidate,
+            **collect_kwargs,
+            _depth=_depth + 1,
+            _visited=_visited,
+            _job_registry=_job_registry,
+            _fetch_cache=_fetch_cache,
+            _unresolved=_unresolved,
+            _external_context=_external_context,
+        )
+        _merge_generated_jobs(
+            data,
+            nested,
+            parent_job="",
+            artifact=path,
+        )
+        data.setdefault("dynamic_child_pipelines", []).append(
+            _dynamic_child_record(
+                trigger_job="",
+                generator_job="",
+                artifact=path,
+                resolved=True,
+                source_file=config_file,
+                line=0,
+            )
+        )
 
 
 def _collect_from_fetched_yaml(
@@ -361,6 +821,8 @@ def _collect_from_fetched_yaml(
     _fetch_cache: IncludeFetchCache,
     _unresolved: list[UnresolvedInclude],
     _external_context: ExternalIncludeContext | None,
+    resolve_generated: bool = True,
+    generated_configs: tuple[str, ...] | list[str] | None = None,
 ) -> dict[str, Any]:
     if config_label in _visited:
         return {
@@ -371,6 +833,7 @@ def _collect_from_fetched_yaml(
             "workflow_rules": [],
             "jobs": [],
             "container_images": [],
+            "dynamic_child_pipelines": [],
             "job_registry": _job_registry,
             "unresolved_includes": [item.to_dict() for item in _unresolved],
             "line_index": {
@@ -403,6 +866,8 @@ def _collect_from_fetched_yaml(
             include_scripts=include_scripts,
             resolve_job_composition=resolve_job_composition,
             resolve_external_includes=resolve_external_includes,
+            resolve_generated=resolve_generated,
+            generated_configs=generated_configs,
             gitlab_url=gitlab_url,
             token=token,
             _depth=_depth,
@@ -443,6 +908,8 @@ def _process_local_include(
     _fetch_cache: IncludeFetchCache,
     _unresolved: list[UnresolvedInclude],
     _external_context: ExternalIncludeContext | None,
+    resolve_generated: bool = True,
+    generated_configs: tuple[str, ...] | list[str] | None = None,
 ) -> None:
     if _external_context is not None:
         fetched = resolve_nested_local_from_context(
@@ -488,6 +955,8 @@ def _process_local_include(
             include_scripts=include_scripts,
             resolve_job_composition=resolve_job_composition,
             resolve_external_includes=resolve_external_includes,
+            resolve_generated=resolve_generated,
+            generated_configs=generated_configs,
             gitlab_url=gitlab_url,
             token=token,
             _depth=_depth + 1,
@@ -524,6 +993,8 @@ def _process_local_include(
         include_scripts=include_scripts,
         resolve_job_composition=resolve_job_composition,
         resolve_external_includes=resolve_external_includes,
+        resolve_generated=resolve_generated,
+        generated_configs=generated_configs,
         gitlab_url=gitlab_url,
         token=token,
         _depth=_depth + 1,
@@ -559,6 +1030,8 @@ def _process_parsed_include(
     _fetch_cache: IncludeFetchCache,
     _unresolved: list[UnresolvedInclude],
     _external_context: ExternalIncludeContext | None,
+    resolve_generated: bool = True,
+    generated_configs: tuple[str, ...] | list[str] | None = None,
 ) -> None:
     include_type = parsed.get("include_type", "")
     if not can_recurse:
@@ -580,6 +1053,8 @@ def _process_parsed_include(
             include_scripts=include_scripts,
             resolve_job_composition=resolve_job_composition,
             resolve_external_includes=resolve_external_includes,
+            resolve_generated=resolve_generated,
+            generated_configs=generated_configs,
             gitlab_url=gitlab_url,
             token=token,
             _depth=_depth,
@@ -636,6 +1111,8 @@ def _process_parsed_include(
         include_scripts=include_scripts,
         resolve_job_composition=resolve_job_composition,
         resolve_external_includes=resolve_external_includes,
+        resolve_generated=resolve_generated,
+        generated_configs=generated_configs,
         gitlab_url=gitlab_url,
         token=token,
         _depth=_depth + 1,
@@ -660,6 +1137,8 @@ def collect_pipeline_data(
     include_scripts: bool = False,
     resolve_job_composition: bool = False,
     resolve_external_includes: bool | None = None,
+    resolve_generated: bool = True,
+    generated_configs: tuple[str, ...] | list[str] | None = None,
     gitlab_url: str | None = None,
     token: str | None = None,
     _depth: int = 0,
@@ -690,6 +1169,7 @@ def collect_pipeline_data(
             "workflow_rules": [],
             "jobs": [],
             "container_images": [],
+            "dynamic_child_pipelines": [],
             "job_registry": job_registry,
             "unresolved_includes": [item.to_dict() for item in unresolved],
             "line_index": {
@@ -722,6 +1202,7 @@ def collect_pipeline_data(
         "workflow_rules": [],
         "jobs": [],
         "container_images": [],
+        "dynamic_child_pipelines": [],
         "unresolved_includes": [],
     }
 
@@ -779,6 +1260,8 @@ def collect_pipeline_data(
                         include_scripts=include_scripts,
                         resolve_job_composition=resolve_job_composition,
                         resolve_external_includes=resolve_external_includes,
+                        resolve_generated=resolve_generated,
+                        generated_configs=None,
                         gitlab_url=gitlab_url,
                         token=token,
                         _depth=_depth,
@@ -822,6 +1305,62 @@ def collect_pipeline_data(
                         include_scripts=include_scripts,
                     )
                 )
+
+    if not skip_jobs:
+        jobs_before_dynamic = list(data["jobs"])
+        _process_trigger_includes_for_jobs(
+            jobs_before_dynamic,
+            config_file=config_file,
+            data=data,
+            can_recurse=can_recurse,
+            include_nested=include_nested,
+            detailed=detailed,
+            max_include_depth=max_include_depth,
+            exclude_sections=exclude_sections,
+            exclude_attributes=exclude_attributes,
+            group_by=group_by,
+            include_scripts=include_scripts,
+            resolve_job_composition=resolve_job_composition,
+            resolve_external_includes=resolve_external_includes,
+            resolve_generated=resolve_generated,
+            generated_configs=None,
+            gitlab_url=gitlab_url,
+            token=token,
+            _depth=_depth,
+            _visited=visited,
+            _job_registry=job_registry,
+            _fetch_cache=fetch_cache,
+            _unresolved=unresolved,
+            _external_context=_external_context,
+        )
+
+    if _depth == 0 and resolve_generated and generated_configs:
+        _process_explicit_generated_configs(
+            generated_configs,
+            config_file=config_file,
+            data=data,
+            collect_kwargs=_collect_kwargs_for_nested(
+                detailed=detailed,
+                include_nested=include_nested,
+                max_include_depth=max_include_depth,
+                exclude_sections=exclude_sections,
+                exclude_attributes=exclude_attributes,
+                group_by=group_by,
+                include_scripts=include_scripts,
+                resolve_job_composition=resolve_job_composition,
+                resolve_external_includes=resolve_external_includes,
+                resolve_generated=resolve_generated,
+                generated_configs=None,
+                gitlab_url=gitlab_url,
+                token=token,
+            ),
+            _depth=_depth,
+            _visited=visited,
+            _job_registry=job_registry,
+            _fetch_cache=fetch_cache,
+            _unresolved=unresolved,
+            _external_context=_external_context,
+        )
 
     if not skip_jobs and not (
         exclude_sections and "container_images" in exclude_sections

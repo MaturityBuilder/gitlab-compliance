@@ -36,6 +36,8 @@ See [GitLab Docs output example](gitlab-docs-output-example.md) for sample `gene
   - [Include Versions](include-versions.md)
 - **Service pinning:** Unversioned service images
   - [Service Pinning](service-pinning.md)
+- **Dynamic child pipelines:** Generated YAML via `trigger.include` artifacts
+  - [Dynamic child pipelines](dynamic-child-pipelines.md)
 - **Execution policy:** Jobs without `rules:` or weak guards
   - [Execution Policy](execution-policy.md)
 - **Template extends:** Jobs bypassing org templates

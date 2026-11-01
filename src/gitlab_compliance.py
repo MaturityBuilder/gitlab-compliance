@@ -11,6 +11,7 @@ from datetime import datetime
 import click
 
 import src.gitlab_docs as _gitlab_docs
+import src.modules.common as common
 import src.modules.doc_controller as md_writer
 import src.properties.includes as includes
 import src.properties.inputs as inputs
@@ -93,6 +94,37 @@ def _parse_generate_filters(exclude, group_by):
     return exclude_sections, exclude_attributes, group_by
 
 
+def _render_dynamic_child_pipelines(OUTPUT_FILE, pipeline_data: dict) -> None:
+    records = pipeline_data.get("dynamic_child_pipelines") or []
+    if not records:
+        return
+    add_between_markers(
+        file_path=OUTPUT_FILE, content="\n\n## Dynamic child pipelines\n\n"
+    )
+    table = common.table_design(
+        headers=[
+            "**Trigger job**",
+            "**Generator job**",
+            "**Artifact**",
+            "**Resolved**",
+        ]
+    )
+    for record in records:
+        table.add_row(
+            [
+                record.get("trigger_job") or "—",
+                record.get("generator_job") or "—",
+                record.get("artifact") or "—",
+                "yes" if record.get("resolved") else "no",
+            ]
+        )
+    add_between_markers(
+        file_path=OUTPUT_FILE,
+        content=common.markdown_table_from_prettytable(table),
+    )
+    add_between_markers(file_path=OUTPUT_FILE, content="\n")
+
+
 def _generate_markdown(
     OUTPUT_FILE,
     GLDOCS_CONFIG_FILE,
@@ -101,6 +133,8 @@ def _generate_markdown(
     exclude_attributes=None,
     group_by=None,
     max_include_depth=None,
+    resolve_generated=True,
+    generated_configs=None,
 ):
     ENABLE_WORKFLOW_DOCUMENTATION = detailed
     exclude_sections = exclude_sections or set()
@@ -133,6 +167,7 @@ def _generate_markdown(
             DISABLE_TITLE=True,
             OUTPUT_FILE=OUTPUT_FILE,
         )
+    pipeline_data = None
     if "jobs" not in exclude_sections:
         pipeline_data = collect_pipeline_data(
             config_file=GLDOCS_CONFIG_FILE,
@@ -141,12 +176,26 @@ def _generate_markdown(
             exclude_sections=exclude_sections,
             exclude_attributes=exclude_attributes,
             group_by=group_by,
+            resolve_generated=resolve_generated,
+            generated_configs=generated_configs,
         )
         jobs.render_jobs_from_pipeline(
             OUTPUT_FILE=OUTPUT_FILE,
             pipeline_data=pipeline_data,
             detailed=detailed,
         )
+    if pipeline_data is None:
+        pipeline_data = collect_pipeline_data(
+            config_file=GLDOCS_CONFIG_FILE,
+            detailed=detailed,
+            max_include_depth=max_include_depth,
+            exclude_sections=exclude_sections,
+            exclude_attributes=exclude_attributes,
+            group_by=group_by,
+            resolve_generated=resolve_generated,
+            generated_configs=generated_configs,
+        )
+    _render_dynamic_child_pipelines(OUTPUT_FILE, pipeline_data)
 
 
 def _generate_html(
@@ -157,6 +206,8 @@ def _generate_html(
     exclude_attributes=None,
     group_by=None,
     max_include_depth=None,
+    resolve_generated=True,
+    generated_configs=None,
 ):
     pipeline_data = collect_pipeline_data(
         config_file=GLDOCS_CONFIG_FILE,
@@ -165,6 +216,8 @@ def _generate_html(
         exclude_sections=exclude_sections,
         exclude_attributes=exclude_attributes,
         group_by=group_by,
+        resolve_generated=resolve_generated,
+        generated_configs=generated_configs,
     )
     html_output = render_swagger_html(pipeline_data)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as output_file:
@@ -179,6 +232,8 @@ def _generate_swagger_markdown(
     exclude_attributes=None,
     group_by=None,
     max_include_depth=None,
+    resolve_generated=True,
+    generated_configs=None,
 ):
     pipeline_data = collect_pipeline_data(
         config_file=GLDOCS_CONFIG_FILE,
@@ -187,6 +242,8 @@ def _generate_swagger_markdown(
         exclude_sections=exclude_sections,
         exclude_attributes=exclude_attributes,
         group_by=group_by,
+        resolve_generated=resolve_generated,
+        generated_configs=generated_configs,
     )
     markdown_output = render_swagger_markdown(pipeline_data)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as output_file:
@@ -365,6 +422,21 @@ def get_attributes(OUTPUT_FILE, GLDOCS_CONFIG_FILE, attributes, json_format):
     default=None,
     help="Max local include nesting depth from the root file (omit for unlimited).",
 )
+@click.option(
+    "--resolve-generated/--no-resolve-generated",
+    "resolve_generated",
+    default=True,
+    help=(
+        "Load dynamically generated child pipeline YAML from trigger.include "
+        "artifact paths when the file exists on disk (default: on)."
+    ),
+)
+@click.option(
+    "--generated-config",
+    "generated_configs",
+    multiple=True,
+    help=("Extra generated CI YAML path to merge into documentation (repeatable)."),
+)
 def generate(
     detailed,
     output_format,
@@ -374,6 +446,8 @@ def generate(
     exclude,
     group_by,
     max_include_depth,
+    resolve_generated,
+    generated_configs,
 ):
     """
     Will scan through your gitlab-ci yml and build documentation from the yml.
@@ -403,6 +477,8 @@ def generate(
         exclude_attributes=exclude_attributes,
         group_by=group_by,
         max_include_depth=max_include_depth,
+        resolve_generated=resolve_generated,
+        generated_configs=generated_configs,
     )
 
     if output_format == "html":
@@ -555,6 +631,24 @@ def _resolve_policies_dir(
     ),
 )
 @click.option(
+    "--resolve-generated/--no-resolve-generated",
+    "resolve_generated",
+    default=True,
+    help=(
+        "Load dynamically generated child pipeline YAML from trigger.include "
+        "artifact paths when the file exists on disk (default: on)."
+    ),
+)
+@click.option(
+    "--generated-config",
+    "generated_configs",
+    multiple=True,
+    help=(
+        "Extra generated CI YAML path to merge (repeatable). Use when the artifact "
+        "is written somewhere other than the declared trigger.include path."
+    ),
+)
+@click.option(
     "--gitlab-url",
     default=None,
     help="GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).",
@@ -690,6 +784,8 @@ def check(
     include_nested,
     max_include_depth,
     resolve_external_includes,
+    resolve_generated,
+    generated_configs,
     gitlab_url,
     token,
     project,
@@ -739,6 +835,8 @@ def check(
             include_nested=include_nested,
             max_include_depth=max_include_depth,
             resolve_external_includes=resolve_external_includes,
+            resolve_generated=resolve_generated,
+            generated_configs=generated_configs,
             gitlab_url=gitlab_url,
             token=token,
             project=project,
@@ -850,6 +948,24 @@ def check(
     ),
 )
 @click.option(
+    "--resolve-generated/--no-resolve-generated",
+    "resolve_generated",
+    default=True,
+    help=(
+        "Load dynamically generated child pipeline YAML from trigger.include "
+        "artifact paths when the file exists on disk (default: on)."
+    ),
+)
+@click.option(
+    "--generated-config",
+    "generated_configs",
+    multiple=True,
+    help=(
+        "Extra generated CI YAML path to merge (repeatable). Use when the artifact "
+        "is written somewhere other than the declared trigger.include path."
+    ),
+)
+@click.option(
     "--features",
     "-f",
     "features_dir",
@@ -924,6 +1040,8 @@ def supply_chain(
     include_nested,
     max_include_depth,
     resolve_external_includes,
+    resolve_generated,
+    generated_configs,
     features_dir,
     gitlab_url,
     token,
@@ -955,6 +1073,8 @@ def supply_chain(
             include_nested=include_nested,
             max_include_depth=max_include_depth,
             resolve_external_includes=resolve_external_includes,
+            resolve_generated=resolve_generated,
+            generated_configs=generated_configs,
             gitlab_url=gitlab_url,
             token=token,
             project=project,
@@ -1051,6 +1171,24 @@ def supply_chain(
     ),
 )
 @click.option(
+    "--resolve-generated/--no-resolve-generated",
+    "resolve_generated",
+    default=True,
+    help=(
+        "Load dynamically generated child pipeline YAML from trigger.include "
+        "artifact paths when the file exists on disk (default: on)."
+    ),
+)
+@click.option(
+    "--generated-config",
+    "generated_configs",
+    multiple=True,
+    help=(
+        "Extra generated CI YAML path to merge (repeatable). Use when the artifact "
+        "is written somewhere other than the declared trigger.include path."
+    ),
+)
+@click.option(
     "--gitlab-url",
     default=None,
     help="GitLab instance URL (default: CI_SERVER_URL or https://gitlab.com).",
@@ -1118,6 +1256,8 @@ def shell_check(
     include_nested,
     max_include_depth,
     resolve_external_includes,
+    resolve_generated,
+    generated_configs,
     gitlab_url,
     token,
     project,
@@ -1147,6 +1287,8 @@ def shell_check(
             include_nested=include_nested,
             max_include_depth=max_include_depth,
             resolve_external_includes=resolve_external_includes,
+            resolve_generated=resolve_generated,
+            generated_configs=generated_configs,
             gitlab_url=gitlab_url,
             token=token,
             project=project,
