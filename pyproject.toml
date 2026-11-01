@@ -40,18 +40,18 @@ python = ">=3.12"
 prettytable = "*"
 pytablewriter = "1.2.1"
 oyaml = "*"
-typer = "0.27.0"
+typer = "0.27.2"
 markdown-analysis = "0.1.5"
 urllib3 = "2.8.0"
 jq = "1.12.0"
-click = "^8.1.8"
-semver = "3.0.4"
+click = "^8.5.0"
+semver = "3.1.0"
 pyyaml = "6.0.3"
 loguru = "0.7.2"
 python-gitlab = "8.6.0"
 rich = "15.0.0"
-oras = "0.2.42"
-idna = "3.18"
+oras = "0.2.43"
+idna = "3.20"
 requests = "2.34.2"
 behave = "^1.2.6"
 
@@ -60,13 +60,13 @@ gitlab-docs = 'src.gitlab_compliance:gitlab_compliance'
 gitlab-compliance = 'src.gitlab_compliance:gitlab_compliance'
 
 [tool.poetry.group.dev.dependencies]
-setuptools = "83.0.0"
+setuptools = "84.0.0"
 pytest = "^9.0.3"
 pytest-xdist = "^3.8.0"
-pytest-cov = "^6.2.1"
-pre-commit = "^4.6.1"
+pytest-cov = "^7.1.0"
+pre-commit = "^4.6.2"
 pyyaml = "^6.0.3"
-coverage = "^7.9.2"
+coverage = "^7.16.2"
 
 [tool.black]
 line-length = 88
@@ -79,7 +79,7 @@ max-line-length = 88
 extend-ignore = ["E203", "W503"]
 
 [tool.poetry.group.docs.dependencies]
-zensical = "^0.0.51"
+zensical = "^0.0.67"
 [build-system]
 requires = ["poetry-core","setuptools","poetry-bumpversion","id"]
 build-backend = "poetry.core.masonry.api"
