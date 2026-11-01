@@ -39,6 +39,7 @@ nav:
     - Compliance:
       - Check: usage/reference/check.md
       - Auto-fix policies: usage/fix-policies.md
+      - Lock inventory: usage/reference/lock.md
       - Policies:
           - Overview: usage/reference/policies.md
           - Policy Catalog: usage/reference/policies-doc.md

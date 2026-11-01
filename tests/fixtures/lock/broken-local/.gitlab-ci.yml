@@ -1,0 +1,7 @@
+include:
+  - local: missing-file.yml
+
+job:
+  image: alpine:3.20
+  script:
+    - echo hi

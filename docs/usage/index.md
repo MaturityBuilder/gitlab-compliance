@@ -141,6 +141,8 @@ COMPLIANCE-REPORT.md
 | --------------------- | ----------------------------------------------------------------- |
 | `check`               | Run Gherkin compliance policies against pipeline YAML             |
 | `shell-check`         | Run packaged Gherkin shell standards for CI scripts (not ShellCheck) |
+| `supply-chain`        | Run packaged include/image/service pinning policies               |
+| `lock`                | Build and verify a `.gitlab-ci.lock` pipeline inventory           |
 | `generate`            | Build Markdown or HTML documentation from pipeline YAML           |
 | `get-attributes`      | Export selected job attributes as a table                         |
 | `policies doc`        | Generate a policy catalog from `# METADATA` annotations         |

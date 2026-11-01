@@ -29,6 +29,7 @@ success.
 | Workflow | CLI | Purpose |
 | -------- | --- | ------- |
 | **Compliance** | `gitlab-compliance check` | Fail CI when Gherkin policies are violated |
+| **Lock inventory** | `gitlab-compliance lock` | Commit a `.gitlab-ci.lock` inventory and skip jobs when nothing changed |
 | **Documentation** | `gitlab-compliance generate` | Build pipeline reference docs from `.gitlab-ci.yml` |
 
 Typical uses:
