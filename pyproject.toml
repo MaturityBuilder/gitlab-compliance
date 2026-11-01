@@ -60,7 +60,7 @@ gitlab-docs = 'src.gitlab_compliance:gitlab_compliance'
 gitlab-compliance = 'src.gitlab_compliance:gitlab_compliance'
 
 [tool.poetry.group.dev.dependencies]
-setuptools = "84.0.0"
+setuptools = "84.1.0"
 pytest = "^9.0.3"
 pytest-xdist = "^3.8.0"
 pytest-cov = "^7.1.0"
