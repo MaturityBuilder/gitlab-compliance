@@ -215,11 +215,17 @@ docker-build:
     - gitlab-org-docker
   services:
     - docker@sha256:66d292e5c26bd33a6f6f61cacb880de2186339a524ecba1ce098dbbaceed6515
+  privileged: true
+  variables:
+    # melange bubblewrap needs privileged docker-in-docker
+    DOCKER_DRIVER: overlay2
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
-    - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG" .
-    - docker run -v $PWD:/gitlab-docs "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+    - export IMAGE_REF="$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+    - export LOAD_IMAGE=1
+    - bash scripts/build-image.sh
+    - docker run --rm -v "$PWD:/gitlab-compliance" -w /gitlab-compliance "$IMAGE_REF" --help
   rules:
     - if: $CI_COMMIT_REF_NAME != $CI_COMMIT_TAG
     # || $CI_COMMIT_REF_NAME == "f-code-for-includes-docs"
