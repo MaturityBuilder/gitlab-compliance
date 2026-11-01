@@ -41,6 +41,24 @@ Includes filtered by type: `local`, `file`, `remote`, `template`, `component`,
 Given I have include type "component" defined
 ```
 
+### `Given I have any dynamic child pipeline defined`
+
+Jobs that use `trigger.include` (artifact-generated or static local/project/remote
+child configs). Entities expose `trigger_job`, `generator_job`, `artifact`, and
+`resolved`.
+
+```gherkin
+Given I have any dynamic child pipeline defined
+```
+
+### `Given I have dynamic child pipeline "{name}" defined`
+
+A single dynamic child by trigger job name (or entity name).
+
+```gherkin
+Given I have dynamic child pipeline "child-pipeline" defined
+```
+
 ### `Given I have any variable defined`
 
 Pipeline-level `variables:` entries.

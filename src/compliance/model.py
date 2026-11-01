@@ -106,11 +106,32 @@ def _workflow_rule_entity(
     }
 
 
+def _dynamic_child_pipeline_entity(index: int, record: dict) -> dict:
+    trigger_job = str(record.get("trigger_job") or "")
+    artifact = str(record.get("artifact") or "")
+    name = trigger_job or artifact or f"dynamic-child-{index}"
+    return {
+        "address": f"dynamic_child_pipeline.{index}",
+        "type": "dynamic_child_pipeline",
+        "name": name,
+        "trigger_job": trigger_job,
+        "generator_job": str(record.get("generator_job") or ""),
+        "artifact": artifact,
+        "resolved": bool(record.get("resolved")),
+        "include_type": str(record.get("include_type") or "artifact"),
+        "values": dict(record),
+        "source_file": str(record.get("source_file") or ""),
+        "line": int(record.get("line") or 0),
+    }
+
+
 def load_yaml_entities(
     pipeline_file: str,
     include_nested: bool = True,
     max_include_depth: int | None = None,
     resolve_external_includes: bool | None = None,
+    resolve_generated: bool = True,
+    generated_configs: tuple[str, ...] | list[str] | None = None,
     gitlab_url: str | None = None,
     token: str | None = None,
 ) -> tuple[dict[str, list[dict]], list[dict]]:
@@ -125,6 +146,8 @@ def load_yaml_entities(
         include_scripts=True,
         resolve_job_composition=True,
         resolve_external_includes=resolve_external_includes,
+        resolve_generated=resolve_generated,
+        generated_configs=generated_configs,
         gitlab_url=gitlab_url,
         token=token,
     )
@@ -168,6 +191,12 @@ def load_yaml_entities(
             )
             for index, rule in enumerate(pipeline_data["workflow_rules"], 1)
         ],
+        "dynamic_child_pipelines": [
+            _dynamic_child_pipeline_entity(index, record)
+            for index, record in enumerate(
+                pipeline_data.get("dynamic_child_pipelines") or [], 1
+            )
+        ],
         "project_settings": [],
         "project_ci_variables": [],
         "group_settings": [],
@@ -201,6 +230,8 @@ def _job_values(job: dict) -> dict:
         "extends_chain",
         "unresolved_script_references",
         "script_provenance",
+        "dynamic_parent_job",
+        "generated_artifact",
     ):
         if key in job:
             values[key] = job[key]
@@ -212,6 +243,8 @@ def load_merged_job_scripts(
     include_nested: bool = True,
     max_include_depth: int | None = None,
     resolve_external_includes: bool | None = None,
+    resolve_generated: bool = True,
+    generated_configs: tuple[str, ...] | list[str] | None = None,
     gitlab_url: str | None = None,
     token: str | None = None,
 ) -> list[dict]:
@@ -224,6 +257,8 @@ def load_merged_job_scripts(
         include_scripts=True,
         resolve_job_composition=True,
         resolve_external_includes=resolve_external_includes,
+        resolve_generated=resolve_generated,
+        generated_configs=generated_configs,
         gitlab_url=gitlab_url,
         token=token,
     )
@@ -242,6 +277,8 @@ def load_pipeline_entities(
     enrich_images: bool = True,
     load_api_entities: bool = True,
     resolve_external_includes: bool | None = None,
+    resolve_generated: bool = True,
+    generated_configs: tuple[str, ...] | list[str] | None = None,
     cache: "ReleaseMetadataCache | None" = None,
 ) -> dict[str, list[dict]]:
     from src.compliance.api_config import resolve_group, resolve_project, resolve_token
@@ -252,6 +289,8 @@ def load_pipeline_entities(
         include_nested=include_nested,
         max_include_depth=max_include_depth,
         resolve_external_includes=resolve_external_includes,
+        resolve_generated=resolve_generated,
+        generated_configs=generated_configs,
         gitlab_url=gitlab_url,
         token=token,
     )

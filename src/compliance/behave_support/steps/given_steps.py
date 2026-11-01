@@ -107,6 +107,25 @@ def given_any_container_image_with_release_metadata(context):
     )
 
 
+@given("I have any dynamic child pipeline defined")
+def given_any_dynamic_child_pipeline(context):
+    _set_stash(context, context.compliance_entities.get("dynamic_child_pipelines", []))
+
+
+@given('I have dynamic child pipeline "{name}" defined')
+def given_named_dynamic_child_pipeline(context, name):
+    pipelines = [
+        item
+        for item in context.compliance_entities.get("dynamic_child_pipelines", [])
+        if item.get("name") == name or item.get("trigger_job") == name
+    ]
+    _set_stash_or_skip(
+        context,
+        pipelines,
+        skip_reason=f'No dynamic child pipeline named "{name}" found in pipeline',
+    )
+
+
 @given("I have any variable defined")
 def given_any_variable(context):
     _set_stash(context, context.compliance_entities.get("variables", []))

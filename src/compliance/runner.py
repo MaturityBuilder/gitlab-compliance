@@ -427,6 +427,8 @@ def run_compliance(
     group: str | None = None,
     strict: bool = False,
     resolve_external_includes: bool | None = None,
+    resolve_generated: bool = True,
+    generated_configs: tuple[str, ...] | list[str] | None = None,
     dry_run: bool = False,
     output_format: str = "console",
     policies_source: str | None = None,
@@ -513,6 +515,8 @@ def run_compliance(
         include_nested=include_nested,
         max_include_depth=max_include_depth,
         resolve_external_includes=resolve_external_includes,
+        resolve_generated=resolve_generated,
+        generated_configs=generated_configs,
         gitlab_url=gitlab_url,
         token=resolved_token or token,
     )
@@ -615,6 +619,8 @@ def run_compliance(
                 if resolve_external_includes is True
                 else "false" if resolve_external_includes is False else "auto"
             ),
+            "resolve_generated": "true" if resolve_generated else "false",
+            "generated_configs": ",".join(generated_configs or ()),
             "release_cache": release_cache,
             "shell_check_verbose": "true" if verbose else "false",
         }

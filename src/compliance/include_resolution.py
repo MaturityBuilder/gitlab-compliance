@@ -16,6 +16,10 @@ REASON_MESSAGES = {
     "external_resolution_disabled": "external include resolution disabled",
     "path_rejected": "local include path rejected",
     "not_found": "include file not found",
+    "generated_at_runtime": (
+        "generated CI YAML not on disk yet "
+        "(run compliance after the generator job writes the artifact)"
+    ),
 }
 
 

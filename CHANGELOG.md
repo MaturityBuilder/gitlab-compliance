@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Features
+
+* Support dynamically generated child pipeline YAML via `trigger.include`
+  artifact paths ([#89](https://github.com/MaturityBuilder/gitlab-compliance/issues/89))
+
 ## [2.6.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.5.0...v2.6.0) (2026-10-07)
 
 
