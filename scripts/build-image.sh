@@ -131,3 +131,7 @@ if [[ "${LOAD_IMAGE}" == "1" ]]; then
 else
   echo "Load with: docker load -i ${OUT_TAR}"
 fi
+
+# Ephemeral melange keys must not remain in the workspace: Trivy fs scans
+# (and similar secret scanners) treat melange.rsa as a HIGH private-key finding.
+rm -f "${ROOT}/melange.rsa" "${ROOT}/melange.rsa.pub" "${VARS_FILE}"
