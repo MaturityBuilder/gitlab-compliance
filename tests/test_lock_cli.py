@@ -373,8 +373,6 @@ def test_lock_generate_and_update_os_errors(tmp_path):
 
 
 def test_lock_fingerprint_rejects_corrupt_lock(tmp_path):
-    import json
-
     pipeline = _pipeline(tmp_path)
     lock_file = tmp_path / ".gitlab-ci.lock"
     runner = CliRunner()
