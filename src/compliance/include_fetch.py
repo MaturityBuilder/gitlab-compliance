@@ -65,6 +65,25 @@ def _gitlab_client(gitlab_url: str, token: str):
     return client
 
 
+def resolve_project_commit_sha(
+    project_path: str,
+    ref: str,
+    *,
+    gitlab_url: str,
+    token: str,
+) -> str:
+    """Resolve a project ref to a commit SHA. Empty when the API call fails."""
+    if not token or not str(project_path or "").strip():
+        return ""
+    try:
+        client = _gitlab_client(gitlab_url, token)
+        project = client.projects.get(project_path)
+        commit = project.commits.get(ref or "HEAD")
+        return str(getattr(commit, "id", "") or "")
+    except Exception:
+        return ""
+
+
 def _normalize_project_files(file_value: Any) -> list[str]:
     if file_value is None or file_value == "":
         return [".gitlab-ci.yml"]

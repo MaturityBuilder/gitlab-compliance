@@ -768,6 +768,200 @@ def script_has_unpinned_go_install(entity: dict) -> bool:
     return False
 
 
+def _split_equality_pin(token: str) -> tuple[str, str, bool]:
+    if "=" in token:
+        name, version = token.split("=", 1)
+        return name, version, bool(name and version)
+    return token, "", False
+
+
+def _split_pip_token(token: str) -> tuple[str, str, bool]:
+    pinned = _pip_package_is_pinned(token)
+    if "==" in token:
+        name, version = token.split("==", 1)
+        return name.split("[", 1)[0], version, pinned
+    if pinned and "@" in token:
+        name, version = token.split("@", 1)
+        return name.split("[", 1)[0], version, True
+    name = token.split("[", 1)[0]
+    for separator in ("==", ">=", "<=", "~=", "!=", ">", "<"):
+        name = name.split(separator, 1)[0]
+    return name, "", False
+
+
+def _split_npm_token(token: str) -> tuple[str, str, bool]:
+    pinned = _npm_package_is_pinned(token)
+    if token.startswith("@") and token.count("@") >= 2:
+        name, version = token.rsplit("@", 1)
+        return name, version if pinned else "", pinned
+    if "@" in token:
+        name, version = token.rsplit("@", 1)
+        return name, version if pinned else "", pinned
+    return token, "", False
+
+
+def _split_go_token(token: str) -> tuple[str, str, bool]:
+    if "@" not in token:
+        return token, "", False
+    name, version = token.rsplit("@", 1)
+    pinned = _at_version_is_pinned("@" + version)
+    return name, version if pinned else "", pinned
+
+
+def _split_rpm_token(token: str) -> tuple[str, str, bool]:
+    cleaned = token.strip("'\"")
+    if cleaned.startswith("/"):
+        name = cleaned.rstrip("/").rsplit("/", 1)[-1] or cleaned
+        return name, "", True
+    body = _RPM_ARCH_SUFFIX.sub("", cleaned)
+    body = re.sub(r"^\d+:", "", body)
+    match = re.search(r"-\d", body)
+    if not match:
+        return body, "", False
+    return body[: match.start()], body[match.start() + 1 :], True
+
+
+def _package_record(
+    ecosystem: str, name: str, version: str, pinned: bool
+) -> dict | None:
+    cleaned = str(name or "").strip()
+    if not cleaned or cleaned.startswith("-"):
+        return None
+    return {
+        "ecosystem": ecosystem,
+        "name": cleaned,
+        "version": str(version or ""),
+        "pinned": bool(pinned),
+        "source_file": "",
+        "line": 0,
+        "parent_job": "",
+    }
+
+
+def _packages_on_line(line: str) -> list[dict]:
+    """Return package and script-image records declared on one shell line."""
+    records: list[dict] = []
+    if _PIP.search(line):
+        tokens = _package_tokens(
+            _tokens_after_subcommand(line, _PIP),
+            flags_with_arg=_PIP_FLAGS_WITH_ARG,
+        )
+        for token in tokens:
+            name, version, pinned = _split_pip_token(token)
+            record = _package_record("pypi", name, version, pinned)
+            if record:
+                records.append(record)
+    if _APK.search(line):
+        tokens = _package_tokens(
+            _tokens_after_subcommand(line, _APK),
+            flags_with_arg=_APK_FLAGS_WITH_ARG,
+        )
+        for token in tokens:
+            name, version, pinned = _split_equality_pin(token)
+            record = _package_record("apk", name, version, pinned)
+            if record:
+                records.append(record)
+    if _APT.search(line):
+        tokens = _package_tokens(
+            _tokens_after_subcommand(line, _APT),
+            flags_with_arg=_APT_FLAGS_WITH_ARG,
+        )
+        for token in tokens:
+            name, version, pinned = _split_equality_pin(token)
+            record = _package_record("deb", name, version, pinned)
+            if record:
+                records.append(record)
+    if _YUM.search(line):
+        tokens = _package_tokens(
+            _tokens_after_subcommand(line, _YUM),
+            flags_with_arg=_YUM_FLAGS_WITH_ARG,
+        )
+        for token in tokens:
+            name, version, pinned = _split_rpm_token(token)
+            record = _package_record("rpm", name, version, pinned)
+            if record:
+                record["pinned"] = pinned
+                records.append(record)
+    if _NPM_GLOBAL.search(line):
+        tokens = _tokens_after_subcommand(line, _NPM_GLOBAL)
+        packages = [
+            token
+            for token in tokens
+            if not token.startswith("-") and token not in {"-g", "global", "add"}
+        ]
+        for token in packages:
+            name, version, pinned = _split_npm_token(token)
+            record = _package_record("npm", name, version, pinned)
+            if record:
+                records.append(record)
+    if _GO_INSTALL.search(line):
+        for token in _tokens_after_subcommand(line, _GO_INSTALL):
+            if token.startswith("-"):
+                continue
+            name, version, pinned = _split_go_token(token)
+            record = _package_record("golang", name, version, pinned)
+            if record:
+                records.append(record)
+    if _DOCKER_CMD.search(line):
+        for ref in _docker_image_refs_on_line(line):
+            record = _package_record("docker", ref, "", False)
+            if record:
+                record["pinned"] = _container_image_ref_is_pinned(ref)
+                records.append(record)
+    return records
+
+
+def _iter_script_package_lines(job: dict) -> list[tuple[str, str, int]]:
+    provenance = job.get("script_provenance") or []
+    if provenance:
+        lines: list[tuple[str, str, int]] = []
+        for item in provenance:
+            text = str(item.get("text") or "")
+            if not text.strip():
+                continue
+            lines.append(
+                (
+                    text,
+                    str(item.get("source_file") or job.get("source_file") or ""),
+                    int(item.get("source_line") or 0),
+                )
+            )
+        return lines
+
+    source_file = str(job.get("source_file") or "")
+    line_no = int(job.get("line") or 0)
+    direct_fields = ("before_script", "script", "after_script")
+    fields = (
+        direct_fields
+        if any(job.get(field) for field in direct_fields)
+        else ("effective_script",)
+    )
+    collected: list[tuple[str, str, int]] = []
+    for field in fields:
+        value = job.get(field)
+        if not value:
+            continue
+        items = value if isinstance(value, list) else [value]
+        for item in items:
+            for raw_line in str(item).splitlines() or [str(item)]:
+                if raw_line.strip():
+                    collected.append((raw_line, source_file, line_no))
+    return collected
+
+
+def extract_script_packages(job: dict) -> list[dict]:
+    """Extract install and ``docker`` image pins from one job's effective script."""
+    parent_job = str(job.get("name") or "")
+    packages: list[dict] = []
+    for text, source_file, line_no in _iter_script_package_lines(job):
+        for record in _packages_on_line(text):
+            record["parent_job"] = parent_job
+            record["source_file"] = source_file
+            record["line"] = line_no
+            packages.append(record)
+    return packages
+
+
 def script_has_unverified_git_clone(entity: dict) -> bool:
     lines = _active_lines(entity)
     for index, line in enumerate(lines):

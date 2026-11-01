@@ -59,6 +59,61 @@ def image_uses_sha256_digest(image: str) -> bool:
     return "@sha256:" in str(image or "")
 
 
+def declared_image_tag(image_ref: str) -> str:
+    """Return the tag written on *image_ref*, ignoring an implicit ``latest``."""
+    parsed = parse_container_image_ref(image_ref)
+    if not parsed:
+        return ""
+    repository_part = str(image_ref or "").split("@sha256:", 1)[0]
+    if ":" in repository_part:
+        return str(parsed.get("tag") or "")
+    if parsed.get("digest"):
+        return ""
+    return str(parsed.get("tag") or "")
+
+
+def resolve_declared_image_digest(
+    image_ref: str,
+    *,
+    gitlab_url: str | None = None,
+    token: str | None = None,
+    cache: ReleaseMetadataCache | None = None,
+) -> str:
+    """Return the registry digest of the tag written in *image_ref*.
+
+    This does not follow a newer tag. Callers that compare against the latest
+    release keep using ``latest_digest`` on the enriched entity.
+    """
+    parsed = parse_container_image_ref(image_ref)
+    if not parsed:
+        return ""
+    if parsed.get("digest"):
+        return str(parsed["digest"])
+
+    repository = parsed.get("repository") or ""
+    tag = parsed.get("tag") or "latest"
+    registry = parsed.get("registry") or ""
+    if not repository:
+        return ""
+    try:
+        if registry in {"registry-1.docker.io", "docker.io", "index.docker.io"}:
+            return _fetch_docker_hub_digest(repository, tag, cache=cache) or ""
+        if registry == _gitlab_registry_host(gitlab_url) and token:
+            return (
+                _fetch_gitlab_registry_digest(
+                    repository,
+                    tag,
+                    gitlab_url=gitlab_url,
+                    token=token,
+                    cache=cache,
+                )
+                or ""
+            )
+    except Exception:
+        return ""
+    return ""
+
+
 def _docker_auth_token(
     repository: str, cache: ReleaseMetadataCache | None = None
 ) -> str:

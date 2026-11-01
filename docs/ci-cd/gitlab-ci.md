@@ -155,6 +155,31 @@ fix-supply-chain:
     - if: $CI_PIPELINE_SOURCE == "schedule"
 ```
 
+### Pipeline SBOM
+
+Publish the components a pipeline declares (includes, images, and script
+packages) as a CycloneDX report. GitLab lists these components in the
+dependency UI. Vulnerability matching still depends on GitLab understanding
+the purl type.
+
+```yaml
+pipeline-sbom:
+  image: python:3.12
+  script:
+    - pip install gitlab-compliance
+    - gitlab-compliance sbom -p .gitlab-ci.yml
+        --project "$CI_PROJECT_PATH"
+        --resolve
+        -o gl-sbom.cdx.json
+  artifacts:
+    reports:
+      cyclonedx: gl-sbom.cdx.json
+```
+
+`--resolve` records the digest, commit SHA, or file hash of each pin as
+written. It does not upgrade versions. See
+[`sbom`](../usage/reference/sbom.md).
+
 ## Rollout
 
 Start warn-only, then enforce:
