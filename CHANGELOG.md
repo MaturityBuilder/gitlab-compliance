@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.7.0](https://github.com/MaturityBuilder/gitlab-compliance/compare/v2.6.0...v2.7.0) (2026-11-01)
+
+
+### Features
+
+* **docker:** build distroless Wolfi image with melange and apko ([#123](https://github.com/MaturityBuilder/gitlab-compliance/issues/123)) ([11d5356](https://github.com/MaturityBuilder/gitlab-compliance/commit/11d53567b78c12b98ab53c99237e142f0e1bfc0f))
+* support dynamically generated child pipeline YAML ([#89](https://github.com/MaturityBuilder/gitlab-compliance/issues/89)) ([#122](https://github.com/MaturityBuilder/gitlab-compliance/issues/122)) ([701159c](https://github.com/MaturityBuilder/gitlab-compliance/commit/701159c6509a5a32167a37bf8b9f22dd12f91cc0))
+
+
+### Bug Fixes
+
+* **ci:** repair Tests venv cache and replace archived SBOM action ([#114](https://github.com/MaturityBuilder/gitlab-compliance/issues/114)) ([193600b](https://github.com/MaturityBuilder/gitlab-compliance/commit/193600b00631301bc2a46265c89ab651d4a30b64))
+
+
+### Dependencies
+
+* combine open Dependabot bumps (setuptools, filelock, virtualenv) ([#125](https://github.com/MaturityBuilder/gitlab-compliance/issues/125)) ([5a0d0f2](https://github.com/MaturityBuilder/gitlab-compliance/commit/5a0d0f221c72a60db513f75048a9b311750e99a0))
+* **deps:** bump certifi from 2026.6.17 to 2026.10.18 ([#120](https://github.com/MaturityBuilder/gitlab-compliance/issues/120)) ([5528293](https://github.com/MaturityBuilder/gitlab-compliance/commit/5528293ae361f660ef69d28732bb18dd85c56e86))
+* **deps:** bump python-gitlab and markdownlint-cli2 ([#116](https://github.com/MaturityBuilder/gitlab-compliance/issues/116)) ([d1f2402](https://github.com/MaturityBuilder/gitlab-compliance/commit/d1f2402eb1ca838ef059adaa2153fecf711e36b8))
+* **deps:** Bump the "all-dependencies" group with 2 updates across multiple ecosystems ([#117](https://github.com/MaturityBuilder/gitlab-compliance/issues/117)) ([019c03d](https://github.com/MaturityBuilder/gitlab-compliance/commit/019c03d5528211f2b57ad3f210143d8862f710fa))
+
 ## [Unreleased]
 
 ### Features
