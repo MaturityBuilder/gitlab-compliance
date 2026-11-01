@@ -2,24 +2,28 @@ name: SBOM Generator
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
   workflow_dispatch:
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: advanced-security/sbom-generator-action@v0.0.2
-        id: sbom
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      # advanced-security/sbom-generator-action is archived (node16) and causes
+      # workflow startup_failure on current GitHub-hosted runners.
+      - name: Generate SBOM
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
-          path: ${{steps.sbom.outputs.fileName }}
-          name: "SBOM"
+          path: .
+          format: spdx-json
+          artifact-name: SBOM
+          upload-artifact: true
+          upload-release-assets: false

@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="gitlab-compliance",
-    version="2.5.0",
+    version="2.6.0",
     description="a tools that generates markdown documentation from gitlab yaml",
     license="MIT",
     packages=["gitlab-compliance"],
