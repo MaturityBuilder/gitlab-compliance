@@ -1,0 +1,93 @@
+# Builds one APK that vendors the CLI virtualenv from poetry.lock.
+# Tool image digests and the apko lockfile are the pins to update (Dependabot
+# docker ecosystem only bumps Dockerfile FROM lines).
+package:
+  name: gitlab-compliance
+  version: ${{vars.version}}
+  epoch: 0
+  description: BDD compliance testing for GitLab CI/CD — by MaturityBuilder
+  copyright:
+    - license: Apache-2.0
+  dependencies:
+    runtime:
+      - python-3.14
+
+vars:
+  version: "2.6.0"
+
+environment:
+  contents:
+    repositories:
+      - https://packages.wolfi.dev/os
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    packages:
+      - busybox
+      - ca-certificates-bundle
+      - wolfi-baselayout
+      - python-3.14
+      - py3.14-pip
+
+pipeline:
+  - name: Install locked dependencies and package into a pip-less venv
+    runs: |
+      set -euo pipefail
+
+      # --source-dir contents are copied into the melange workspace (/home/build).
+      SRC="/home/build"
+      VENV="${{targets.destdir}}/usr/share/gitlab-compliance/venv"
+      WORK="/home/build/.build/gitlab-compliance"
+      mkdir -p "${WORK}" "${{targets.destdir}}/usr/bin"
+
+      cp -a "${SRC}/pyproject.toml" \
+            "${SRC}/poetry.lock" \
+            "${SRC}/README.md" \
+            "${SRC}/setup.py" \
+            "${WORK}/"
+      cp -a "${SRC}/src" "${WORK}/"
+      cp -a "${SRC}/docs" "${WORK}/"
+
+      python3.14 -m venv --without-pip "${VENV}"
+      pip3 install --no-cache-dir poetry==2.5.1
+
+      cd "${WORK}"
+      VIRTUAL_ENV="${VENV}" \
+        PATH="${VENV}/bin:${PATH}" \
+        POETRY_VIRTUALENVS_CREATE=false \
+        POETRY_VIRTUALENVS_IN_PROJECT=false \
+        poetry install --only main --no-root --no-interaction
+
+      VIRTUAL_ENV="${VENV}" \
+        PATH="${VENV}/bin:${PATH}" \
+        POETRY_VIRTUALENVS_CREATE=false \
+        poetry build -f sdist --no-interaction
+
+      pip3 --python "${VENV}/bin/python" install \
+        --no-cache-dir --no-deps \
+        dist/gitlab_compliance-*.tar.gz
+
+      # Distroless runtime has no /usr/bin/env. Rewrite shebangs to the final
+      # install path (not ${{targets.destdir}}, which is only valid at build time).
+      RUNTIME_PYTHON="/usr/share/gitlab-compliance/venv/bin/python"
+      for script in gitlab-compliance gitlab-docs; do
+        src="${VENV}/bin/${script}"
+        if [ -f "${src}" ]; then
+          sed -i "1s|^#!.*|#!${RUNTIME_PYTHON}|" "${src}"
+          ln -sf "../share/gitlab-compliance/venv/bin/${script}" \
+            "${{targets.destdir}}/usr/bin/${script}"
+        fi
+      done
+
+test:
+  environment:
+    contents:
+      repositories:
+        - https://packages.wolfi.dev/os
+      keyring:
+        - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      packages:
+        - python-3.14
+  pipeline:
+    - runs: |
+        gitlab-compliance --help
+        gitlab-compliance --version
