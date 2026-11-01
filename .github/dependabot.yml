@@ -1,44 +1,94 @@
+# Dependabot version updates.
+#
+# Design notes (kept intentional — do not re-merge into one multi-ecosystem PR):
+# - No `docker` ecosystem: runtime image is melange/apko (see image/README.md).
+# - Ecosystems are separate so poetry.lock / Actions / hooks do not conflict in
+#   one mega-PR (that pattern produced stale DIRTY PRs such as #102).
+# - Weekly cadence + cooldown cut noise; security updates are not delayed.
+# - Pip majors land in their own grouped PR for safer review.
 version: 2
 
-multi-ecosystem-groups:
-  all-dependencies:
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
       time: "06:00"
       timezone: "Europe/London"
     open-pull-requests-limit: 5
+    rebase-strategy: "auto"
+    versioning-strategy: "increase"
     commit-message:
       prefix: "deps"
       include: "scope"
     labels:
       - "dependencies"
-
-updates:
-  - package-ecosystem: "pip"
-    directory: "/"
-    patterns: ["*"]
-    multi-ecosystem-group: "all-dependencies"
-    labels:
       - "python"
-    versioning-strategy: "increase"
+    cooldown:
+      default-days: 5
+      semver-major-days: 14
+      semver-minor-days: 5
+      semver-patch-days: 3
+    groups:
+      python-non-major:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+      python-major:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
 
   - package-ecosystem: "github-actions"
     directory: "/"
-    patterns: ["*"]
-    multi-ecosystem-group: "all-dependencies"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/London"
+    open-pull-requests-limit: 3
+    rebase-strategy: "auto"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
     labels:
+      - "dependencies"
       - "github-actions"
-
-  - package-ecosystem: "docker"
-    directory: "/"
-    patterns: ["*"]
-    multi-ecosystem-group: "all-dependencies"
-    labels:
-      - "docker"
+    cooldown:
+      default-days: 5
+      semver-major-days: 14
+      semver-minor-days: 5
+      semver-patch-days: 3
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   - package-ecosystem: "pre-commit"
     directory: "/"
-    patterns: ["*"]
-    multi-ecosystem-group: "all-dependencies"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/London"
+    open-pull-requests-limit: 3
+    rebase-strategy: "auto"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
     labels:
+      - "dependencies"
       - "pre-commit"
+    cooldown:
+      default-days: 5
+      semver-major-days: 14
+      semver-minor-days: 5
+      semver-patch-days: 3
+    groups:
+      pre-commit:
+        patterns:
+          - "*"
