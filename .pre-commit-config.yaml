@@ -21,7 +21,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/psf/black
-    rev: 26.10.0
+    rev: 26.10.1
     hooks:
       - id: black
         files: ^(src|tests)/
@@ -33,7 +33,7 @@ repos:
         files: ^(src|tests)/
 
   - repo: https://github.com/pycqa/flake8
-    rev: 7.4.1
+    rev: 7.5.0
     hooks:
       - id: flake8
         files: ^(src|tests)/
@@ -49,6 +49,6 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.23.3
+    rev: v0.24.2
     hooks:
       - id: markdownlint-cli2
